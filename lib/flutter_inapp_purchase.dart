@@ -324,7 +324,7 @@ class FlutterInappPurchase {
     } else if (_platform.isIOS) {
       return await _channel.invokeMethod('buyProduct', <String, dynamic>{
         'sku': productId,
-        'forUser': obfuscatedAccountId,
+        'forUser': obfuscatedAccountIdAndroid,
       });
     }
     throw PlatformException(
