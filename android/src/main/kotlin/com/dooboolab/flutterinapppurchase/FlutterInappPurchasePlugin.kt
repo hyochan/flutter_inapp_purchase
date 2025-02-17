@@ -96,7 +96,7 @@ class FlutterInappPurchasePlugin : FlutterPlugin, ActivityAware {
         fun getStore(): String {
            return if (!isAndroid && !isAmazon) "none" else if (isAndroid) "play_store" else "amazon"
         }
-
+ 
         // fun registerWith(registrar: Registrar) {
         //     val instance = FlutterInappPurchasePlugin()
         //     instance.onAttached(registrar.context(), registrar.messenger())
