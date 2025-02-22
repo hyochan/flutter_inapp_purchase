@@ -7,7 +7,6 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.embedding.engine.plugins.FlutterPlugin.FlutterPluginBinding
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
-import io.flutter.plugin.common.PluginRegistry.Registrar
 import android.content.pm.PackageManager.NameNotFoundException
 
 /** FlutterInappPurchasePlugin  */
@@ -94,12 +93,7 @@ class FlutterInappPurchasePlugin : FlutterPlugin, ActivityAware {
         private var isAmazon = false
 
         fun getStore(): String {
-           return if (!isAndroid && !isAmazon) "none" else if (isAndroid) "play_store" else "amazon"
-        }
-
-        fun registerWith(registrar: Registrar) {
-            val instance = FlutterInappPurchasePlugin()
-            instance.onAttached(registrar.context(), registrar.messenger())
+            return if (!isAndroid && !isAmazon) "none" else if (isAndroid) "play_store" else "amazon"
         }
 
         private fun isPackageInstalled(ctx: Context, packageName: String): Boolean {
