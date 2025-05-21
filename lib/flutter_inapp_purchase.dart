@@ -306,7 +306,7 @@ class FlutterInappPurchase {
   Future requestSubscription(
     String productId, {
     int? prorationModeAndroid,
-    String? obfuscatedAccountIdAndroid,
+    String? obfuscatedAccountId,
     String? obfuscatedProfileIdAndroid,
     String? purchaseTokenAndroid,
     int? offerTokenIndex,
@@ -316,7 +316,7 @@ class FlutterInappPurchase {
         'type': _TypeInApp.subs.name,
         'productId': productId,
         'prorationMode': prorationModeAndroid ?? -1,
-        'obfuscatedAccountId': obfuscatedAccountIdAndroid,
+        'obfuscatedAccountId': obfuscatedAccountId,
         'obfuscatedProfileId': obfuscatedProfileIdAndroid,
         'purchaseToken': purchaseTokenAndroid,
         'offerTokenIndex': offerTokenIndex,
@@ -324,6 +324,7 @@ class FlutterInappPurchase {
     } else if (_platform.isIOS) {
       return await _channel.invokeMethod('buyProduct', <String, dynamic>{
         'sku': productId,
+        'forUser': obfuscatedAccountId,
       });
     }
     throw PlatformException(
