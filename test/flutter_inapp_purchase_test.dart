@@ -1008,7 +1008,7 @@ void main() {
               arguments: <String, dynamic>{
                 'type': 'inapp',
                 'productId': productId,
-                'prorationMode': -1,
+                'replacementMode': -1,
                 'obfuscatedAccountId': null,
                 'obfuscatedProfileId': null,
                 'purchaseToken': null,
@@ -1068,7 +1068,7 @@ void main() {
               arguments: <String, dynamic>{
                 'type': 'subs',
                 'productId': productId,
-                'prorationMode': -1,
+                'replacementMode': -1,
                 'obfuscatedAccountId': null,
                 'obfuscatedProfileId': null,
                 'purchaseToken': null,

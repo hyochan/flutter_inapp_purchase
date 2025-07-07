@@ -35,6 +35,8 @@ class IAPItem {
   final List<SubscriptionOfferAndroid>? subscriptionOffersAndroid;
   final String? subscriptionPeriodAndroid;
 
+  final String? freeTrialPeriodAndroid = "default_value";
+
   final String? iconUrl;
   final String? originalJson;
   final String originalPrice;
