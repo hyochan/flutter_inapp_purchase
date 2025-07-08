@@ -556,8 +556,8 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
 
             when (prorationMode) {
                 -1 -> {} //ignore
-                ProrationMode.IMMEDIATE_AND_CHARGE_PRORATED_PRICE -> {
-                    params.setReplaceProrationMode(ProrationMode.IMMEDIATE_AND_CHARGE_PRORATED_PRICE)
+                SubscriptionUpdateParams.ReplacementMode.CHARGE_PRORATED_PRICE -> {
+                    params.setSubscriptionReplacementMode(SubscriptionUpdateParams.ReplacementMode.CHARGE_PRORATED_PRICE)
                     if (type != BillingClient.ProductType.SUBS) {
                         safeChannel.error(
                             TAG,
@@ -567,12 +567,12 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                         return
                     }
                 }
-                ProrationMode.IMMEDIATE_WITHOUT_PRORATION,
-                ProrationMode.DEFERRED,
-                ProrationMode.IMMEDIATE_WITH_TIME_PRORATION,
-                ProrationMode.IMMEDIATE_AND_CHARGE_FULL_PRICE ->
-                    params.setReplaceProrationMode(prorationMode)
-                else -> params.setReplaceProrationMode(ProrationMode.UNKNOWN_SUBSCRIPTION_UPGRADE_DOWNGRADE_POLICY)
+                SubscriptionUpdateParams.ReplacementMode.WITHOUT_PRORATION,
+                SubscriptionUpdateParams.ReplacementMode.DEFERRED,
+                SubscriptionUpdateParams.ReplacementMode.WITH_TIME_PRORATION,
+                SubscriptionUpdateParams.ReplacementMode.CHARGE_FULL_PRICE ->
+                    params.setSubscriptionReplacementMode(prorationMode)
+                else -> params.setSubscriptionReplacementMode(SubscriptionUpdateParams.ReplacementMode.UNKNOWN_REPLACEMENT_MODE)
             }
 
             if (purchaseToken != null) {
