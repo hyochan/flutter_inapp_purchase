@@ -46,8 +46,26 @@ const config: Config = {
           // Remove this to remove the "edit this page" links.
           editUrl:
             'https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/',
+          versions: {
+            current: {
+              label: '6.0 (Current)',
+              path: '',
+            },
+          },
+          lastVersion: 'current',
         },
-        blog: false,
+        blog: {
+          showReadingTime: true,
+          feedOptions: {
+            type: ['rss', 'atom'],
+            xslt: true,
+          },
+          editUrl:
+            'https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/',
+          onInlineTags: 'warn',
+          onInlineAuthors: 'warn',
+          onUntruncatedBlogPosts: 'warn',
+        },
         theme: {
           customCss: './src/css/custom.css',
         },
@@ -57,11 +75,11 @@ const config: Config = {
 
   themeConfig: {
     // Replace with your project's social card
-    image: 'img/flutter-iap-social-card.jpg',
+    image: 'img/hero.png',
     navbar: {
-      title: 'Flutter IAP',
+      title: 'flutter_inapp_purchase',
       logo: {
-        alt: 'Flutter IAP Logo',
+        alt: 'flutter_inapp_purchase Logo',
         src: 'img/logo.svg',
       },
       items: [
@@ -72,14 +90,24 @@ const config: Config = {
           label: 'Docs',
         },
         {
-          type: 'docSidebar',
-          sidebarId: 'apiSidebar',
+          type: 'docsVersionDropdown',
           position: 'left',
-          label: 'API',
+          dropdownActiveClassDisabled: true,
         },
+        {to: '/blog', label: 'Blog', position: 'left'},
         {
           href: 'https://github.com/hyochan/flutter_inapp_purchase',
           label: 'GitHub',
+          position: 'right',
+        },
+        {
+          href: 'https://pub.dev/packages/flutter_inapp_purchase',
+          label: 'Pub',
+          position: 'right',
+        },
+        {
+          href: 'https://x.com/hyochan',
+          label: 'X',
           position: 'right',
         },
       ],
@@ -92,11 +120,11 @@ const config: Config = {
           items: [
             {
               label: 'Getting Started',
-              to: '/docs/getting-started',
+              to: '/docs/getting-started/installation',
             },
             {
               label: 'API Reference',
-              to: '/docs/api/overview',
+              to: '/docs/api/',
             },
           ],
         },
@@ -108,8 +136,12 @@ const config: Config = {
               href: 'https://stackoverflow.com/questions/tagged/flutter-inapp-purchase',
             },
             {
-              label: 'Discord',
-              href: 'https://discord.gg/hyo',
+              label: 'GitHub Issues',
+              href: 'https://github.com/hyochan/flutter_inapp_purchase/issues',
+            },
+            {
+              label: 'Slack',
+              href: 'https://hyo.dev/joinSlack',
             },
           ],
         },
@@ -127,7 +159,7 @@ const config: Config = {
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} Flutter IAP. Built with Docusaurus.`,
+      copyright: `Copyright © 2025 hyochan.`,
     },
     prism: {
       theme: prismThemes.github,

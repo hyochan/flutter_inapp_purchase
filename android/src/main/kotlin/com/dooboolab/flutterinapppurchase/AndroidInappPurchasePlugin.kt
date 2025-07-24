@@ -170,6 +170,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
             "buyItemByType" -> buyProduct(call, safeChannel)
             "acknowledgePurchase" -> acknowledgePurchase(call, safeChannel)
             "consumeProduct" -> consumeProduct(call, safeChannel)
+            "consumePurchase" -> consumeProduct(call, safeChannel)
             else -> safeChannel.notImplemented()
         }
     }
@@ -298,7 +299,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
         call: MethodCall,
         safeChannel: MethodResultWrapper
     ) {
-        val token = call.argument<String>("token")
+        val token = call.argument<String>("purchaseToken")
         val params = ConsumeParams.newBuilder()
             .setPurchaseToken(token!!)
             .build()
@@ -333,7 +334,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
         call: MethodCall,
         safeChannel: MethodResultWrapper
     ) {
-        val token = call.argument<String>("token")
+        val token = call.argument<String>("purchaseToken")
         val acknowledgePurchaseParams = AcknowledgePurchaseParams.newBuilder()
             .setPurchaseToken(token!!)
             .build()

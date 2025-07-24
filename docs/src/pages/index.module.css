@@ -8,6 +8,71 @@
   text-align: center;
   position: relative;
   overflow: hidden;
+  background: linear-gradient(135deg, #f8f4ef 0%, #f0ead6 100%);
+}
+
+.heroContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.heroText {
+  flex: 1;
+  text-align: left;
+  max-width: 500px;
+}
+
+.heroSubtitle {
+  color: #2e3e5c !important;
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin-bottom: 2rem;
+  opacity: 1;
+}
+
+.heroImage {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-width: 500px;
+}
+
+.heroImg {
+  max-width: 100%;
+  height: auto;
+  max-height: 400px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.buttons {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+/* Responsive design */
+@media screen and (max-width: 1200px) {
+  .heroContent {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .heroText {
+    text-align: center;
+    max-width: none;
+  }
+  
+  .buttons {
+    justify-content: center;
+  }
 }
 
 @media screen and (max-width: 996px) {
@@ -16,8 +81,22 @@
   }
 }
 
-.buttons {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+@media screen and (max-width: 600px) {
+  .heroBanner {
+    padding: 2rem 0;
+  }
+  
+  .heroContent {
+    gap: 1rem;
+  }
+  
+  .heroImg {
+    max-height: 300px;
+  }
+}
+
+/* Dark mode subtitle styling */
+[data-theme='dark'] .heroSubtitle {
+  color: #a8b3c4 !important;
+  opacity: 1;
 }

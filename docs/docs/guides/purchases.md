@@ -5,609 +5,681 @@ title: Purchases
 
 # Purchases Guide
 
-Complete guide to implementing one-time purchases (consumable and non-consumable) in your Flutter app.
+Complete guide to implementing in-app purchases with flutter_inapp_purchase v6.0.0, covering everything from basic setup to advanced purchase handling.
 
-## Overview
+## Purchase Flow Overview
 
-One-time purchases include consumable items (like coins or power-ups) and non-consumable items (like premium features or ad removal). This guide covers the complete purchase flow from product loading to transaction completion.
+The in-app purchase flow follows a standardized pattern across iOS and Android:
 
-## Purchase Types
+1. **Initialize Connection** - Establish connection with the store
+2. **Setup Listeners** - Listen for purchase updates and errors
+3. **Load Products** - Fetch product information from the store
+4. **Request Purchase** - Initiate purchase flow
+5. **Handle Updates** - Process purchase results via streams
+6. **Verify Purchase** - Validate the purchase (server-side recommended)
+7. **Deliver Content** - Provide purchased content to user
+8. **Finish Transaction** - Complete the transaction with the store
 
-### Consumable Products
-- Can be purchased multiple times
-- Must be "consumed" after use (Android)
-- Examples: coins, gems, lives, power-ups
+## Key Concepts
 
-### Non-Consumable Products
-- Purchased once and owned permanently
-- Examples: premium features, ad removal, unlock levels
+### Purchase Types
+- **Consumable**: Can be purchased multiple times (coins, gems, lives)
+- **Non-Consumable**: Purchased once, owned forever (premium features, ad removal)
+- **Subscriptions**: Recurring purchases (covered in [Subscriptions Guide](./subscriptions.md))
 
-## Basic Setup
+### Platform Differences
+- **iOS**: Uses StoreKit 2 (iOS 15.0+) with fallback to StoreKit 1
+- **Android**: Uses Google Play Billing Client v8
+- Both platforms use the same API surface in flutter_inapp_purchase
 
-### 1. Initialize and Setup Listeners
+## Basic Purchase Flow
+
+### 1. Setup Listeners
+
+Before initializing the connection, set up listeners to handle purchase updates and errors:
 
 ```dart
+import 'dart:async';
+import 'dart:io';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 
 class PurchaseService {
   final _iap = FlutterInappPurchase.instance;
-  bool _isInitialized = false;
   
-  // Track purchase states
-  final Set<String> _ownedProducts = {};
-  StreamSubscription? _purchaseSubscription;
-  StreamSubscription? _errorSubscription;
+  StreamSubscription<PurchasedItem?>? _purchaseUpdatedSubscription;
+  StreamSubscription<PurchaseResult?>? _purchaseErrorSubscription;
   
-  Future<void> initialize() async {
-    if (_isInitialized) return;
+  void setupListeners() {
+    // Listen for successful purchases
+    _purchaseUpdatedSubscription = FlutterInappPurchase.purchaseUpdated
+        .listen((PurchasedItem? purchase) {
+      if (purchase != null) {
+        print('Purchase successful: ${purchase.productId}');
+        _handlePurchaseUpdate(purchase);
+      }
+    });
     
-    try {
-      await _iap.initConnection();
-      _isInitialized = true;
-      _setupPurchaseListeners();
-      await _loadOwnedProducts();
-    } catch (e) {
-      print('Failed to initialize IAP: $e');
-    }
+    // Listen for purchase errors
+    _purchaseErrorSubscription = FlutterInappPurchase.purchaseError
+        .listen((PurchaseResult? error) {
+      if (error != null) {
+        print('Purchase error: ${error.message}');
+        _handlePurchaseError(error);
+      }
+    });
   }
   
-  void _setupPurchaseListeners() {
-    _purchaseSubscription = FlutterInappPurchase.purchaseUpdated
-        .listen(_handlePurchaseUpdate);
-    
-    _errorSubscription = FlutterInappPurchase.purchaseError
-        .listen(_handlePurchaseError);
+  void _handlePurchaseUpdate(PurchasedItem purchase) {
+    // Process successful purchase
+    // This is where you verify and deliver content
   }
   
-  Future<void> dispose() async {
-    await _purchaseSubscription?.cancel();
-    await _errorSubscription?.cancel();
-    
-    if (_isInitialized) {
-      await _iap.endConnection();
-    }
+  void _handlePurchaseError(PurchaseResult error) {
+    // Handle purchase errors
+    // Show user-friendly error messages
+  }
+  
+  void dispose() {
+    _purchaseUpdatedSubscription?.cancel();
+    _purchaseErrorSubscription?.cancel();
   }
 }
 ```
 
-### 2. Load Products
-
-```dart
-class ProductLoader {
-  final _iap = FlutterInappPurchase.instance;
-  
-  // Define your product IDs
-  static const consumableIds = [
-    'com.example.coins_100',
-    'com.example.coins_500',
-    'com.example.power_pack',
-  ];
-  
-  static const nonConsumableIds = [
-    'com.example.remove_ads',
-    'com.example.premium_features',
-    'com.example.unlock_all',
-  ];
-  
-  List<IAPItem> _consumables = [];
-  List<IAPItem> _nonConsumables = [];
-  
-  Future<void> loadProducts() async {
-    try {
-      // Load all products
-      final allIds = [...consumableIds, ...nonConsumableIds];
-      final products = await _iap.requestProducts(skus: allIds, type: 'inapp');
-      
-      // Separate by type
-      _consumables = products.where((p) => 
-          consumableIds.contains(p.productId)).toList();
-      _nonConsumables = products.where((p) => 
-          nonConsumableIds.contains(p.productId)).toList();
-      
-      print('Loaded ${_consumables.length} consumables, '
-            '${_nonConsumables.length} non-consumables');
-            
-    } catch (e) {
-      print('Error loading products: $e');
-    }
-  }
-  
-  IAPItem? getProduct(String productId) {
-    return [..._consumables, ..._nonConsumables]
-        .firstWhere((p) => p.productId == productId, orElse: () => null);
-  }
-}
-```
-
-## Purchase Flow Implementation
-
-### Basic Purchase Method
+### 2. Initialize Connection
 
 ```dart
 class PurchaseManager {
   final _iap = FlutterInappPurchase.instance;
-  bool _isPurchasing = false;
+  bool _connected = false;
+  
+  Future<void> initialize() async {
+    try {
+      // Initialize connection to the store
+      await _iap.initConnection();
+      _connected = true;
+      print('Store connection initialized');
+      
+      // Setup listeners after connection
+      _setupListeners();
+      
+      // Check for pending purchases
+      await _checkPendingPurchases();
+      
+    } catch (e) {
+      print('Failed to initialize store connection: $e');
+      _connected = false;
+    }
+  }
+  
+  Future<void> _checkPendingPurchases() async {
+    // iOS only - check for unfinished transactions
+    if (Platform.isIOS) {
+      final pending = await _iap.getAvailableItemsIOS();
+      if (pending != null && pending.isNotEmpty) {
+        print('Found ${pending.length} pending purchases');
+        // Process pending purchases
+      }
+    }
+  }
+  
+  Future<void> disconnect() async {
+    if (_connected) {
+      await _iap.endConnection();
+      _connected = false;
+    }
+  }
+}
+```
+
+### 3. Request Purchase
+
+With the new v6.0.0 API, purchase requests use platform-specific request objects:
+
+```dart
+Future<void> requestPurchase(String productId) async {
+  try {
+    await _iap.requestPurchase(
+      request: RequestPurchase(
+        ios: RequestPurchaseIOS(
+          sku: productId,
+          // Optional: Add user account identifier for receipt validation
+          appAccountToken: 'user_id_123',
+        ),
+        android: RequestPurchaseAndroid(
+          skus: [productId],
+          // Optional: Add obfuscated account ID
+          obfuscatedAccountIdAndroid: 'user_id_123',
+        ),
+      ),
+      type: PurchaseType.inapp,
+    );
+    // Purchase result will be delivered via purchaseUpdated stream
+  } catch (e) {
+    print('Purchase request failed: $e');
+  }
+}
+```
+
+## New Platform-Specific API (v6.0.0+)
+
+Version 6.0.0 introduces platform-specific request objects for better type safety and platform-specific features:
+
+### iOS Request Purchase
+
+```dart
+// iOS-specific purchase request
+await _iap.requestPurchase(
+  request: RequestPurchase(
+    ios: RequestPurchaseIOS(
+      sku: 'product_id',
+      // New in v6: App Account Token for receipt validation
+      appAccountToken: 'user_unique_identifier',
+      // Quantity (for consumables)
+      quantity: 1,
+      // Enable promotional offers
+      requestPromotionalOffer: true,
+    ),
+  ),
+  type: PurchaseType.inapp,
+);
+```
+
+### Android Request Purchase
+
+```dart
+// Android-specific purchase request
+await _iap.requestPurchase(
+  request: RequestPurchase(
+    android: RequestPurchaseAndroid(
+      skus: ['product_id'],
+      // Obfuscated account ID for purchase tracking
+      obfuscatedAccountIdAndroid: 'hashed_user_id',
+      // Profile ID for multi-user support
+      obfuscatedProfileIdAndroid: 'profile_id',
+      // Purchase token for replacing subscriptions
+      purchaseToken: 'existing_purchase_token',
+    ),
+  ),
+  type: PurchaseType.inapp,
+);
+```
+
+## Legacy API (Still Supported)
+
+For backward compatibility, the simple string-based API is still available:
+
+```dart
+// Legacy API - still works but less flexible
+await _iap.requestPurchase('product_id');
+```
+
+## Subscription APIs
+
+For subscription purchases, use `PurchaseType.subs`:
+
+```dart
+await _iap.requestPurchase(
+  request: RequestPurchase(
+    ios: RequestPurchaseIOS(
+      sku: 'subscription_id',
+      appAccountToken: 'user_id',
+    ),
+  ),
+  type: PurchaseType.subs, // Important: Use subs type
+);
+```
+
+For detailed subscription handling, see the [Subscriptions Guide](./subscriptions.md).
+
+## Purchase Flow Best Practices
+
+### Complete Purchase Implementation
+
+```dart
+class CompletePurchaseService {
+  final _iap = FlutterInappPurchase.instance;
+  final Set<String> _processingPurchases = {};
+  final Set<String> _ownedNonConsumables = {};
+  
+  // Product definitions
+  static const consumableProducts = [
+    'com.example.coins_100',
+    'com.example.coins_500',
+    'com.example.power_boost',
+  ];
+  
+  static const nonConsumableProducts = [
+    'com.example.remove_ads',
+    'com.example.premium_unlock',
+    'com.example.vip_features',
+  ];
   
   Future<void> purchaseProduct(String productId) async {
-    // Prevent double purchases
-    if (_isPurchasing) {
-      print('Purchase already in progress');
+    // 1. Prevent duplicate purchases
+    if (_processingPurchases.contains(productId)) {
+      print('Purchase already in progress for $productId');
       return;
     }
     
-    _isPurchasing = true;
+    // 2. Check ownership for non-consumables
+    if (isNonConsumable(productId) && _ownedNonConsumables.contains(productId)) {
+      _showMessage('You already own this item');
+      return;
+    }
+    
+    // 3. Mark as processing
+    _processingPurchases.add(productId);
     
     try {
-      // Check if user already owns non-consumable
-      if (_isNonConsumable(productId) && _ownsProduct(productId)) {
-        _showMessage('You already own this item');
-        return;
-      }
+      // 4. Get user identifier for tracking
+      final userId = await _getUserIdentifier();
       
-      // Initiate purchase
+      // 5. Request purchase with platform-specific parameters
       await _iap.requestPurchase(
         request: RequestPurchase(
           ios: RequestPurchaseIOS(
             sku: productId,
-            appAccountToken: await _getUserId(),
+            appAccountToken: userId,
+            quantity: 1,
           ),
           android: RequestPurchaseAndroid(
             skus: [productId],
-            obfuscatedAccountIdAndroid: await _getUserId(),
+            obfuscatedAccountIdAndroid: _hashUserId(userId),
           ),
         ),
         type: PurchaseType.inapp,
       );
       
-      // Purchase result will come through purchaseUpdated stream
+      // 6. Purchase result will be delivered via stream
+      print('Purchase request sent for $productId');
       
     } catch (e) {
-      print('Purchase failed: $e');
-      _handlePurchaseError(e);
+      print('Purchase request failed: $e');
+      _handlePurchaseRequestError(e);
     } finally {
-      _isPurchasing = false;
+      // 7. Remove from processing
+      _processingPurchases.remove(productId);
     }
   }
   
-  bool _isNonConsumable(String productId) {
-    return ProductLoader.nonConsumableIds.contains(productId);
+  bool isConsumable(String? productId) =>
+      consumableProducts.contains(productId);
+  
+  bool isNonConsumable(String? productId) =>
+      nonConsumableProducts.contains(productId);
+  
+  String _hashUserId(String userId) {
+    // Simple hash for demo - use proper hashing in production
+    return userId.hashCode.toString();
+  }
+}
+```
+
+## Pending Purchases
+
+### Handling Pending Transactions
+
+Pending purchases occur when:
+- Payment is delayed (e.g., waiting for parental approval)
+- Network issues during purchase
+- App crashes during transaction
+
+```dart
+class PendingPurchaseHandler {
+  final _iap = FlutterInappPurchase.instance;
+  
+  Future<void> checkPendingPurchases() async {
+    if (Platform.isIOS) {
+      // iOS: Get unfinished transactions
+      final pending = await _iap.getAvailableItemsIOS();
+      
+      if (pending != null && pending.isNotEmpty) {
+        print('Found ${pending.length} pending purchases');
+        
+        for (final purchase in pending) {
+          // Process each pending purchase
+          await _processPendingPurchase(purchase);
+        }
+      }
+    } else if (Platform.isAndroid) {
+      // Android: Pending purchases come through purchaseUpdated stream
+      // with purchaseState = 2 (pending)
+    }
   }
   
-  bool _ownsProduct(String productId) {
+  Future<void> _processPendingPurchase(PurchasedItem purchase) async {
+    print('Processing pending purchase: ${purchase.productId}');
+    
+    // Check purchase state
+    if (purchase.purchaseStateAndroid == 2) {
+      // Android: Pending state
+      print('Purchase is pending payment');
+      _showPendingMessage();
+    } else {
+      // Complete the purchase flow
+      await _handlePurchaseUpdate(purchase);
+    }
+  }
+}
+```
+
+## Getting Product Information
+
+### Loading and Displaying Products
+
+```dart
+class ProductService {
+  final _iap = FlutterInappPurchase.instance;
+  List<IAPItem> _products = [];
+  List<IAPItem> _subscriptions = [];
+  
+  Future<List<IAPItem>> loadProducts(List<String> productIds) async {
+    try {
+      // Load in-app products
+      _products = await _iap.getProducts(productIds);
+      
+      print('Loaded ${_products.length} products');
+      
+      // Sort by price (optional)
+      _products.sort((a, b) => 
+        (a.priceNumber ?? 0).compareTo(b.priceNumber ?? 0));
+      
+      return _products;
+    } catch (e) {
+      print('Failed to load products: $e');
+      return [];
+    }
+  }
+  
+  Future<List<IAPItem>> loadSubscriptions(List<String> subscriptionIds) async {
+    try {
+      // Load subscription products
+      _subscriptions = await _iap.getSubscriptions(subscriptionIds);
+      
+      print('Loaded ${_subscriptions.length} subscriptions');
+      return _subscriptions;
+    } catch (e) {
+      print('Failed to load subscriptions: $e');
+      return [];
+    }
+  }
+  
+  // Get product by ID
+  IAPItem? getProduct(String productId) {
+    return [..._products, ..._subscriptions]
+        .firstWhere((p) => p.productId == productId, 
+                   orElse: () => throw Exception('Product not found'));
+  }
+}
+```
+
+### Product Information Available
+
+```dart
+// IAPItem properties available after loading:
+class ProductInfo {
+  void displayProduct(IAPItem product) {
+    print('Product ID: ${product.productId}');
+    print('Title: ${product.title}');
+    print('Description: ${product.description}');
+    print('Price: ${product.localizedPrice}'); // e.g., "$0.99"
+    print('Price Number: ${product.priceNumber}'); // e.g., 0.99
+    print('Currency: ${product.currency}'); // e.g., "USD"
+    print('Currency Symbol: ${product.currencySymbol}'); // e.g., "$"
+    
+    // iOS specific
+    if (Platform.isIOS) {
+      print('Is downloadable: ${product.isDownloadable}');
+      print('Download content version: ${product.downloadContentVersion}');
+    }
+    
+    // Android specific
+    if (Platform.isAndroid) {
+      print('Original JSON: ${product.originalJson}');
+      print('Signature: ${product.signatureAndroid}');
+    }
+  }
+}
+```
+
+## Product Types
+
+### Consumable Products
+
+Consumable products can be purchased multiple times and are "consumed" after use:
+
+```dart
+class ConsumableHandler {
+  // Common consumable products
+  static const consumables = {
+    'coins_100': {'type': 'currency', 'amount': 100},
+    'coins_500': {'type': 'currency', 'amount': 500},
+    'coins_1000': {'type': 'currency', 'amount': 1000},
+    'energy_refill': {'type': 'energy', 'amount': 'full'},
+    'hint_pack_5': {'type': 'hints', 'amount': 5},
+    'power_boost': {'type': 'boost', 'duration': 3600}, // 1 hour
+  };
+  
+  Future<void> deliverConsumable(String productId) async {
+    final product = consumables[productId];
+    if (product == null) return;
+    
+    switch (product['type']) {
+      case 'currency':
+        await _addCurrency(product['amount'] as int);
+        break;
+      case 'energy':
+        await _refillEnergy();
+        break;
+      case 'hints':
+        await _addHints(product['amount'] as int);
+        break;
+      case 'boost':
+        await _activateBoost(product['duration'] as int);
+        break;
+    }
+  }
+  
+  Future<void> _addCurrency(int amount) async {
+    final currentCoins = await _getCoins();
+    await _saveCoins(currentCoins + amount);
+    print('Added $amount coins');
+  }
+}
+```
+
+### Non-Consumable Products
+
+Non-consumable products are purchased once and owned forever:
+
+```dart
+class NonConsumableHandler {
+  // Common non-consumable products
+  static const nonConsumables = {
+    'remove_ads': 'ads_removed',
+    'premium_unlock': 'premium_features',
+    'all_levels': 'all_levels_unlocked',
+    'pro_tools': 'pro_tools_enabled',
+    'theme_pack': 'additional_themes',
+  };
+  
+  final Set<String> _ownedProducts = {};
+  
+  Future<void> deliverNonConsumable(String productId) async {
+    // Add to owned products
+    _ownedProducts.add(productId);
+    await _saveOwnedProducts();
+    
+    // Enable features
+    final feature = nonConsumables[productId];
+    if (feature != null) {
+      await _enableFeature(feature);
+    }
+  }
+  
+  Future<void> _enableFeature(String feature) async {
+    switch (feature) {
+      case 'ads_removed':
+        await _disableAds();
+        break;
+      case 'premium_features':
+        await _unlockPremiumFeatures();
+        break;
+      case 'all_levels_unlocked':
+        await _unlockAllLevels();
+        break;
+      // Add more features as needed
+    }
+  }
+  
+  bool ownsProduct(String productId) {
     return _ownedProducts.contains(productId);
   }
 }
 ```
 
-### Handle Purchase Updates
+### Subscriptions
+
+Subscriptions are recurring purchases with expiration dates:
 
 ```dart
-void _handlePurchaseUpdate(PurchasedItem? item) async {
-  if (item == null) return;
+class SubscriptionHandler {
+  // Common subscription tiers
+  static const subscriptions = {
+    'monthly_basic': {'duration': 'P1M', 'tier': 'basic'},
+    'monthly_premium': {'duration': 'P1M', 'tier': 'premium'},
+    'yearly_basic': {'duration': 'P1Y', 'tier': 'basic'},
+    'yearly_premium': {'duration': 'P1Y', 'tier': 'premium'},
+  };
   
-  print('Purchase update: ${item.productId}');
-  
-  try {
-    // Verify the purchase
-    if (!await _verifyPurchase(item)) {
-      print('Purchase verification failed');
-      return;
+  Future<bool> isSubscriptionActive(String productId) async {
+    if (Platform.isIOS) {
+      // Check receipt for active subscription
+      final purchases = await _iap.getAvailableItemsIOS();
+      return purchases?.any((p) => p.productId == productId) ?? false;
+    } else {
+      // Android: Check purchase state and expiry
+      // Implementation depends on your backend
+      return false;
     }
-    
-    // Deliver the content
-    await _deliverContent(item);
-    
-    // Finish the transaction
-    await _finishTransaction(item);
-    
-    // Update UI
-    _notifyPurchaseComplete(item.productId!);
-    
-  } catch (e) {
-    print('Error processing purchase: $e');
-    // Don't finish transaction if processing failed
-  }
-}
-
-Future<bool> _verifyPurchase(PurchasedItem item) async {
-  // Always verify purchases, preferably server-side
-  try {
-    if (Platform.isIOS && item.transactionReceipt != null) {
-      return await _verifyIOSReceipt(item.transactionReceipt!);
-    } else if (Platform.isAndroid && item.purchaseToken != null) {
-      return await _verifyAndroidReceipt(item);
-    }
-    return false;
-  } catch (e) {
-    print('Verification error: $e');
-    return false;
-  }
-}
-
-Future<void> _deliverContent(PurchasedItem item) async {
-  final productId = item.productId!;
-  
-  if (_isConsumable(productId)) {
-    await _deliverConsumable(productId);
-  } else {
-    await _deliverNonConsumable(productId);
-  }
-}
-
-Future<void> _deliverConsumable(String productId) async {
-  switch (productId) {
-    case 'com.example.coins_100':
-      await _addCoins(100);
-      break;
-    case 'com.example.coins_500':
-      await _addCoins(500);
-      break;
-    case 'com.example.power_pack':
-      await _addPowerUps();
-      break;
-  }
-}
-
-Future<void> _deliverNonConsumable(String productId) async {
-  // Add to owned products
-  _ownedProducts.add(productId);
-  await _saveOwnedProducts();
-  
-  switch (productId) {
-    case 'com.example.remove_ads':
-      await _removeAds();
-      break;
-    case 'com.example.premium_features':
-      await _unlockPremiumFeatures();
-      break;
-    case 'com.example.unlock_all':
-      await _unlockAllContent();
-      break;
-  }
-}
-
-Future<void> _finishTransaction(PurchasedItem item) async {
-  await _iap.finishTransactionIOS(
-    item,
-    isConsumable: _isConsumable(item.productId),
-  );
-  
-  print('Transaction finished: ${item.productId}');
-}
-```
-
-### Handle Purchase Errors
-
-```dart
-void _handlePurchaseError(PurchaseResult? error) {
-  if (error == null) return;
-  
-  print('Purchase error: ${error.message}');
-  
-  String userMessage;
-  bool shouldRetry = false;
-  
-  switch (error.responseCode) {
-    case 1: // User cancelled
-      userMessage = 'Purchase cancelled';
-      break;
-    case 2: // Service unavailable
-      userMessage = 'Store service unavailable. Please try again.';
-      shouldRetry = true;
-      break;
-    case 3: // Billing unavailable
-      userMessage = 'Billing is not available on this device';
-      break;
-    case 4: // Item unavailable
-      userMessage = 'This item is not available';
-      break;
-    case 7: // Item already owned
-      userMessage = 'You already own this item';
-      _handleAlreadyOwned(error);
-      break;
-    default:
-      userMessage = 'Purchase failed. Please try again.';
-      shouldRetry = true;
-  }
-  
-  _showErrorDialog(userMessage, shouldRetry);
-}
-
-void _handleAlreadyOwned(PurchaseResult error) {
-  // For already owned items, try to restore
-  _restorePurchases();
-}
-```
-
-## Product Display UI
-
-### Product Grid Widget
-
-```dart
-class ProductGrid extends StatelessWidget {
-  final List<IAPItem> products;
-  final Function(String) onPurchase;
-  final Set<String> ownedProducts;
-  
-  const ProductGrid({
-    Key? key,
-    required this.products,
-    required this.onPurchase,
-    required this.ownedProducts,
-  }) : super(key: key);
-  
-  @override
-  Widget build(BuildContext context) {
-    return GridView.builder(
-      padding: EdgeInsets.all(16),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.8,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-      ),
-      itemCount: products.length,
-      itemBuilder: (context, index) {
-        final product = products[index];
-        final isOwned = ownedProducts.contains(product.productId);
-        
-        return ProductCard(
-          product: product,
-          isOwned: isOwned,
-          onPurchase: () => onPurchase(product.productId!),
-        );
-      },
-    );
   }
 }
 ```
 
-### Product Card Widget
+## Advanced Purchase Handling
+
+### Complete Purchase Update Handler
 
 ```dart
-class ProductCard extends StatelessWidget {
-  final IAPItem product;
-  final bool isOwned;
-  final VoidCallback onPurchase;
-  
-  const ProductCard({
-    Key? key,
-    required this.product,
-    required this.isOwned,
-    required this.onPurchase,
-  }) : super(key: key);
-  
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 4,
-      child: Padding(
-        padding: EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Product icon
-            Container(
-              height: 60,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade200,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                _getProductIcon(),
-                size: 32,
-                color: Colors.grey.shade600,
-              ),
-            ),
-            
-            SizedBox(height: 12),
-            
-            // Product title
-            Text(
-              product.title ?? 'Product',
-              style: Theme.of(context).textTheme.titleMedium,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            
-            SizedBox(height: 4),
-            
-            // Product description
-            Expanded(
-              child: Text(
-                product.description ?? '',
-                style: Theme.of(context).textTheme.bodySmall,
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            
-            SizedBox(height: 12),
-            
-            // Purchase button
-            SizedBox(
-              width: double.infinity,
-              child: _buildPurchaseButton(context),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-  
-  Widget _buildPurchaseButton(BuildContext context) {
-    if (isOwned) {
-      return ElevatedButton(
-        onPressed: null,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.green,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.check, size: 16),
-            SizedBox(width: 4),
-            Text('Owned'),
-          ],
-        ),
-      );
-    }
-    
-    return ElevatedButton(
-      onPressed: onPurchase,
-      child: Text(product.localizedPrice ?? 'Buy'),
-    );
-  }
-  
-  IconData _getProductIcon() {
-    final productId = product.productId ?? '';
-    
-    if (productId.contains('coins')) return Icons.monetization_on;
-    if (productId.contains('remove_ads')) return Icons.block;
-    if (productId.contains('premium')) return Icons.star;
-    if (productId.contains('power')) return Icons.flash_on;
-    
-    return Icons.shopping_cart;
-  }
-}
-```
-
-## Purchase Restoration
-
-### Restore Purchases Method
-
-```dart
-class PurchaseRestorer {
+class PurchaseUpdateHandler {
   final _iap = FlutterInappPurchase.instance;
+  final _verificationService = PurchaseVerificationService();
+  final _contentDelivery = ContentDeliveryService();
   
-  Future<void> restorePurchases() async {
+  Future<void> handlePurchaseUpdate(PurchasedItem purchase) async {
+    print('Processing purchase: ${purchase.productId}');
+    
     try {
-      // Show loading
-      _showRestoreDialog();
-      
-      // Get available purchases
-      final purchases = await _iap.getAvailablePurchases();
-      
-      int restoredCount = 0;
-      
-      for (var purchase in purchases) {
-        // Only restore non-consumables
-        if (_isNonConsumable(purchase.productId)) {
-          if (!_ownedProducts.contains(purchase.productId)) {
-            // Verify and restore
-            if (await _verifyPurchase(purchase)) {
-              await _deliverNonConsumable(purchase.productId);
-              restoredCount++;
-            }
-          }
-        }
+      // 1. Check if already processed (prevent duplicates)
+      if (await _isAlreadyProcessed(purchase)) {
+        print('Purchase already processed');
+        await _finishTransaction(purchase);
+        return;
       }
       
-      _hideRestoreDialog();
-      
-      if (restoredCount > 0) {
-        _showMessage('Restored $restoredCount purchases');
-      } else {
-        _showMessage('No purchases to restore');
+      // 2. Verify the purchase
+      final isValid = await _verifyPurchase(purchase);
+      if (!isValid) {
+        print('Invalid purchase detected');
+        // Don't finish transaction for invalid purchases
+        return;
       }
+      
+      // 3. Deliver content
+      await _deliverContent(purchase);
+      
+      // 4. Record the transaction
+      await _recordTransaction(purchase);
+      
+      // 5. Finish the transaction
+      await _finishTransaction(purchase);
+      
+      // 6. Update UI
+      _notifyPurchaseSuccess(purchase);
       
     } catch (e) {
-      _hideRestoreDialog();
-      _showMessage('Failed to restore purchases');
-      print('Restore error: $e');
+      print('Error processing purchase: $e');
+      // Don't finish transaction on error
+      // User can retry or restore purchases
     }
   }
-}
-```
-
-## Advanced Features
-
-### Purchase Queue Management
-
-```dart
-class PurchaseQueue {
-  final Queue<String> _pendingPurchases = Queue();
-  bool _processing = false;
   
-  void addToPurchaseQueue(String productId) {
-    _pendingPurchases.add(productId);
-    _processPurchaseQueue();
-  }
-  
-  Future<void> _processPurchaseQueue() async {
-    if (_processing || _pendingPurchases.isEmpty) return;
-    
-    _processing = true;
-    
-    try {
-      while (_pendingPurchases.isNotEmpty) {
-        final productId = _pendingPurchases.removeFirst();
-        await _purchaseProduct(productId);
-        
-        // Wait between purchases
-        await Future.delayed(Duration(seconds: 1));
-      }
-    } finally {
-      _processing = false;
+  Future<bool> _verifyPurchase(PurchasedItem purchase) async {
+    if (Platform.isIOS) {
+      return await _verifyIOSPurchase(purchase);
+    } else {
+      return await _verifyAndroidPurchase(purchase);
     }
   }
+  
+  Future<bool> _verifyIOSPurchase(PurchasedItem purchase) async {
+    if (purchase.transactionReceipt == null) return false;
+    
+    // Send receipt to your server for validation
+    return await _verificationService.verifyIOSReceipt(
+      receipt: purchase.transactionReceipt!,
+      productId: purchase.productId!,
+      transactionId: purchase.transactionId!,
+    );
+  }
+  
+  Future<bool> _verifyAndroidPurchase(PurchasedItem purchase) async {
+    if (purchase.purchaseToken == null) return false;
+    
+    // Verify with Google Play
+    return await _verificationService.verifyAndroidPurchase(
+      purchaseToken: purchase.purchaseToken!,
+      productId: purchase.productId!,
+      packageName: purchase.dataAndroid?['packageName'],
+    );
+  }
+  
+  Future<void> _finishTransaction(PurchasedItem purchase) async {
+    final isConsumable = ConsumableHandler.consumables
+        .containsKey(purchase.productId);
+    
+    await _iap.finishTransactionIOS(
+      purchase,
+      isConsumable: isConsumable,
+    );
+  }
 }
 ```
 
-### Purchase Analytics
+### Purchase Verification Service
 
 ```dart
-class PurchaseAnalytics {
-  static void trackPurchaseAttempt(String productId) {
-    // Track purchase attempt
-    analytics.logEvent('purchase_attempt', parameters: {
-      'product_id': productId,
-      'timestamp': DateTime.now().millisecondsSinceEpoch,
-    });
-  }
+class PurchaseVerificationService {
+  final String _serverUrl = 'https://api.example.com';
   
-  static void trackPurchaseSuccess(String productId, String price) {
-    // Track successful purchase
-    analytics.logEvent('purchase_success', parameters: {
-      'product_id': productId,
-      'price': price,
-      'currency': 'USD', // Get from product
-    });
-  }
-  
-  static void trackPurchaseFailure(String productId, String error) {
-    // Track purchase failure
-    analytics.logEvent('purchase_failure', parameters: {
-      'product_id': productId,
-      'error': error,
-    });
-  }
-}
-```
-
-### Purchase Validation with Backend
-
-```dart
-class PurchaseValidator {
-  static Future<bool> validateWithServer(PurchasedItem purchase) async {
+  Future<bool> verifyIOSReceipt({
+    required String receipt,
+    required String productId,
+    required String transactionId,
+  }) async {
     try {
       final response = await http.post(
-        Uri.parse('${Config.serverUrl}/validate-purchase'),
+        Uri.parse('$_serverUrl/verify-ios'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${await AuthService.getToken()}',
+          'Authorization': 'Bearer ${await _getAuthToken()}',
         },
         body: json.encode({
-          'platform': Platform.isIOS ? 'ios' : 'android',
-          'productId': purchase.productId,
-          'transactionId': purchase.transactionId,
-          'receipt': Platform.isIOS 
-              ? purchase.transactionReceipt 
-              : purchase.dataAndroid,
-          'signature': Platform.isAndroid 
-              ? purchase.signatureAndroid 
-              : null,
+          'receipt': receipt,
+          'productId': productId,
+          'transactionId': transactionId,
+          'sandbox': kDebugMode, // Use sandbox in debug mode
         }),
       );
       
@@ -615,103 +687,474 @@ class PurchaseValidator {
         final data = json.decode(response.body);
         return data['valid'] == true;
       }
-      
       return false;
     } catch (e) {
-      print('Server validation error: $e');
+      print('Receipt verification failed: $e');
+      return false;
+    }
+  }
+  
+  Future<bool> verifyAndroidPurchase({
+    required String purchaseToken,
+    required String productId,
+    String? packageName,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_serverUrl/verify-android'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${await _getAuthToken()}',
+        },
+        body: json.encode({
+          'purchaseToken': purchaseToken,
+          'productId': productId,
+          'packageName': packageName ?? await _getPackageName(),
+        }),
+      );
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['valid'] == true;
+      }
+      return false;
+    } catch (e) {
+      print('Purchase verification failed: $e');
       return false;
     }
   }
 }
+```
+
+### Transaction Management
+
+```dart
+class TransactionManager {
+  final Set<String> _processedTransactions = {};
+  final _storage = TransactionStorage();
+  
+  Future<bool> isTransactionProcessed(String transactionId) async {
+    // Check memory cache first
+    if (_processedTransactions.contains(transactionId)) {
+      return true;
+    }
+    
+    // Check persistent storage
+    return await _storage.hasTransaction(transactionId);
+  }
+  
+  Future<void> markTransactionProcessed(
+    PurchasedItem purchase,
+  ) async {
+    final transactionId = purchase.transactionId;
+    if (transactionId == null) return;
+    
+    // Add to memory cache
+    _processedTransactions.add(transactionId);
+    
+    // Save to persistent storage
+    await _storage.saveTransaction(
+      transactionId: transactionId,
+      productId: purchase.productId!,
+      purchaseDate: DateTime.fromMillisecondsSinceEpoch(
+        purchase.transactionDate ?? 0,
+      ),
+      platform: Platform.isIOS ? 'ios' : 'android',
+    );
+  }
+  
+  Future<void> cleanupOldTransactions() async {
+    // Remove transactions older than 90 days
+    final cutoffDate = DateTime.now().subtract(Duration(days: 90));
+    await _storage.deleteTransactionsBefore(cutoffDate);
+  }
+}
+```
+
+## Error Handling
+
+### Comprehensive Error Handler
+
+```dart
+class PurchaseErrorHandler {
+  void handlePurchaseError(PurchaseResult? error) {
+    if (error == null) return;
+    
+    print('Purchase error: ${error.code} - ${error.message}');
+    
+    // Map error codes to user-friendly messages
+    String userMessage;
+    bool isRecoverable = false;
+    
+    switch (error.code) {
+      case ErrorCode.eUserCancelled:
+        userMessage = 'Purchase cancelled';
+        isRecoverable = false;
+        break;
+        
+      case ErrorCode.eNetworkError:
+        userMessage = 'Network error. Please check your connection and try again.';
+        isRecoverable = true;
+        break;
+        
+      case ErrorCode.eItemUnavailable:
+        userMessage = 'This item is currently unavailable.';
+        isRecoverable = false;
+        break;
+        
+      case ErrorCode.eAlreadyOwned:
+        userMessage = 'You already own this item. Try restoring purchases.';
+        isRecoverable = false;
+        _suggestRestore();
+        break;
+        
+      case ErrorCode.eServiceDisconnected:
+        userMessage = 'Store service disconnected. Please restart the app.';
+        isRecoverable = true;
+        break;
+        
+      case ErrorCode.eDeveloperError:
+        userMessage = 'Configuration error. Please contact support.';
+        isRecoverable = false;
+        _logDeveloperError(error);
+        break;
+        
+      case ErrorCode.eServiceUnavailable:
+        userMessage = 'Store service is temporarily unavailable.';
+        isRecoverable = true;
+        break;
+        
+      case ErrorCode.eBillingUnavailable:
+        userMessage = 'Billing is not available on this device.';
+        isRecoverable = false;
+        break;
+        
+      case ErrorCode.eServiceTimeout:
+        userMessage = 'Request timed out. Please try again.';
+        isRecoverable = true;
+        break;
+        
+      case ErrorCode.eFeatureNotSupported:
+        userMessage = 'This feature is not supported on your device.';
+        isRecoverable = false;
+        break;
+        
+      default:
+        userMessage = 'Purchase failed. Please try again later.';
+        isRecoverable = true;
+    }
+    
+    _showErrorDialog(
+      title: 'Purchase Error',
+      message: userMessage,
+      isRecoverable: isRecoverable,
+      onRetry: isRecoverable ? () => _retryLastPurchase() : null,
+    );
+  }
+  
+  void _showErrorDialog({
+    required String title,
+    required String message,
+    required bool isRecoverable,
+    VoidCallback? onRetry,
+  }) {
+    // Show error dialog to user
+    showDialog(
+      context: _context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('OK'),
+          ),
+          if (isRecoverable && onRetry != null)
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                onRetry();
+              },
+              child: Text('Retry'),
+            ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+### Platform-Specific Error Codes
+
+```dart
+// Android-specific error handling
+if (Platform.isAndroid) {
+  switch (error.responseCode) {
+    case BillingResponse.SERVICE_TIMEOUT:
+    case BillingResponse.SERVICE_DISCONNECTED:
+    case BillingResponse.SERVICE_UNAVAILABLE:
+      // Retry logic for transient errors
+      _scheduleRetry();
+      break;
+    case BillingResponse.BILLING_UNAVAILABLE:
+    case BillingResponse.FEATURE_NOT_SUPPORTED:
+      // Permanent errors - don't retry
+      _disablePurchaseFeature();
+      break;
+  }
+}
+
+// iOS-specific error handling
+if (Platform.isIOS) {
+  // Check for specific StoreKit errors
+  if (error.message?.contains('SKErrorDomain') ?? false) {
+    // Handle StoreKit specific errors
+  }
+}
+```
 ```
 
 ## Testing Purchases
 
-### Test Environment Setup
+### Test Configuration
 
 ```dart
-class PurchaseTesting {
-  static const testProductIds = [
-    'android.test.purchased',
-    'android.test.canceled',
-    'android.test.refunded',
-    'android.test.item_unavailable',
-  ];
+class PurchaseTestConfig {
+  static bool get isTestMode => kDebugMode;
   
-  static bool get isTestMode {
-    return kDebugMode || _isTestEnvironment;
+  // Test product IDs for different scenarios
+  static const testProducts = {
+    // Android test products
+    'android.test.purchased': 'Always succeeds',
+    'android.test.canceled': 'Always cancelled by user',
+    'android.test.refunded': 'Always refunded',
+    'android.test.item_unavailable': 'Always unavailable',
+    
+    // iOS sandbox products (configure in App Store Connect)
+    'com.example.test_consumable': 'Test consumable',
+    'com.example.test_nonconsumable': 'Test non-consumable',
+    'com.example.test_subscription': 'Test subscription',
+  };
+  
+  static List<String> getTestProductIds() {
+    if (Platform.isAndroid && isTestMode) {
+      return testProducts.keys.where((id) => id.startsWith('android.test')).toList();
+    }
+    return [];
+  }
+}
+```
+
+### Testing Different Scenarios
+
+```dart
+class PurchaseTestScenarios {
+  final _iap = FlutterInappPurchase.instance;
+  
+  // Test successful purchase
+  Future<void> testSuccessfulPurchase() async {
+    if (Platform.isAndroid) {
+      await _iap.requestPurchase(
+        request: RequestPurchase(
+          android: RequestPurchaseAndroid(
+            skus: ['android.test.purchased'],
+          ),
+        ),
+        type: PurchaseType.inapp,
+      );
+    }
   }
   
-  static Future<void> setupTestEnvironment() async {
-    if (isTestMode) {
-      // Use test product IDs
-      await _loadTestProducts();
+  // Test cancelled purchase
+  Future<void> testCancelledPurchase() async {
+    if (Platform.isAndroid) {
+      await _iap.requestPurchase(
+        request: RequestPurchase(
+          android: RequestPurchaseAndroid(
+            skus: ['android.test.canceled'],
+          ),
+        ),
+        type: PurchaseType.inapp,
+      );
+    }
+  }
+  
+  // Test restore purchases
+  Future<void> testRestorePurchases() async {
+    try {
+      await _iap.restorePurchases();
       
-      // Mock purchase responses
-      _setupMockResponses();
+      if (Platform.isIOS) {
+        final restored = await _iap.getAvailableItemsIOS();
+        print('Restored ${restored?.length ?? 0} purchases');
+      }
+    } catch (e) {
+      print('Restore test failed: $e');
     }
+  }
+}
+```
+
+### Mock Purchase Service for Unit Tests
+
+```dart
+class MockPurchaseService implements IPurchaseService {
+  final List<PurchasedItem> _mockPurchases = [];
+  final StreamController<PurchasedItem?> _purchaseController = 
+      StreamController.broadcast();
+  
+  @override
+  Stream<PurchasedItem?> get purchaseUpdated => _purchaseController.stream;
+  
+  @override
+  Future<void> requestPurchase(String productId) async {
+    // Simulate network delay
+    await Future.delayed(Duration(seconds: 1));
+    
+    // Create mock purchase
+    final mockPurchase = PurchasedItem.fromJSON({
+      'productId': productId,
+      'transactionId': 'mock_${DateTime.now().millisecondsSinceEpoch}',
+      'transactionDate': DateTime.now().millisecondsSinceEpoch,
+      'transactionReceipt': 'mock_receipt',
+    });
+    
+    _mockPurchases.add(mockPurchase);
+    _purchaseController.add(mockPurchase);
   }
   
-  static void simulateSuccessfulPurchase(String productId) {
-    if (isTestMode) {
-      final mockPurchase = PurchasedItem.fromJSON({
-        'productId': productId,
-        'transactionId': 'test_${DateTime.now().millisecondsSinceEpoch}',
-        'transactionDate': DateTime.now().millisecondsSinceEpoch,
-        'transactionReceipt': 'test_receipt_data',
-      });
-      
-      // Trigger purchase updated stream
-      FlutterInappPurchase._purchaseController?.add(mockPurchase);
-    }
+  @override
+  Future<List<IAPItem>> getProducts(List<String> productIds) async {
+    // Return mock products
+    return productIds.map((id) => IAPItem.fromJSON({
+      'productId': id,
+      'price': '0.99',
+      'localizedPrice': '$0.99',
+      'title': 'Mock Product',
+      'description': 'This is a mock product for testing',
+      'currency': 'USD',
+    })).toList();
   }
 }
 ```
 
-## Best Practices
+### Test Environment Best Practices
 
-1. **Always Verify**: Verify all purchases, preferably server-side
-2. **Handle Errors Gracefully**: Provide clear error messages to users
-3. **Prevent Double Purchases**: Disable purchase buttons during processing
-4. **Store Owned Items**: Persist non-consumable ownership locally
-5. **Provide Restore**: Always offer a restore purchases option
-6. **Test Thoroughly**: Test all purchase scenarios including failures
-7. **Monitor Performance**: Track purchase success rates and errors
+1. **iOS Sandbox Testing**
+   - Use sandbox test accounts
+   - Configure products in App Store Connect
+   - Test auto-renewable subscriptions
+   - Verify receipt validation
 
-## Common Issues and Solutions
+2. **Android Test Purchases**
+   - Use test accounts in Google Play Console
+   - Test with static response products
+   - Verify purchase acknowledgment
+   - Test subscription upgrades/downgrades
 
-### Issue: Purchase Not Recognized
+3. **Common Test Cases**
+   - Successful purchase flow
+   - User cancellation
+   - Payment failures
+   - Network interruptions
+   - Restore purchases
+   - Multiple rapid purchases
+   - App termination during purchase
+```
+
+## Next Steps
+
+### 1. Implement Receipt Validation
+
+Always validate purchases server-side for security:
+- See [Receipt Validation Guide](./receipt-validation.md)
+- Set up server endpoints for iOS and Android
+- Implement retry logic for failed validations
+
+### 2. Handle Subscriptions
+
+For subscription products:
+- See [Subscriptions Guide](./subscriptions.md)
+- Implement subscription status checking
+- Handle upgrades/downgrades
+- Manage trial periods
+
+### 3. Analytics and Monitoring
+
+Track purchase metrics:
 ```dart
-// Solution: Check and restore purchases on app start
-Future<void> checkPendingPurchases() async {
-  final purchases = await _iap.getAvailablePurchases();
+class PurchaseAnalytics {
+  static void trackPurchaseEvent(String event, Map<String, dynamic> params) {
+    // Log to your analytics service
+    analytics.logEvent(event, parameters: {
+      ...params,
+      'platform': Platform.operatingSystem,
+      'app_version': packageInfo.version,
+      'timestamp': DateTime.now().toIso8601String(),
+    });
+  }
   
-  for (var purchase in purchases) {
-    if (_shouldProcessPurchase(purchase)) {
-      await _processPurchase(purchase);
-    }
+  static void trackPurchaseSuccess(PurchasedItem purchase) {
+    trackPurchaseEvent('purchase_success', {
+      'product_id': purchase.productId,
+      'transaction_id': purchase.transactionId,
+      'price': purchase.priceAmountMicros ?? 0 / 1000000,
+      'currency': purchase.priceCurrencyCode,
+    });
+  }
+  
+  static void trackPurchaseFailure(String productId, String error) {
+    trackPurchaseEvent('purchase_failure', {
+      'product_id': productId,
+      'error': error,
+    });
   }
 }
 ```
 
-### Issue: Duplicate Purchases
-```dart
-// Solution: Track transaction IDs
-final Set<String> _processedTransactions = {};
+### 4. Production Checklist
 
-bool _isTransactionProcessed(String? transactionId) {
-  return transactionId != null && 
-         _processedTransactions.contains(transactionId);
-}
+Before going live:
+- [ ] Server-side receipt validation implemented
+- [ ] Error handling covers all scenarios
+- [ ] Restore purchases functionality tested
+- [ ] Analytics tracking in place
+- [ ] Test accounts removed from production
+- [ ] Products configured in both stores
+- [ ] Privacy policy includes purchase data handling
+- [ ] Refund policy clearly stated
 
-void _markTransactionProcessed(String transactionId) {
-  _processedTransactions.add(transactionId);
-}
-```
+### 5. Common Pitfalls to Avoid
 
-## Related Documentation
+1. **Not finishing transactions**: Always call `finishTransaction`
+2. **No receipt validation**: Vulnerable to fraud
+3. **Poor error handling**: Users get stuck
+4. **Not handling pending purchases**: Lost revenue
+5. **Hardcoded product IDs**: Use configuration
+6. **No restore functionality**: Users lose purchases
+7. **Testing in production**: Use sandbox/test accounts
 
-- [Subscriptions Guide](./subscriptions.md) - Subscription purchases
-- [Receipt Validation](./receipt-validation.md) - Validating purchases
-- [Error Handling](./error-handling.md) - Handling purchase errors
-- [API Reference](../api/methods/request-purchase.md) - Purchase API methods
+## Additional Resources
+
+### Example Implementation
+
+For a complete working example, check the [example app](https://github.com/hyochan/flutter_inapp_purchase/tree/main/example) in the repository.
+
+### API Reference
+
+- [FlutterInappPurchase API](../api/flutter-inapp-purchase.md)
+- [RequestPurchase API](../api/request-purchase.md)
+- [IAPItem Model](../api/iap-item.md)
+- [PurchasedItem Model](../api/purchased-item.md)
+
+### Platform Documentation
+
+- [Apple StoreKit Documentation](https://developer.apple.com/documentation/storekit)
+- [Google Play Billing Documentation](https://developer.android.com/google/play/billing)
+
+### Community Support
+
+- [GitHub Issues](https://github.com/hyochan/flutter_inapp_purchase/issues)
+- [Stack Overflow](https://stackoverflow.com/questions/tagged/flutter-inapp-purchase)
+- [Flutter Community](https://flutter.dev/community)
+

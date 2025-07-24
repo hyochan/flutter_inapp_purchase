@@ -1,110 +1,244 @@
 ---
+title: Installation & Setup
+sidebar_label: Installation
 sidebar_position: 1
 ---
 
-# Installation
+# Installation & Setup
 
-This guide will walk you through installing Flutter In-App Purchase in your Flutter project.
+Learn how to install and configure flutter_inapp_purchase in your Flutter project.
 
-## Requirements
+## Prerequisites
 
-- Flutter 2.5.0 or higher
-- Dart 2.14.0 or higher
-- iOS 11.0+ / macOS 10.15+
-- Android 5.0 (API level 21) or higher
+Before installing flutter_inapp_purchase, ensure you have:
 
-## Installation Steps
+- Flutter SDK 2.0.0 or higher
+- Dart SDK 2.12.0 or higher
+- Active Apple Developer account (for iOS)
+- Active Google Play Developer account (for Android)
+- Physical device for testing (simulators/emulators have limited support)
 
-### 1. Add the dependency
+## Package Installation
 
-Add `flutter_inapp_purchase` to your `pubspec.yaml`:
+Add flutter_inapp_purchase to your project:
+
+```bash
+flutter pub add flutter_inapp_purchase
+```
+
+Or add it manually to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flutter_inapp_purchase: ^5.6.2
+  flutter_inapp_purchase: ^6.0.0
 ```
 
-### 2. Install the package
-
-Run the following command to install the package:
+Then run:
 
 ```bash
 flutter pub get
 ```
 
-### 3. Platform-specific setup
+## Platform Configuration
 
-#### iOS Setup
+### iOS Configuration
 
-No additional setup is required for iOS. The plugin will automatically link with StoreKit.
+#### Enable In-App Purchase Capability
 
-However, you'll need to:
-1. Enable In-App Purchase capability in Xcode
-2. Configure your products in App Store Connect
-3. Set up your agreements and tax information
+1. Open your project in Xcode
+2. Select your project in the navigator
+3. Select your target
+4. Go to **Signing & Capabilities** tab
+5. Click **+ Capability** and add **In-App Purchase**
 
-#### Android Setup
+#### Configure Info.plist (iOS 14+)
 
-Add the billing permission to your `AndroidManifest.xml`:
+Add the following to your `ios/Runner/Info.plist`:
 
 ```xml
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <uses-permission android:name="com.android.vending.BILLING" />
-    
-    <application>
-        <!-- Your application configuration -->
-    </application>
-</manifest>
+<key>LSApplicationQueriesSchemes</key>
+<array>
+    <string>itms-apps</string>
+</array>
 ```
 
-### 4. Import the package
+#### StoreKit Configuration (Optional)
 
-In your Dart code, import the package:
+For testing with StoreKit 2, create a `.storekit` configuration file:
 
-```dart
-import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
-```
+1. In Xcode, go to **File** → **New** → **File**
+2. Choose **StoreKit Configuration File**
+3. Add your products for testing
 
-## Verify Installation
+### Android Configuration
 
-To verify the installation is working correctly:
+#### Update build.gradle
 
-```dart
-import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
+Ensure your `android/app/build.gradle` has the minimum SDK version:
 
-void checkInstallation() async {
-  try {
-    // Initialize the connection
-    var result = await FlutterInappPurchase.instance.initialize();
-    print('IAP initialized: $result');
+```gradle
+android {
+    compileSdkVersion 34
     
-    // Check if billing is available
-    if (result == 'Billing is unavailable') {
-      print('Billing is not available on this device');
-    } else {
-      print('Billing is available!');
+    defaultConfig {
+        minSdkVersion 21  // Required minimum
+        targetSdkVersion 34
     }
-  } catch (e) {
-    print('Error initializing IAP: $e');
+}
+```
+
+#### Enable ProGuard Rules (if using ProGuard)
+
+Add to your `android/app/proguard-rules.pro`:
+
+```proguard
+# In-App Purchase
+-keep class com.amazon.** {*;}
+-keep class com.dooboolab.** { *; }
+-keep class com.android.vending.billing.**
+-dontwarn com.amazon.**
+-keepattributes *Annotation*
+```
+
+#### Permissions
+
+The plugin automatically adds the required billing permission to your manifest.
+
+## Configuration
+
+### App Store Connect (iOS)
+
+1. Sign in to [App Store Connect](https://appstoreconnect.apple.com)
+2. Select your app
+3. Navigate to **Monetization** → **In-App Purchases**
+4. Create your products:
+   - **Consumable**: Can be purchased multiple times
+   - **Non-Consumable**: One-time purchase
+   - **Auto-Renewable Subscription**: Recurring payments
+   - **Non-Renewing Subscription**: Fixed duration
+
+5. Fill in required fields:
+   - Reference Name (internal use)
+   - Product ID (used in code)
+   - Pricing
+   - Localizations
+
+6. Submit for review with your app
+
+### Google Play Console (Android)
+
+1. Sign in to [Google Play Console](https://play.google.com/console)
+2. Select your app
+3. Navigate to **Monetization** → **In-app products**
+4. Create products:
+   - **One-time products**: Consumable or non-consumable
+   - **Subscriptions**: Recurring payments
+
+5. Configure product details:
+   - Product ID (used in code)
+   - Name and description
+   - Price
+   - Status (Active)
+
+6. Save and activate products
+
+## Verification
+
+### Initialize the Plugin
+
+```dart
+import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
+
+class MyApp extends StatefulWidget {
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    _initializeIAP();
+  }
+
+  Future<void> _initializeIAP() async {
+    try {
+      await FlutterInappPurchase.instance.initConnection();
+      print('IAP connection initialized successfully');
+    } catch (e) {
+      print('Failed to initialize IAP connection: $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    FlutterInappPurchase.instance.endConnection();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: MyHomePage(),
+    );
   }
 }
 ```
 
-## Troubleshooting
+### Test Connection
 
-### iOS Issues
+Test your setup with this verification code:
 
-1. **"StoreKit not available"**: Make sure you're testing on a real device or simulator with a signed-in Apple ID
-2. **Products not loading**: Verify your products are configured correctly in App Store Connect and approved
-
-### Android Issues
-
-1. **"Billing unavailable"**: Ensure Google Play Store is installed and updated
-2. **Permission denied**: Check that the BILLING permission is added to AndroidManifest.xml
-3. **Products not loading**: Verify your products are active in Google Play Console
+```dart
+Future<void> _testConnection() async {
+  try {
+    final String? result = await FlutterInappPurchase.instance.initConnection();
+    print('Connection result: $result');
+    
+    // Test product fetching
+    final products = await FlutterInappPurchase.instance.getProducts(['test_product_id']);
+    print('Found ${products.length} products');
+    
+  } catch (e) {
+    print('Connection test failed: $e');
+  }
+}
+```
 
 ## Next Steps
 
-- [iOS Setup Guide](./setup-ios) - Configure App Store Connect and Xcode
-- [Android Setup Guide](./setup-android) - Configure Google Play Console
-- [Quick Start Guide](./quickstart) - Implement your first purchase
+Now that you have flutter_inapp_purchase installed and configured:
+
+- [**Basic Setup Guide**](/guides/basic-setup) - Learn the fundamentals
+- [**Platform Specific Setup**](/getting-started/android-setup) - Android specific configuration
+- [**Platform Specific Setup**](/getting-started/ios-setup) - iOS specific configuration
+
+## Troubleshooting
+
+### iOS Common Issues
+
+**Permission Denied**
+- Ensure In-App Purchase capability is enabled
+- Verify your Apple Developer account has active agreements
+- Check that products are configured in App Store Connect
+
+**Products Not Loading**
+- Products must be submitted for review (at least once)
+- Wait 24 hours after creating products
+- Verify product IDs match exactly
+
+### Android Common Issues
+
+**Billing Unavailable**
+- Test on a real device (not emulator)
+- Ensure Google Play is installed and up-to-date
+- Verify app is signed with the same key as uploaded to Play Console
+
+**Products Not Found**
+- Products must be active in Play Console
+- App must be published (at least to internal testing)
+- Wait 2-3 hours after creating products
+
+---
+
+Need help? Check our [migration guide](/migration/from-v5) or [open an issue](https://github.com/hyochan/flutter_inapp_purchase/issues) on GitHub.

@@ -5,48 +5,80 @@ import styles from './styles.module.css';
 
 type FeatureItem = {
   title: string;
-  Svg: React.ComponentType<React.ComponentProps<'svg'>>;
+  emoji: string;
   description: ReactNode;
 };
 
 const FeatureList: FeatureItem[] = [
   {
     title: 'Easy to Use',
-    Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
+    emoji: '⚡',
     description: (
       <>
-        Docusaurus was designed from the ground up to be easily installed and
-        used to get your website up and running quickly.
+        flutter_inapp_purchase was designed from the ground up to be easily installed and 
+        used to get your in-app purchases up and running quickly.
       </>
     ),
   },
   {
     title: 'Focus on What Matters',
-    Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
+    emoji: '💎',
     description: (
       <>
-        Docusaurus lets you focus on your docs, and we&apos;ll do the chores. Go
-        ahead and move your docs into the <code>docs</code> directory.
+        flutter_inapp_purchase lets you focus on your app logic, and we'll handle the purchase flows. 
+        Go ahead and implement your store with confidence.
       </>
     ),
   },
   {
-    title: 'Powered by React',
-    Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
+    title: 'Cross-Platform',
+    emoji: '📱',
     description: (
       <>
-        Extend or customize your website layout by reusing React. Docusaurus can
-        be extended while reusing the same header and footer.
+        Works seamlessly on both iOS and Android with unified APIs. 
+        Write once, purchase everywhere with consistent behavior.
+      </>
+    ),
+  },
+  {
+    title: 'Unified API Spec',
+    emoji: '🔧',
+    description: (
+      <>
+        99% API compatibility with <a href="https://github.com/hyochan/expo-iap" target="_blank" rel="noopener noreferrer">expo-iap</a> and other cross-platform solutions. 
+        Easy migration and familiar patterns for developers.
+      </>
+    ),
+  },
+  {
+    title: 'Modern & Reliable',
+    emoji: '🛡️',
+    description: (
+      <>
+        Built with the latest StoreKit 2 and Billing Client v8 APIs. 
+        Battle-tested by thousands of apps in production.
+      </>
+    ),
+  },
+  {
+    title: 'Open Source',
+    emoji: '🌟',
+    description: (
+      <>
+        Completely open source with active community support. 
+        Join us in making in-app purchases better for everyone.
       </>
     ),
   },
 ];
 
-function Feature({title, Svg, description}: FeatureItem) {
+function Feature({title, emoji, description}: FeatureItem) {
   return (
     <div className={clsx('col col--4')}>
       <div className="text--center">
-        <Svg className={styles.featureSvg} role="img" />
+        <div className={styles.featureEmoji} role="img" aria-label={title}>
+          {emoji}
+        </div>
       </div>
       <div className="text--center padding-horiz--md">
         <Heading as="h3">{title}</Heading>

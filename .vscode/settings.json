@@ -4,7 +4,7 @@
   "editor.codeActionsOnSave": {
     "source.fixAll": "explicit"
   },
-  
+
   // Dart & Flutter settings
   "dart.flutterSdkPath": null,
   "[dart]": {
@@ -15,7 +15,7 @@
     "editor.tabCompletion": "onlySnippets",
     "editor.wordBasedSuggestions": "off"
   },
-  
+
   // Files to exclude from explorer
   "files.exclude": {
     "**/.git": true,
@@ -33,7 +33,7 @@
     "docs/.docusaurus": true,
     "docs/build": true
   },
-  
+
   // Search exclusions
   "search.exclude": {
     "**/node_modules": true,
@@ -44,7 +44,7 @@
     "docs/.docusaurus": true,
     "docs/build": true
   },
-  
+
   // TypeScript/JavaScript settings for Docusaurus
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
@@ -58,8 +58,9 @@
   "[markdown]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  
+
   // Docusaurus specific
   "typescript.tsdk": "docs/node_modules/typescript/lib",
-  "npm.packageManager": "npm"
+  "npm.packageManager": "npm",
+  "cSpell.words": ["Inapp"]
 }

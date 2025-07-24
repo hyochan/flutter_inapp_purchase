@@ -4,27 +4,175 @@
  * work well for content-centric websites.
  */
 
-/* You can override the default Infima variables here. */
+/* flutter_inapp_purchase oatmeal color scheme */
 :root {
-  --ifm-color-primary: #2e8555;
-  --ifm-color-primary-dark: #29784c;
-  --ifm-color-primary-darker: #277148;
-  --ifm-color-primary-darkest: #205d3b;
-  --ifm-color-primary-light: #33925d;
-  --ifm-color-primary-lighter: #359962;
-  --ifm-color-primary-lightest: #3cad6e;
+  --ifm-color-primary: #d4a574;
+  --ifm-color-primary-dark: #c8956a;
+  --ifm-color-primary-darker: #be8c62;
+  --ifm-color-primary-darkest: #9e7351;
+  --ifm-color-primary-light: #deb57e;
+  --ifm-color-primary-lighter: #e2be86;
+  --ifm-color-primary-lightest: #ead596;
+  --ifm-background-color: #fefcf9;
+  --ifm-background-surface-color: #ffffff;
   --ifm-code-font-size: 95%;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  --docusaurus-highlighted-code-line-bg: rgba(212, 165, 116, 0.1);
+  --ifm-heading-color: #6b4e3d;
+  --ifm-font-color-base: #6b4e3d;
+  --ifm-color-content-secondary: #8b6f47;
 }
 
-/* For readability concerns, you should choose a lighter palette in dark mode. */
+/* Dark mode with consistent oatmeal theme */
 [data-theme='dark'] {
-  --ifm-color-primary: #25c2a0;
-  --ifm-color-primary-dark: #21af90;
-  --ifm-color-primary-darker: #1fa588;
-  --ifm-color-primary-darkest: #1a8870;
-  --ifm-color-primary-light: #29d5b0;
-  --ifm-color-primary-lighter: #32d8b4;
-  --ifm-color-primary-lightest: #4fddbf;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+  --ifm-color-primary: #deb57e;
+  --ifm-color-primary-dark: #d4a574;
+  --ifm-color-primary-darker: #c8956a;
+  --ifm-color-primary-darkest: #be8c62;
+  --ifm-color-primary-light: #e2be86;
+  --ifm-color-primary-lighter: #e6c58e;
+  --ifm-color-primary-lightest: #ead596;
+  --ifm-background-color: #1b1b1d;
+  --ifm-background-surface-color: #2b2b2d;
+  --docusaurus-highlighted-code-line-bg: rgba(222, 181, 126, 0.1);
+  --ifm-heading-color: #f5f5f5;
+  --ifm-font-color-base: #e0e0e0;
+  --ifm-color-content-secondary: #c0c0c0;
+}
+
+/* Custom styling for flutter_inapp_purchase docs */
+.hero--primary {
+  --ifm-hero-background-color: var(--ifm-color-primary);
+  --ifm-hero-text-color: var(--ifm-color-white);
+}
+
+/* Card grid styling */
+.grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.grid-cols-1 {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@media (min-width: 768px) {
+  .grid-cols-1.md\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.card {
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: var(--ifm-border-radius);
+  padding: 1rem;
+  background: var(--ifm-background-surface-color);
+  box-shadow: var(--ifm-global-shadow-lw);
+  transition: box-shadow var(--ifm-transition-fast) ease;
+}
+
+.card:hover {
+  box-shadow: var(--ifm-global-shadow-md);
+}
+
+.card-body h3 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  color: var(--ifm-heading-color);
+}
+
+.card-body p {
+  margin-bottom: 1rem;
+  color: var(--ifm-color-content-secondary);
+}
+
+/* Feature table styling */
+.feature-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+.feature-table th,
+.feature-table td {
+  padding: 0.75rem;
+  text-align: left;
+  border: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.feature-table th {
+  background-color: var(--ifm-color-emphasis-100);
+  font-weight: 600;
+}
+
+.feature-table tr:nth-child(even) {
+  background-color: var(--ifm-color-emphasis-50);
+}
+
+/* Custom spacing */
+.my-8 {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+.gap-4 {
+  gap: 1rem;
+}
+
+/* Button enhancements */
+.button {
+  display: inline-block;
+  text-decoration: none;
+  border-radius: var(--ifm-button-border-radius);
+  padding: var(--ifm-button-padding-vertical) var(--ifm-button-padding-horizontal);
+  font-weight: var(--ifm-button-font-weight);
+  line-height: var(--ifm-button-line-height);
+  text-align: center;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all var(--ifm-transition-fast) var(--ifm-transition-timing-default);
+}
+
+.button--primary {
+  background: var(--ifm-color-primary);
+  color: var(--ifm-button-color);
+}
+
+.button--primary:hover {
+  background: var(--ifm-color-primary-dark);
+  color: var(--ifm-button-color);
+  text-decoration: none;
+}
+
+.button--secondary {
+  background: transparent;
+  color: var(--ifm-color-primary);
+  border-color: var(--ifm-color-primary);
+}
+
+.button--secondary:hover {
+  background: var(--ifm-color-primary);
+  color: var(--ifm-button-color);
+  text-decoration: none;
+}
+
+/* Responsive hero image */
+.hero-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--ifm-border-radius);
+  box-shadow: var(--ifm-global-shadow-md);
+}
+
+/* Dark mode adjustments */
+[data-theme='dark'] .card {
+  background: var(--ifm-background-surface-color);
+  border-color: var(--ifm-color-emphasis-200);
+}
+
+[data-theme='dark'] .feature-table th {
+  background-color: var(--ifm-color-emphasis-200);
+}
+
+[data-theme='dark'] .feature-table tr:nth-child(even) {
+  background-color: var(--ifm-color-emphasis-100);
 }

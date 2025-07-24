@@ -1,0 +1,8 @@
+{
+  "label": "API Reference",
+  "position": 3,
+  "link": {
+    "type": "generated-index",
+    "description": "Comprehensive API documentation for flutter_inapp_purchase with examples and type definitions."
+  }
+}

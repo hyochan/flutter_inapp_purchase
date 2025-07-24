@@ -3,9 +3,40 @@
   align-items: center;
   padding: 2rem 0;
   width: 100%;
+  background: linear-gradient(to bottom, #fefcf9 0%, #f8f4ef 100%);
 }
 
-.featureSvg {
-  height: 200px;
-  width: 200px;
+.featureEmoji {
+  font-size: 4rem;
+  line-height: 1;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f4ef 100%);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.featureEmoji:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+}
+
+/* Dark mode adjustments */
+[data-theme='dark'] .features {
+  background: linear-gradient(to bottom, #1b1b1d 0%, #2b2b2d 100%);
+}
+
+[data-theme='dark'] .featureEmoji {
+  background: linear-gradient(135deg, #2b2b2d 0%, #3b3b3d 100%);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme='dark'] .featureEmoji:hover {
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
 }

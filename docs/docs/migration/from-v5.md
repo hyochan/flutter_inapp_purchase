@@ -1,17 +1,49 @@
 ---
 sidebar_position: 1
-title: Migration from v5.x
+title: Migration from v5.x to v6.0
 ---
 
-# Migration from v5.x to v6.x
+# 🔄 Migration from v5.x to v6.0
 
-This guide helps you migrate your existing flutter_inapp_purchase v5.x implementation to the latest version.
+This guide helps you migrate your existing flutter_inapp_purchase v5.x implementation to the new **6.0.0** release with StoreKit 2 and Billing Client v8 support.
 
-## Breaking Changes
+## 🎯 Overview
 
-### 1. Null Safety
+Version 6.0.0 is a **major release** with breaking changes to support modern platform APIs and improve developer experience.
 
-Version 6.x fully supports null safety. All method signatures have been updated:
+### Key Changes Summary
+
+- ✅ **StoreKit 2 Support** for iOS 15.0+
+- ✅ **Billing Client v8** for Android
+- ✅ **Improved Error Handling** with better error codes
+- ✅ **Enhanced Type Safety** with refined APIs
+- ⚠️ **Breaking Changes** in error codes and some method signatures
+
+## 💥 Breaking Changes
+
+### 1. Error Code Enum Changes (CRITICAL)
+
+The most significant breaking change is the error code enum format.
+
+**v5.x (Old):**
+```dart
+// SCREAMING_SNAKE_CASE format
+ErrorCode.E_USER_CANCELLED
+ErrorCode.E_NETWORK_ERROR
+ErrorCode.E_ITEM_UNAVAILABLE
+ErrorCode.E_ALREADY_OWNED
+ErrorCode.E_DEVELOPER_ERROR
+```
+
+**v6.0 (New):**
+```dart
+// lowerCamelCase format
+ErrorCode.eUserCancelled
+ErrorCode.eNetworkError
+ErrorCode.eItemUnavailable
+ErrorCode.eAlreadyOwned
+ErrorCode.eDeveloperError
+```
 
 **Before (v5.x):**
 ```dart
@@ -324,46 +356,6 @@ class _MyAppState extends State<MyApp> {
 }
 ```
 
-## Common Migration Issues
-
-### 1. Null Pointer Exceptions
-
-**Problem:** Accessing properties without null checks
-**Solution:** Use null-aware operators
-
-```dart
-// Instead of
-String title = item.title;
-
-// Use
-String title = item.title ?? 'Unknown Product';
-```
-
-### 2. Stream Listener Errors
-
-**Problem:** Old stream names not found
-**Solution:** Update to new stream names
-
-```dart
-// Old
-FlutterInappPurchase.iapUpdated.listen(...);
-
-// New
-FlutterInappPurchase.purchaseUpdated.listen(...);
-```
-
-### 3. Method Return Type Mismatches
-
-**Problem:** Expecting string returns from void methods
-**Solution:** Remove return value expectations
-
-```dart
-// Old
-String result = await FlutterInappPurchase.instance.requestPurchase(sku);
-
-// New
-await FlutterInappPurchase.instance.requestPurchase(sku);
-```
 
 ## Testing Your Migration
 

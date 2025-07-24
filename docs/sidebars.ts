@@ -9,21 +9,35 @@ const sidebars: SidebarsConfig = {
       collapsed: false,
       items: [
         'getting-started/installation',
-        'getting-started/setup-ios',
-        'getting-started/setup-android',
-        'getting-started/quickstart',
+        'getting-started/ios-setup',
+        'getting-started/android-setup',
       ],
     },
     {
       type: 'category',
       label: 'Guides',
       items: [
-        'guides/products',
-        'guides/subscriptions',
         'guides/purchases',
-        'guides/receipt-validation',
-        'guides/error-handling',
-        'guides/testing',
+        'guides/lifecycle',
+        'guides/offer-code-redemption',
+        'guides/troubleshooting',
+        'guides/faq',
+        'migration/from-v5',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'API Reference',
+      link: {
+        type: 'doc',
+        id: 'api/index',
+      },
+      items: [
+        'api/types',
+        'api/core-methods',
+        'api/listeners',
+        'api/use-iap',
+        'api/error-codes',
       ],
     },
     {
@@ -33,51 +47,6 @@ const sidebars: SidebarsConfig = {
         'examples/basic-store',
         'examples/subscription-store',
         'examples/complete-implementation',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Migration',
-      items: [
-        'migration/from-v5',
-        'migration/from-expo-iap',
-      ],
-    },
-    'troubleshooting',
-    'faq',
-  ],
-  
-  apiSidebar: [
-    'api/overview',
-    {
-      type: 'category',
-      label: 'Classes',
-      items: [
-        'api/classes/flutter-inapp-purchase',
-        'api/classes/iap-item',
-        'api/classes/purchase-item',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Methods',
-      items: [
-        'api/methods/init-connection',
-        'api/methods/get-products',
-        'api/methods/request-purchase',
-        'api/methods/request-subscription',
-        'api/methods/finish-transaction',
-        'api/methods/get-available-purchases',
-        'api/methods/validate-receipt',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Types',
-      items: [
-        'api/types/product-type',
-        'api/types/purchase-state',
-        'api/types/error-codes',
       ],
     },
   ],

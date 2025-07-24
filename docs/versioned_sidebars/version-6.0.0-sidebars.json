@@ -1,0 +1,36 @@
+{
+  "docsSidebar": [
+    "intro",
+    {
+      "type": "category",
+      "label": "🚀 Getting Started",
+      "collapsed": false,
+      "items": [
+        "getting-started/installation",
+        "getting-started/ios-setup",
+        "getting-started/android-setup"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "📖 Guides",
+      "items": [
+        "guides/basic-setup"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "🔧 API Reference",
+      "items": [
+        "api/flutter-inapp-purchase"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "🔄 Migration",
+      "items": [
+        "migration/from-v5"
+      ]
+    }
+  ]
+}
