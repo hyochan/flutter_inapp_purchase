@@ -64,8 +64,6 @@ class UseIAPReturn {
     required this.subscriptions,
     required this.purchaseHistories,
     required this.availablePurchases,
-    this.currentPurchase,
-    this.currentPurchaseError,
     required this.clearCurrentPurchase,
     required this.clearCurrentPurchaseError,
     required this.finishTransaction,
@@ -77,6 +75,8 @@ class UseIAPReturn {
     required this.requestPurchase,
     required this.validateReceipt,
     required this.restorePurchases,
+    this.currentPurchase,
+    this.currentPurchaseError,
   });
 }
 
