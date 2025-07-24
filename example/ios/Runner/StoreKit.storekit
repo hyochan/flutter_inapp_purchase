@@ -1,0 +1,86 @@
+{
+  "identifier" : "12345678",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "0.99",
+      "familyShareable" : false,
+      "internalID" : "6502230219",
+      "localizations" : [
+        {
+          "description" : "10 bulbs to help you out",
+          "displayName" : "10 Bulbs",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "dev.hyo.martie.10bulbs",
+      "referenceName" : "10 Bulbs",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "2.99",
+      "familyShareable" : false,
+      "internalID" : "6502230220",
+      "localizations" : [
+        {
+          "description" : "30 bulbs to help you out",
+          "displayName" : "30 Bulbs",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "dev.hyo.martie.30bulbs",
+      "referenceName" : "30 Bulbs",
+      "type" : "Consumable"
+    }
+  ],
+  "settings" : {
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+
+    ]
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "21257537",
+      "localizations" : [
+
+      ],
+      "name" : "Premium",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "9.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6502230221",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Premium monthly subscription",
+              "displayName" : "Premium Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "dev.hyo.martie.premium",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Premium",
+          "subscriptionGroupID" : "21257537",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 2,
+    "minor" : 0
+  }
+}
