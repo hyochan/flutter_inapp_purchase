@@ -98,7 +98,7 @@ await FlutterInappPurchase.instance.requestPurchase(
     <div className="card-body">
       <h3>📖 Guides</h3>
       <p>Follow step-by-step guides for implementing purchases and subscriptions.</p>
-      <a href="/guides/basic-setup" className="button button--secondary">View Guides →</a>
+      <a href="/guides/purchases" className="button button--secondary">View Guides →</a>
     </div>
   </div>
   
@@ -106,7 +106,7 @@ await FlutterInappPurchase.instance.requestPurchase(
     <div className="card-body">
       <h3>🔧 API Reference</h3>
       <p>Comprehensive API documentation with examples and type definitions.</p>
-      <a href="/api/flutter-inapp-purchase" className="button button--secondary">API Docs →</a>
+      <a href="/api/" className="button button--secondary">API Docs →</a>
     </div>
   </div>
   
@@ -114,7 +114,7 @@ await FlutterInappPurchase.instance.requestPurchase(
     <div className="card-body">
       <h3>💡 Examples</h3>
       <p>Real-world examples and implementation patterns.</p>
-      <a href="/examples/basic-purchase" className="button button--secondary">See Examples →</a>
+      <a href="/examples/basic-store" className="button button--secondary">See Examples →</a>
     </div>
   </div>
 </div>
