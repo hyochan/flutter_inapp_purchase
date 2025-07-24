@@ -28,8 +28,8 @@ class _TestScreenState extends State<TestScreen> {
     try {
       // First run our diagnostic test
       setState(() => _status = 'Running StoreKit diagnostics...');
-      final diagnostics =
-          await FlutterInappPurchase.instance.channel.invokeMethod('testStoreKit');
+      final diagnostics = await FlutterInappPurchase.instance.channel
+          .invokeMethod('testStoreKit');
       setState(() => _status = 'Diagnostics: $diagnostics');
 
       // Wait a bit before continuing
@@ -37,8 +37,8 @@ class _TestScreenState extends State<TestScreen> {
 
       // Test 1: Initialize connection (this will check can make payments internally)
       setState(() => _status = 'Testing if can make payments...');
-      final canMake =
-          await FlutterInappPurchase.instance.channel.invokeMethod('canMakePayments');
+      final canMake = await FlutterInappPurchase.instance.channel
+          .invokeMethod('canMakePayments');
       setState(() => _status = 'Can make payments: $canMake');
 
       if (canMake != true) {
