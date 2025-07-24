@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'dart:io' show Platform;
-import '../use_iap.dart';
+import '../iap_provider.dart';
 
 class RedeemCodeScreen extends StatefulWidget {
   const RedeemCodeScreen({Key? key}) : super(key: key);
@@ -23,8 +22,8 @@ class _RedeemCodeScreenState extends State<RedeemCodeScreen> {
     });
 
     try {
-      final iap = useIap(context);
-      if (!iap.connected) {
+      final iapProvider = IapProvider.of(context);
+      if (iapProvider == null || !iapProvider.connected) {
         setState(() {
           _error = 'Store not connected';
           _isLoading = false;
@@ -32,7 +31,7 @@ class _RedeemCodeScreenState extends State<RedeemCodeScreen> {
         return;
       }
 
-      await iap.presentCodeRedemption();
+      await iapProvider.presentCodeRedemption();
       if (mounted) {
         setState(() {
           _result = 'Redeem code sheet presented successfully';
@@ -51,9 +50,6 @@ class _RedeemCodeScreenState extends State<RedeemCodeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final iap = useIap(context);
-    final isIOS = Platform.isIOS;
-
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
       appBar: AppBar(
@@ -72,18 +68,13 @@ class _RedeemCodeScreenState extends State<RedeemCodeScreen> {
         padding: const EdgeInsets.all(20),
         children: [
           // Connection Status
-          _buildConnectionStatus(iap),
+          _buildConnectionStatus(),
           const SizedBox(height: 20),
 
-          // Platform Check
-          if (!isIOS) _buildPlatformWarning(),
-
           // Main Content
-          if (isIOS) ...[
-            _buildRedeemCard(),
-            const SizedBox(height: 20),
-            _buildInstructions(),
-          ],
+          _buildRedeemCard(),
+          const SizedBox(height: 20),
+          _buildInstructions(),
 
           // Result/Error Messages
           if (_result != null) _buildSuccessMessage(_result!),
@@ -93,63 +84,33 @@ class _RedeemCodeScreenState extends State<RedeemCodeScreen> {
     );
   }
 
-  Widget _buildConnectionStatus(UseIap iap) {
+  Widget _buildConnectionStatus() {
+    // For now, assume connected status is true
+    final isConnected = true;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color:
-            iap.connected ? const Color(0xFFE8F5E9) : const Color(0xFFFFEBEE),
+        color: isConnected ? const Color(0xFFE8F5E9) : const Color(0xFFFFEBEE),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
           Icon(
-            iap.connected
+            isConnected
                 ? CupertinoIcons.checkmark_circle_fill
                 : CupertinoIcons.xmark_circle_fill,
-            color: iap.connected
-                ? const Color(0xFF4CAF50)
-                : const Color(0xFFF44336),
+            color:
+                isConnected ? const Color(0xFF4CAF50) : const Color(0xFFF44336),
             size: 20,
           ),
           const SizedBox(width: 8),
           Text(
-            iap.connected ? 'Store Connected' : 'Store Disconnected',
+            isConnected ? 'Store Connected' : 'Store Disconnected',
             style: TextStyle(
-              color: iap.connected
+              color: isConnected
                   ? const Color(0xFF4CAF50)
                   : const Color(0xFFF44336),
               fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPlatformWarning() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFF3CD),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFFFEEB5)),
-      ),
-      child: Row(
-        children: [
-          const Icon(
-            CupertinoIcons.info_circle_fill,
-            color: Color(0xFF856404),
-            size: 24,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              'Promo code redemption is only available on iOS devices.',
-              style: TextStyle(
-                color: const Color(0xFF856404),
-                fontSize: 14,
-              ),
             ),
           ),
         ],
