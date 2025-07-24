@@ -44,7 +44,7 @@ We will keep working on it as time goes by just like we did in **react-native-ia
 | Purchase Flow | ✅ | ✅ |
 | Receipt Validation | ✅ | ✅ |
 | Subscription Management | ✅ | ✅ |
-| Promotional Offers | ✅ | ✅ |
+| Promotional Offers | ✅ | N/A |
 | StoreKit 2 | ✅ | N/A |
 | Billing Client v8 | N/A | ✅ |
 
