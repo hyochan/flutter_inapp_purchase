@@ -70,10 +70,14 @@ Ensure your `android/app/build.gradle` has the minimum SDK version:
 android {
     compileSdkVersion 34
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
     
 >>>>>>> 5e86ee0 (docs: Update community links and fix configuration)
+=======
+
+>>>>>>> b194c41 (docs: Fix homepage navigation links with correct /docs prefix)
     defaultConfig {
         minSdkVersion 21  // Required minimum
         targetSdkVersion 34
@@ -153,9 +157,13 @@ class _MyAppState extends State<MyApp> {
 
 1. Create a sandbox tester account in App Store Connect:
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 >>>>>>> 5e86ee0 (docs: Update community links and fix configuration)
+=======
+
+>>>>>>> b194c41 (docs: Fix homepage navigation links with correct /docs prefix)
    - **Users and Roles** → **Sandbox Testers**
    - Add a test account with unique email
 
@@ -181,9 +189,13 @@ class _MyAppState extends State<MyApp> {
 
 Add test accounts in Google Play Console:
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 >>>>>>> 5e86ee0 (docs: Update community links and fix configuration)
+=======
+
+>>>>>>> b194c41 (docs: Fix homepage navigation links with correct /docs prefix)
 - **Setup** → **License Testing**
 - Add email addresses of testers
 
@@ -194,6 +206,7 @@ Add test accounts in Google Play Console:
 :::warning Permission Denied
 If you get permission errors, ensure:
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 - In-App Purchase capability is enabled
 - Your Apple Developer account has active agreements
@@ -205,11 +218,19 @@ If you get permission errors, ensure:
 - Products are configured in App Store Connect
 :::
 >>>>>>> 5e86ee0 (docs: Update community links and fix configuration)
+=======
+
+- In-App Purchase capability is enabled
+- Your Apple Developer account has active agreements
+- Products are configured in App Store Connect
+  :::
+>>>>>>> b194c41 (docs: Fix homepage navigation links with correct /docs prefix)
 
 ### Android Issues
 
 :::warning Billing Unavailable
 If billing is unavailable:
+<<<<<<< HEAD
 <<<<<<< HEAD
 
 - Ensure you're testing on a real device (not emulator)
@@ -222,6 +243,13 @@ If billing is unavailable:
 - Verify your app is signed with the same key as uploaded to Play Console
 :::
 >>>>>>> 5e86ee0 (docs: Update community links and fix configuration)
+=======
+
+- Ensure you're testing on a real device (not emulator)
+- Check that Google Play is installed and up-to-date
+- Verify your app is signed with the same key as uploaded to Play Console
+  :::
+>>>>>>> b194c41 (docs: Fix homepage navigation links with correct /docs prefix)
 
 ## ✅ Verification
 
@@ -233,6 +261,7 @@ Future<void> _testConnection() async {
     final String? result = await FlutterInappPurchase.instance.initConnection();
     print('Connection result: $result');
 <<<<<<< HEAD
+<<<<<<< HEAD
 
     // Test product fetching
     final products = await FlutterInappPurchase.instance.getProducts(['test_product_id']);
@@ -245,6 +274,13 @@ Future<void> _testConnection() async {
     print('Found ${products.length} products');
     
 >>>>>>> 5e86ee0 (docs: Update community links and fix configuration)
+=======
+
+    // Test product fetching
+    final products = await FlutterInappPurchase.instance.getProducts(['test_product_id']);
+    print('Found ${products.length} products');
+
+>>>>>>> b194c41 (docs: Fix homepage navigation links with correct /docs prefix)
   } catch (e) {
     print('Connection test failed: $e');
   }
@@ -262,7 +298,11 @@ Now that you have flutter_inapp_purchase installed and configured:
 ---
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 Need help? Check our [troubleshooting guide](/guides/troubleshooting) or [open an issue](https://github.com/hyochan/flutter_inapp_purchase/issues) on GitHub.
 =======
 Need help? Check our [troubleshooting guide](/guides/troubleshooting) or [open an issue](https://github.com/dooboolab/flutter_inapp_purchase/issues) on GitHub.
 >>>>>>> 5e86ee0 (docs: Update community links and fix configuration)
+=======
+Need help? Check our [troubleshooting guide](/guides/troubleshooting) or [open an issue](https://github.com/hyochan/flutter_inapp_purchase/issues) on GitHub.
+>>>>>>> b194c41 (docs: Fix homepage navigation links with correct /docs prefix)

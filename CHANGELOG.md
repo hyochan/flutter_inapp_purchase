@@ -1,6 +1,7 @@
 ## 6.0.0
 
 ### Breaking Changes
+
 - **iOS**: Now requires iOS 11.0+ (previously 8.0+)
 - **iOS**: StoreKit 2 is now used by default on iOS 15.0+ devices
 - **Android**: Updated to Billing Client v8.0.0 (from v6.0.1)
@@ -11,6 +12,7 @@
   - Channel access changed from static to instance member
 
 ### New Features
+
 - **iOS**: Full StoreKit 2 support for iOS 15.0+
   - Automatic transaction verification
   - Better subscription management
@@ -23,6 +25,7 @@
   - Improved testability and maintainability
 
 ### Migration Guide
+
 - Update all `ErrorCode` references:
   ```dart
   // Before
@@ -480,4 +483,4 @@ Republishing since sourcode seems not merged correctly.
 ## 0.1.0
 
 - Initial release of beta
-- Moved code from [react-native-iap](https://github.com/dooboolab/react-native-iap)
+- Moved code from [react-native-iap](https://github.com/hyochan/react-native-iap)

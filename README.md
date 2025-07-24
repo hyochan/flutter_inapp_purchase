@@ -20,7 +20,7 @@ I'll leave this project as live for those who need time. I'll also try to merge 
 
 ## What this plugin do
 
-This is an `In App Purchase` plugin for flutter. This project has been `forked` from [react-native-iap](https://github.com/dooboolab/react-native-iap). We are trying to share same experience of `in-app-purchase` in `flutter` as in `react-native`.
+This is an `In App Purchase` plugin for flutter. This project has been `forked` from [react-native-iap](https://github.com/hyochan/react-native-iap). We are trying to share same experience of `in-app-purchase` in `flutter` as in `react-native`.
 We will keep working on it as time goes by just like we did in `react-native-iap`.
 
 `PR` is always welcomed.
@@ -41,38 +41,42 @@ We will keep working on it as time goes by just like we did in `react-native-iap
 ### Migrating to v6.0.0
 
 1. **Update ErrorCode references:**
+
    ```dart
    // Before
    if (error.code == ErrorCode.E_USER_CANCELLED) { }
-   
+
    // After
    if (error.code == ErrorCode.eUserCancelled) { }
    ```
 
 2. **Update channel access in tests:**
+
    ```dart
    // Before
    FlutterInappPurchase.channel
-   
+
    // After
    FlutterInappPurchase.instance.channel
    ```
 
 3. **Update PeriodUnitIOS references:**
+
    ```dart
    // Before
    if (period == PeriodUnitIOS.DAY) { }
-   
+
    // After
    if (period == PeriodUnitIOS.day) { }
    ```
 
 ### Migrating to v0.9.0
+
 To migrate to `0.9.0` you must migrate your Android app to Android X by following the [Migrating to AndroidX Guide](https://developer.android.com/jetpack/androidx/migrate).
 
 ## Getting Started
 
-Follow the [Medium Blog](https://medium.com/@dooboolab/flutter-in-app-purchase-7a3fb9345e2a) for the configuration.
+Follow the [Medium Blog](https://medium.com/@hyochan/flutter-in-app-purchase-7a3fb9345e2a) for the configuration.
 
 Follow the [Medium Blog](https://medium.com/bosc-tech-labs-private-limited/how-to-implement-subscriptions-in-app-purchase-in-flutter-7ce8906e608a) to add **subscriptions** in app purchase.
 
@@ -171,7 +175,7 @@ For help on adding as a dependency, view the [documentation](https://flutter.io/
 
 ## Configuring in app purchase
 
-- Please refer to [Blog](https://medium.com/@dooboolab/react-native-in-app-purchase-121622d26b67).
+- Please refer to [Blog](https://medium.com/@hyochan/react-native-in-app-purchase-121622d26b67).
 - [Amazon Kindle Fire](KINDLE.md)
 
 ## Usage Guide
@@ -280,7 +284,7 @@ From v6.0.0, error codes have been standardized to use lowerCamelCase naming con
 ```dart
 _purchaseErrorSubscription = FlutterInappPurchase.purchaseError.listen((purchaseError) {
   print('purchase-error: $purchaseError');
-  
+
   // Handle specific error codes
   if (purchaseError.code == ErrorCode.eUserCancelled) {
     // User cancelled the purchase
@@ -293,6 +297,7 @@ _purchaseErrorSubscription = FlutterInappPurchase.purchaseError.listen((purchase
 ```
 
 Common error codes:
+
 - `ErrorCode.eUserCancelled` - User cancelled the purchase
 - `ErrorCode.eNetworkError` - Network connection error
 - `ErrorCode.eItemUnavailable` - Product not available

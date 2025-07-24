@@ -15,10 +15,14 @@ A comprehensive Flutter plugin for implementing in-app purchases on iOS and Andr
 ## 🚀 What is flutter_inapp_purchase?
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 This is an **In App Purchase** plugin for Flutter. This project has been **forked** from [react-native-iap](https://github.com/hyochan/react-native-iap). We are trying to share same experience of **in-app-purchase** in **flutter** as in **react-native**.
 =======
 This is an **In App Purchase** plugin for Flutter. This project has been **forked** from [react-native-iap](https://github.com/dooboolab/react-native-iap). We are trying to share same experience of **in-app-purchase** in **flutter** as in **react-native**.
 >>>>>>> 5e86ee0 (docs: Update community links and fix configuration)
+=======
+This is an **In App Purchase** plugin for Flutter. This project has been **forked** from [react-native-iap](https://github.com/hyochan/react-native-iap). We are trying to share same experience of **in-app-purchase** in **flutter** as in **react-native**.
+>>>>>>> b194c41 (docs: Fix homepage navigation links with correct /docs prefix)
 
 We will keep working on it as time goes by just like we did in **react-native-iap**.
 
@@ -36,10 +40,14 @@ We will keep working on it as time goes by just like we did in **react-native-ia
 
 - **Product Management**: Fetch and manage consumable and non-consumable products
 <<<<<<< HEAD
+<<<<<<< HEAD
 - **Purchase Flow**: Handle complete purchase workflows with proper error handling
 =======
 - **Purchase Flow**: Handle complete purchase workflows with proper error handling  
 >>>>>>> 5e86ee0 (docs: Update community links and fix configuration)
+=======
+- **Purchase Flow**: Handle complete purchase workflows with proper error handling
+>>>>>>> b194c41 (docs: Fix homepage navigation links with correct /docs prefix)
 - **Subscription Support**: Full subscription lifecycle management
 - **Receipt Validation**: Validate purchases on both platforms
 - **Store Communication**: Direct communication with App Store and Google Play
@@ -48,6 +56,9 @@ We will keep working on it as time goes by just like we did in **react-native-ia
 ## 🛠️ Platform Support
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b194c41 (docs: Fix homepage navigation links with correct /docs prefix)
 | Feature                  | iOS | Android |
 | ------------------------ | --- | ------- |
 | Products & Subscriptions | ✅  | ✅      |
@@ -57,6 +68,7 @@ We will keep working on it as time goes by just like we did in **react-native-ia
 | Promotional Offers       | ✅  | ✅      |
 | StoreKit 2               | ✅  | N/A     |
 | Billing Client v8        | N/A | ✅      |
+<<<<<<< HEAD
 =======
 | Feature | iOS | Android |
 |---------|-----|---------|
@@ -68,6 +80,8 @@ We will keep working on it as time goes by just like we did in **react-native-ia
 | StoreKit 2 | ✅ | N/A |
 | Billing Client v8 | N/A | ✅ |
 >>>>>>> 5e86ee0 (docs: Update community links and fix configuration)
+=======
+>>>>>>> b194c41 (docs: Fix homepage navigation links with correct /docs prefix)
 
 ## 🔄 Version Information
 
@@ -142,6 +156,7 @@ await FlutterInappPurchase.instance.requestPurchase(
 ## 🤝 Community & Support
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 This project is maintained by [hyochan](https://github.com/hyochan).
 
 - **GitHub Issues**: [Report bugs and feature requests](https://github.com/hyochan/flutter_inapp_purchase/issues)
@@ -153,12 +168,18 @@ This project is maintained by [hyochan](https://github.com/hyochan).
 Ready to implement in-app purchases in your Flutter app? Let's [get started](/getting-started/installation)! 🚀
 =======
 This project is maintained by [dooboolab](https://github.com/dooboolab) and the open-source community.
+=======
+This project is maintained by [hyochan](https://github.com/hyochan).
+>>>>>>> b194c41 (docs: Fix homepage navigation links with correct /docs prefix)
 
-- **GitHub Issues**: [Report bugs and feature requests](https://github.com/dooboolab/flutter_inapp_purchase/issues)
-- **Discussions**: [Join community discussions](https://github.com/dooboolab/flutter_inapp_purchase/discussions)
-- **Contributing**: [Contribute to the project](https://github.com/dooboolab/flutter_inapp_purchase/blob/main/CONTRIBUTING.md)
+- **GitHub Issues**: [Report bugs and feature requests](https://github.com/hyochan/flutter_inapp_purchase/issues)
+- **Discussions**: [Join community discussions](https://github.com/hyochan/flutter_inapp_purchase/discussions)
+- **Contributing**: [Contribute to the project](https://github.com/hyochan/flutter_inapp_purchase/blob/main/CONTRIBUTING.md)
 
 ---
 
 Ready to implement in-app purchases in your Flutter app? Let's [get started](/getting-started/installation)! 🚀
+<<<<<<< HEAD
 >>>>>>> 5e86ee0 (docs: Update community links and fix configuration)
+=======
+>>>>>>> b194c41 (docs: Fix homepage navigation links with correct /docs prefix)
