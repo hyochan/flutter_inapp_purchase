@@ -51,7 +51,8 @@
       "Bash(npm install:*)",
       "Bash(sips:*)",
       "Bash(cp:*)",
-      "Bash(npm run docusaurus:*)"
+      "Bash(npm run docusaurus:*)",
+      "Bash(npm start:*)"
     ],
     "deny": []
   }
