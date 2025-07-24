@@ -11,53 +11,53 @@ enum PurchaseType { inapp, subs }
 
 /// Error codes matching flutter IAP
 enum ErrorCode {
-  E_UNKNOWN,
-  E_USER_CANCELLED,
-  E_USER_ERROR,
-  E_ITEM_UNAVAILABLE,
-  E_REMOTE_ERROR,
-  E_NETWORK_ERROR,
-  E_SERVICE_ERROR,
-  E_RECEIPT_FAILED,
-  E_RECEIPT_FINISHED_FAILED,
-  E_NOT_PREPARED,
-  E_NOT_ENDED,
-  E_ALREADY_OWNED,
-  E_DEVELOPER_ERROR,
-  E_BILLING_RESPONSE_JSON_PARSE_ERROR,
-  E_DEFERRED_PAYMENT,
-  E_INTERRUPTED,
-  E_IAP_NOT_AVAILABLE,
-  E_PURCHASE_ERROR,
-  E_SYNC_ERROR,
-  E_TRANSACTION_VALIDATION_FAILED,
-  E_ACTIVITY_UNAVAILABLE,
-  E_ALREADY_PREPARED,
-  E_PENDING,
-  E_CONNECTION_CLOSED,
+  eUnknown,
+  eUserCancelled,
+  eUserError,
+  eItemUnavailable,
+  eRemoteError,
+  eNetworkError,
+  eServiceError,
+  eReceiptFailed,
+  eReceiptFinishedFailed,
+  eNotPrepared,
+  eNotEnded,
+  eAlreadyOwned,
+  eDeveloperError,
+  eBillingResponseJsonParseError,
+  eDeferredPayment,
+  eInterrupted,
+  eIapNotAvailable,
+  ePurchaseError,
+  eSyncError,
+  eTransactionValidationFailed,
+  eActivityUnavailable,
+  eAlreadyPrepared,
+  ePending,
+  eConnectionClosed,
   // Additional error codes
-  E_BILLING_UNAVAILABLE,
-  E_PRODUCT_ALREADY_OWNED,
-  E_PURCHASE_NOT_ALLOWED,
-  E_QUOTA_EXCEEDED,
-  E_FEATURE_NOT_SUPPORTED,
-  E_NOT_INITIALIZED,
-  E_ALREADY_INITIALIZED,
-  E_CLIENT_INVALID,
-  E_PAYMENT_INVALID,
-  E_PAYMENT_NOT_ALLOWED,
-  E_STOREKIT_ORIGINAL_TRANSACTION_ID_NOT_FOUND,
-  E_NOT_SUPPORTED,
-  E_TRANSACTION_FAILED,
-  E_TRANSACTION_INVALID,
-  E_PRODUCT_NOT_FOUND,
-  E_PURCHASE_FAILED,
-  E_TRANSACTION_NOT_FOUND,
-  E_RESTORE_FAILED,
-  E_REDEEM_FAILED,
-  E_NO_WINDOW_SCENE,
-  E_SHOW_SUBSCRIPTIONS_FAILED,
-  E_PRODUCT_LOAD_FAILED,
+  eBillingUnavailable,
+  eProductAlreadyOwned,
+  ePurchaseNotAllowed,
+  eQuotaExceeded,
+  eFeatureNotSupported,
+  eNotInitialized,
+  eAlreadyInitialized,
+  eClientInvalid,
+  ePaymentInvalid,
+  ePaymentNotAllowed,
+  eStorekitOriginalTransactionIdNotFound,
+  eNotSupported,
+  eTransactionFailed,
+  eTransactionInvalid,
+  eProductNotFound,
+  ePurchaseFailed,
+  eTransactionNotFound,
+  eRestoreFailed,
+  eRedeemFailed,
+  eNoWindowScene,
+  eShowSubscriptionsFailed,
+  eProductLoadFailed,
 }
 
 /// Subscription states
@@ -133,4 +133,41 @@ enum ReplaceMode {
   withoutProration,
   deferred,
   chargeFullPrice,
+}
+
+/// A enumeration of in-app purchase types for Android
+enum TypeInApp { inapp, subs }
+
+/// Android billing response codes
+enum ResponseCodeAndroid {
+  BILLING_RESPONSE_RESULT_OK,
+  BILLING_RESPONSE_RESULT_USER_CANCELED,
+  BILLING_RESPONSE_RESULT_SERVICE_UNAVAILABLE,
+  BILLING_RESPONSE_RESULT_BILLING_UNAVAILABLE,
+  BILLING_RESPONSE_RESULT_ITEM_UNAVAILABLE,
+  BILLING_RESPONSE_RESULT_DEVELOPER_ERROR,
+  BILLING_RESPONSE_RESULT_ERROR,
+  BILLING_RESPONSE_RESULT_ITEM_ALREADY_OWNED,
+  BILLING_RESPONSE_RESULT_ITEM_NOT_OWNED,
+  UNKNOWN,
+}
+
+/// See also https://developer.android.com/reference/com/android/billingclient/api/Purchase.PurchaseState
+enum PurchaseState {
+  pending,
+  purchased,
+  unspecified,
+}
+
+/// Android Proration Mode
+enum AndroidProrationMode {
+  unknownSubscriptionUpgradeDowngradePolicy(0),
+  immediateWithTimeProration(1),
+  immediateAndChargeProratedPrice(2),
+  immediateWithoutProration(3),
+  deferred(4),
+  immediateAndChargeFullPrice(5);
+
+  final int value;
+  const AndroidProrationMode(this.value);
 }

@@ -1,5 +1,6 @@
 /// Error mapping utilities for flutter_inapp_purchase
 /// Provides helper functions for handling platform-specific errors
+library;
 
 import '../types.dart';
 
@@ -8,21 +9,21 @@ import '../types.dart';
 /// @returns True if the error represents user cancellation
 bool isUserCancelledError(dynamic error) {
   if (error is ErrorCode) {
-    return error == ErrorCode.E_USER_CANCELLED;
+    return error == ErrorCode.eUserCancelled;
   }
 
   if (error is String) {
-    return error == ErrorCode.E_USER_CANCELLED.toString() ||
+    return error == ErrorCode.eUserCancelled.toString() ||
         error == 'E_USER_CANCELLED';
   }
 
   if (error is PurchaseError) {
-    return error.code == ErrorCode.E_USER_CANCELLED;
+    return error.code == ErrorCode.eUserCancelled;
   }
 
   if (error is Map<String, dynamic> && error['code'] != null) {
-    return error['code'] == ErrorCode.E_USER_CANCELLED ||
-        error['code'] == ErrorCode.E_USER_CANCELLED.toString() ||
+    return error['code'] == ErrorCode.eUserCancelled ||
+        error['code'] == ErrorCode.eUserCancelled.toString() ||
         error['code'] == 'E_USER_CANCELLED';
   }
 
@@ -34,9 +35,9 @@ bool isUserCancelledError(dynamic error) {
 /// @returns True if the error is network-related
 bool isNetworkError(dynamic error) {
   const networkErrors = [
-    ErrorCode.E_NETWORK_ERROR,
-    ErrorCode.E_REMOTE_ERROR,
-    ErrorCode.E_SERVICE_ERROR,
+    ErrorCode.eNetworkError,
+    ErrorCode.eRemoteError,
+    ErrorCode.eServiceError,
   ];
 
   ErrorCode? errorCode;
@@ -78,10 +79,10 @@ bool isNetworkError(dynamic error) {
 /// @returns True if the error is potentially recoverable
 bool isRecoverableError(dynamic error) {
   const recoverableErrors = [
-    ErrorCode.E_NETWORK_ERROR,
-    ErrorCode.E_REMOTE_ERROR,
-    ErrorCode.E_SERVICE_ERROR,
-    ErrorCode.E_INTERRUPTED,
+    ErrorCode.eNetworkError,
+    ErrorCode.eRemoteError,
+    ErrorCode.eServiceError,
+    ErrorCode.eInterrupted,
   ];
 
   ErrorCode? errorCode;
@@ -162,51 +163,51 @@ String getUserFriendlyErrorMessage(dynamic error) {
   // Return specific message based on error code
   if (errorCode != null) {
     switch (errorCode) {
-      case ErrorCode.E_USER_CANCELLED:
+      case ErrorCode.eUserCancelled:
         return 'Purchase was cancelled by user';
-      case ErrorCode.E_NETWORK_ERROR:
+      case ErrorCode.eNetworkError:
         return 'Network connection error. Please check your internet connection and try again.';
-      case ErrorCode.E_ITEM_UNAVAILABLE:
+      case ErrorCode.eItemUnavailable:
         return 'This item is not available for purchase';
-      case ErrorCode.E_ALREADY_OWNED:
+      case ErrorCode.eAlreadyOwned:
         return 'You already own this item';
-      case ErrorCode.E_PRODUCT_ALREADY_OWNED:
+      case ErrorCode.eProductAlreadyOwned:
         return 'You already own this product';
-      case ErrorCode.E_DEFERRED_PAYMENT:
+      case ErrorCode.eDeferredPayment:
         return 'Payment is pending approval';
-      case ErrorCode.E_NOT_PREPARED:
+      case ErrorCode.eNotPrepared:
         return 'In-app purchase is not ready. Please try again later.';
-      case ErrorCode.E_SERVICE_ERROR:
+      case ErrorCode.eServiceError:
         return 'Store service error. Please try again later.';
-      case ErrorCode.E_TRANSACTION_VALIDATION_FAILED:
+      case ErrorCode.eTransactionValidationFailed:
         return 'Transaction could not be verified';
-      case ErrorCode.E_RECEIPT_FAILED:
+      case ErrorCode.eReceiptFailed:
         return 'Receipt processing failed';
-      case ErrorCode.E_DEVELOPER_ERROR:
+      case ErrorCode.eDeveloperError:
         return 'Configuration error. Please contact support.';
-      case ErrorCode.E_BILLING_UNAVAILABLE:
+      case ErrorCode.eBillingUnavailable:
         return 'Billing is not available on this device';
-      case ErrorCode.E_PURCHASE_NOT_ALLOWED:
+      case ErrorCode.ePurchaseNotAllowed:
         return 'Purchases are not allowed on this device';
-      case ErrorCode.E_FEATURE_NOT_SUPPORTED:
+      case ErrorCode.eFeatureNotSupported:
         return 'This feature is not supported on your device';
-      case ErrorCode.E_NOT_INITIALIZED:
+      case ErrorCode.eNotInitialized:
         return 'In-app purchase service is not initialized';
-      case ErrorCode.E_ALREADY_INITIALIZED:
+      case ErrorCode.eAlreadyInitialized:
         return 'In-app purchase service is already initialized';
-      case ErrorCode.E_PENDING:
+      case ErrorCode.ePending:
         return 'Transaction is pending. Please wait.';
-      case ErrorCode.E_REMOTE_ERROR:
+      case ErrorCode.eRemoteError:
         return 'Server error. Please try again later.';
-      case ErrorCode.E_PURCHASE_ERROR:
+      case ErrorCode.ePurchaseError:
         return 'Purchase failed. Please try again.';
-      case ErrorCode.E_PRODUCT_NOT_FOUND:
+      case ErrorCode.eProductNotFound:
         return 'Product not found in the store';
-      case ErrorCode.E_TRANSACTION_NOT_FOUND:
+      case ErrorCode.eTransactionNotFound:
         return 'Transaction not found';
-      case ErrorCode.E_RESTORE_FAILED:
+      case ErrorCode.eRestoreFailed:
         return 'Failed to restore purchases';
-      case ErrorCode.E_NO_WINDOW_SCENE:
+      case ErrorCode.eNoWindowScene:
         return 'Unable to present purchase dialog';
       default:
         // Fall through to fallback message
@@ -236,21 +237,21 @@ extension PurchaseErrorExtensions on PurchaseError {
 /// Extension on ErrorCode for convenience methods
 extension ErrorCodeExtensions on ErrorCode {
   /// Check if this error code represents a user cancellation
-  bool get isUserCancelled => this == ErrorCode.E_USER_CANCELLED;
+  bool get isUserCancelled => this == ErrorCode.eUserCancelled;
 
   /// Check if this error code is network-related
   bool get isNetworkRelated => [
-        ErrorCode.E_NETWORK_ERROR,
-        ErrorCode.E_REMOTE_ERROR,
-        ErrorCode.E_SERVICE_ERROR,
+        ErrorCode.eNetworkError,
+        ErrorCode.eRemoteError,
+        ErrorCode.eServiceError,
       ].contains(this);
 
   /// Check if this error code is recoverable
   bool get isRecoverable => [
-        ErrorCode.E_NETWORK_ERROR,
-        ErrorCode.E_REMOTE_ERROR,
-        ErrorCode.E_SERVICE_ERROR,
-        ErrorCode.E_INTERRUPTED,
+        ErrorCode.eNetworkError,
+        ErrorCode.eRemoteError,
+        ErrorCode.eServiceError,
+        ErrorCode.eInterrupted,
       ].contains(this);
 
   /// Get a user-friendly message for this error code

@@ -6,7 +6,7 @@ void main() {
   group('utils', () {
     test('EnumUtil.getValueString', () async {
       String value = _TestEnum.Hoge.name;
-      expect(value, "Hoge");
+      expect(value, 'Hoge');
     });
   });
 }

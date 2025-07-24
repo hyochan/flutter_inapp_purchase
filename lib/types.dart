@@ -5,59 +5,58 @@ export 'enums.dart';
 /// Platform-specific error code mappings
 class ErrorCodeMapping {
   static const Map<ErrorCode, int> ios = {
-    ErrorCode.E_UNKNOWN: 0,
-    ErrorCode.E_SERVICE_ERROR: 1,
-    ErrorCode.E_USER_CANCELLED: 2,
-    ErrorCode.E_USER_ERROR: 3,
-    ErrorCode.E_ITEM_UNAVAILABLE: 4,
-    ErrorCode.E_REMOTE_ERROR: 5,
-    ErrorCode.E_NETWORK_ERROR: 6,
-    ErrorCode.E_RECEIPT_FAILED: 7,
-    ErrorCode.E_RECEIPT_FINISHED_FAILED: 8,
-    ErrorCode.E_DEVELOPER_ERROR: 9,
-    ErrorCode.E_PURCHASE_ERROR: 10,
-    ErrorCode.E_SYNC_ERROR: 11,
-    ErrorCode.E_DEFERRED_PAYMENT: 12,
-    ErrorCode.E_TRANSACTION_VALIDATION_FAILED: 13,
-    ErrorCode.E_NOT_PREPARED: 14,
-    ErrorCode.E_NOT_ENDED: 15,
-    ErrorCode.E_ALREADY_OWNED: 16,
-    ErrorCode.E_BILLING_RESPONSE_JSON_PARSE_ERROR: 17,
-    ErrorCode.E_INTERRUPTED: 18,
-    ErrorCode.E_IAP_NOT_AVAILABLE: 19,
-    ErrorCode.E_ACTIVITY_UNAVAILABLE: 20,
-    ErrorCode.E_ALREADY_PREPARED: 21,
-    ErrorCode.E_PENDING: 22,
-    ErrorCode.E_CONNECTION_CLOSED: 23,
+    ErrorCode.eUnknown: 0,
+    ErrorCode.eServiceError: 1,
+    ErrorCode.eUserCancelled: 2,
+    ErrorCode.eUserError: 3,
+    ErrorCode.eItemUnavailable: 4,
+    ErrorCode.eRemoteError: 5,
+    ErrorCode.eNetworkError: 6,
+    ErrorCode.eReceiptFailed: 7,
+    ErrorCode.eReceiptFinishedFailed: 8,
+    ErrorCode.eDeveloperError: 9,
+    ErrorCode.ePurchaseError: 10,
+    ErrorCode.eSyncError: 11,
+    ErrorCode.eDeferredPayment: 12,
+    ErrorCode.eTransactionValidationFailed: 13,
+    ErrorCode.eNotPrepared: 14,
+    ErrorCode.eNotEnded: 15,
+    ErrorCode.eAlreadyOwned: 16,
+    ErrorCode.eBillingResponseJsonParseError: 17,
+    ErrorCode.eInterrupted: 18,
+    ErrorCode.eIapNotAvailable: 19,
+    ErrorCode.eActivityUnavailable: 20,
+    ErrorCode.eAlreadyPrepared: 21,
+    ErrorCode.ePending: 22,
+    ErrorCode.eConnectionClosed: 23,
   };
 
   static const Map<ErrorCode, String> android = {
-    ErrorCode.E_UNKNOWN: 'E_UNKNOWN',
-    ErrorCode.E_USER_CANCELLED: 'E_USER_CANCELLED',
-    ErrorCode.E_USER_ERROR: 'E_USER_ERROR',
-    ErrorCode.E_ITEM_UNAVAILABLE: 'E_ITEM_UNAVAILABLE',
-    ErrorCode.E_REMOTE_ERROR: 'E_REMOTE_ERROR',
-    ErrorCode.E_NETWORK_ERROR: 'E_NETWORK_ERROR',
-    ErrorCode.E_SERVICE_ERROR: 'E_SERVICE_ERROR',
-    ErrorCode.E_RECEIPT_FAILED: 'E_RECEIPT_FAILED',
-    ErrorCode.E_RECEIPT_FINISHED_FAILED: 'E_RECEIPT_FINISHED_FAILED',
-    ErrorCode.E_NOT_PREPARED: 'E_NOT_PREPARED',
-    ErrorCode.E_NOT_ENDED: 'E_NOT_ENDED',
-    ErrorCode.E_ALREADY_OWNED: 'E_ALREADY_OWNED',
-    ErrorCode.E_DEVELOPER_ERROR: 'E_DEVELOPER_ERROR',
-    ErrorCode.E_BILLING_RESPONSE_JSON_PARSE_ERROR:
+    ErrorCode.eUnknown: 'E_UNKNOWN',
+    ErrorCode.eUserCancelled: 'E_USER_CANCELLED',
+    ErrorCode.eUserError: 'E_USER_ERROR',
+    ErrorCode.eItemUnavailable: 'E_ITEM_UNAVAILABLE',
+    ErrorCode.eRemoteError: 'E_REMOTE_ERROR',
+    ErrorCode.eNetworkError: 'E_NETWORK_ERROR',
+    ErrorCode.eServiceError: 'E_SERVICE_ERROR',
+    ErrorCode.eReceiptFailed: 'E_RECEIPT_FAILED',
+    ErrorCode.eReceiptFinishedFailed: 'E_RECEIPT_FINISHED_FAILED',
+    ErrorCode.eNotPrepared: 'E_NOT_PREPARED',
+    ErrorCode.eNotEnded: 'E_NOT_ENDED',
+    ErrorCode.eAlreadyOwned: 'E_ALREADY_OWNED',
+    ErrorCode.eDeveloperError: 'E_DEVELOPER_ERROR',
+    ErrorCode.eBillingResponseJsonParseError:
         'E_BILLING_RESPONSE_JSON_PARSE_ERROR',
-    ErrorCode.E_DEFERRED_PAYMENT: 'E_DEFERRED_PAYMENT',
-    ErrorCode.E_INTERRUPTED: 'E_INTERRUPTED',
-    ErrorCode.E_IAP_NOT_AVAILABLE: 'E_IAP_NOT_AVAILABLE',
-    ErrorCode.E_PURCHASE_ERROR: 'E_PURCHASE_ERROR',
-    ErrorCode.E_SYNC_ERROR: 'E_SYNC_ERROR',
-    ErrorCode.E_TRANSACTION_VALIDATION_FAILED:
-        'E_TRANSACTION_VALIDATION_FAILED',
-    ErrorCode.E_ACTIVITY_UNAVAILABLE: 'E_ACTIVITY_UNAVAILABLE',
-    ErrorCode.E_ALREADY_PREPARED: 'E_ALREADY_PREPARED',
-    ErrorCode.E_PENDING: 'E_PENDING',
-    ErrorCode.E_CONNECTION_CLOSED: 'E_CONNECTION_CLOSED',
+    ErrorCode.eDeferredPayment: 'E_DEFERRED_PAYMENT',
+    ErrorCode.eInterrupted: 'E_INTERRUPTED',
+    ErrorCode.eIapNotAvailable: 'E_IAP_NOT_AVAILABLE',
+    ErrorCode.ePurchaseError: 'E_PURCHASE_ERROR',
+    ErrorCode.eSyncError: 'E_SYNC_ERROR',
+    ErrorCode.eTransactionValidationFailed: 'E_TRANSACTION_VALIDATION_FAILED',
+    ErrorCode.eActivityUnavailable: 'E_ACTIVITY_UNAVAILABLE',
+    ErrorCode.eAlreadyPrepared: 'E_ALREADY_PREPARED',
+    ErrorCode.ePending: 'E_PENDING',
+    ErrorCode.eConnectionClosed: 'E_CONNECTION_CLOSED',
   };
 }
 
@@ -183,6 +182,40 @@ class DiscountIOS {
     this.paymentMode,
     this.subscriptionPeriod,
   });
+
+  /// Create [DiscountIOS] from a Map that was previously JSON formatted
+  DiscountIOS.fromJSON(Map<String, dynamic> json)
+      : identifier = json['identifier'] as String?,
+        type = json['type'] as String?,
+        numberOfPeriods = json['numberOfPeriods'] as String?,
+        price = json['price'] as double?,
+        localizedPrice = json['localizedPrice'] as String?,
+        paymentMode = json['paymentMode'] as String?,
+        subscriptionPeriod = json['subscriptionPeriod'] as String?;
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = Map<String, dynamic>();
+    data['identifier'] = this.identifier;
+    data['type'] = this.type;
+    data['numberOfPeriods'] = this.numberOfPeriods;
+    data['price'] = this.price;
+    data['localizedPrice'] = this.localizedPrice;
+    data['paymentMode'] = this.paymentMode;
+    data['subscriptionPeriod'] = this.subscriptionPeriod;
+    return data;
+  }
+
+  /// Return the contents of this class as a string
+  @override
+  String toString() {
+    return 'identifier: $identifier, '
+        'type: $type, '
+        'numberOfPeriods: $numberOfPeriods, '
+        'price: $price, '
+        'localizedPrice: $localizedPrice, '
+        'paymentMode: $paymentMode, '
+        'subscriptionPeriod: $subscriptionPeriod, ';
+  }
 }
 
 /// Subscription class for subscription items
@@ -325,7 +358,7 @@ class PurchaseError implements Exception {
   ) {
     final errorCode = errorData['code'] != null
         ? ErrorCodeUtils.fromPlatformCode(errorData['code'], platform)
-        : ErrorCode.E_UNKNOWN;
+        : ErrorCode.eUnknown;
 
     return PurchaseError(
       message: errorData['message']?.toString() ?? 'Unknown error occurred',
@@ -362,6 +395,29 @@ class PurchaseResult {
     this.message,
     this.purchaseTokenAndroid,
   });
+
+  PurchaseResult.fromJSON(Map<String, dynamic> json)
+      : responseCode = json['responseCode'] as int?,
+        debugMessage = json['debugMessage'] as String?,
+        code = json['code'] as String?,
+        message = json['message'] as String?,
+        purchaseTokenAndroid = json['purchaseTokenAndroid'] as String?;
+
+  Map<String, dynamic> toJson() => {
+        "responseCode": responseCode ?? 0,
+        "debugMessage": debugMessage ?? '',
+        "code": code ?? '',
+        "message": message ?? '',
+        "purchaseTokenAndroid": purchaseTokenAndroid ?? '',
+      };
+
+  @override
+  String toString() {
+    return 'responseCode: $responseCode, '
+        'debugMessage: $debugMessage, '
+        'code: $code, '
+        'message: $message';
+  }
 }
 
 /// Utility functions for error code mapping and validation
@@ -386,7 +442,7 @@ class ErrorCodeUtils {
         }
       }
     }
-    return ErrorCode.E_UNKNOWN;
+    return ErrorCode.eUnknown;
   }
 
   /// Maps an ErrorCode enum to platform-specific code
@@ -518,11 +574,40 @@ class RequestSubscriptionAndroid extends RequestPurchaseAndroid {
 class SubscriptionOfferAndroid {
   final String sku;
   final String offerToken;
+  final String? offerId;
+  final String? basePlanId;
+  final List<PricingPhaseAndroid>? pricingPhases;
 
   SubscriptionOfferAndroid({
     required this.sku,
     required this.offerToken,
+    this.offerId,
+    this.basePlanId,
+    this.pricingPhases,
   });
+
+  SubscriptionOfferAndroid.fromJSON(Map<String, dynamic> json)
+      : sku = json["sku"] as String? ?? '',
+        offerToken = json["offerToken"] as String? ?? '',
+        offerId = json["offerId"] as String?,
+        basePlanId = json["basePlanId"] as String?,
+        pricingPhases = _extractAndroidPricingPhase(json["pricingPhases"]);
+
+  static List<PricingPhaseAndroid>? _extractAndroidPricingPhase(dynamic json) {
+    List<dynamic>? list = json as List<dynamic>?;
+    List<PricingPhaseAndroid>? phases;
+
+    if (list != null) {
+      phases = list
+          .map<PricingPhaseAndroid>(
+            (dynamic phase) =>
+                PricingPhaseAndroid.fromJSON(phase as Map<String, dynamic>),
+          )
+          .toList();
+    }
+
+    return phases;
+  }
 }
 
 /// Request subscription parameters
@@ -611,6 +696,284 @@ class RequestProductsParams {
   });
 }
 
+/// An item available for purchase from either the `Google Play Store` or `iOS AppStore`
+class IAPItem {
+  final String? productId;
+  final String? price;
+  final String? currency;
+  final String? localizedPrice;
+  final String? title;
+  final String? description;
+  final String? introductoryPrice;
+
+  /// ios only
+  final String? subscriptionPeriodNumberIOS;
+  final String? subscriptionPeriodUnitIOS;
+  final String? introductoryPriceNumberIOS;
+  final String? introductoryPricePaymentModeIOS;
+  final String? introductoryPriceNumberOfPeriodsIOS;
+  final String? introductoryPriceSubscriptionPeriodIOS;
+  final List<DiscountIOS>? discountsIOS;
+
+  /// android only
+  final String? signatureAndroid;
+  final List<SubscriptionOfferAndroid>? subscriptionOffersAndroid;
+  final String? subscriptionPeriodAndroid;
+
+  final String? iconUrl;
+  final String? originalJson;
+  final String originalPrice;
+
+  /// Create [IAPItem] from a Map that was previously JSON formatted
+  IAPItem.fromJSON(Map<String, dynamic> json)
+      : productId = json['productId'] as String?,
+        price = json['price'] as String?,
+        currency = json['currency'] as String?,
+        localizedPrice = json['localizedPrice'] as String?,
+        title = json['title'] as String?,
+        description = json['description'] as String?,
+        introductoryPrice = json['introductoryPrice'] as String?,
+        introductoryPricePaymentModeIOS =
+            json['introductoryPricePaymentModeIOS'] as String?,
+        introductoryPriceNumberOfPeriodsIOS =
+            json['introductoryPriceNumberOfPeriodsIOS'] != null
+                ? json['introductoryPriceNumberOfPeriodsIOS'].toString()
+                : null,
+        introductoryPriceSubscriptionPeriodIOS =
+            json['introductoryPriceSubscriptionPeriodIOS'] as String?,
+        introductoryPriceNumberIOS = json['introductoryPriceNumberIOS'] != null
+            ? json['introductoryPriceNumberIOS'].toString()
+            : null,
+        subscriptionPeriodNumberIOS =
+            json['subscriptionPeriodNumberIOS'] != null
+                ? json['subscriptionPeriodNumberIOS'].toString()
+                : null,
+        subscriptionPeriodUnitIOS =
+            json['subscriptionPeriodUnitIOS'] as String?,
+        subscriptionPeriodAndroid =
+            json['subscriptionPeriodAndroid'] as String?,
+        signatureAndroid = json['signatureAndroid'] as String?,
+        iconUrl = json['iconUrl'] as String?,
+        originalJson = json['originalJson'] as String?,
+        originalPrice = json['originalPrice'] != null
+            ? json['originalPrice'].toString()
+            : '',
+        discountsIOS = _extractDiscountIOS(json['discounts']),
+        subscriptionOffersAndroid =
+            _extractSubscriptionOffersAndroid(json['subscriptionOffers']);
+
+  /// wow, i find if i want to save a IAPItem, there is not "toJson" to cast it into String...
+  /// i'm sorry to see that... so,
+  ///
+  /// you can cast a IAPItem to json(Map<String, dynamic>) via invoke this method.
+  /// for example:
+  /// String str =  convert.jsonEncode(item)
+  ///
+  /// and then get IAPItem from "str" above
+  /// IAPItem item = IAPItem.fromJSON(convert.jsonDecode(str));
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = Map<String, dynamic>();
+    data['productId'] = this.productId;
+    data['price'] = this.price;
+    data['currency'] = this.currency;
+    data['localizedPrice'] = this.localizedPrice;
+    data['title'] = this.title;
+    data['description'] = this.description;
+    data['introductoryPrice'] = this.introductoryPrice;
+
+    data['subscriptionPeriodNumberIOS'] = this.subscriptionPeriodNumberIOS;
+    data['subscriptionPeriodUnitIOS'] = this.subscriptionPeriodUnitIOS;
+    data['introductoryPricePaymentModeIOS'] =
+        this.introductoryPricePaymentModeIOS;
+    data['introductoryPriceNumberOfPeriodsIOS'] =
+        this.introductoryPriceNumberOfPeriodsIOS;
+    data['introductoryPriceSubscriptionPeriodIOS'] =
+        this.introductoryPriceSubscriptionPeriodIOS;
+    data['subscriptionPeriodAndroid'] = this.subscriptionPeriodAndroid;
+    data['signatureAndroid'] = this.signatureAndroid;
+
+    data['iconUrl'] = this.iconUrl;
+    data['originalJson'] = this.originalJson;
+    data['originalPrice'] = this.originalPrice;
+    data['discounts'] = this.discountsIOS;
+    return data;
+  }
+
+  /// Return the contents of this class as a string
+  @override
+  String toString() {
+    return 'productId: $productId, '
+        'price: $price, '
+        'currency: $currency, '
+        'localizedPrice: $localizedPrice, '
+        'title: $title, '
+        'description: $description, '
+        'introductoryPrice: $introductoryPrice, '
+        'subscriptionPeriodNumberIOS: $subscriptionPeriodNumberIOS, '
+        'subscriptionPeriodUnitIOS: $subscriptionPeriodUnitIOS, '
+        'introductoryPricePaymentModeIOS: $introductoryPricePaymentModeIOS, '
+        'introductoryPriceNumberOfPeriodsIOS: $introductoryPriceNumberOfPeriodsIOS, '
+        'introductoryPriceSubscriptionPeriodIOS: $introductoryPriceSubscriptionPeriodIOS, '
+        'subscriptionPeriodAndroid: $subscriptionPeriodAndroid, '
+        'iconUrl: $iconUrl, '
+        'originalJson: $originalJson, '
+        'originalPrice: $originalPrice, '
+        'discounts: $discountsIOS, ';
+  }
+
+  static List<DiscountIOS>? _extractDiscountIOS(dynamic json) {
+    List<dynamic>? list = json as List<dynamic>?;
+    List<DiscountIOS>? discounts;
+
+    if (list != null) {
+      discounts = list
+          .map<DiscountIOS>(
+            (dynamic discount) =>
+                DiscountIOS.fromJSON(discount as Map<String, dynamic>),
+          )
+          .toList();
+    }
+
+    return discounts;
+  }
+
+  static List<SubscriptionOfferAndroid>? _extractSubscriptionOffersAndroid(
+      dynamic json) {
+    List<dynamic>? list = json as List<dynamic>?;
+    List<SubscriptionOfferAndroid>? offers;
+
+    if (list != null) {
+      offers = list
+          .map<SubscriptionOfferAndroid>(
+            (dynamic offer) => SubscriptionOfferAndroid.fromJSON(
+                offer as Map<String, dynamic>),
+          )
+          .toList();
+    }
+
+    return offers;
+  }
+}
+
+/// An item which was purchased from either the `Google Play Store` or `iOS AppStore`
+class PurchasedItem {
+  final String? productId;
+  final String? transactionId;
+  final DateTime? transactionDate;
+  final String? transactionReceipt;
+  final String? purchaseToken;
+
+  // Android only
+  final String? dataAndroid;
+  final String? signatureAndroid;
+  final bool? autoRenewingAndroid;
+  final bool? isAcknowledgedAndroid;
+  final PurchaseState? purchaseStateAndroid;
+
+  // iOS only
+  final DateTime? originalTransactionDateIOS;
+  final String? originalTransactionIdentifierIOS;
+  final TransactionState? transactionStateIOS;
+
+  /// Create [PurchasedItem] from a Map that was previously JSON formatted
+  PurchasedItem.fromJSON(Map<String, dynamic> json)
+      : productId = json['productId'] as String?,
+        transactionId = json['transactionId'] as String?,
+        transactionDate = _extractDate(json['transactionDate']),
+        transactionReceipt = json['transactionReceipt'] as String?,
+        purchaseToken = json['purchaseToken'] as String?,
+        dataAndroid = json['dataAndroid'] as String?,
+        signatureAndroid = json['signatureAndroid'] as String?,
+        isAcknowledgedAndroid = json['isAcknowledgedAndroid'] as bool?,
+        autoRenewingAndroid = json['autoRenewingAndroid'] as bool?,
+        purchaseStateAndroid =
+            _decodePurchaseStateAndroid(json['purchaseStateAndroid'] as int?),
+        originalTransactionDateIOS =
+            _extractDate(json['originalTransactionDateIOS']),
+        originalTransactionIdentifierIOS =
+            json['originalTransactionIdentifierIOS'] as String?,
+        transactionStateIOS =
+            _decodeTransactionStateIOS(json['transactionStateIOS'] as int?);
+
+  /// This returns transaction dates in ISO 8601 format.
+  @override
+  String toString() {
+    return 'productId: $productId, '
+        'transactionId: $transactionId, '
+        'transactionDate: ${transactionDate?.toIso8601String()}, '
+        'transactionReceipt: $transactionReceipt, '
+        'purchaseToken: $purchaseToken, '
+
+        /// android specific
+        'dataAndroid: $dataAndroid, '
+        'signatureAndroid: $signatureAndroid, '
+        'isAcknowledgedAndroid: $isAcknowledgedAndroid, '
+        'autoRenewingAndroid: $autoRenewingAndroid, '
+        'purchaseStateAndroid: $purchaseStateAndroid, '
+
+        /// ios specific
+        'originalTransactionDateIOS: ${originalTransactionDateIOS?.toIso8601String()}, '
+        'originalTransactionIdentifierIOS: $originalTransactionIdentifierIOS, '
+        'transactionStateIOS: $transactionStateIOS';
+  }
+
+  /// Coerce miliseconds since epoch in double, int, or String into DateTime format
+  static DateTime? _extractDate(dynamic timestamp) {
+    if (timestamp == null) return null;
+
+    int _toInt() => double.parse(timestamp.toString()).toInt();
+    return DateTime.fromMillisecondsSinceEpoch(_toInt());
+  }
+
+  static TransactionState? _decodeTransactionStateIOS(int? rawValue) {
+    switch (rawValue) {
+      case 0:
+        return TransactionState.purchasing;
+      case 1:
+        return TransactionState.purchased;
+      case 2:
+        return TransactionState.failed;
+      case 3:
+        return TransactionState.restored;
+      case 4:
+        return TransactionState.deferred;
+      default:
+        return null;
+    }
+  }
+
+  static PurchaseState? _decodePurchaseStateAndroid(int? rawValue) {
+    switch (rawValue) {
+      case 0:
+        return PurchaseState.unspecified;
+      case 1:
+        return PurchaseState.purchased;
+      case 2:
+        return PurchaseState.pending;
+      default:
+        return null;
+    }
+  }
+}
+
+/// Pricing phase for Android subscriptions
+class PricingPhaseAndroid {
+  String? price;
+  String? formattedPrice;
+  String? billingPeriod;
+  String? currencyCode;
+  int? recurrenceMode;
+  int? billingCycleCount;
+
+  PricingPhaseAndroid.fromJSON(Map<String, dynamic> json)
+      : price = json["price"] as String?,
+        formattedPrice = json["formattedPrice"] as String?,
+        billingPeriod = json["billingPeriod"] as String?,
+        currencyCode = json["currencyCode"] as String?,
+        recurrenceMode = json["recurrenceMode"] as int?,
+        billingCycleCount = json["billingCycleCount"] as int?;
+}
+
 /// Connection result
 class ConnectionResult {
   final bool connected;
@@ -620,6 +983,20 @@ class ConnectionResult {
     required this.connected,
     this.message,
   });
+
+  ConnectionResult.fromJSON(Map<String, dynamic> json)
+      : connected = json['connected'] as bool? ?? false,
+        message = json['message'] as String?;
+
+  Map<String, dynamic> toJson() => {
+        "connected": connected,
+        "message": message,
+      };
+
+  @override
+  String toString() {
+    return 'connected: $connected, message: $message';
+  }
 }
 
 /// iOS App Store info

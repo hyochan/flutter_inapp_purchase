@@ -52,7 +52,7 @@ class ErrorHandlingExample extends StatelessWidget {
               'User Cancelled Error',
               () {
                 final error = PurchaseError(
-                  code: ErrorCode.E_USER_CANCELLED,
+                  code: ErrorCode.eUserCancelled,
                   message: 'User cancelled the purchase',
                   platform: IAPPlatform.ios,
                 );
@@ -71,7 +71,7 @@ isRecoverableError: ${isRecoverableError(error)}
               'Network Error',
               () {
                 final error = PurchaseError(
-                  code: ErrorCode.E_NETWORK_ERROR,
+                  code: ErrorCode.eNetworkError,
                   message: 'Network connection failed',
                   platform: IAPPlatform.android,
                 );
@@ -100,11 +100,11 @@ isRecoverableError: ${isRecoverableError(error)}
               'Various Error Messages',
               () {
                 final errors = [
-                  ErrorCode.E_USER_CANCELLED,
-                  ErrorCode.E_NETWORK_ERROR,
-                  ErrorCode.E_ALREADY_OWNED,
-                  ErrorCode.E_DEFERRED_PAYMENT,
-                  ErrorCode.E_DEVELOPER_ERROR,
+                  ErrorCode.eUserCancelled,
+                  ErrorCode.eNetworkError,
+                  ErrorCode.eAlreadyOwned,
+                  ErrorCode.eDeferredPayment,
+                  ErrorCode.eDeveloperError,
                 ];
 
                 return errors
@@ -130,7 +130,7 @@ isRecoverableError: ${isRecoverableError(error)}
               'PurchaseError Extensions',
               () {
                 final error = PurchaseError(
-                  code: ErrorCode.E_NETWORK_ERROR,
+                  code: ErrorCode.eNetworkError,
                   message: 'Network error occurred',
                   platform: IAPPlatform.ios,
                 );
@@ -147,7 +147,7 @@ error.userFriendlyMessage: "${error.userFriendlyMessage}"
             _buildErrorExample(
               'ErrorCode Extensions',
               () {
-                const code = ErrorCode.E_SERVICE_ERROR;
+                const code = ErrorCode.eServiceError;
 
                 return '''
 code.isUserCancelled: ${code.isUserCancelled}
@@ -205,7 +205,7 @@ class PurchaseWithErrorHandling extends StatelessWidget {
 
       // For demo, we'll simulate an error
       throw PurchaseError(
-        code: ErrorCode.E_NETWORK_ERROR,
+        code: ErrorCode.eNetworkError,
         message: 'Failed to connect to store',
         platform: IAPPlatform.ios,
       );
