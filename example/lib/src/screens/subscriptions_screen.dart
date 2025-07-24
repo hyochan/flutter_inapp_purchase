@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
-import '../use_iap.dart';
+import '../iap_provider.dart';
 
 class SubscriptionsScreen extends StatefulWidget {
   const SubscriptionsScreen({Key? key}) : super(key: key);
@@ -31,30 +31,30 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
   Future<void> _loadSubscriptions() async {
     if (!mounted) return;
 
-    final iap = useIap(context);
-    if (!iap.connected) {
+    final iapProvider = IapProvider.of(context);
+    if (iapProvider == null || !iapProvider.connected) {
       // Wait a bit for connection to establish
       await Future<void>.delayed(const Duration(seconds: 1));
       if (!mounted) return;
     }
 
-    if (iap.connected) {
-      await iap.requestProducts(skus: subscriptionIds, type: PurchaseType.subs);
+    if (iapProvider != null && iapProvider.connected) {
+      await iapProvider.getSubscriptions(subscriptionIds);
     }
   }
 
   Future<void> _loadPurchases() async {
     if (!mounted) return;
 
-    final iap = useIap(context);
-    if (iap.connected) {
-      await iap.getAvailableItems();
+    final iapProvider = IapProvider.of(context);
+    if (iapProvider != null && iapProvider.connected) {
+      await iapProvider.getAvailableItems();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final iap = useIap(context);
+    final iapProvider = IapProvider.of(context);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
@@ -70,7 +70,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
           style: TextStyle(color: Colors.black),
         ),
       ),
-      body: iap.loading
+      body: iapProvider?.loading ?? false
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
               onRefresh: _loadSubscriptions,
@@ -78,19 +78,21 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                 padding: const EdgeInsets.all(20),
                 children: [
                   // Connection Status
-                  _buildConnectionStatus(iap),
+                  _buildConnectionStatus(iapProvider),
                   const SizedBox(height: 20),
 
                   // Error Message
-                  if (iap.error != null) _buildErrorMessage(iap.error!),
+                  if (iapProvider?.error != null)
+                    _buildErrorMessage(iapProvider!.error!),
 
                   // Subscriptions List
-                  if (iap.subscriptions.isEmpty)
+                  if (iapProvider?.subscriptions.isEmpty ?? true)
                     _buildEmptyState()
                   else
-                    ...iap.subscriptions.map((subscription) => Padding(
+                    ...iapProvider!.subscriptions.map((subscription) => Padding(
                           padding: const EdgeInsets.only(bottom: 16),
-                          child: _buildSubscriptionCard(subscription, iap),
+                          child:
+                              _buildSubscriptionCard(subscription, iapProvider),
                         )),
                 ],
               ),
@@ -98,30 +100,29 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     );
   }
 
-  Widget _buildConnectionStatus(UseIap iap) {
+  Widget _buildConnectionStatus(IapProvider? iapProvider) {
+    final isConnected = iapProvider?.connected ?? false;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color:
-            iap.connected ? const Color(0xFFE8F5E9) : const Color(0xFFFFEBEE),
+        color: isConnected ? const Color(0xFFE8F5E9) : const Color(0xFFFFEBEE),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
           Icon(
-            iap.connected
+            isConnected
                 ? CupertinoIcons.checkmark_circle_fill
                 : CupertinoIcons.xmark_circle_fill,
-            color: iap.connected
-                ? const Color(0xFF4CAF50)
-                : const Color(0xFFF44336),
+            color:
+                isConnected ? const Color(0xFF4CAF50) : const Color(0xFFF44336),
             size: 20,
           ),
           const SizedBox(width: 8),
           Text(
-            iap.connected ? 'Store Connected' : 'Store Disconnected',
+            isConnected ? 'Store Connected' : 'Store Disconnected',
             style: TextStyle(
-              color: iap.connected
+              color: isConnected
                   ? const Color(0xFF4CAF50)
                   : const Color(0xFFF44336),
               fontWeight: FontWeight.w600,
@@ -196,7 +197,8 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     );
   }
 
-  Widget _buildSubscriptionCard(IAPItem subscription, UseIap iap) {
+  Widget _buildSubscriptionCard(
+      IAPItem subscription, IapProvider? iapProvider) {
     final String productId = subscription.productId ?? '';
     final String title = subscription.title ?? productId;
     final String description = subscription.description ?? '';
@@ -205,11 +207,13 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
 
     // Check if this subscription is active
     // Check both purchases and available items
-    final isSubscribed =
-        iap.availableItems.any((item) => item.productId == productId) ||
-            iap.purchases.any((purchase) =>
+    final isSubscribed = (iapProvider?.availableItems
+                .any((item) => item.productId == productId) ??
+            false) ||
+        (iapProvider?.purchases.any((purchase) =>
                 purchase.productId == productId &&
-                purchase.transactionReceipt != null);
+                purchase.transactionReceipt != null) ??
+            false);
 
     // Determine subscription type from product ID
     final isMonthly = productId.contains('monthly');
@@ -361,11 +365,20 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                     : const Color(0xFF2196F3),
                 borderRadius: BorderRadius.circular(12),
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                onPressed: iap.loading || isSubscribed
+                onPressed: (iapProvider?.loading ?? false) || isSubscribed
                     ? null
                     : () async {
-                        await iap.requestPurchase(productId,
-                            type: PurchaseType.subs);
+                        // Simplified subscription request
+                        await FlutterInappPurchase.instance.requestPurchaseAuto(
+                          sku: productId,
+                          type: PurchaseType.subs,
+                          andDangerouslyFinishTransactionAutomaticallyIOS:
+                              false,
+                          // Optional parameters will be automatically applied based on platform:
+                          // iOS: appAccountToken, quantity, withOffer
+                          // Android: obfuscatedAccountIdAndroid, obfuscatedProfileIdAndroid,
+                          //          purchaseToken, replacementModeAndroid, subscriptionOffers
+                        );
                       },
                 child: Text(
                   isSubscribed

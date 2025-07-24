@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
-import '../use_iap.dart';
+import '../iap_provider.dart';
 
 class PurchaseHistoryScreen extends StatefulWidget {
   const PurchaseHistoryScreen({Key? key}) : super(key: key);
@@ -35,15 +35,15 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
     });
 
     try {
-      final iap = useIap(context);
-      if (!iap.connected) {
+      final iapProvider = IapProvider.of(context);
+      if (iapProvider == null || !iapProvider.connected) {
         // Wait a bit for connection to establish
         await Future<void>.delayed(const Duration(seconds: 1));
         if (!mounted) return;
       }
 
-      if (iap.connected) {
-        final history = await iap.getPurchaseHistory();
+      if (iapProvider != null && iapProvider.connected) {
+        final history = await iapProvider.getPurchaseHistory();
         if (mounted) {
           setState(() {
             _purchaseHistory = history;
@@ -70,7 +70,7 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final iap = useIap(context);
+    final iapProvider = IapProvider.of(context);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
@@ -100,7 +100,7 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
                 padding: const EdgeInsets.all(20),
                 children: [
                   // Connection Status
-                  _buildConnectionStatus(iap),
+                  _buildConnectionStatus(iapProvider),
                   const SizedBox(height: 20),
 
                   // Error Message
@@ -120,30 +120,33 @@ class _PurchaseHistoryScreenState extends State<PurchaseHistoryScreen> {
     );
   }
 
-  Widget _buildConnectionStatus(UseIap iap) {
+  Widget _buildConnectionStatus(IapProvider? iapProvider) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color:
-            iap.connected ? const Color(0xFFE8F5E9) : const Color(0xFFFFEBEE),
+        color: (iapProvider?.connected ?? false)
+            ? const Color(0xFFE8F5E9)
+            : const Color(0xFFFFEBEE),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
           Icon(
-            iap.connected
+            (iapProvider?.connected ?? false)
                 ? CupertinoIcons.checkmark_circle_fill
                 : CupertinoIcons.xmark_circle_fill,
-            color: iap.connected
+            color: (iapProvider?.connected ?? false)
                 ? const Color(0xFF4CAF50)
                 : const Color(0xFFF44336),
             size: 20,
           ),
           const SizedBox(width: 8),
           Text(
-            iap.connected ? 'Store Connected' : 'Store Disconnected',
+            (iapProvider?.connected ?? false)
+                ? 'Store Connected'
+                : 'Store Disconnected',
             style: TextStyle(
-              color: iap.connected
+              color: (iapProvider?.connected ?? false)
                   ? const Color(0xFF4CAF50)
                   : const Color(0xFFF44336),
               fontWeight: FontWeight.w600,

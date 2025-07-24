@@ -1,48 +1,76 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 import 'package:flutter/cupertino.dart';
+import '../iap_provider.dart';
 
-/// Example screen demonstrating the useIAP hook
-class HooksExampleScreen extends HookWidget {
+/// Example screen demonstrating the IapProvider usage
+/// This replaces the previous hooks-based approach with the IapProvider pattern
+class HooksExampleScreen extends StatefulWidget {
   const HooksExampleScreen({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    // Use the IAP hook with options
-    final iap = useIAP(
-      UseIAPOptions(
-        onPurchaseSuccess: (purchase) {
-          // Show success message
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Purchase successful: ${purchase.productId}'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        },
-        onPurchaseError: (error) {
-          // Show error message
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Purchase failed: ${error.message}'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        },
-      ),
-    );
+  State<HooksExampleScreen> createState() => _HooksExampleScreenState();
+}
+
+class _HooksExampleScreenState extends State<HooksExampleScreen> {
+  StreamSubscription<PurchasedItem?>? _purchaseUpdateSubscription;
+  StreamSubscription<PurchaseResult?>? _purchaseErrorSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    // Listen to purchase updates
+    _purchaseUpdateSubscription =
+        FlutterInappPurchase.purchaseUpdated.listen((purchase) {
+      if (purchase != null && mounted) {
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Purchase successful: ${purchase.productId}'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    });
+
+    // Listen to purchase errors
+    _purchaseErrorSubscription =
+        FlutterInappPurchase.purchaseError.listen((error) {
+      if (error != null && mounted) {
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Purchase failed: ${error.message}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    });
 
     // Fetch products on first build
-    useEffect(() {
-      if (iap.connected) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final iapProvider = IapProvider.of(context);
+      if (iapProvider != null && iapProvider.connected) {
         // Fetch products
-        iap.getProducts(['dev.hyo.martie.10bulbs', 'dev.hyo.martie.100bulbs']);
+        iapProvider
+            .getProducts(['dev.hyo.martie.10bulbs', 'dev.hyo.martie.100bulbs']);
         // Fetch subscriptions
-        iap.getSubscriptions(['dev.hyo.martie.premium']);
+        iapProvider.getSubscriptions(['dev.hyo.martie.premium']);
       }
-      return null;
-    }, [iap.connected]);
+    });
+  }
+
+  @override
+  void dispose() {
+    _purchaseUpdateSubscription?.cancel();
+    _purchaseErrorSubscription?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final iapProvider = IapProvider.of(context);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
@@ -54,7 +82,7 @@ class HooksExampleScreen extends HookWidget {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          'Flutter Hooks IAP Example',
+          'IapProvider Example',
           style: TextStyle(color: Colors.black),
         ),
       ),
@@ -62,35 +90,38 @@ class HooksExampleScreen extends HookWidget {
         padding: const EdgeInsets.all(20),
         children: [
           // Connection Status
-          _buildConnectionStatus(iap.connected),
+          _buildConnectionStatus(iapProvider?.connected ?? false),
           const SizedBox(height: 20),
 
           // Current Purchase Info
-          if (iap.currentPurchase != null)
-            _buildCurrentPurchase(iap.currentPurchase!),
+          if (iapProvider?.purchases.isNotEmpty ?? false)
+            _buildCurrentPurchase(iapProvider!.purchases.last),
 
           // Current Error Info
-          if (iap.currentPurchaseError != null)
-            _buildCurrentError(iap.currentPurchaseError!),
+          if (iapProvider?.error != null)
+            _buildCurrentError(iapProvider!.error!),
 
           // Products Section
           _buildSectionTitle('Products'),
-          ...iap.products.map((product) => _buildProductCard(
+          ...(iapProvider?.products ?? []).map((product) => _buildProductCard(
                 product: product,
-                onBuy: () => _purchaseProduct(iap, product),
+                onBuy: () => _purchaseProduct(iapProvider, product),
               )),
 
           const SizedBox(height: 20),
 
           // Subscriptions Section
           _buildSectionTitle('Subscriptions'),
-          ...iap.subscriptions.map((subscription) => _buildSubscriptionCard(
-                subscription: subscription,
-                isSubscribed: iap.availablePurchases.any(
-                  (p) => p.productId == subscription.productId,
-                ),
-                onBuy: () => _purchaseSubscription(iap, subscription),
-              )),
+          ...(iapProvider?.subscriptions ?? [])
+              .map((subscription) => _buildSubscriptionCard(
+                    subscription: subscription,
+                    isSubscribed: iapProvider?.availableItems.any(
+                          (p) => p.productId == subscription.productId,
+                        ) ??
+                        false,
+                    onBuy: () =>
+                        _purchaseSubscription(iapProvider, subscription),
+                  )),
 
           const SizedBox(height: 20),
 
@@ -100,14 +131,18 @@ class HooksExampleScreen extends HookWidget {
             icon: CupertinoIcons.refresh,
             onPressed: () async {
               try {
-                await iap.restorePurchases();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Purchases restored')),
-                );
+                await iapProvider?.restorePurchases();
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Purchases restored')),
+                  );
+                }
               } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Restore failed: $e')),
-                );
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Restore failed: $e')),
+                  );
+                }
               }
             },
           ),
@@ -147,7 +182,7 @@ class HooksExampleScreen extends HookWidget {
     );
   }
 
-  Widget _buildCurrentPurchase(Purchase purchase) {
+  Widget _buildCurrentPurchase(PurchasedItem purchase) {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(16),
@@ -174,7 +209,7 @@ class HooksExampleScreen extends HookWidget {
     );
   }
 
-  Widget _buildCurrentError(PurchaseError error) {
+  Widget _buildCurrentError(String error) {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(16),
@@ -186,7 +221,7 @@ class HooksExampleScreen extends HookWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Purchase Error',
+            'Error',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -195,17 +230,9 @@ class HooksExampleScreen extends HookWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            error.message,
+            error,
             style: const TextStyle(color: Color(0xFFF44336)),
           ),
-          if (error.debugMessage != null)
-            Text(
-              error.debugMessage!,
-              style: TextStyle(
-                color: Colors.red[700],
-                fontSize: 12,
-              ),
-            ),
         ],
       ),
     );
@@ -226,7 +253,7 @@ class HooksExampleScreen extends HookWidget {
   }
 
   Widget _buildProductCard({
-    required Product product,
+    required IAPItem product,
     required VoidCallback onBuy,
   }) {
     return Container(
@@ -265,7 +292,7 @@ class HooksExampleScreen extends HookWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    product.title ?? product.productId,
+                    product.title ?? product.productId ?? '',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -273,7 +300,7 @@ class HooksExampleScreen extends HookWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    product.localizedPrice ?? product.price,
+                    product.localizedPrice ?? product.price ?? '',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[600],
@@ -302,7 +329,7 @@ class HooksExampleScreen extends HookWidget {
   }
 
   Widget _buildSubscriptionCard({
-    required Subscription subscription,
+    required IAPItem subscription,
     required bool isSubscribed,
     required VoidCallback onBuy,
   }) {
@@ -353,7 +380,7 @@ class HooksExampleScreen extends HookWidget {
                   Row(
                     children: [
                       Text(
-                        subscription.title ?? subscription.productId,
+                        subscription.title ?? subscription.productId ?? '',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -384,7 +411,7 @@ class HooksExampleScreen extends HookWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    subscription.localizedPrice ?? subscription.price,
+                    subscription.localizedPrice ?? subscription.price ?? '',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[600],
@@ -449,30 +476,22 @@ class HooksExampleScreen extends HookWidget {
     );
   }
 
-  Future<void> _purchaseProduct(UseIAPReturn iap, Product product) async {
+  Future<void> _purchaseProduct(IapProvider? iap, IAPItem product) async {
+    if (iap == null) return;
+
     try {
-      await iap.requestPurchase(
-        request: RequestPurchase(
-          ios: RequestPurchaseIOS(sku: product.productId),
-          android: RequestPurchaseAndroid(skus: [product.productId]),
-        ),
-        type: PurchaseType.inapp,
-      );
+      await iap.requestPurchase(product.productId ?? '');
     } catch (e) {
       debugPrint('Purchase failed: $e');
     }
   }
 
   Future<void> _purchaseSubscription(
-      UseIAPReturn iap, Subscription subscription) async {
+      IapProvider? iap, IAPItem subscription) async {
+    if (iap == null) return;
+
     try {
-      await iap.requestPurchase(
-        request: RequestPurchase(
-          ios: RequestPurchaseIOS(sku: subscription.productId),
-          android: RequestPurchaseAndroid(skus: [subscription.productId]),
-        ),
-        type: PurchaseType.subs,
-      );
+      await iap.requestSubscription(subscription.productId ?? '');
     } catch (e) {
       debugPrint('Subscription purchase failed: $e');
     }
