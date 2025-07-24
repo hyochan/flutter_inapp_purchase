@@ -32,7 +32,8 @@
       "Bash(grep:*)",
       "Bash(dart analyze:*)",
       "Bash(git checkout:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(dart format:*)"
     ],
     "deny": []
   }

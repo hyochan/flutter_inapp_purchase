@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
-import 'package:flutter_inapp_purchase/enums.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:platform/platform.dart';
 
@@ -13,14 +12,14 @@ void main() {
   group('FlutterInappPurchase', () {
     group('Platform Detection', () {
       test('getCurrentPlatform returns correct platform for iOS', () {
-        FlutterInappPurchase(FlutterInappPurchase.private(
-            FakePlatform(operatingSystem: "ios")));
+        FlutterInappPurchase(
+            FlutterInappPurchase.private(FakePlatform(operatingSystem: 'ios')));
         expect(getCurrentPlatform(), IAPPlatform.ios);
       });
 
       test('getCurrentPlatform returns correct platform for Android', () {
         FlutterInappPurchase(FlutterInappPurchase.private(
-            FakePlatform(operatingSystem: "android")));
+            FakePlatform(operatingSystem: 'android')));
         expect(getCurrentPlatform(), IAPPlatform.android);
       });
     });
@@ -30,12 +29,12 @@ void main() {
         final List<MethodCall> log = <MethodCall>[];
         setUp(() {
           FlutterInappPurchase(FlutterInappPurchase.private(
-              FakePlatform(operatingSystem: "android")));
+              FakePlatform(operatingSystem: 'android')));
 
           TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
               .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
             log.add(methodCall);
-            return "ready";
+            return 'ready';
           });
         });
         test('invokes correct method', () async {
@@ -52,7 +51,7 @@ void main() {
         test('returns correct result', () async {
           final result =
               await FlutterInappPurchase.instance.showInAppMessageAndroid();
-          expect(result, "ready");
+          expect(result, 'ready');
         });
       });
     });
@@ -62,12 +61,12 @@ void main() {
         final List<MethodCall> log = <MethodCall>[];
         setUp(() {
           FlutterInappPurchase(FlutterInappPurchase.private(
-              FakePlatform(operatingSystem: "android")));
+              FakePlatform(operatingSystem: 'android')));
 
           TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
               .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
             log.add(methodCall);
-            return "All items have been consumed";
+            return 'All items have been consumed';
           });
         });
 
@@ -84,14 +83,14 @@ void main() {
 
         test('returns correct result', () async {
           expect(await FlutterInappPurchase.instance.consumeAll(),
-              "All items have been consumed");
+              'All items have been consumed');
         });
       });
 
       group('for iOS', () {
         setUp(() {
           FlutterInappPurchase(FlutterInappPurchase.private(
-              FakePlatform(operatingSystem: "ios")));
+              FakePlatform(operatingSystem: 'ios')));
         });
 
         tearDown(() {
@@ -100,7 +99,7 @@ void main() {
 
         test('returns correct result', () async {
           expect(await FlutterInappPurchase.instance.consumeAll(),
-              "no-ops in ios");
+              'no-ops in ios');
         });
       });
     });
@@ -110,12 +109,12 @@ void main() {
         final List<MethodCall> log = <MethodCall>[];
         setUp(() {
           FlutterInappPurchase(FlutterInappPurchase.private(
-              FakePlatform(operatingSystem: "android")));
+              FakePlatform(operatingSystem: 'android')));
 
           TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
               .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
             log.add(methodCall);
-            return "Billing service is ready";
+            return 'Billing service is ready';
           });
         });
 
@@ -132,7 +131,7 @@ void main() {
 
         test('returns correct result', () async {
           expect(await FlutterInappPurchase.instance.initialize(),
-              "Billing service is ready");
+              'Billing service is ready');
         });
       });
     });
@@ -142,7 +141,7 @@ void main() {
         final List<MethodCall> log = <MethodCall>[];
         setUp(() {
           FlutterInappPurchase(FlutterInappPurchase.private(
-              FakePlatform(operatingSystem: "android")));
+              FakePlatform(operatingSystem: 'android')));
 
           TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
               .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
@@ -173,7 +172,8 @@ void main() {
         });
 
         test('invokes correct method', () async {
-          await FlutterInappPurchase.instance.getProducts(['com.example.product1', 'com.example.product2']);
+          await FlutterInappPurchase.instance
+              .getProducts(['com.example.product1', 'com.example.product2']);
           expect(log, <Matcher>[
             isMethodCall('getItemsByType', arguments: <String, dynamic>{
               'type': 'inapp',
@@ -183,12 +183,13 @@ void main() {
         });
 
         test('returns correct products', () async {
-          final products = await FlutterInappPurchase.instance.getProducts(['com.example.product1', 'com.example.product2']);
-          expect(products?.length, 2);
-          expect(products?[0].productId, 'com.example.product1');
-          expect(products?[0].price, '0.99');
-          expect(products?[0].currency, 'USD');
-          expect(products?[1].productId, 'com.example.product2');
+          final products = await FlutterInappPurchase.instance
+              .getProducts(['com.example.product1', 'com.example.product2']);
+          expect(products!.length, 2);
+          expect(products[0].productId, 'com.example.product1');
+          expect(products[0].price, '0.99');
+          expect(products[0].currency, 'USD');
+          expect(products[1].productId, 'com.example.product2');
         });
       });
     });
@@ -198,7 +199,7 @@ void main() {
         final List<MethodCall> log = <MethodCall>[];
         setUp(() {
           FlutterInappPurchase(FlutterInappPurchase.private(
-              FakePlatform(operatingSystem: "ios")));
+              FakePlatform(operatingSystem: 'ios')));
 
           TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
               .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
@@ -223,7 +224,8 @@ void main() {
         });
 
         test('invokes correct method', () async {
-          await FlutterInappPurchase.instance.getSubscriptions(['com.example.subscription1']);
+          await FlutterInappPurchase.instance
+              .getSubscriptions(['com.example.subscription1']);
           expect(log, <Matcher>[
             isMethodCall('getItemsByType', arguments: <String, dynamic>{
               'type': 'subs',
@@ -233,10 +235,11 @@ void main() {
         });
 
         test('returns correct subscriptions', () async {
-          final subscriptions = await FlutterInappPurchase.instance.getSubscriptions(['com.example.subscription1']);
-          expect(subscriptions?.length, 1);
-          expect(subscriptions?[0].productId, 'com.example.subscription1');
-          expect(subscriptions?[0].subscriptionPeriodUnitIOS, 'MONTH');
+          final subscriptions = await FlutterInappPurchase.instance
+              .getSubscriptions(['com.example.subscription1']);
+          expect(subscriptions!.length, 1);
+          expect(subscriptions[0].productId, 'com.example.subscription1');
+          expect(subscriptions[0].subscriptionPeriodUnitIOS, 'MONTH');
         });
       });
     });
@@ -264,15 +267,28 @@ void main() {
 
       test('ErrorCodeUtils maps platform codes correctly', () {
         // Test iOS mapping
-        expect(ErrorCodeUtils.fromPlatformCode(2, IAPPlatform.ios), ErrorCode.E_USER_CANCELLED);
-        expect(ErrorCodeUtils.toPlatformCode(ErrorCode.E_USER_CANCELLED, IAPPlatform.ios), 2);
+        expect(ErrorCodeUtils.fromPlatformCode(2, IAPPlatform.ios),
+            ErrorCode.E_USER_CANCELLED);
+        expect(
+            ErrorCodeUtils.toPlatformCode(
+                ErrorCode.E_USER_CANCELLED, IAPPlatform.ios),
+            2);
 
         // Test Android mapping
-        expect(ErrorCodeUtils.fromPlatformCode('E_USER_CANCELLED', IAPPlatform.android), ErrorCode.E_USER_CANCELLED);
-        expect(ErrorCodeUtils.toPlatformCode(ErrorCode.E_USER_CANCELLED, IAPPlatform.android), 'E_USER_CANCELLED');
+        expect(
+            ErrorCodeUtils.fromPlatformCode(
+                'E_USER_CANCELLED', IAPPlatform.android),
+            ErrorCode.E_USER_CANCELLED);
+        expect(
+            ErrorCodeUtils.toPlatformCode(
+                ErrorCode.E_USER_CANCELLED, IAPPlatform.android),
+            'E_USER_CANCELLED');
 
         // Test unknown code
-        expect(ErrorCodeUtils.fromPlatformCode('UNKNOWN_ERROR', IAPPlatform.android), ErrorCode.E_UNKNOWN);
+        expect(
+            ErrorCodeUtils.fromPlatformCode(
+                'UNKNOWN_ERROR', IAPPlatform.android),
+            ErrorCode.E_UNKNOWN);
       });
     });
 
@@ -348,19 +364,27 @@ void main() {
       test('SubscriptionState enum has correct values', () {
         expect(SubscriptionState.values.length, 5);
         expect(SubscriptionState.active.toString(), 'SubscriptionState.active');
-        expect(SubscriptionState.expired.toString(), 'SubscriptionState.expired');
-        expect(SubscriptionState.inBillingRetry.toString(), 'SubscriptionState.inBillingRetry');
-        expect(SubscriptionState.inGracePeriod.toString(), 'SubscriptionState.inGracePeriod');
-        expect(SubscriptionState.revoked.toString(), 'SubscriptionState.revoked');
+        expect(
+            SubscriptionState.expired.toString(), 'SubscriptionState.expired');
+        expect(SubscriptionState.inBillingRetry.toString(),
+            'SubscriptionState.inBillingRetry');
+        expect(SubscriptionState.inGracePeriod.toString(),
+            'SubscriptionState.inGracePeriod');
+        expect(
+            SubscriptionState.revoked.toString(), 'SubscriptionState.revoked');
       });
 
       test('ProrationMode enum has correct values', () {
         expect(ProrationMode.values.length, 5);
-        expect(ProrationMode.immediateWithTimeProration.toString(), 'ProrationMode.immediateWithTimeProration');
-        expect(ProrationMode.immediateAndChargeProratedPrice.toString(), 'ProrationMode.immediateAndChargeProratedPrice');
-        expect(ProrationMode.immediateWithoutProration.toString(), 'ProrationMode.immediateWithoutProration');
+        expect(ProrationMode.immediateWithTimeProration.toString(),
+            'ProrationMode.immediateWithTimeProration');
+        expect(ProrationMode.immediateAndChargeProratedPrice.toString(),
+            'ProrationMode.immediateAndChargeProratedPrice');
+        expect(ProrationMode.immediateWithoutProration.toString(),
+            'ProrationMode.immediateWithoutProration');
         expect(ProrationMode.deferred.toString(), 'ProrationMode.deferred');
-        expect(ProrationMode.immediateAndChargeFullPrice.toString(), 'ProrationMode.immediateAndChargeFullPrice');
+        expect(ProrationMode.immediateAndChargeFullPrice.toString(),
+            'ProrationMode.immediateAndChargeFullPrice');
       });
     });
   });
