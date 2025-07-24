@@ -40,12 +40,14 @@ class UseIap {
     }
   }
 
-  @Deprecated('Use requestProducts with skus parameter instead. Will be removed in 6.1.0')
+  @Deprecated(
+      'Use requestProducts with skus parameter instead. Will be removed in 6.1.0')
   Future<List<IAPItem>> getProducts(List<String> skus) async {
     return await requestProducts(skus: skus, type: PurchaseType.inapp);
   }
 
-  @Deprecated('Use requestProducts with type: PurchaseType.subs instead. Will be removed in 6.1.0')
+  @Deprecated(
+      'Use requestProducts with type: PurchaseType.subs instead. Will be removed in 6.1.0')
   Future<List<IAPItem>> getSubscriptions(List<String> skus) async {
     return await requestProducts(skus: skus, type: PurchaseType.subs);
   }
@@ -58,7 +60,8 @@ class UseIap {
     return await _provider?.getPurchaseHistory();
   }
 
-  Future<void> requestPurchase(String sku, {PurchaseType type = PurchaseType.inapp}) async {
+  Future<void> requestPurchase(String sku,
+      {PurchaseType type = PurchaseType.inapp}) async {
     if (type == PurchaseType.subs) {
       await _provider?.requestSubscription(sku);
     } else {
@@ -66,12 +69,14 @@ class UseIap {
     }
   }
 
-  @Deprecated('Use requestPurchase with type: PurchaseType.subs instead. Will be removed in 6.1.0')
+  @Deprecated(
+      'Use requestPurchase with type: PurchaseType.subs instead. Will be removed in 6.1.0')
   Future<void> requestSubscription(String sku) async {
     await requestPurchase(sku, type: PurchaseType.subs);
   }
 
-  Future<void> finishTransaction(PurchasedItem purchase, {bool isConsumable = true}) async {
+  Future<void> finishTransaction(PurchasedItem purchase,
+      {bool isConsumable = true}) async {
     await _provider?.finishTransaction(purchase, isConsumable: isConsumable);
   }
 

@@ -13,11 +13,11 @@ class IapProvider extends InheritedWidget {
   final List<PurchasedItem> availableItems;
   final String? error;
   final bool loading;
-  
+
   // Streams
   final Stream<PurchasedItem?> purchaseUpdated;
   final Stream<PurchaseResult?> purchaseError;
-  
+
   // Methods
   final Future<void> Function() initConnection;
   final Future<void> Function() endConnection;
@@ -27,7 +27,8 @@ class IapProvider extends InheritedWidget {
   final Future<List<PurchasedItem>?> Function() getPurchaseHistory;
   final Future<void> Function(String sku) requestPurchase;
   final Future<void> Function(String sku) requestSubscription;
-  final Future<void> Function(PurchasedItem purchase, {bool isConsumable}) finishTransaction;
+  final Future<void> Function(PurchasedItem purchase, {bool isConsumable})
+      finishTransaction;
   final Future<void> Function() restorePurchases;
   final Future<void> Function() presentCodeRedemption;
   final Future<void> Function() showManageSubscriptions;
@@ -91,7 +92,7 @@ class IapProviderWidget extends StatefulWidget {
 
 class _IapProviderWidgetState extends State<IapProviderWidget> {
   final FlutterInappPurchase _iap = FlutterInappPurchase.instance;
-  
+
   bool _connected = false;
   List<IAPItem> _products = [];
   List<IAPItem> _subscriptions = [];
@@ -128,9 +129,10 @@ class _IapProviderWidgetState extends State<IapProviderWidget> {
 
     try {
       await _iap.initConnection();
-      
+
       // Set up listeners
-      _purchaseUpdatedSubscription = FlutterInappPurchase.purchaseUpdated.listen((purchase) {
+      _purchaseUpdatedSubscription =
+          FlutterInappPurchase.purchaseUpdated.listen((purchase) {
         if (purchase != null) {
           setState(() {
             _purchases.add(purchase);
@@ -138,7 +140,8 @@ class _IapProviderWidgetState extends State<IapProviderWidget> {
         }
       });
 
-      _purchaseErrorSubscription = FlutterInappPurchase.purchaseError.listen((error) {
+      _purchaseErrorSubscription =
+          FlutterInappPurchase.purchaseError.listen((error) {
         setState(() {
           _error = error?.message ?? 'Unknown error';
         });
@@ -275,7 +278,8 @@ class _IapProviderWidgetState extends State<IapProviderWidget> {
     }
   }
 
-  Future<void> _finishTransaction(PurchasedItem purchase, {bool isConsumable = true}) async {
+  Future<void> _finishTransaction(PurchasedItem purchase,
+      {bool isConsumable = true}) async {
     try {
       await _iap.finishTransactionIOS(purchase, isConsumable: isConsumable);
     } catch (e) {

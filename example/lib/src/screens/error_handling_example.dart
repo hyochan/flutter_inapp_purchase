@@ -56,7 +56,7 @@ class ErrorHandlingExample extends StatelessWidget {
                   message: 'User cancelled the purchase',
                   platform: IAPPlatform.ios,
                 );
-                
+
                 return '''
 isUserCancelledError: ${isUserCancelledError(error)}
 isNetworkError: ${isNetworkError(error)}
@@ -65,7 +65,7 @@ isRecoverableError: ${isRecoverableError(error)}
               },
             ),
             const Divider(),
-            
+
             // Network error
             _buildErrorExample(
               'Network Error',
@@ -75,7 +75,7 @@ isRecoverableError: ${isRecoverableError(error)}
                   message: 'Network connection failed',
                   platform: IAPPlatform.android,
                 );
-                
+
                 return '''
 isUserCancelledError: ${isUserCancelledError(error)}
 isNetworkError: ${isNetworkError(error)}
@@ -106,10 +106,11 @@ isRecoverableError: ${isRecoverableError(error)}
                   ErrorCode.E_DEFERRED_PAYMENT,
                   ErrorCode.E_DEVELOPER_ERROR,
                 ];
-                
-                return errors.map((code) => 
-                  '${code.toString().split('.').last}:\n  "${getUserFriendlyErrorMessage(code)}"'
-                ).join('\n\n');
+
+                return errors
+                    .map((code) =>
+                        '${code.toString().split('.').last}:\n  "${getUserFriendlyErrorMessage(code)}"')
+                    .join('\n\n');
               },
             ),
           ],
@@ -133,7 +134,7 @@ isRecoverableError: ${isRecoverableError(error)}
                   message: 'Network error occurred',
                   platform: IAPPlatform.ios,
                 );
-                
+
                 return '''
 error.isUserCancelled: ${error.isUserCancelled}
 error.isNetworkRelated: ${error.isNetworkRelated}
@@ -143,12 +144,11 @@ error.userFriendlyMessage: "${error.userFriendlyMessage}"
               },
             ),
             const Divider(),
-            
             _buildErrorExample(
               'ErrorCode Extensions',
               () {
                 const code = ErrorCode.E_SERVICE_ERROR;
-                
+
                 return '''
 code.isUserCancelled: ${code.isUserCancelled}
 code.isNetworkRelated: ${code.isNetworkRelated}
@@ -202,7 +202,7 @@ class PurchaseWithErrorHandling extends StatelessWidget {
     try {
       // Simulate a purchase that might fail
       // ... purchase logic here ...
-      
+
       // For demo, we'll simulate an error
       throw PurchaseError(
         code: ErrorCode.E_NETWORK_ERROR,
@@ -215,9 +215,9 @@ class PurchaseWithErrorHandling extends StatelessWidget {
         // User cancelled - no need to show error
         return;
       }
-      
+
       String message = getUserFriendlyErrorMessage(error);
-      
+
       if (isRecoverableError(error)) {
         // Show retry option
         showDialog<void>(

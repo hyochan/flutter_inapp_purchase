@@ -205,11 +205,11 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
 
     // Check if this subscription is active
     // Check both purchases and available items
-    final isSubscribed = iap.availableItems.any((item) => 
-        item.productId == productId) ||
-        iap.purchases.any((purchase) => 
-        purchase.productId == productId && 
-        purchase.transactionReceipt != null);
+    final isSubscribed =
+        iap.availableItems.any((item) => item.productId == productId) ||
+            iap.purchases.any((purchase) =>
+                purchase.productId == productId &&
+                purchase.transactionReceipt != null);
 
     // Determine subscription type from product ID
     final isMonthly = productId.contains('monthly');
@@ -327,7 +327,8 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
             if (isSubscribed)
               Container(
                 margin: const EdgeInsets.only(bottom: 16),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
                   color: const Color(0xFFE8F5E9),
                   borderRadius: BorderRadius.circular(8),
@@ -355,7 +356,9 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
             SizedBox(
               width: double.infinity,
               child: CupertinoButton(
-                color: isSubscribed ? const Color(0xFF6C757D) : const Color(0xFF2196F3),
+                color: isSubscribed
+                    ? const Color(0xFF6C757D)
+                    : const Color(0xFF2196F3),
                 borderRadius: BorderRadius.circular(12),
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 onPressed: iap.loading || isSubscribed
@@ -365,8 +368,8 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                             type: PurchaseType.subs);
                       },
                 child: Text(
-                  isSubscribed 
-                      ? 'Subscribed' 
+                  isSubscribed
+                      ? 'Subscribed'
                       : (price.isNotEmpty ? 'Subscribe - $price' : 'Subscribe'),
                   style: const TextStyle(
                     fontSize: 16,

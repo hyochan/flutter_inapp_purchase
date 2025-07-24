@@ -109,17 +109,19 @@ class IAPItem {
         introductoryPrice = json['introductoryPrice'] as String?,
         introductoryPricePaymentModeIOS =
             json['introductoryPricePaymentModeIOS'] as String?,
-        introductoryPriceNumberOfPeriodsIOS = json['introductoryPriceNumberOfPeriodsIOS'] != null
-            ? json['introductoryPriceNumberOfPeriodsIOS'].toString()
-            : null,
+        introductoryPriceNumberOfPeriodsIOS =
+            json['introductoryPriceNumberOfPeriodsIOS'] != null
+                ? json['introductoryPriceNumberOfPeriodsIOS'].toString()
+                : null,
         introductoryPriceSubscriptionPeriodIOS =
             json['introductoryPriceSubscriptionPeriodIOS'] as String?,
         introductoryPriceNumberIOS = json['introductoryPriceNumberIOS'] != null
             ? json['introductoryPriceNumberIOS'].toString()
             : null,
-        subscriptionPeriodNumberIOS = json['subscriptionPeriodNumberIOS'] != null
-            ? json['subscriptionPeriodNumberIOS'].toString()
-            : null,
+        subscriptionPeriodNumberIOS =
+            json['subscriptionPeriodNumberIOS'] != null
+                ? json['subscriptionPeriodNumberIOS'].toString()
+                : null,
         subscriptionPeriodUnitIOS =
             json['subscriptionPeriodUnitIOS'] as String?,
         subscriptionPeriodAndroid =
@@ -500,14 +502,19 @@ class FlutterInappPurchase {
         _httpClient = client ?? http.Client();
 
   // New flutter IAP compatible event controllers
-  final StreamController<iap_types.Purchase> _purchaseUpdatedController = StreamController<iap_types.Purchase>.broadcast();
-  final StreamController<iap_types.PurchaseError> _expoIAPPurchaseErrorController = StreamController<iap_types.PurchaseError>.broadcast();
+  final StreamController<iap_types.Purchase> _purchaseUpdatedController =
+      StreamController<iap_types.Purchase>.broadcast();
+  final StreamController<iap_types.PurchaseError>
+      _expoIAPPurchaseErrorController =
+      StreamController<iap_types.PurchaseError>.broadcast();
 
   /// Purchase updated event stream (flutter IAP compatible)
-  Stream<iap_types.Purchase> get purchaseUpdatedListener => _purchaseUpdatedController.stream;
+  Stream<iap_types.Purchase> get purchaseUpdatedListener =>
+      _purchaseUpdatedController.stream;
 
   /// Purchase error event stream (flutter IAP compatible)
-  Stream<iap_types.PurchaseError> get purchaseErrorListener => _expoIAPPurchaseErrorController.stream;
+  Stream<iap_types.PurchaseError> get purchaseErrorListener =>
+      _expoIAPPurchaseErrorController.stream;
 
   bool _isInitialized = false;
 
@@ -563,7 +570,8 @@ class FlutterInappPurchase {
   }
 
   /// Request products (flutter IAP compatible)
-  Future<List<iap_types.BaseProduct>> requestProducts(iap_types.RequestProductsParams params) async {
+  Future<List<iap_types.BaseProduct>> requestProducts(
+      iap_types.RequestProductsParams params) async {
     if (!_isInitialized) {
       throw iap_types.PurchaseError(
         code: iap_types.ErrorCode.E_NOT_INITIALIZED,
@@ -573,16 +581,19 @@ class FlutterInappPurchase {
     }
 
     try {
-      print('[flutter_inapp_purchase] requestProducts called with skus: ${params.skus}');
+      print(
+          '[flutter_inapp_purchase] requestProducts called with skus: ${params.skus}');
       List<IAPItem> items;
       if (params.type == iap_types.PurchaseType.inapp) {
         items = await getProducts(params.skus);
       } else {
         items = await getSubscriptions(params.skus);
       }
-      print('[flutter_inapp_purchase] Received ${items.length} items from native');
+      print(
+          '[flutter_inapp_purchase] Received ${items.length} items from native');
       for (var item in items) {
-        print('[flutter_inapp_purchase] Item: ${item.productId} - ${item.localizedPrice}');
+        print(
+            '[flutter_inapp_purchase] Item: ${item.productId} - ${item.localizedPrice}');
       }
 
       return items.map((item) => _convertToProduct(item, params.type)).toList();
@@ -616,7 +627,8 @@ class FlutterInappPurchase {
             request.ios!.appAccountToken ?? '',
             request.ios!.withOffer!.toJson(),
           );
-        } else if (request.ios!.quantity != null && request.ios!.quantity! > 1) {
+        } else if (request.ios!.quantity != null &&
+            request.ios!.quantity! > 1) {
           await requestPurchaseWithQuantityIOS(
             request.ios!.sku,
             request.ios!.quantity!,
@@ -637,8 +649,10 @@ class FlutterInappPurchase {
           await requestSubscription(
             sku,
             prorationModeAndroid: request.android!.prorationMode,
-            obfuscatedAccountIdAndroid: request.android!.obfuscatedAccountIdAndroid,
-            obfuscatedProfileIdAndroid: request.android!.obfuscatedProfileIdAndroid,
+            obfuscatedAccountIdAndroid:
+                request.android!.obfuscatedAccountIdAndroid,
+            obfuscatedProfileIdAndroid:
+                request.android!.obfuscatedProfileIdAndroid,
             purchaseTokenAndroid: request.android!.purchaseToken,
             offerTokenIndex: request.android!.offerTokenIndex,
           );
@@ -647,7 +661,8 @@ class FlutterInappPurchase {
             sku,
             obfuscatedAccountId: request.android!.obfuscatedAccountIdAndroid,
             purchaseTokenAndroid: request.android!.purchaseToken,
-            obfuscatedProfileIdAndroid: request.android!.obfuscatedProfileIdAndroid,
+            obfuscatedProfileIdAndroid:
+                request.android!.obfuscatedProfileIdAndroid,
             offerTokenIndex: request.android!.offerTokenIndex,
           );
         }
@@ -712,7 +727,8 @@ class FlutterInappPurchase {
     }
 
     try {
-      final result = await channel.invokeMethod<Map<dynamic, dynamic>>('getStorefront');
+      final result =
+          await channel.invokeMethod<Map<dynamic, dynamic>>('getStorefront');
       if (result != null) {
         return iap_types.AppStoreInfo(
           storefrontCountryCode: result['countryCode'] as String?,
@@ -796,7 +812,8 @@ class FlutterInappPurchase {
   }
 
   /// Android specific: Acknowledge purchase (flutter IAP compatible)
-  Future<void> acknowledgePurchaseAndroid({required String purchaseToken}) async {
+  Future<void> acknowledgePurchaseAndroid(
+      {required String purchaseToken}) async {
     if (!_platform.isAndroid) {
       throw iap_types.PurchaseError(
         code: iap_types.ErrorCode.E_NOT_SUPPORTED,
@@ -817,9 +834,10 @@ class FlutterInappPurchase {
   }
 
   // Helper methods
-  iap_types.BaseProduct _convertToProduct(IAPItem item, iap_types.PurchaseType type) {
+  iap_types.BaseProduct _convertToProduct(
+      IAPItem item, iap_types.PurchaseType type) {
     final platform = iap_types.getCurrentPlatform();
-    
+
     if (type == iap_types.PurchaseType.subs) {
       return iap_types.Subscription(
         productId: item.productId ?? '',
@@ -831,7 +849,9 @@ class FlutterInappPurchase {
         platform: platform,
         subscriptionPeriodAndroid: item.subscriptionPeriodAndroid,
         subscriptionPeriodUnitIOS: item.subscriptionPeriodUnitIOS,
-        subscriptionPeriodNumberIOS: item.subscriptionPeriodNumberIOS != null ? int.tryParse(item.subscriptionPeriodNumberIOS!) : null,
+        subscriptionPeriodNumberIOS: item.subscriptionPeriodNumberIOS != null
+            ? int.tryParse(item.subscriptionPeriodNumberIOS!)
+            : null,
       );
     } else {
       return iap_types.Product(
@@ -863,7 +883,7 @@ class FlutterInappPurchase {
 
   iap_types.PurchaseError _convertToPurchaseError(PurchaseResult result) {
     iap_types.ErrorCode code = iap_types.ErrorCode.E_UNKNOWN;
-    
+
     // Map error codes
     switch (result.responseCode) {
       case 0:
@@ -994,7 +1014,8 @@ class FlutterInappPurchase {
       );
       return extractItems(result);
     } else if (_platform.isIOS) {
-      print('[flutter_inapp_purchase] Calling native iOS getItems with skus: $productIds');
+      print(
+          '[flutter_inapp_purchase] Calling native iOS getItems with skus: $productIds');
       try {
         dynamic result = await _channel.invokeMethod(
           'getItems',
@@ -1168,7 +1189,8 @@ class FlutterInappPurchase {
         code: _platform.operatingSystem, message: "platform not supported");
   }
 
-  @Deprecated('Use requestPurchase() with RequestPurchase object. Will be removed in 6.0.0')
+  @Deprecated(
+      'Use requestPurchase() with RequestPurchase object. Will be removed in 6.0.0')
   Future<dynamic> requestProductWithOfferIOS(
     String sku,
     String forUser,
@@ -1186,7 +1208,8 @@ class FlutterInappPurchase {
         code: _platform.operatingSystem, message: "platform not supported");
   }
 
-  @Deprecated('Use requestPurchase() with RequestPurchase object. Will be removed in 6.0.0')
+  @Deprecated(
+      'Use requestPurchase() with RequestPurchase object. Will be removed in 6.0.0')
   Future<dynamic> requestPurchaseWithQuantityIOS(
     String sku,
     int quantity,
@@ -1255,9 +1278,9 @@ class FlutterInappPurchase {
         code: _platform.operatingSystem, message: "platform not supported");
   }
 
-
   /// Finish a transaction (flutter IAP compatible)
-  Future<String?> finishTransaction(iap_types.Purchase purchase, {bool isConsumable = false}) async {
+  Future<String?> finishTransaction(iap_types.Purchase purchase,
+      {bool isConsumable = false}) async {
     final purchasedItem = PurchasedItem.fromJSON({
       'productId': purchase.productId,
       'transactionId': purchase.transactionId,
@@ -1267,11 +1290,13 @@ class FlutterInappPurchase {
       'isAcknowledgedAndroid': purchase.isAcknowledgedAndroid,
     });
 
-    return await finishTransactionIOS(purchasedItem, isConsumable: isConsumable);
+    return await finishTransactionIOS(purchasedItem,
+        isConsumable: isConsumable);
   }
 
   /// Finish a transaction
-  Future<String?> finishTransactionIOS(PurchasedItem purchasedItem, {bool isConsumable = false}) async {
+  Future<String?> finishTransactionIOS(PurchasedItem purchasedItem,
+      {bool isConsumable = false}) async {
     if (_platform.isAndroid) {
       if (isConsumable) {
         return await _channel.invokeMethod('consumeProduct', <String, dynamic>{
@@ -1400,21 +1425,25 @@ class FlutterInappPurchase {
     _channel.setMethodCallHandler((MethodCall call) {
       switch (call.method) {
         case 'purchase-updated':
-          Map<String, dynamic> result = jsonDecode(call.arguments as String) as Map<String, dynamic>;
+          Map<String, dynamic> result =
+              jsonDecode(call.arguments as String) as Map<String, dynamic>;
           PurchasedItem item = PurchasedItem.fromJSON(result);
           _purchaseController!.add(item);
           // Also emit to flutter IAP compatible stream
           _purchaseUpdatedController.add(_convertToPurchase(item));
           break;
         case 'purchase-error':
-          Map<String, dynamic> result = jsonDecode(call.arguments as String) as Map<String, dynamic>;
+          Map<String, dynamic> result =
+              jsonDecode(call.arguments as String) as Map<String, dynamic>;
           PurchaseResult purchaseResult = PurchaseResult.fromJSON(result);
           _purchaseErrorController!.add(purchaseResult);
           // Also emit to flutter IAP compatible stream
-          _expoIAPPurchaseErrorController.add(_convertToPurchaseError(purchaseResult));
+          _expoIAPPurchaseErrorController
+              .add(_convertToPurchaseError(purchaseResult));
           break;
         case 'connection-updated':
-          Map<String, dynamic> result = jsonDecode(call.arguments as String) as Map<String, dynamic>;
+          Map<String, dynamic> result =
+              jsonDecode(call.arguments as String) as Map<String, dynamic>;
           _connectionController!.add(ConnectionResult.fromJSON(result));
           break;
         case 'iap-promoted-product':
@@ -1452,28 +1481,33 @@ class FlutterInappPurchase {
     throw PlatformException(
         code: _platform.operatingSystem, message: "platform not supported");
   }
-  
+
   // flutter IAP compatible methods
-  
+
   /// flutter IAP compatible method to get products
-  Future<List<iap_types.Product>> getProductsAsync(List<String> productIds) async {
+  Future<List<iap_types.Product>> getProductsAsync(
+      List<String> productIds) async {
     final items = await getProducts(productIds);
-    return items.map((item) => iap_types.Product(
-      platform: _platform.isIOS ? iap_types.IAPPlatform.ios : iap_types.IAPPlatform.android,
-      productId: item.productId ?? '',
-      title: item.title ?? '',
-      description: item.description ?? '',
-      price: item.price ?? '0',
-      currency: item.currency ?? 'USD',
-    )).toList();
+    return items
+        .map((item) => iap_types.Product(
+              platform: _platform.isIOS
+                  ? iap_types.IAPPlatform.ios
+                  : iap_types.IAPPlatform.android,
+              productId: item.productId ?? '',
+              title: item.title ?? '',
+              description: item.description ?? '',
+              price: item.price ?? '0',
+              currency: item.currency ?? 'USD',
+            ))
+        .toList();
   }
-  
+
   /// flutter IAP compatible method to get available purchases
   Future<List<iap_types.Purchase>> getAvailablePurchasesAsync() async {
     final items = await getAvailableItemsIOS();
     return items?.map(_convertToPurchase).toList() ?? [];
   }
-  
+
   /// flutter IAP compatible purchase method
   Future<void> purchaseAsync(String productId) async {
     try {
@@ -1484,13 +1518,15 @@ class FlutterInappPurchase {
       }
     } catch (e) {
       throw iap_types.PurchaseError(
-        platform: _platform.isIOS ? iap_types.IAPPlatform.ios : iap_types.IAPPlatform.android,
+        platform: _platform.isIOS
+            ? iap_types.IAPPlatform.ios
+            : iap_types.IAPPlatform.android,
         code: iap_types.ErrorCode.E_UNKNOWN,
         message: e.toString(),
       );
     }
   }
-  
+
   /// flutter IAP compatible finish transaction method
   Future<void> finishTransactionAsync({
     required String transactionId,
@@ -1622,23 +1658,25 @@ List<IAPItem> extractItems(dynamic result) {
 }
 
 List<PurchasedItem>? extractPurchased(dynamic result) {
-  List<PurchasedItem>? decoded = (json.decode(result.toString()) as List<dynamic>)
-      .map<PurchasedItem>(
-        (dynamic product) =>
-            PurchasedItem.fromJSON(product as Map<String, dynamic>),
-      )
-      .toList();
+  List<PurchasedItem>? decoded =
+      (json.decode(result.toString()) as List<dynamic>)
+          .map<PurchasedItem>(
+            (dynamic product) =>
+                PurchasedItem.fromJSON(product as Map<String, dynamic>),
+          )
+          .toList();
 
   return decoded;
 }
 
 List<PurchaseResult>? extractResult(dynamic result) {
-  List<PurchaseResult>? decoded = (json.decode(result.toString()) as List<dynamic>)
-      .map<PurchaseResult>(
-        (dynamic product) =>
-            PurchaseResult.fromJSON(product as Map<String, dynamic>),
-      )
-      .toList();
+  List<PurchaseResult>? decoded =
+      (json.decode(result.toString()) as List<dynamic>)
+          .map<PurchaseResult>(
+            (dynamic product) =>
+                PurchaseResult.fromJSON(product as Map<String, dynamic>),
+          )
+          .toList();
 
   return decoded;
 }

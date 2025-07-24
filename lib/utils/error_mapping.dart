@@ -60,8 +60,9 @@ bool isNetworkError(dynamic error) {
     } else if (error['code'] is String) {
       try {
         errorCode = ErrorCode.values.firstWhere(
-          (e) => e.toString() == error['code'] || 
-                 e.toString().split('.').last == error['code'],
+          (e) =>
+              e.toString() == error['code'] ||
+              e.toString().split('.').last == error['code'],
         );
       } catch (_) {
         return false;
@@ -104,8 +105,9 @@ bool isRecoverableError(dynamic error) {
     } else if (error['code'] is String) {
       try {
         errorCode = ErrorCode.values.firstWhere(
-          (e) => e.toString() == error['code'] || 
-                 e.toString().split('.').last == error['code'],
+          (e) =>
+              e.toString() == error['code'] ||
+              e.toString().split('.').last == error['code'],
         );
       } catch (_) {
         return false;
@@ -145,8 +147,9 @@ String getUserFriendlyErrorMessage(dynamic error) {
       } else if (error['code'] is String) {
         try {
           errorCode = ErrorCode.values.firstWhere(
-            (e) => e.toString() == error['code'] || 
-                   e.toString().split('.').last == error['code'],
+            (e) =>
+                e.toString() == error['code'] ||
+                e.toString().split('.').last == error['code'],
           );
         } catch (_) {
           // Not a valid error code
@@ -237,18 +240,18 @@ extension ErrorCodeExtensions on ErrorCode {
 
   /// Check if this error code is network-related
   bool get isNetworkRelated => [
-    ErrorCode.E_NETWORK_ERROR,
-    ErrorCode.E_REMOTE_ERROR,
-    ErrorCode.E_SERVICE_ERROR,
-  ].contains(this);
+        ErrorCode.E_NETWORK_ERROR,
+        ErrorCode.E_REMOTE_ERROR,
+        ErrorCode.E_SERVICE_ERROR,
+      ].contains(this);
 
   /// Check if this error code is recoverable
   bool get isRecoverable => [
-    ErrorCode.E_NETWORK_ERROR,
-    ErrorCode.E_REMOTE_ERROR,
-    ErrorCode.E_SERVICE_ERROR,
-    ErrorCode.E_INTERRUPTED,
-  ].contains(this);
+        ErrorCode.E_NETWORK_ERROR,
+        ErrorCode.E_REMOTE_ERROR,
+        ErrorCode.E_SERVICE_ERROR,
+        ErrorCode.E_INTERRUPTED,
+      ].contains(this);
 
   /// Get a user-friendly message for this error code
   String get userFriendlyMessage => getUserFriendlyErrorMessage(this);

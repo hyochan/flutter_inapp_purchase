@@ -24,41 +24,44 @@ class _TestScreenState extends State<TestScreen> {
 
   void _testStoreKit() async {
     setState(() => _status = 'Testing StoreKit...');
-    
+
     try {
       // First run our diagnostic test
       setState(() => _status = 'Running StoreKit diagnostics...');
-      final diagnostics = await FlutterInappPurchase.channel.invokeMethod('testStoreKit');
+      final diagnostics =
+          await FlutterInappPurchase.instance.channel.invokeMethod('testStoreKit');
       setState(() => _status = 'Diagnostics: $diagnostics');
-      
+
       // Wait a bit before continuing
       await Future<void>.delayed(const Duration(seconds: 2));
-      
+
       // Test 1: Initialize connection (this will check can make payments internally)
       setState(() => _status = 'Testing if can make payments...');
-      final canMake = await FlutterInappPurchase.channel.invokeMethod('canMakePayments');
+      final canMake =
+          await FlutterInappPurchase.instance.channel.invokeMethod('canMakePayments');
       setState(() => _status = 'Can make payments: $canMake');
-      
+
       if (canMake != true) {
         setState(() => _status = 'Cannot make payments on this device');
         return;
       }
-      
+
       // Test 2: Initialize connection
       setState(() => _status = 'Initializing connection...');
       await FlutterInappPurchase.instance.initConnection();
       setState(() => _status = 'Connection initialized');
-      
+
       // Test 3: Get simple product
       setState(() => _status = 'Getting products...');
-      final products = await FlutterInappPurchase.instance.getProducts(['dev.hyo.martie.10bulbs']);
+      final products = await FlutterInappPurchase.instance
+          .getProducts(['dev.hyo.martie.10bulbs']);
       setState(() => _status = 'Got ${products.length} products');
-      
+
       if (products.isNotEmpty) {
         final product = products.first;
-        setState(() => _status = 'Product: ${product.productId} - ${product.localizedPrice}');
+        setState(() => _status =
+            'Product: ${product.productId} - ${product.localizedPrice}');
       }
-      
     } catch (e) {
       setState(() => _status = 'Error: $e');
     }

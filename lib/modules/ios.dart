@@ -8,8 +8,7 @@ import '../enums.dart';
 
 /// iOS-specific IAP functionality
 class IAPiOS {
-  static const MethodChannel _channel = 
-      MethodChannel('flutter_inapp_purchase');
+  static const MethodChannel _channel = MethodChannel('flutter_inapp_purchase');
 
   /// Sync purchases that are not finished yet to be finished.
   /// Returns true if successful, false if running on Android
@@ -99,7 +98,8 @@ class IAPiOS {
     }
 
     try {
-      final result = await _channel.invokeMethod<Map<dynamic, dynamic>>('getAppTransaction');
+      final result = await _channel
+          .invokeMethod<Map<dynamic, dynamic>>('getAppTransaction');
       if (result != null) {
         return Map<String, dynamic>.from(result);
       }
@@ -118,9 +118,8 @@ class IAPiOS {
     }
 
     try {
-      final result = await _channel.invokeMethod<bool>(
-        'presentCodeRedemptionSheet'
-      );
+      final result =
+          await _channel.invokeMethod<bool>('presentCodeRedemptionSheet');
       return result ?? false;
     } catch (error) {
       debugPrint('Error presenting offer code redemption sheet: $error');
@@ -167,10 +166,9 @@ class IAPiOS {
     }
 
     try {
-      final result = await _channel.invokeMethod<List<dynamic>>(
-        'processPendingTransactions'
-      );
-      
+      final result = await _channel
+          .invokeMethod<List<dynamic>>('processPendingTransactions');
+
       if (result == null) {
         return [];
       }
@@ -251,10 +249,9 @@ class IAPiOS {
     }
 
     try {
-      final result = await _channel.invokeMethod<List<dynamic>>(
-        'getPromotedProducts'
-      );
-      
+      final result =
+          await _channel.invokeMethod<List<dynamic>>('getPromotedProducts');
+
       if (result == null) {
         return [];
       }
@@ -294,10 +291,9 @@ class IAPiOS {
     }
 
     try {
-      final result = await _channel.invokeMethod<List<dynamic>>(
-        'getPromotedProductOrder'
-      );
-      
+      final result =
+          await _channel.invokeMethod<List<dynamic>>('getPromotedProductOrder');
+
       if (result == null) {
         return [];
       }
@@ -310,7 +306,8 @@ class IAPiOS {
   }
 
   /// Sets the order of promoted products
-  static Future<void> setPromotedProductOrderIOS(List<String> productIds) async {
+  static Future<void> setPromotedProductOrderIOS(
+      List<String> productIds) async {
     if (!Platform.isIOS) {
       debugPrint('setPromotedProductOrderIOS is only supported on iOS');
       return;
@@ -333,15 +330,17 @@ class IAPiOS {
     }
 
     try {
-      final result = await _channel.invokeMethod<List<dynamic>>(
-        'getPendingTransactions'
-      );
-      
+      final result =
+          await _channel.invokeMethod<List<dynamic>>('getPendingTransactions');
+
       if (result == null) {
         return [];
       }
 
-      return result.map((item) => Map<String, dynamic>.from(item as Map<dynamic, dynamic>)).toList();
+      return result
+          .map((item) =>
+              Map<String, dynamic>.from(item as Map<dynamic, dynamic>))
+          .toList();
     } catch (error) {
       debugPrint('Error getting pending transactions: $error');
       return [];
