@@ -1,3 +1,24 @@
+## 6.0.0
+
+### Breaking Changes
+- **iOS**: Now requires iOS 11.0+ (previously 8.0+)
+- **iOS**: StoreKit 2 is now used by default on iOS 15.0+ devices
+- **Android**: Updated to Billing Client v8.0.0 (from v6.0.1)
+
+### New Features
+- **iOS**: Full StoreKit 2 support for iOS 15.0+
+  - Automatic transaction verification
+  - Better subscription management
+  - Improved error handling
+  - No receipt validation needed for StoreKit 2
+- **iOS**: Automatic fallback to StoreKit 1 for iOS 11.0-14.x
+- **Android**: Support for all Billing Client v8 features
+
+### Migration Guide
+- No code changes required for existing implementations
+- StoreKit 2 will be used automatically on supported devices
+- StoreKit Configuration files (.storekit) work with StoreKit 2 on iOS 15+
+
 ## 5.6.2
 
 - fix: removed references to deprecated v1 Android embedding by @moodstubos in https://github.com/hyochan/flutter_inapp_purchase/pull/497

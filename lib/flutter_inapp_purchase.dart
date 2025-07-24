@@ -6,18 +6,444 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:platform/platform.dart';
 
-import 'Store.dart';
-import 'modules.dart';
-import 'utils.dart';
+import 'enums.dart';
 import 'types.dart' as iap_types;
 
-export 'modules.dart';
-export 'types.dart' hide ConnectionResult;
+export 'types.dart';
 export 'use_iap.dart';
-export 'Store.dart';
+export 'utils/error_mapping.dart';
 
 /// A enumeration of in-app purchase types for Android
 enum _TypeInApp { inapp, subs }
+
+// MARK: - Enums from modules.dart
+
+enum ResponseCodeAndroid {
+  BILLING_RESPONSE_RESULT_OK,
+  BILLING_RESPONSE_RESULT_USER_CANCELED,
+  BILLING_RESPONSE_RESULT_SERVICE_UNAVAILABLE,
+  BILLING_RESPONSE_RESULT_BILLING_UNAVAILABLE,
+  BILLING_RESPONSE_RESULT_ITEM_UNAVAILABLE,
+  BILLING_RESPONSE_RESULT_DEVELOPER_ERROR,
+  BILLING_RESPONSE_RESULT_ERROR,
+  BILLING_RESPONSE_RESULT_ITEM_ALREADY_OWNED,
+  BILLING_RESPONSE_RESULT_ITEM_NOT_OWNED,
+  UNKNOWN,
+}
+
+TransactionState? _decodeTransactionStateIOS(int? rawValue) {
+  switch (rawValue) {
+    case 0:
+      return TransactionState.purchasing;
+    case 1:
+      return TransactionState.purchased;
+    case 2:
+      return TransactionState.failed;
+    case 3:
+      return TransactionState.restored;
+    case 4:
+      return TransactionState.deferred;
+    default:
+      return null;
+  }
+}
+
+/// See also https://developer.android.com/reference/com/android/billingclient/api/Purchase.PurchaseState
+enum PurchaseState {
+  pending,
+  purchased,
+  unspecified,
+}
+
+PurchaseState? _decodePurchaseStateAndroid(int? rawValue) {
+  switch (rawValue) {
+    case 0:
+      return PurchaseState.unspecified;
+    case 1:
+      return PurchaseState.purchased;
+    case 2:
+      return PurchaseState.pending;
+    default:
+      return null;
+  }
+}
+
+// MARK: - Classes from modules.dart
+
+/// An item available for purchase from either the `Google Play Store` or `iOS AppStore`
+class IAPItem {
+  final String? productId;
+  final String? price;
+  final String? currency;
+  final String? localizedPrice;
+  final String? title;
+  final String? description;
+  final String? introductoryPrice;
+
+  /// ios only
+  final String? subscriptionPeriodNumberIOS;
+  final String? subscriptionPeriodUnitIOS;
+  final String? introductoryPriceNumberIOS;
+  final String? introductoryPricePaymentModeIOS;
+  final String? introductoryPriceNumberOfPeriodsIOS;
+  final String? introductoryPriceSubscriptionPeriodIOS;
+  final List<DiscountIOS>? discountsIOS;
+
+  /// android only
+  final String? signatureAndroid;
+  final List<SubscriptionOfferAndroid>? subscriptionOffersAndroid;
+  final String? subscriptionPeriodAndroid;
+
+  final String? iconUrl;
+  final String? originalJson;
+  final String originalPrice;
+
+  /// Create [IAPItem] from a Map that was previously JSON formatted
+  IAPItem.fromJSON(Map<String, dynamic> json)
+      : productId = json['productId'] as String?,
+        price = json['price'] as String?,
+        currency = json['currency'] as String?,
+        localizedPrice = json['localizedPrice'] as String?,
+        title = json['title'] as String?,
+        description = json['description'] as String?,
+        introductoryPrice = json['introductoryPrice'] as String?,
+        introductoryPricePaymentModeIOS =
+            json['introductoryPricePaymentModeIOS'] as String?,
+        introductoryPriceNumberOfPeriodsIOS = json['introductoryPriceNumberOfPeriodsIOS'] != null
+            ? json['introductoryPriceNumberOfPeriodsIOS'].toString()
+            : null,
+        introductoryPriceSubscriptionPeriodIOS =
+            json['introductoryPriceSubscriptionPeriodIOS'] as String?,
+        introductoryPriceNumberIOS = json['introductoryPriceNumberIOS'] != null
+            ? json['introductoryPriceNumberIOS'].toString()
+            : null,
+        subscriptionPeriodNumberIOS = json['subscriptionPeriodNumberIOS'] != null
+            ? json['subscriptionPeriodNumberIOS'].toString()
+            : null,
+        subscriptionPeriodUnitIOS =
+            json['subscriptionPeriodUnitIOS'] as String?,
+        subscriptionPeriodAndroid =
+            json['subscriptionPeriodAndroid'] as String?,
+        signatureAndroid = json['signatureAndroid'] as String?,
+        iconUrl = json['iconUrl'] as String?,
+        originalJson = json['originalJson'] as String?,
+        originalPrice = json['originalPrice'] != null
+            ? json['originalPrice'].toString()
+            : '',
+        discountsIOS = _extractDiscountIOS(json['discounts']),
+        subscriptionOffersAndroid =
+            _extractSubscriptionOffersAndroid(json['subscriptionOffers']);
+
+  /// wow, i find if i want to save a IAPItem, there is not "toJson" to cast it into String...
+  /// i'm sorry to see that... so,
+  ///
+  /// you can cast a IAPItem to json(Map<String, dynamic>) via invoke this method.
+  /// for example:
+  /// String str =  convert.jsonEncode(item)
+  ///
+  /// and then get IAPItem from "str" above
+  /// IAPItem item = IAPItem.fromJSON(convert.jsonDecode(str));
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = Map<String, dynamic>();
+    data['productId'] = this.productId;
+    data['price'] = this.price;
+    data['currency'] = this.currency;
+    data['localizedPrice'] = this.localizedPrice;
+    data['title'] = this.title;
+    data['description'] = this.description;
+    data['introductoryPrice'] = this.introductoryPrice;
+
+    data['subscriptionPeriodNumberIOS'] = this.subscriptionPeriodNumberIOS;
+    data['subscriptionPeriodUnitIOS'] = this.subscriptionPeriodUnitIOS;
+    data['introductoryPricePaymentModeIOS'] =
+        this.introductoryPricePaymentModeIOS;
+    data['introductoryPriceNumberOfPeriodsIOS'] =
+        this.introductoryPriceNumberOfPeriodsIOS;
+    data['introductoryPriceSubscriptionPeriodIOS'] =
+        this.introductoryPriceSubscriptionPeriodIOS;
+    data['subscriptionPeriodAndroid'] = this.subscriptionPeriodAndroid;
+    data['signatureAndroid'] = this.signatureAndroid;
+
+    data['iconUrl'] = this.iconUrl;
+    data['originalJson'] = this.originalJson;
+    data['originalPrice'] = this.originalPrice;
+    data['discounts'] = this.discountsIOS;
+    return data;
+  }
+
+  /// Return the contents of this class as a string
+  @override
+  String toString() {
+    return 'productId: $productId, '
+        'price: $price, '
+        'currency: $currency, '
+        'localizedPrice: $localizedPrice, '
+        'title: $title, '
+        'description: $description, '
+        'introductoryPrice: $introductoryPrice, '
+        'subscriptionPeriodNumberIOS: $subscriptionPeriodNumberIOS, '
+        'subscriptionPeriodUnitIOS: $subscriptionPeriodUnitIOS, '
+        'introductoryPricePaymentModeIOS: $introductoryPricePaymentModeIOS, '
+        'introductoryPriceNumberOfPeriodsIOS: $introductoryPriceNumberOfPeriodsIOS, '
+        'introductoryPriceSubscriptionPeriodIOS: $introductoryPriceSubscriptionPeriodIOS, '
+        'subscriptionPeriodAndroid: $subscriptionPeriodAndroid, '
+        'iconUrl: $iconUrl, '
+        'originalJson: $originalJson, '
+        'originalPrice: $originalPrice, '
+        'discounts: $discountsIOS, ';
+  }
+
+  static List<DiscountIOS>? _extractDiscountIOS(dynamic json) {
+    List<dynamic>? list = json as List<dynamic>?;
+    List<DiscountIOS>? discounts;
+
+    if (list != null) {
+      discounts = list
+          .map<DiscountIOS>(
+            (dynamic discount) =>
+                DiscountIOS.fromJSON(discount as Map<String, dynamic>),
+          )
+          .toList();
+    }
+
+    return discounts;
+  }
+
+  static List<SubscriptionOfferAndroid>? _extractSubscriptionOffersAndroid(
+      dynamic json) {
+    List<dynamic>? list = json as List<dynamic>?;
+    List<SubscriptionOfferAndroid>? offers;
+
+    if (list != null) {
+      offers = list
+          .map<SubscriptionOfferAndroid>(
+            (dynamic offer) => SubscriptionOfferAndroid.fromJSON(
+                offer as Map<String, dynamic>),
+          )
+          .toList();
+    }
+
+    return offers;
+  }
+}
+
+class SubscriptionOfferAndroid {
+  String? offerId;
+  String? basePlanId;
+  String? offerToken;
+  List<PricingPhaseAndroid>? pricingPhases;
+
+  SubscriptionOfferAndroid.fromJSON(Map<String, dynamic> json)
+      : offerId = json["offerId"] as String?,
+        basePlanId = json["basePlanId"] as String?,
+        offerToken = json["offerToken"] as String?,
+        pricingPhases = _extractAndroidPricingPhase(json["pricingPhases"]);
+
+  static List<PricingPhaseAndroid>? _extractAndroidPricingPhase(dynamic json) {
+    List<dynamic>? list = json as List<dynamic>?;
+    List<PricingPhaseAndroid>? phases;
+
+    if (list != null) {
+      phases = list
+          .map<PricingPhaseAndroid>(
+            (dynamic phase) =>
+                PricingPhaseAndroid.fromJSON(phase as Map<String, dynamic>),
+          )
+          .toList();
+    }
+
+    return phases;
+  }
+}
+
+class PricingPhaseAndroid {
+  String? price;
+  String? formattedPrice;
+  String? billingPeriod;
+  String? currencyCode;
+  int? recurrenceMode;
+  int? billingCycleCount;
+
+  PricingPhaseAndroid.fromJSON(Map<String, dynamic> json)
+      : price = json["price"] as String?,
+        formattedPrice = json["formattedPrice"] as String?,
+        billingPeriod = json["billingPeriod"] as String?,
+        currencyCode = json["currencyCode"] as String?,
+        recurrenceMode = json["recurrenceMode"] as int?,
+        billingCycleCount = json["billingCycleCount"] as int?;
+}
+
+class DiscountIOS {
+  String? identifier;
+  String? type;
+  String? numberOfPeriods;
+  double? price;
+  String? localizedPrice;
+  String? paymentMode;
+  String? subscriptionPeriod;
+
+  /// Create [DiscountIOS] from a Map that was previously JSON formatted
+  DiscountIOS.fromJSON(Map<String, dynamic> json)
+      : identifier = json['identifier'] as String?,
+        type = json['type'] as String?,
+        numberOfPeriods = json['numberOfPeriods'] as String?,
+        price = json['price'] as double?,
+        localizedPrice = json['localizedPrice'] as String?,
+        paymentMode = json['paymentMode'] as String?,
+        subscriptionPeriod = json['subscriptionPeriod'] as String?;
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = Map<String, dynamic>();
+    data['identifier'] = this.identifier;
+    data['type'] = this.type;
+    data['numberOfPeriods'] = this.numberOfPeriods;
+    data['price'] = this.price;
+    data['localizedPrice'] = this.localizedPrice;
+    data['paymentMode'] = this.paymentMode;
+    data['subscriptionPeriod'] = this.subscriptionPeriod;
+    return data;
+  }
+
+  /// Return the contents of this class as a string
+  @override
+  String toString() {
+    return 'identifier: $identifier, '
+        'type: $type, '
+        'numberOfPeriods: $numberOfPeriods, '
+        'price: $price, '
+        'localizedPrice: $localizedPrice, '
+        'paymentMode: $paymentMode, '
+        'subscriptionPeriod: $subscriptionPeriod, ';
+  }
+}
+
+/// An item which was purchased from either the `Google Play Store` or `iOS AppStore`
+class PurchasedItem {
+  final String? productId;
+  final String? transactionId;
+  final DateTime? transactionDate;
+  final String? transactionReceipt;
+  final String? purchaseToken;
+
+  // Android only
+  final String? dataAndroid;
+  final String? signatureAndroid;
+  final bool? autoRenewingAndroid;
+  final bool? isAcknowledgedAndroid;
+  final PurchaseState? purchaseStateAndroid;
+
+  // iOS only
+  final DateTime? originalTransactionDateIOS;
+  final String? originalTransactionIdentifierIOS;
+  final TransactionState? transactionStateIOS;
+
+  /// Create [PurchasedItem] from a Map that was previously JSON formatted
+  PurchasedItem.fromJSON(Map<String, dynamic> json)
+      : productId = json['productId'] as String?,
+        transactionId = json['transactionId'] as String?,
+        transactionDate = _extractDate(json['transactionDate']),
+        transactionReceipt = json['transactionReceipt'] as String?,
+        purchaseToken = json['purchaseToken'] as String?,
+        dataAndroid = json['dataAndroid'] as String?,
+        signatureAndroid = json['signatureAndroid'] as String?,
+        isAcknowledgedAndroid = json['isAcknowledgedAndroid'] as bool?,
+        autoRenewingAndroid = json['autoRenewingAndroid'] as bool?,
+        purchaseStateAndroid =
+            _decodePurchaseStateAndroid(json['purchaseStateAndroid'] as int?),
+        originalTransactionDateIOS =
+            _extractDate(json['originalTransactionDateIOS']),
+        originalTransactionIdentifierIOS =
+            json['originalTransactionIdentifierIOS'] as String?,
+        transactionStateIOS =
+            _decodeTransactionStateIOS(json['transactionStateIOS'] as int?);
+
+  /// This returns transaction dates in ISO 8601 format.
+  @override
+  String toString() {
+    return 'productId: $productId, '
+        'transactionId: $transactionId, '
+        'transactionDate: ${transactionDate?.toIso8601String()}, '
+        'transactionReceipt: $transactionReceipt, '
+        'purchaseToken: $purchaseToken, '
+
+        /// android specific
+        'dataAndroid: $dataAndroid, '
+        'signatureAndroid: $signatureAndroid, '
+        'isAcknowledgedAndroid: $isAcknowledgedAndroid, '
+        'autoRenewingAndroid: $autoRenewingAndroid, '
+        'purchaseStateAndroid: $purchaseStateAndroid, '
+
+        /// ios specific
+        'originalTransactionDateIOS: ${originalTransactionDateIOS?.toIso8601String()}, '
+        'originalTransactionIdentifierIOS: $originalTransactionIdentifierIOS, '
+        'transactionStateIOS: $transactionStateIOS';
+  }
+
+  /// Coerce miliseconds since epoch in double, int, or String into DateTime format
+  static DateTime? _extractDate(dynamic timestamp) {
+    if (timestamp == null) return null;
+
+    int _toInt() => double.parse(timestamp.toString()).toInt();
+    return DateTime.fromMillisecondsSinceEpoch(_toInt());
+  }
+}
+
+class PurchaseResult {
+  final int? responseCode;
+  final String? debugMessage;
+  final String? code;
+  final String? message;
+
+  PurchaseResult({
+    this.responseCode,
+    this.debugMessage,
+    this.code,
+    this.message,
+  });
+
+  PurchaseResult.fromJSON(Map<String, dynamic> json)
+      : responseCode = json['responseCode'] as int?,
+        debugMessage = json['debugMessage'] as String?,
+        code = json['code'] as String?,
+        message = json['message'] as String?;
+
+  Map<String, dynamic> toJson() => {
+        "responseCode": responseCode ?? 0,
+        "debugMessage": debugMessage ?? '',
+        "code": code ?? '',
+        "message": message ?? '',
+      };
+
+  @override
+  String toString() {
+    return 'responseCode: $responseCode, '
+        'debugMessage: $debugMessage, '
+        'code: $code, '
+        'message: $message';
+  }
+}
+
+class ConnectionResult {
+  final bool? connected;
+
+  ConnectionResult({
+    this.connected,
+  });
+
+  ConnectionResult.fromJSON(Map<String, dynamic> json)
+      : connected = json['connected'] as bool?;
+
+  Map<String, dynamic> toJson() => {
+        "connected": connected ?? false,
+      };
+
+  @override
+  String toString() {
+    return 'connected: $connected';
+  }
+}
+
+// MARK: - Main FlutterInappPurchase class
 
 class FlutterInappPurchase {
   static FlutterInappPurchase instance =
@@ -73,19 +499,19 @@ class FlutterInappPurchase {
       : _pf = platform,
         _httpClient = client ?? http.Client();
 
-  // New expo-iap compatible event controllers
+  // New flutter IAP compatible event controllers
   final StreamController<iap_types.Purchase> _purchaseUpdatedController = StreamController<iap_types.Purchase>.broadcast();
   final StreamController<iap_types.PurchaseError> _expoIAPPurchaseErrorController = StreamController<iap_types.PurchaseError>.broadcast();
 
-  /// Purchase updated event stream (expo-iap compatible)
+  /// Purchase updated event stream (flutter IAP compatible)
   Stream<iap_types.Purchase> get purchaseUpdatedListener => _purchaseUpdatedController.stream;
 
-  /// Purchase error event stream (expo-iap compatible)
+  /// Purchase error event stream (flutter IAP compatible)
   Stream<iap_types.PurchaseError> get purchaseErrorListener => _expoIAPPurchaseErrorController.stream;
 
   bool _isInitialized = false;
 
-  /// Initialize connection (expo-iap compatible)
+  /// Initialize connection (flutter IAP compatible)
   Future<void> initConnection() async {
     if (_isInitialized) {
       throw iap_types.PurchaseError(
@@ -96,7 +522,7 @@ class FlutterInappPurchase {
     }
 
     try {
-      // For expo-iap compatibility, call initConnection directly
+      // For flutter IAP compatibility, call initConnection directly
       await _setPurchaseListener();
       if (_platform.isIOS) {
         await _channel.invokeMethod('initConnection');
@@ -113,14 +539,14 @@ class FlutterInappPurchase {
     }
   }
 
-  /// End connection (expo-iap compatible)
+  /// End connection (flutter IAP compatible)
   Future<void> endConnection() async {
     if (!_isInitialized) {
       return;
     }
 
     try {
-      // For expo-iap compatibility, call endConnection directly
+      // For flutter IAP compatibility, call endConnection directly
       if (_platform.isIOS) {
         await _channel.invokeMethod('endConnection');
       } else if (_platform.isAndroid) {
@@ -136,7 +562,7 @@ class FlutterInappPurchase {
     }
   }
 
-  /// Request products (expo-iap compatible)
+  /// Request products (flutter IAP compatible)
   Future<List<iap_types.BaseProduct>> requestProducts(iap_types.RequestProductsParams params) async {
     if (!_isInitialized) {
       throw iap_types.PurchaseError(
@@ -169,7 +595,7 @@ class FlutterInappPurchase {
     }
   }
 
-  /// Request purchase (expo-iap compatible)
+  /// Request purchase (flutter IAP compatible)
   Future<void> requestPurchase({
     required iap_types.RequestPurchase request,
     required iap_types.PurchaseType type,
@@ -188,7 +614,7 @@ class FlutterInappPurchase {
           await requestProductWithOfferIOS(
             request.ios!.sku,
             request.ios!.appAccountToken ?? '',
-            request.ios!.withOffer!,
+            request.ios!.withOffer!.toJson(),
           );
         } else if (request.ios!.quantity != null && request.ios!.quantity! > 1) {
           await requestPurchaseWithQuantityIOS(
@@ -235,7 +661,7 @@ class FlutterInappPurchase {
     }
   }
 
-  /// Get available purchases (expo-iap compatible)
+  /// Get available purchases (flutter IAP compatible)
   Future<List<iap_types.Purchase>> getAvailablePurchases() async {
     if (!_isInitialized) {
       throw iap_types.PurchaseError(
@@ -257,7 +683,7 @@ class FlutterInappPurchase {
     }
   }
 
-  /// Get purchase histories (expo-iap compatible)
+  /// Get purchase histories (flutter IAP compatible)
   Future<List<iap_types.Purchase>> getPurchaseHistories() async {
     if (!_isInitialized) {
       throw iap_types.PurchaseError(
@@ -369,7 +795,7 @@ class FlutterInappPurchase {
     }
   }
 
-  /// Android specific: Acknowledge purchase (expo-iap compatible)
+  /// Android specific: Acknowledge purchase (flutter IAP compatible)
   Future<void> acknowledgePurchaseAndroid({required String purchaseToken}) async {
     if (!_platform.isAndroid) {
       throw iap_types.PurchaseError(
@@ -480,8 +906,8 @@ class FlutterInappPurchase {
   // Original API methods (with deprecation annotations where needed)
 
   /// Consumes all items on `Android`.
-  @Deprecated('Not available in expo-iap. Will be removed in 6.0.0')
-  Future consumeAll() async {
+  @Deprecated('Not available in flutter IAP. Will be removed in 6.0.0')
+  Future<dynamic> consumeAll() async {
     if (_platform.isAndroid) {
       return await _channel.invokeMethod('consumeAllItems');
     } else if (_platform.isIOS) {
@@ -517,7 +943,7 @@ class FlutterInappPurchase {
         code: _platform.operatingSystem, message: "platform not supported");
   }
 
-  @Deprecated('Not available in expo-iap. Will be removed in 6.0.0')
+  @Deprecated('Not available in flutter IAP. Will be removed in 6.0.0')
   Future<bool> manageSubscription(String sku, String packageName) async {
     if (_platform.isAndroid) {
       return (await _channel.invokeMethod<bool?>(
@@ -533,7 +959,7 @@ class FlutterInappPurchase {
         code: _platform.operatingSystem, message: "platform not supported");
   }
 
-  @Deprecated('Not available in expo-iap. Will be removed in 6.0.0')
+  @Deprecated('Not available in flutter IAP. Will be removed in 6.0.0')
   Future<bool> openPlayStoreSubscriptions() async {
     if (_platform.isAndroid) {
       return (await _channel
@@ -638,7 +1064,7 @@ class FlutterInappPurchase {
         code: _platform.operatingSystem, message: "platform not supported");
   }
 
-  @Deprecated('Not available in expo-iap. Will be removed in 6.0.0')
+  @Deprecated('Not available in flutter IAP. Will be removed in 6.0.0')
   Future<String?> showInAppMessageAndroid() async {
     if (!_platform.isAndroid) return Future.value("");
     _onInAppMessageController ??= StreamController.broadcast();
@@ -672,7 +1098,7 @@ class FlutterInappPurchase {
   }
 
   /// Request a purchase (old API)
-  Future _requestPurchaseOld(String productId,
+  Future<dynamic> _requestPurchaseOld(String productId,
       {String? obfuscatedAccountId,
       String? purchaseTokenAndroid,
       String? obfuscatedProfileIdAndroid,
@@ -698,7 +1124,7 @@ class FlutterInappPurchase {
   }
 
   /// Request a subscription
-  Future requestSubscription(
+  Future<dynamic> requestSubscription(
     String productId, {
     int? prorationModeAndroid,
     String? obfuscatedAccountIdAndroid,
@@ -725,7 +1151,7 @@ class FlutterInappPurchase {
         code: _platform.operatingSystem, message: "platform not supported");
   }
 
-  @Deprecated('Not available in expo-iap. Will be removed in 6.0.0')
+  @Deprecated('Not available in flutter IAP. Will be removed in 6.0.0')
   Future<String?> getPromotedProductIOS() async {
     if (_platform.isIOS) {
       return await _channel.invokeMethod('getPromotedProduct');
@@ -733,8 +1159,8 @@ class FlutterInappPurchase {
     return null;
   }
 
-  @Deprecated('Not available in expo-iap. Will be removed in 6.0.0')
-  Future requestPromotedProductIOS() async {
+  @Deprecated('Not available in flutter IAP. Will be removed in 6.0.0')
+  Future<dynamic> requestPromotedProductIOS() async {
     if (_platform.isIOS) {
       return await _channel.invokeMethod('requestPromotedProduct');
     }
@@ -743,7 +1169,7 @@ class FlutterInappPurchase {
   }
 
   @Deprecated('Use requestPurchase() with RequestPurchase object. Will be removed in 6.0.0')
-  Future requestProductWithOfferIOS(
+  Future<dynamic> requestProductWithOfferIOS(
     String sku,
     String forUser,
     Map<String, dynamic> withOffer,
@@ -761,7 +1187,7 @@ class FlutterInappPurchase {
   }
 
   @Deprecated('Use requestPurchase() with RequestPurchase object. Will be removed in 6.0.0')
-  Future requestPurchaseWithQuantityIOS(
+  Future<dynamic> requestPurchaseWithQuantityIOS(
     String sku,
     int quantity,
   ) async {
@@ -829,20 +1255,8 @@ class FlutterInappPurchase {
         code: _platform.operatingSystem, message: "platform not supported");
   }
 
-  @Deprecated('Use finishTransaction() instead. Will be removed in 6.0.0')
-  Future<String?> _finishTransactionIOSOld(String transactionId) async {
-    if (_platform.isAndroid) {
-      return 'no ops in android';
-    } else if (_platform.isIOS) {
-      return await _channel.invokeMethod('finishTransaction', <String, dynamic>{
-        'transactionIdentifier': transactionId,
-      });
-    }
-    throw PlatformException(
-        code: _platform.operatingSystem, message: "platform not supported");
-  }
 
-  /// Finish a transaction (expo-iap compatible)
+  /// Finish a transaction (flutter IAP compatible)
   Future<String?> finishTransaction(iap_types.Purchase purchase, {bool isConsumable = false}) async {
     final purchasedItem = PurchasedItem.fromJSON({
       'productId': purchase.productId,
@@ -882,7 +1296,7 @@ class FlutterInappPurchase {
         code: _platform.operatingSystem, message: "platform not supported");
   }
 
-  @Deprecated('Not available in expo-iap. Will be removed in 6.0.0')
+  @Deprecated('Not available in flutter IAP. Will be removed in 6.0.0')
   Future<String?> clearTransactionIOS() async {
     if (_platform.isAndroid) {
       return 'no-ops in android.';
@@ -906,7 +1320,7 @@ class FlutterInappPurchase {
         code: _platform.operatingSystem, message: "platform not supported");
   }
 
-  @Deprecated('Not available in expo-iap. Will be removed in 6.0.0')
+  @Deprecated('Not available in flutter IAP. Will be removed in 6.0.0')
   Future<bool> checkSubscribed({
     required String sku,
     Duration duration = const Duration(days: 30),
@@ -977,7 +1391,7 @@ class FlutterInappPurchase {
     );
   }
 
-  Future _setPurchaseListener() async {
+  Future<dynamic> _setPurchaseListener() async {
     _purchaseController ??= StreamController.broadcast();
     _purchaseErrorController ??= StreamController.broadcast();
     _connectionController ??= StreamController.broadcast();
@@ -989,14 +1403,14 @@ class FlutterInappPurchase {
           Map<String, dynamic> result = jsonDecode(call.arguments as String) as Map<String, dynamic>;
           PurchasedItem item = PurchasedItem.fromJSON(result);
           _purchaseController!.add(item);
-          // Also emit to expo-iap compatible stream
+          // Also emit to flutter IAP compatible stream
           _purchaseUpdatedController.add(_convertToPurchase(item));
           break;
         case 'purchase-error':
           Map<String, dynamic> result = jsonDecode(call.arguments as String) as Map<String, dynamic>;
           PurchaseResult purchaseResult = PurchaseResult.fromJSON(result);
           _purchaseErrorController!.add(purchaseResult);
-          // Also emit to expo-iap compatible stream
+          // Also emit to flutter IAP compatible stream
           _expoIAPPurchaseErrorController.add(_convertToPurchaseError(purchaseResult));
           break;
         case 'connection-updated':
@@ -1018,7 +1432,7 @@ class FlutterInappPurchase {
     });
   }
 
-  Future _removePurchaseListener() async {
+  Future<dynamic> _removePurchaseListener() async {
     _purchaseController
       ?..add(null)
       ..close();
@@ -1030,7 +1444,7 @@ class FlutterInappPurchase {
     _purchaseErrorController = null;
   }
 
-  @Deprecated('Not available in expo-iap. Will be removed in 6.0.0')
+  @Deprecated('Not available in flutter IAP. Will be removed in 6.0.0')
   Future<String> showPromoCodesIOS() async {
     if (_platform.isIOS) {
       return await _channel.invokeMethod<String>('showRedeemCodesIOS') ?? '';
@@ -1039,9 +1453,9 @@ class FlutterInappPurchase {
         code: _platform.operatingSystem, message: "platform not supported");
   }
   
-  // expo-iap compatible methods
+  // flutter IAP compatible methods
   
-  /// expo-iap compatible method to get products
+  /// flutter IAP compatible method to get products
   Future<List<iap_types.Product>> getProductsAsync(List<String> productIds) async {
     final items = await getProducts(productIds);
     return items.map((item) => iap_types.Product(
@@ -1054,13 +1468,13 @@ class FlutterInappPurchase {
     )).toList();
   }
   
-  /// expo-iap compatible method to get available purchases
+  /// flutter IAP compatible method to get available purchases
   Future<List<iap_types.Purchase>> getAvailablePurchasesAsync() async {
     final items = await getAvailableItemsIOS();
     return items?.map(_convertToPurchase).toList() ?? [];
   }
   
-  /// expo-iap compatible purchase method
+  /// flutter IAP compatible purchase method
   Future<void> purchaseAsync(String productId) async {
     try {
       if (_platform.isIOS) {
@@ -1077,7 +1491,7 @@ class FlutterInappPurchase {
     }
   }
   
-  /// expo-iap compatible finish transaction method
+  /// flutter IAP compatible finish transaction method
   Future<void> finishTransactionAsync({
     required String transactionId,
     required bool consume,
@@ -1087,7 +1501,7 @@ class FlutterInappPurchase {
     } else if (_platform.isAndroid) {
       // For Android, the transactionId is actually the purchaseToken
       if (consume) {
-        await _channel.invokeMethod('consumePurchase', <String, dynamic>{
+        await _channel.invokeMethod('consumeProduct', <String, dynamic>{
           'token': transactionId,
         });
       } else {
@@ -1155,7 +1569,7 @@ class FlutterInappPurchase {
       try {
         final result = await _channel.invokeMethod('getAppTransaction');
         if (result != null) {
-          return Map<String, dynamic>.from(result);
+          return Map<String, dynamic>.from(result as Map<dynamic, dynamic>);
         }
         return null;
       } catch (e) {
@@ -1192,5 +1606,39 @@ class AndroidProrationMode {
   static const int UNKNOWN_SUBSCRIPTION_UPGRADE_DOWNGRADE_POLICY = 0;
 }
 
-// Global instance (expo-iap compatible)
+// Global instance (flutter IAP compatible)
 final expoIAP = FlutterInappPurchase.instance;
+
+// Utility functions
+List<IAPItem> extractItems(dynamic result) {
+  List<dynamic> list = json.decode(result.toString()) as List<dynamic>;
+  List<IAPItem> products = list
+      .map<IAPItem>(
+        (dynamic product) => IAPItem.fromJSON(product as Map<String, dynamic>),
+      )
+      .toList();
+
+  return products;
+}
+
+List<PurchasedItem>? extractPurchased(dynamic result) {
+  List<PurchasedItem>? decoded = (json.decode(result.toString()) as List<dynamic>)
+      .map<PurchasedItem>(
+        (dynamic product) =>
+            PurchasedItem.fromJSON(product as Map<String, dynamic>),
+      )
+      .toList();
+
+  return decoded;
+}
+
+List<PurchaseResult>? extractResult(dynamic result) {
+  List<PurchaseResult>? decoded = (json.decode(result.toString()) as List<dynamic>)
+      .map<PurchaseResult>(
+        (dynamic product) =>
+            PurchaseResult.fromJSON(product as Map<String, dynamic>),
+      )
+      .toList();
+
+  return decoded;
+}

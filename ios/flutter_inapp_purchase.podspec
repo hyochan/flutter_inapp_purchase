@@ -12,10 +12,18 @@ In App Purchase plugin for flutter. This project has been forked by react-native
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'Your Company' => 'email@example.com' }
   s.source           = { :path => '.' }
-  s.source_files = 'Classes/**/*'
-  s.public_header_files = 'Classes/**/*.h'
+  s.source_files = 'Classes/**/*.swift'
   s.dependency 'Flutter'
   
-  s.ios.deployment_target = '8.0'
+  s.ios.deployment_target = '15.0'
+  s.swift_version = '5.5'
+  
+  # Swift/Objective-C compatibility
+  s.pod_target_xcconfig = {
+    'DEFINES_MODULE' => 'YES',
+    'SWIFT_COMPILATION_MODE' => 'wholemodule',
+    'VALID_ARCHS' => 'arm64 x86_64',
+    'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386'
+  }
 end
 

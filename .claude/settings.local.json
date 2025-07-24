@@ -2,7 +2,37 @@
   "permissions": {
     "allow": [
       "Bash(git reset:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(rm:*)",
+      "Bash(ls:*)",
+      "Bash(flutter:*)",
+      "Bash(pod install:*)",
+      "Bash(open ios/Runner.xcworkspace)",
+      "Bash(mv:*)",
+      "Bash(find:*)",
+      "Bash(q)",
+      "Bash(r)",
+      "Bash(killall:*)",
+      "Bash(open:*)",
+      "Bash(mkdir:*)",
+      "Bash(pod deintegrate:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(xcrun devicectl device process list:*)",
+      "Bash(xcrun simctl list:*)",
+      "Bash(adb:*)",
+      "Bash(npx create-docusaurus:*)",
+      "Bash(touch:*)",
+      "Bash(npm start)",
+      "Bash(git add .gitignore .vscode/ docs/)",
+      "Bash(git commit -m \"$(cat <<''EOF''\ndocs: Add comprehensive Docusaurus documentation\n\n- Set up Docusaurus v3 documentation site\n- Add complete API reference documentation\n- Add getting started guides for iOS and Android setup\n- Add implementation guides for products, subscriptions, and purchases\n- Add comprehensive examples including basic store, subscription store, and production-ready implementation\n- Add migration guides from v5.x and expo-iap\n- Add troubleshooting guide and FAQ\n- Configure VS Code workspace with launch configurations and tasks\n- Update .gitignore to exclude node_modules and build artifacts\n\nThe documentation covers:\n* Installation and platform setup\n* Complete API reference with examples\n* Product and subscription management\n* Purchase flow implementation\n* Receipt validation and security\n* Error handling and testing\n* Migration strategies\n* Troubleshooting common issues\nEOF\n)\")",
+      "Bash(git push origin main)",
+      "Bash(find /Users/hyo/Github/hyochan/expo-iap -name \"*.ts\" -o -name \"*.tsx\")",
+      "Bash(find /Users/hyo/Github/hyochan/expo-iap/src -name \"*.ts\" -o -name \"*.tsx\")",
+      "Bash(grep -n \"requestProducts\" /Users/hyo/Github/hyochan/expo-iap/src/index.ts)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(grep:*)",
+      "Bash(dart analyze:*)"
     ],
     "deny": []
   }

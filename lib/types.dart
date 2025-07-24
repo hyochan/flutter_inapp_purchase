@@ -1,50 +1,110 @@
 import 'dart:io';
+import 'enums.dart';
+export 'enums.dart';
 
-/// Platform detection enum
-enum IAPPlatform { ios, android }
+/// Platform-specific error code mappings
+class ErrorCodeMapping {
+  static const Map<ErrorCode, int> ios = {
+    ErrorCode.E_UNKNOWN: 0,
+    ErrorCode.E_SERVICE_ERROR: 1,
+    ErrorCode.E_USER_CANCELLED: 2,
+    ErrorCode.E_USER_ERROR: 3,
+    ErrorCode.E_ITEM_UNAVAILABLE: 4,
+    ErrorCode.E_REMOTE_ERROR: 5,
+    ErrorCode.E_NETWORK_ERROR: 6,
+    ErrorCode.E_RECEIPT_FAILED: 7,
+    ErrorCode.E_RECEIPT_FINISHED_FAILED: 8,
+    ErrorCode.E_DEVELOPER_ERROR: 9,
+    ErrorCode.E_PURCHASE_ERROR: 10,
+    ErrorCode.E_SYNC_ERROR: 11,
+    ErrorCode.E_DEFERRED_PAYMENT: 12,
+    ErrorCode.E_TRANSACTION_VALIDATION_FAILED: 13,
+    ErrorCode.E_NOT_PREPARED: 14,
+    ErrorCode.E_NOT_ENDED: 15,
+    ErrorCode.E_ALREADY_OWNED: 16,
+    ErrorCode.E_BILLING_RESPONSE_JSON_PARSE_ERROR: 17,
+    ErrorCode.E_INTERRUPTED: 18,
+    ErrorCode.E_IAP_NOT_AVAILABLE: 19,
+    ErrorCode.E_ACTIVITY_UNAVAILABLE: 20,
+    ErrorCode.E_ALREADY_PREPARED: 21,
+    ErrorCode.E_PENDING: 22,
+    ErrorCode.E_CONNECTION_CLOSED: 23,
+  };
 
-/// Purchase type enum
-enum PurchaseType { inapp, subs }
-
-/// Error codes matching expo-iap
-enum ErrorCode {
-  E_USER_CANCELLED,
-  E_ITEM_UNAVAILABLE,
-  E_NETWORK_ERROR,
-  E_SERVICE_ERROR,
-  E_DEVELOPER_ERROR,
-  E_BILLING_UNAVAILABLE,
-  E_PRODUCT_ALREADY_OWNED,
-  E_PURCHASE_NOT_ALLOWED,
-  E_QUOTA_EXCEEDED,
-  E_UNKNOWN,
-  E_PENDING,
-  E_FEATURE_NOT_SUPPORTED,
-  E_NOT_INITIALIZED,
-  E_ALREADY_INITIALIZED,
-  E_REMOTE_ERROR,
-  E_USER_ERROR,
-  E_CLIENT_INVALID,
-  E_PAYMENT_INVALID,
-  E_PAYMENT_NOT_ALLOWED,
-  E_STOREKIT_ORIGINAL_TRANSACTION_ID_NOT_FOUND,
-  E_NOT_SUPPORTED,
-  E_DEFERRED_PAYMENT,
-  E_TRANSACTION_FAILED,
-  E_TRANSACTION_INVALID,
-  E_RECEIPT_FAILED,
-  E_RECEIPT_FINISHED_FAILED,
-  E_PRODUCT_NOT_FOUND,
-  E_PURCHASE_FAILED,
-  E_TRANSACTION_NOT_FOUND,
-  E_RESTORE_FAILED,
-  E_REDEEM_FAILED,
-  E_NO_WINDOW_SCENE,
-  E_SHOW_SUBSCRIPTIONS_FAILED,
-  E_PRODUCT_LOAD_FAILED,
+  static const Map<ErrorCode, String> android = {
+    ErrorCode.E_UNKNOWN: 'E_UNKNOWN',
+    ErrorCode.E_USER_CANCELLED: 'E_USER_CANCELLED',
+    ErrorCode.E_USER_ERROR: 'E_USER_ERROR',
+    ErrorCode.E_ITEM_UNAVAILABLE: 'E_ITEM_UNAVAILABLE',
+    ErrorCode.E_REMOTE_ERROR: 'E_REMOTE_ERROR',
+    ErrorCode.E_NETWORK_ERROR: 'E_NETWORK_ERROR',
+    ErrorCode.E_SERVICE_ERROR: 'E_SERVICE_ERROR',
+    ErrorCode.E_RECEIPT_FAILED: 'E_RECEIPT_FAILED',
+    ErrorCode.E_RECEIPT_FINISHED_FAILED: 'E_RECEIPT_FINISHED_FAILED',
+    ErrorCode.E_NOT_PREPARED: 'E_NOT_PREPARED',
+    ErrorCode.E_NOT_ENDED: 'E_NOT_ENDED',
+    ErrorCode.E_ALREADY_OWNED: 'E_ALREADY_OWNED',
+    ErrorCode.E_DEVELOPER_ERROR: 'E_DEVELOPER_ERROR',
+    ErrorCode.E_BILLING_RESPONSE_JSON_PARSE_ERROR: 'E_BILLING_RESPONSE_JSON_PARSE_ERROR',
+    ErrorCode.E_DEFERRED_PAYMENT: 'E_DEFERRED_PAYMENT',
+    ErrorCode.E_INTERRUPTED: 'E_INTERRUPTED',
+    ErrorCode.E_IAP_NOT_AVAILABLE: 'E_IAP_NOT_AVAILABLE',
+    ErrorCode.E_PURCHASE_ERROR: 'E_PURCHASE_ERROR',
+    ErrorCode.E_SYNC_ERROR: 'E_SYNC_ERROR',
+    ErrorCode.E_TRANSACTION_VALIDATION_FAILED: 'E_TRANSACTION_VALIDATION_FAILED',
+    ErrorCode.E_ACTIVITY_UNAVAILABLE: 'E_ACTIVITY_UNAVAILABLE',
+    ErrorCode.E_ALREADY_PREPARED: 'E_ALREADY_PREPARED',
+    ErrorCode.E_PENDING: 'E_PENDING',
+    ErrorCode.E_CONNECTION_CLOSED: 'E_CONNECTION_CLOSED',
+  };
 }
 
-/// Base product interface
+/// Change event payload
+class ChangeEventPayload {
+  final String value;
+
+  ChangeEventPayload({required this.value});
+}
+
+/// Base product class
+class ProductBase {
+  final String id;
+  final String title;
+  final String description;
+  final PurchaseType type;
+  final String? displayName;
+  final String displayPrice;
+  final String currency;
+  final double? price;
+
+  ProductBase({
+    required this.id,
+    required this.title,
+    required this.description,
+    required this.type,
+    this.displayName,
+    required this.displayPrice,
+    required this.currency,
+    this.price,
+  });
+}
+
+/// Base purchase class
+class PurchaseBase {
+  final String id;
+  final String? transactionId;
+  final int transactionDate;
+  final String transactionReceipt;
+
+  PurchaseBase({
+    required this.id,
+    this.transactionId,
+    required this.transactionDate,
+    required this.transactionReceipt,
+  });
+}
+
+/// Base product interface (for backward compatibility)
 abstract class BaseProduct {
   final String productId;
   final String price;
@@ -69,6 +129,12 @@ abstract class BaseProduct {
 class Product extends BaseProduct {
   final String type;
   final bool? isFamilyShareable;
+  // Android-specific fields
+  final String? iconUrl;
+  final String? originalJson;
+  final String? originalPrice;
+  // iOS-specific fields
+  final List<DiscountIOS>? discountsIOS;
 
   Product({
     required String productId,
@@ -80,6 +146,10 @@ class Product extends BaseProduct {
     required IAPPlatform platform,
     String? type,
     this.isFamilyShareable,
+    this.iconUrl,
+    this.originalJson,
+    this.originalPrice,
+    this.discountsIOS,
   }) : type = type ?? 'inapp',
         super(
           productId: productId,
@@ -90,6 +160,27 @@ class Product extends BaseProduct {
           description: description,
           platform: platform,
         );
+}
+
+/// iOS-specific discount information
+class DiscountIOS {
+  final String? identifier;
+  final String? type;
+  final String? numberOfPeriods;
+  final double? price;
+  final String? localizedPrice;
+  final String? paymentMode;
+  final String? subscriptionPeriod;
+
+  DiscountIOS({
+    this.identifier,
+    this.type,
+    this.numberOfPeriods,
+    this.price,
+    this.localizedPrice,
+    this.paymentMode,
+    this.subscriptionPeriod,
+  });
 }
 
 /// Subscription class for subscription items
@@ -206,18 +297,119 @@ class Purchase {
 }
 
 /// Purchase error class
-class PurchaseError {
-  final ErrorCode code;
+class PurchaseError implements Exception {
+  final String name;
   final String message;
+  final int? responseCode;
   final String? debugMessage;
-  final IAPPlatform platform;
+  final ErrorCode? code;
+  final String? productId;
+  final IAPPlatform? platform;
 
   PurchaseError({
-    required this.code,
+    String? name,
     required this.message,
+    this.responseCode,
     this.debugMessage,
-    required this.platform,
+    this.code,
+    this.productId,
+    this.platform,
+  }) : name = name ?? '[flutter_inapp_purchase]: PurchaseError';
+
+  /// Creates a PurchaseError from platform-specific error data
+  factory PurchaseError.fromPlatformError(
+    Map<String, dynamic> errorData,
+    IAPPlatform platform,
+  ) {
+    final errorCode = errorData['code'] != null
+        ? ErrorCodeUtils.fromPlatformCode(errorData['code'], platform)
+        : ErrorCode.E_UNKNOWN;
+
+    return PurchaseError(
+      message: errorData['message']?.toString() ?? 'Unknown error occurred',
+      responseCode: errorData['responseCode'] as int?,
+      debugMessage: errorData['debugMessage']?.toString(),
+      code: errorCode,
+      productId: errorData['productId']?.toString(),
+      platform: platform,
+    );
+  }
+
+  /// Gets the platform-specific error code for this error
+  dynamic getPlatformCode() {
+    if (code == null || platform == null) return null;
+    return ErrorCodeUtils.toPlatformCode(code!, platform!);
+  }
+
+  @override
+  String toString() => '$name: $message';
+}
+
+/// Purchase result (legacy)
+class PurchaseResult {
+  final int? responseCode;
+  final String? debugMessage;
+  final String? code;
+  final String? message;
+  final String? purchaseTokenAndroid;
+
+  PurchaseResult({
+    this.responseCode,
+    this.debugMessage,
+    this.code,
+    this.message,
+    this.purchaseTokenAndroid,
   });
+}
+
+/// Utility functions for error code mapping and validation
+class ErrorCodeUtils {
+  /// Maps a platform-specific error code back to the standardized ErrorCode enum
+  static ErrorCode fromPlatformCode(
+    dynamic platformCode,
+    IAPPlatform platform,
+  ) {
+    if (platform == IAPPlatform.ios) {
+      final mapping = ErrorCodeMapping.ios;
+      for (final entry in mapping.entries) {
+        if (entry.value == platformCode) {
+          return entry.key;
+        }
+      }
+    } else {
+      final mapping = ErrorCodeMapping.android;
+      for (final entry in mapping.entries) {
+        if (entry.value == platformCode) {
+          return entry.key;
+        }
+      }
+    }
+    return ErrorCode.E_UNKNOWN;
+  }
+
+  /// Maps an ErrorCode enum to platform-specific code
+  static dynamic toPlatformCode(
+    ErrorCode errorCode,
+    IAPPlatform platform,
+  ) {
+    if (platform == IAPPlatform.ios) {
+      return ErrorCodeMapping.ios[errorCode] ?? 0;
+    } else {
+      return ErrorCodeMapping.android[errorCode] ?? 'E_UNKNOWN';
+    }
+  }
+
+  /// Checks if an error code is valid for the specified platform
+  static bool isValidForPlatform(
+    ErrorCode errorCode,
+    IAPPlatform platform,
+  ) {
+    if (platform == IAPPlatform.ios) {
+      return ErrorCodeMapping.ios.containsKey(errorCode);
+    } else {
+      return ErrorCodeMapping.android.containsKey(errorCode);
+    }
+  }
 }
 
 /// Request purchase parameters
@@ -234,16 +426,43 @@ class RequestPurchase {
 /// iOS specific purchase request
 class RequestPurchaseIOS {
   final String sku;
-  final int? quantity;
+  final bool? andDangerouslyFinishTransactionAutomaticallyIOS;
   final String? appAccountToken;
-  final Map<String, dynamic>? withOffer;
+  final int? quantity;
+  final PaymentDiscount? withOffer;
 
   RequestPurchaseIOS({
     required this.sku,
-    this.quantity,
+    this.andDangerouslyFinishTransactionAutomaticallyIOS,
     this.appAccountToken,
+    this.quantity,
     this.withOffer,
   });
+}
+
+/// Payment discount (iOS)
+class PaymentDiscount {
+  final String identifier;
+  final String keyIdentifier;
+  final String nonce;
+  final String signature;
+  final int timestamp;
+
+  PaymentDiscount({
+    required this.identifier,
+    required this.keyIdentifier,
+    required this.nonce,
+    required this.signature,
+    required this.timestamp,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'identifier': identifier,
+    'keyIdentifier': keyIdentifier,
+    'nonce': nonce,
+    'signature': signature,
+    'timestamp': timestamp,
+  };
 }
 
 /// Android specific purchase request
@@ -251,6 +470,7 @@ class RequestPurchaseAndroid {
   final List<String> skus;
   final String? obfuscatedAccountIdAndroid;
   final String? obfuscatedProfileIdAndroid;
+  final bool? isOfferPersonalized;
   final String? purchaseToken;
   final int? offerTokenIndex;
   final int? prorationMode;
@@ -259,10 +479,122 @@ class RequestPurchaseAndroid {
     required this.skus,
     this.obfuscatedAccountIdAndroid,
     this.obfuscatedProfileIdAndroid,
+    this.isOfferPersonalized,
     this.purchaseToken,
     this.offerTokenIndex,
     this.prorationMode,
   });
+}
+
+/// Android specific subscription request
+class RequestSubscriptionAndroid extends RequestPurchaseAndroid {
+  final int? replacementModeAndroid;
+  final List<SubscriptionOfferAndroid>? subscriptionOffers;
+
+  RequestSubscriptionAndroid({
+    required List<String> skus,
+    String? obfuscatedAccountIdAndroid,
+    String? obfuscatedProfileIdAndroid,
+    bool? isOfferPersonalized,
+    String? purchaseToken,
+    int? offerTokenIndex,
+    int? prorationMode,
+    this.replacementModeAndroid,
+    this.subscriptionOffers,
+  }) : super(
+    skus: skus,
+    obfuscatedAccountIdAndroid: obfuscatedAccountIdAndroid,
+    obfuscatedProfileIdAndroid: obfuscatedProfileIdAndroid,
+    isOfferPersonalized: isOfferPersonalized,
+    purchaseToken: purchaseToken,
+    offerTokenIndex: offerTokenIndex,
+    prorationMode: prorationMode,
+  );
+}
+
+/// Subscription offer for Android
+class SubscriptionOfferAndroid {
+  final String sku;
+  final String offerToken;
+
+  SubscriptionOfferAndroid({
+    required this.sku,
+    required this.offerToken,
+  });
+}
+
+/// Request subscription parameters
+class RequestSubscription {
+  final RequestPurchaseIOS? ios;
+  final RequestSubscriptionAndroid? android;
+
+  RequestSubscription({
+    this.ios,
+    this.android,
+  });
+}
+
+/// Unified request purchase props
+class UnifiedRequestPurchaseProps {
+  // Universal properties
+  final String? sku;
+  final List<String>? skus;
+
+  // iOS-specific properties
+  final bool? andDangerouslyFinishTransactionAutomaticallyIOS;
+  final String? appAccountToken;
+  final int? quantity;
+  final PaymentDiscount? withOffer;
+
+  // Android-specific properties
+  final String? obfuscatedAccountIdAndroid;
+  final String? obfuscatedProfileIdAndroid;
+  final bool? isOfferPersonalized;
+
+  UnifiedRequestPurchaseProps({
+    this.sku,
+    this.skus,
+    this.andDangerouslyFinishTransactionAutomaticallyIOS,
+    this.appAccountToken,
+    this.quantity,
+    this.withOffer,
+    this.obfuscatedAccountIdAndroid,
+    this.obfuscatedProfileIdAndroid,
+    this.isOfferPersonalized,
+  });
+}
+
+/// Unified subscription request props
+class UnifiedRequestSubscriptionProps extends UnifiedRequestPurchaseProps {
+  // Android subscription-specific properties
+  final String? purchaseTokenAndroid;
+  final int? replacementModeAndroid;
+  final List<SubscriptionOfferAndroid>? subscriptionOffers;
+
+  UnifiedRequestSubscriptionProps({
+    String? sku,
+    List<String>? skus,
+    bool? andDangerouslyFinishTransactionAutomaticallyIOS,
+    String? appAccountToken,
+    int? quantity,
+    PaymentDiscount? withOffer,
+    String? obfuscatedAccountIdAndroid,
+    String? obfuscatedProfileIdAndroid,
+    bool? isOfferPersonalized,
+    this.purchaseTokenAndroid,
+    this.replacementModeAndroid,
+    this.subscriptionOffers,
+  }) : super(
+    sku: sku,
+    skus: skus,
+    andDangerouslyFinishTransactionAutomaticallyIOS: andDangerouslyFinishTransactionAutomaticallyIOS,
+    appAccountToken: appAccountToken,
+    quantity: quantity,
+    withOffer: withOffer,
+    obfuscatedAccountIdAndroid: obfuscatedAccountIdAndroid,
+    obfuscatedProfileIdAndroid: obfuscatedProfileIdAndroid,
+    isOfferPersonalized: isOfferPersonalized,
+  );
 }
 
 /// Request products parameters
@@ -362,4 +694,268 @@ class AppTransaction {
 /// Get current platform
 IAPPlatform getCurrentPlatform() {
   return Platform.isIOS ? IAPPlatform.ios : IAPPlatform.android;
+}
+
+// Type guards
+bool isPlatformRequestProps(dynamic props) {
+  return props is RequestPurchase || props is RequestSubscription;
+}
+
+bool isUnifiedRequestProps(dynamic props) {
+  return props is UnifiedRequestPurchaseProps || props is UnifiedRequestSubscriptionProps;
+}
+
+// Platform-specific product purchase types
+class ProductPurchaseIos extends PurchaseBase {
+  final IAPPlatform platform = IAPPlatform.ios;
+  final String? originalTransactionIdentifierIOS;
+  final DateTime? originalTransactionDateIOS;
+  final String? transactionStateIOS;
+  final bool? isUpgraded;
+  final DateTime? expirationDate;
+  final DateTime? revocationDate;
+  final int? revocationReason;
+
+  ProductPurchaseIos({
+    required String id,
+    String? transactionId,
+    required int transactionDate,
+    required String transactionReceipt,
+    this.originalTransactionIdentifierIOS,
+    this.originalTransactionDateIOS,
+    this.transactionStateIOS,
+    this.isUpgraded,
+    this.expirationDate,
+    this.revocationDate,
+    this.revocationReason,
+  }) : super(
+    id: id,
+    transactionId: transactionId,
+    transactionDate: transactionDate,
+    transactionReceipt: transactionReceipt,
+  );
+}
+
+class ProductPurchaseAndroid extends PurchaseBase {
+  final IAPPlatform platform = IAPPlatform.android;
+  final String? purchaseToken;
+  final String? dataAndroid;
+  final String? signatureAndroid;
+  final bool? autoRenewingAndroid;
+  final bool? isAcknowledgedAndroid;
+  final String? purchaseStateAndroid;
+
+  ProductPurchaseAndroid({
+    required String id,
+    String? transactionId,
+    required int transactionDate,
+    required String transactionReceipt,
+    this.purchaseToken,
+    this.dataAndroid,
+    this.signatureAndroid,
+    this.autoRenewingAndroid,
+    this.isAcknowledgedAndroid,
+    this.purchaseStateAndroid,
+  }) : super(
+    id: id,
+    transactionId: transactionId,
+    transactionDate: transactionDate,
+    transactionReceipt: transactionReceipt,
+  );
+}
+
+// Union types
+typedef ProductPurchase = dynamic; // ProductPurchaseAndroid | ProductPurchaseIos
+typedef SubscriptionPurchase = dynamic; // ProductPurchaseAndroid | ProductPurchaseIos
+typedef PurchaseUnion = dynamic; // ProductPurchase | SubscriptionPurchase
+
+/// Store constants
+class StoreConstants {
+  static const String appStore = 'App Store';
+  static const String playStore = 'Play Store';
+  static const String sandbox = 'Sandbox';
+  static const String production = 'Production';
+}
+
+/// Purchase update listener data
+class PurchaseUpdate {
+  final Purchase? purchase;
+  final PurchaseError? error;
+  final String? message;
+  
+  PurchaseUpdate({
+    this.purchase,
+    this.error,
+    this.message,
+  });
+}
+
+/// Receipt validation result
+class ReceiptValidationResult {
+  final bool isValid;
+  final int? status;
+  final Map<String, dynamic>? receipt;
+  final String? message;
+  
+  ReceiptValidationResult({
+    required this.isValid,
+    this.status,
+    this.receipt,
+    this.message,
+  });
+}
+
+/// Purchase token info
+class PurchaseTokenInfo {
+  final String token;
+  final bool isValid;
+  final DateTime? expiryTime;
+  final String? productId;
+  
+  PurchaseTokenInfo({
+    required this.token,
+    required this.isValid,
+    this.expiryTime,
+    this.productId,
+  });
+}
+
+/// Store info
+class StoreInfo {
+  final String storeName;
+  final String? countryCode;
+  final String? currencyCode;
+  final bool isAvailable;
+  
+  StoreInfo({
+    required this.storeName,
+    this.countryCode,
+    this.currencyCode,
+    required this.isAvailable,
+  });
+}
+
+/// IAP configuration
+class IAPConfig {
+  final bool autoFinishTransactions;
+  final bool enablePendingPurchases;
+  final Duration? connectionTimeout;
+  final bool validateReceipts;
+  
+  const IAPConfig({
+    this.autoFinishTransactions = true,
+    this.enablePendingPurchases = true,
+    this.connectionTimeout,
+    this.validateReceipts = false,
+  });
+}
+
+/// Platform check utilities
+class PlatformCheck {
+  static bool get isIOS => Platform.isIOS;
+  static bool get isAndroid => Platform.isAndroid;
+  static bool get isMacOS => Platform.isMacOS;
+  static bool get isSupported => isIOS || isAndroid;
+}
+
+/// Deep link options
+class DeepLinkOptions {
+  final String? sku;
+  final bool? showPriceChangeIfNeeded;
+  
+  DeepLinkOptions({
+    this.sku,
+    this.showPriceChangeIfNeeded,
+  });
+}
+
+/// Promoted product
+class PromotedProduct {
+  final String productId;
+  final int order;
+  final bool visible;
+  
+  PromotedProduct({
+    required this.productId,
+    required this.order,
+    required this.visible,
+  });
+}
+
+/// Transaction info
+class TransactionInfo {
+  final String id;
+  final String productId;
+  final DateTime date;
+  final TransactionState state;
+  final String? receipt;
+  
+  TransactionInfo({
+    required this.id,
+    required this.productId,
+    required this.date,
+    required this.state,
+    this.receipt,
+  });
+}
+
+/// Billing info
+class BillingInfo {
+  final String? billingPeriod;
+  final double? price;
+  final String? currency;
+  final String? countryCode;
+  
+  BillingInfo({
+    this.billingPeriod,
+    this.price,
+    this.currency,
+    this.countryCode,
+  });
+}
+
+/// SKU details params (Android)
+class SkuDetailsParams {
+  final List<String> skuList;
+  final String skuType;
+  
+  SkuDetailsParams({
+    required this.skuList,
+    required this.skuType,
+  });
+}
+
+/// Purchase history record
+class PurchaseHistoryRecord {
+  final Purchase purchase;
+  final DateTime date;
+  final String? developerPayload;
+  
+  PurchaseHistoryRecord({
+    required this.purchase,
+    required this.date,
+    this.developerPayload,
+  });
+}
+
+/// Acknowledgement params
+class AcknowledgementParams {
+  final String purchaseToken;
+  final String? developerPayload;
+  
+  AcknowledgementParams({
+    required this.purchaseToken,
+    this.developerPayload,
+  });
+}
+
+/// Consumption params
+class ConsumptionParams {
+  final String purchaseToken;
+  final String? developerPayload;
+  
+  ConsumptionParams({
+    required this.purchaseToken,
+    this.developerPayload,
+  });
 }
