@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "permissions": {
     "allow": [
       "Bash(git reset:*)",
@@ -47,7 +48,15 @@
       "Bash(-e 's/ErrorCode\\.E_DEFERRED_PAYMENT/ErrorCode.eDeferredPayment/g' )",
       "Bash(-e 's/ErrorCode\\.E_DEVELOPER_ERROR/ErrorCode.eDeveloperError/g' )",
       "Bash(-e 's/ErrorCode\\.E_SERVICE_ERROR/ErrorCode.eServiceError/g' )",
-      "Bash(example/lib/src/screens/error_handling_example.dart)"
+      "Bash(example/lib/src/screens/error_handling_example.dart)",
+      "Bash(node:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm install:*)",
+      "Bash(sips:*)",
+      "Bash(cp:*)",
+      "Bash(npm run docusaurus:*)",
+      "Bash(git rm:*)",
+      "Bash(git rebase:*)"
     ],
     "deny": []
   }

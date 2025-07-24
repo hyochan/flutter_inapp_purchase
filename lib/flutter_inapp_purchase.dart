@@ -1309,7 +1309,10 @@ class FlutterInappPurchase
 
   /// Clear transaction cache
   Future<void> clearTransactionCache() async {
-    await _channel.invokeMethod('clearTransactionCache');
+    if (_platform.isIOS) {
+      await _channel.invokeMethod('clearTransactionCache');
+    }
+    // Android doesn't need transaction cache clearing
   }
 
   /// Get promoted product (App Store promoted purchase)

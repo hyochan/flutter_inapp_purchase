@@ -83,39 +83,15 @@
 
 @media screen and (max-width: 600px) {
   .heroBanner {
-    padding: 2rem 1rem;
+    padding: 2rem 0;
   }
   
   .heroContent {
-    gap: 1.5rem;
-    padding: 0;
-  }
-  
-  .heroText {
-    padding: 0 1rem;
-  }
-  
-  .heroSubtitle {
-    font-size: 1rem;
-    margin-bottom: 1.5rem;
+    gap: 1rem;
   }
   
   .heroImg {
-    max-height: 250px;
-    width: 90%;
-  }
-  
-  .buttons {
-    flex-direction: column;
-    width: 100%;
-    gap: 0.75rem;
-  }
-  
-  .buttons > * {
-    width: 100%;
-    margin: 0;
-    font-size: 0.9rem;
-    padding: 0.75rem 1.5rem;
+    max-height: 300px;
   }
 }
 

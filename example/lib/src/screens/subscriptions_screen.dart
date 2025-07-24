@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
@@ -16,9 +18,18 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     'dev.hyo.martie.premium',
   ];
 
+  String? _purchaseResult;
+  bool _isProcessing = false;
+  StreamSubscription<PurchasedItem?>? _purchaseUpdatedSubscription;
+  StreamSubscription<PurchaseResult?>? _purchaseErrorSubscription;
+
   @override
   void initState() {
     super.initState();
+
+    // Set up purchase listeners
+    _setupPurchaseListeners();
+
     // Load subscriptions after a delay to ensure provider is ready
     Future<void>.delayed(const Duration(milliseconds: 500), () {
       if (mounted) {
@@ -26,6 +37,204 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
         _loadPurchases();
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _purchaseUpdatedSubscription?.cancel();
+    _purchaseErrorSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _setupPurchaseListeners() {
+    // Listen to purchase updates
+    _purchaseUpdatedSubscription = FlutterInappPurchase.purchaseUpdated.listen(
+      (purchasedItem) {
+        if (purchasedItem != null) {
+          debugPrint(
+              'Subscription purchase update received: ${purchasedItem.productId}, token: ${purchasedItem.purchaseToken}');
+          _handlePurchaseUpdate(purchasedItem);
+        }
+      },
+    );
+
+    // Listen to purchase errors
+    _purchaseErrorSubscription = FlutterInappPurchase.purchaseError.listen(
+      (purchaseError) {
+        if (purchaseError != null) {
+          _handlePurchaseError(purchaseError);
+        }
+      },
+    );
+  }
+
+  Future<void> _handlePurchaseUpdate(PurchasedItem purchasedItem) async {
+    debugPrint('Subscription purchase successful: ${purchasedItem.productId}');
+
+    setState(() {
+      _isProcessing = false;
+      _purchaseResult = '✅ Subscription successful\n'
+          'Product: ${purchasedItem.productId}\n'
+          'Transaction ID: ${purchasedItem.transactionId ?? 'N/A'}\n'
+          'Date: ${purchasedItem.transactionDate != null ? purchasedItem.transactionDate!.toLocal() : 'N/A'}\n'
+          'Receipt: ${purchasedItem.transactionReceipt?.substring(0, 50)}...';
+    });
+
+    // Deliver the subscription to the user
+    await _deliverSubscription(purchasedItem.productId);
+
+    // Finish the transaction - Subscriptions are NOT consumed, only acknowledged
+    try {
+      if (!mounted) return;
+
+      if (Platform.isAndroid) {
+        // For Android subscriptions, acknowledge (NOT consume)
+        if (purchasedItem.purchaseToken != null) {
+          debugPrint(
+              'Attempting to acknowledge Android subscription with token: ${purchasedItem.purchaseToken}');
+
+          try {
+            // For subscriptions, use acknowledgePurchaseAndroid for now (deprecated but working)
+            await FlutterInappPurchase.instance.acknowledgePurchaseAndroid(
+              purchaseToken: purchasedItem.purchaseToken!,
+            );
+            debugPrint('Android subscription acknowledged successfully');
+          } catch (e) {
+            debugPrint('Acknowledge failed: $e');
+            if (mounted) {
+              setState(() {
+                _purchaseResult =
+                    '❌ Failed to complete subscription. Please contact support.';
+              });
+            }
+          }
+        } else {
+          debugPrint('ERROR: No purchase token available for Android');
+        }
+      } else if (Platform.isIOS) {
+        // For iOS, finish the transaction (subscriptions are NOT consumable)
+        await FlutterInappPurchase.instance.finishTransactionIOS(
+          purchasedItem,
+          isConsumable: false, // Subscriptions are NOT consumable
+        );
+        debugPrint('iOS subscription transaction finished');
+      }
+    } catch (e) {
+      debugPrint('Error finishing subscription transaction: $e');
+      if (mounted) {
+        setState(() {
+          _purchaseResult = '❌ Subscription error: $e';
+        });
+      }
+    }
+
+    // Show success dialog
+    if (mounted) {
+      showDialog<void>(
+        context: context,
+        builder: (_) => CupertinoAlertDialog(
+          title: const Text('Subscription Successful'),
+          content:
+              const Text('Your subscription has been activated successfully!'),
+          actions: [
+            CupertinoDialogAction(
+              isDefaultAction: true,
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Refresh subscription status
+    _loadSubscriptions();
+    _loadPurchases();
+  }
+
+  void _handlePurchaseError(PurchaseResult error) {
+    debugPrint('Subscription purchase failed: ${error.message}');
+
+    setState(() {
+      _isProcessing = false;
+      _purchaseResult = '❌ Subscription failed: ${error.message}';
+    });
+
+    // Show error dialog
+    if (mounted) {
+      showDialog<void>(
+        context: context,
+        builder: (_) => CupertinoAlertDialog(
+          title: const Text('Subscription Failed'),
+          content: Text(error.message ?? 'Unknown error occurred'),
+          actions: [
+            CupertinoDialogAction(
+              isDefaultAction: true,
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  Future<void> _deliverSubscription(String? productId) async {
+    // Implement your subscription delivery logic here
+    debugPrint('Delivering subscription: $productId');
+
+    // In a real app, you would:
+    // 1. Verify the subscription with your backend
+    // 2. Update user's subscription status
+    // 3. Enable premium features
+  }
+
+  Future<void> _handleSubscription(String productId) async {
+    try {
+      setState(() {
+        _isProcessing = true;
+        _purchaseResult = 'Processing subscription...';
+      });
+
+      // Use new v6.0.0+ API for subscription purchase
+      await FlutterInappPurchase.instance.requestPurchase(
+        request: RequestPurchase(
+          ios: RequestPurchaseIOS(
+            sku: productId,
+            quantity: 1,
+          ),
+          android: RequestPurchaseAndroid(
+            skus: [productId],
+          ),
+        ),
+        type: PurchaseType.subs,
+      );
+    } catch (error) {
+      setState(() {
+        _isProcessing = false;
+      });
+      final errorMessage = error.toString();
+      setState(() {
+        _purchaseResult = '❌ Subscription failed: $errorMessage';
+      });
+
+      if (mounted) {
+        showDialog<void>(
+          context: context,
+          builder: (_) => CupertinoAlertDialog(
+            title: const Text('Subscription Failed'),
+            content: Text(errorMessage),
+            actions: [
+              CupertinoDialogAction(
+                isDefaultAction: true,
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _loadSubscriptions() async {
@@ -94,6 +303,12 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                           child:
                               _buildSubscriptionCard(subscription, iapProvider),
                         )),
+
+                  // Purchase Result
+                  if (_purchaseResult != null) ...[
+                    const SizedBox(height: 20),
+                    _buildResultSection(),
+                  ],
                 ],
               ),
             ),
@@ -337,18 +552,18 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                   color: const Color(0xFFE8F5E9),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Row(
+                child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
+                    Icon(
                       CupertinoIcons.checkmark_circle_fill,
                       color: Color(0xFF4CAF50),
                       size: 16,
                     ),
-                    const SizedBox(width: 6),
+                    SizedBox(width: 6),
                     Text(
                       'Active',
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Color(0xFF4CAF50),
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -365,21 +580,11 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                     : const Color(0xFF2196F3),
                 borderRadius: BorderRadius.circular(12),
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                onPressed: (iapProvider?.loading ?? false) || isSubscribed
+                onPressed: (_isProcessing ||
+                        (iapProvider?.loading ?? false) ||
+                        isSubscribed)
                     ? null
-                    : () async {
-                        // Simplified subscription request
-                        await FlutterInappPurchase.instance.requestPurchaseAuto(
-                          sku: productId,
-                          type: PurchaseType.subs,
-                          andDangerouslyFinishTransactionAutomaticallyIOS:
-                              false,
-                          // Optional parameters will be automatically applied based on platform:
-                          // iOS: appAccountToken, quantity, withOffer
-                          // Android: obfuscatedAccountIdAndroid, obfuscatedProfileIdAndroid,
-                          //          purchaseToken, replacementModeAndroid, subscriptionOffers
-                        );
-                      },
+                    : () => _handleSubscription(productId),
                 child: Text(
                   isSubscribed
                       ? 'Subscribed'
@@ -394,6 +599,44 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildResultSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8F9FA),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: _purchaseResult!.startsWith('✅')
+              ? const Color(0xFF4CAF50)
+              : const Color(0xFF007AFF),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Result',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF1A1A1A),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            _purchaseResult!,
+            style: const TextStyle(
+              fontSize: 14,
+              fontFamily: 'Courier',
+              height: 1.5,
+              color: Color(0xFF333333),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -69,7 +69,11 @@ Ensure your `android/app/build.gradle` has the minimum SDK version:
 ```gradle
 android {
     compileSdkVersion 34
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> 5e86ee0 (docs: Update community links and fix configuration)
     defaultConfig {
         minSdkVersion 21  // Required minimum
         targetSdkVersion 34
@@ -84,7 +88,11 @@ Add to your `android/app/proguard-rules.pro`:
 ```proguard
 # In-App Purchase
 -keep class com.amazon.** {*;}
+<<<<<<< HEAD
 -keep class dev.hyo.** { *; }
+=======
+-keep class com.dooboolab.** { *; }
+>>>>>>> 5e86ee0 (docs: Update community links and fix configuration)
 -keep class com.android.vending.billing.**
 -dontwarn com.amazon.**
 -keepattributes *Annotation*
@@ -144,7 +152,10 @@ class _MyAppState extends State<MyApp> {
 #### 1. Sandbox Testing
 
 1. Create a sandbox tester account in App Store Connect:
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5e86ee0 (docs: Update community links and fix configuration)
    - **Users and Roles** → **Sandbox Testers**
    - Add a test account with unique email
 
@@ -169,7 +180,10 @@ class _MyAppState extends State<MyApp> {
 #### 2. License Testing
 
 Add test accounts in Google Play Console:
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5e86ee0 (docs: Update community links and fix configuration)
 - **Setup** → **License Testing**
 - Add email addresses of testers
 
@@ -179,21 +193,35 @@ Add test accounts in Google Play Console:
 
 :::warning Permission Denied
 If you get permission errors, ensure:
+<<<<<<< HEAD
 
 - In-App Purchase capability is enabled
 - Your Apple Developer account has active agreements
 - Products are configured in App Store Connect
   :::
+=======
+- In-App Purchase capability is enabled
+- Your Apple Developer account has active agreements
+- Products are configured in App Store Connect
+:::
+>>>>>>> 5e86ee0 (docs: Update community links and fix configuration)
 
 ### Android Issues
 
 :::warning Billing Unavailable
 If billing is unavailable:
+<<<<<<< HEAD
 
 - Ensure you're testing on a real device (not emulator)
 - Check that Google Play is installed and up-to-date
 - Verify your app is signed with the same key as uploaded to Play Console
   :::
+=======
+- Ensure you're testing on a real device (not emulator)
+- Check that Google Play is installed and up-to-date
+- Verify your app is signed with the same key as uploaded to Play Console
+:::
+>>>>>>> 5e86ee0 (docs: Update community links and fix configuration)
 
 ## ✅ Verification
 
@@ -204,11 +232,19 @@ Future<void> _testConnection() async {
   try {
     final String? result = await FlutterInappPurchase.instance.initConnection();
     print('Connection result: $result');
+<<<<<<< HEAD
 
     // Test product fetching
     final products = await FlutterInappPurchase.instance.getProducts(['test_product_id']);
     print('Found ${products.length} products');
 
+=======
+    
+    // Test product fetching
+    final products = await FlutterInappPurchase.instance.getProducts(['test_product_id']);
+    print('Found ${products.length} products');
+    
+>>>>>>> 5e86ee0 (docs: Update community links and fix configuration)
   } catch (e) {
     print('Connection test failed: $e');
   }
@@ -225,4 +261,8 @@ Now that you have flutter_inapp_purchase installed and configured:
 
 ---
 
+<<<<<<< HEAD
 Need help? Check our [troubleshooting guide](/guides/troubleshooting) or [open an issue](https://github.com/hyochan/flutter_inapp_purchase/issues) on GitHub.
+=======
+Need help? Check our [troubleshooting guide](/guides/troubleshooting) or [open an issue](https://github.com/dooboolab/flutter_inapp_purchase/issues) on GitHub.
+>>>>>>> 5e86ee0 (docs: Update community links and fix configuration)

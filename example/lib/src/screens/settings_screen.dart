@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
+import 'package:flutter_inapp_purchase/types.dart' as iap_types;
 import '../iap_provider.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -14,6 +16,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _isRestoring = false;
   bool _isManagingSubscriptions = false;
   bool _isClearingCache = false;
+  bool _isConsumingProducts = false;
   String? _result;
   String? _error;
 
@@ -76,6 +79,108 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  Future<void> _forceClearAllPurchases() async {
+    setState(() {
+      _isConsumingProducts = true;
+      _error = null;
+      _result = null;
+    });
+
+    try {
+      // Specific product IDs to clear
+      final List<String> productIds = [
+        'dev.hyo.martie.10bulbs',
+        'dev.hyo.martie.30bulbs',
+      ];
+
+      debugPrint('=== FORCE CLEAR ALL PURCHASES START ===');
+
+      // First, restore purchases to get all purchase history
+      debugPrint('Restoring purchases...');
+      await FlutterInappPurchase.instance.restorePurchases();
+
+      // Wait a bit for restoration to complete
+      await Future<void>.delayed(const Duration(seconds: 2));
+
+      // Now get all available purchases
+      debugPrint('Getting available purchases...');
+      final List<iap_types.Purchase> purchases =
+          await FlutterInappPurchase.instance.getAvailablePurchases();
+      debugPrint('Found ${purchases.length} total purchases');
+
+      int consumedCount = 0;
+      List<String> consumedProducts = [];
+      List<String> errors = [];
+
+      // Process all purchases
+      for (final purchase in purchases) {
+        debugPrint(
+            '\nPurchase found: ${purchase.productId}, token: ${purchase.purchaseToken?.substring(0, 20)}...');
+
+        // Only process our specific product IDs
+        if (productIds.contains(purchase.productId)) {
+          if (purchase.purchaseToken != null) {
+            debugPrint('Attempting to force consume: ${purchase.productId}');
+
+            // Try multiple times with delay
+            bool consumed = false;
+            for (int attempt = 0; attempt < 3 && !consumed; attempt++) {
+              try {
+                await FlutterInappPurchase.instance.consumePurchaseAndroid(
+                  purchaseToken: purchase.purchaseToken!,
+                );
+                consumed = true;
+                consumedCount++;
+                consumedProducts.add(purchase.productId);
+                debugPrint(
+                    '✅ Force consumed: ${purchase.productId} (attempt ${attempt + 1})');
+              } catch (e) {
+                debugPrint('❌ Attempt ${attempt + 1} failed: $e');
+                if (attempt < 2) {
+                  await Future<void>.delayed(const Duration(milliseconds: 500));
+                } else {
+                  errors.add('${purchase.productId}: $e');
+                }
+              }
+            }
+          } else {
+            debugPrint('⚠️ No token for ${purchase.productId}');
+          }
+        } else {
+          debugPrint('Skipping non-target product: ${purchase.productId}');
+        }
+      }
+
+      // Clear transaction cache to force refresh
+      try {
+        await FlutterInappPurchase.instance.clearTransactionCache();
+        debugPrint('Transaction cache cleared');
+      } catch (e) {
+        debugPrint('Failed to clear transaction cache: $e');
+      }
+
+      if (mounted) {
+        setState(() {
+          _result = 'Force consumed $consumedCount purchases\n'
+              'Products: ${consumedProducts.join(', ')}\n\n'
+              '${errors.isNotEmpty ? 'Errors:\n${errors.join('\n')}\n\n' : ''}'
+              'If still seeing "already own this item":\n'
+              '1. Clear Google Play Store cache & data\n'
+              '2. Sign out and back into Google Play\n'
+              '3. Wait 5-10 minutes for sync';
+          _isConsumingProducts = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = 'Force clear failed: $e';
+          _isConsumingProducts = false;
+        });
+      }
+    }
+  }
+
   Future<void> _clearTransactionCache() async {
     setState(() {
       _isClearingCache = true;
@@ -104,10 +209,134 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  Future<void> _consumeAllProducts() async {
+    setState(() {
+      _isConsumingProducts = true;
+      _error = null;
+      _result = null;
+    });
+
+    try {
+      // First restore purchases to get fresh data
+      await FlutterInappPurchase.instance.restorePurchases();
+
+      // Wait for restoration to complete
+      await Future<void>.delayed(const Duration(seconds: 1));
+
+      // Get all available purchases (pending transactions)
+      final List<iap_types.Purchase> purchases =
+          await FlutterInappPurchase.instance.getAvailablePurchases();
+
+      if (purchases.isEmpty) {
+        setState(() {
+          _result = 'No unfinished transactions found.\n\n'
+              'If you\'re still seeing "You already own this item":\n\n'
+              'Option 1 - Google Play Console:\n'
+              '1. Go to Google Play Console\n'
+              '2. Navigate to Order Management\n'
+              '3. Find and refund test purchases\n\n'
+              'Option 2 - Clear App Data:\n'
+              '1. Settings > Apps > Google Play Store\n'
+              '2. Storage > Clear Data\n'
+              '3. Restart the app\n\n'
+              'Option 3 - Use "Force Clear All Purchases" button';
+          _isConsumingProducts = false;
+        });
+        return;
+      }
+
+      int consumedCount = 0;
+      List<String> consumedProducts = [];
+      List<String> errors = [];
+
+      debugPrint('Found ${purchases.length} purchases to process');
+
+      for (final purchase in purchases) {
+        try {
+          if (Platform.isAndroid) {
+            // For Android: directly consume the purchase
+            if (purchase.purchaseToken != null) {
+              debugPrint(
+                  'Processing purchase: ${purchase.productId}, token: ${purchase.purchaseToken}');
+
+              // Try consume first (for consumable products)
+              bool processed = false;
+              try {
+                await FlutterInappPurchase.instance.consumePurchaseAndroid(
+                  purchaseToken: purchase.purchaseToken!,
+                );
+                consumedCount++;
+                consumedProducts.add(purchase.productId);
+                processed = true;
+                debugPrint('✅ Consumed: ${purchase.productId}');
+              } catch (e) {
+                debugPrint('Consume failed: $e');
+                // If consume fails, try to acknowledge
+                try {
+                  await FlutterInappPurchase.instance
+                      .acknowledgePurchaseAndroid(
+                    purchaseToken: purchase.purchaseToken!,
+                  );
+                  consumedCount++;
+                  consumedProducts.add('${purchase.productId} (acknowledged)');
+                  processed = true;
+                  debugPrint('✅ Acknowledged: ${purchase.productId}');
+                } catch (e2) {
+                  errors.add('${purchase.productId}: $e2');
+                  debugPrint(
+                      '❌ Failed to consume/acknowledge ${purchase.productId}: $e, $e2');
+                }
+              }
+
+              if (!processed) {
+                errors.add('${purchase.productId}: Could not process');
+              }
+            } else {
+              debugPrint('⚠️ No purchase token for: ${purchase.productId}');
+              errors.add('${purchase.productId}: No token');
+            }
+          } else if (Platform.isIOS) {
+            // For iOS: finish transaction
+            await FlutterInappPurchase.instance.finishTransaction(purchase);
+            consumedCount++;
+          }
+        } catch (e) {
+          debugPrint('Failed to process item ${purchase.productId}: $e');
+        }
+      }
+
+      // Clear transaction cache after processing
+      try {
+        await FlutterInappPurchase.instance.clearTransactionCache();
+        debugPrint('Transaction cache cleared');
+      } catch (e) {
+        debugPrint('Failed to clear cache: $e');
+      }
+
+      if (mounted) {
+        setState(() {
+          _result = 'Processed $consumedCount transactions\n'
+              '${consumedProducts.isNotEmpty ? '\nConsumed: ${consumedProducts.join(', ')}' : ''}'
+              '${errors.isNotEmpty ? '\n\nErrors:\n${errors.join('\n')}' : ''}'
+              '\n\nIf still seeing "already own" error:\n'
+              '1. Uninstall and reinstall the app\n'
+              '2. Clear Google Play Store cache\n'
+              '3. Wait 5-10 minutes for sync';
+          _isConsumingProducts = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isConsumingProducts = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Connection status handled via iap_provider
-
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
       appBar: AppBar(
@@ -141,8 +370,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildConnectionStatus() {
-    // For now, assume connected status is true
-    final isConnected = true;
+    final iapProvider = IapProvider.of(context);
+    final isConnected = iapProvider?.connected ?? false;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
@@ -215,6 +444,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
             isLoading: _isClearingCache,
             onTap: _isClearingCache ? null : _clearTransactionCache,
           ),
+          _buildDivider(),
+          _buildSettingsTile(
+            icon: CupertinoIcons.checkmark_seal_fill,
+            iconColor: const Color(0xFF34C759),
+            title: 'Consume All Products (Test)',
+            subtitle: 'Consume/acknowledge all unfinished transactions',
+            isLoading: _isConsumingProducts,
+            onTap: _isConsumingProducts ? null : _consumeAllProducts,
+          ),
+          if (Platform.isAndroid) ...[
+            _buildDivider(),
+            _buildSettingsTile(
+              icon: CupertinoIcons.arrow_counterclockwise_circle_fill,
+              iconColor: const Color(0xFFFF3B30),
+              title: 'Force Clear All Purchases',
+              subtitle: 'Restore purchases then consume all (Android only)',
+              isLoading: _isConsumingProducts,
+              onTap: _isConsumingProducts ? null : _forceClearAllPurchases,
+            ),
+          ],
         ],
       ),
     );

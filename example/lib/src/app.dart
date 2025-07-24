@@ -6,6 +6,7 @@ import 'screens/subscriptions_screen.dart';
 import 'screens/purchase_history_screen.dart';
 import 'screens/redeem_code_screen.dart';
 import 'screens/settings_screen.dart';
+import 'screens/debug_purchases_screen.dart';
 
 class App extends StatelessWidget {
   const App({Key? key}) : super(key: key);
@@ -37,6 +38,7 @@ class App extends StatelessWidget {
           '/history': (context) => const PurchaseHistoryScreen(),
           '/redeem': (context) => const RedeemCodeScreen(),
           '/settings': (context) => const SettingsScreen(),
+          '/debug-purchases': (context) => const DebugPurchasesScreen(),
         },
       ),
     );

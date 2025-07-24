@@ -85,6 +85,18 @@ class HomeScreen extends StatelessWidget {
                   color: const Color(0xFF8E8E93),
                   onTap: () => Navigator.pushNamed(context, '/settings'),
                 ),
+                const SizedBox(height: 16),
+                
+                if (Platform.isAndroid) ...[
+                  _buildMenuItem(
+                    context,
+                    icon: CupertinoIcons.exclamationmark_triangle,
+                    title: 'Debug Purchases',
+                    subtitle: 'View and consume pending purchases',
+                    color: Colors.orange,
+                    onTap: () => Navigator.pushNamed(context, '/debug-purchases'),
+                  ),
+                ],
               ],
             ),
           ),
