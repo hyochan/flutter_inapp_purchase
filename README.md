@@ -23,7 +23,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flutter_inapp_purchase: ^6.0.0
+  flutter_inapp_purchase: ^6.0.0-rc.1
 ```
 
 ## 🔧 Quick Start
@@ -73,7 +73,9 @@ For comprehensive documentation, guides, API reference, and examples, visit:
 | StoreKit 2 | ✅ | N/A |
 | Billing Client v8 | N/A | ✅ |
 
-## 🚨 Breaking Changes in v6.0.0
+## 🚨 Breaking Changes in v6.0.0-rc.1
+
+⚠️ **This is a release candidate with significant breaking changes**
 
 - ErrorCode enum values changed to lowerCamelCase (e.g., `E_USER_CANCELLED` → `eUserCancelled`)
 - Channel access changed from static to instance member
@@ -95,7 +97,7 @@ If you have enabled ProGuard, add these rules to your `proguard-rules.pro`:
 ```
 # In app Purchase
 -keep class com.amazon.** {*;}
--keep class dev.hyochan.** { *; }
+-keep class dev.hyo.** { *; }
 -keep class com.android.vending.billing.**
 -dontwarn com.amazon.**
 -keepattributes *Annotation*

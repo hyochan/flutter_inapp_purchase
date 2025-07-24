@@ -93,7 +93,7 @@ Add to your `android/app/proguard-rules.pro`:
 ```proguard
 # In-App Purchase
 -keep class com.amazon.** {*;}
--keep class dev.hyochan.** { *; }
+-keep class dev.hyo.** { *; }
 -keep class com.android.vending.billing.**
 -dontwarn com.amazon.**
 -keepattributes *Annotation*

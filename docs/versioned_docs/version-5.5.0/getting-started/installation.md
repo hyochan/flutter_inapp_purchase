@@ -94,6 +94,7 @@ Add to your `android/app/proguard-rules.pro`:
 -keep class com.amazon.** {*;}
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 -keep class dev.hyo.** { *; }
 =======
 -keep class com.dooboolab.** { *; }
@@ -101,6 +102,9 @@ Add to your `android/app/proguard-rules.pro`:
 =======
 -keep class dev.hyochan.** { *; }
 >>>>>>> f429402 (refactor: Change package name from com.dooboolab to dev.hyochan)
+=======
+-keep class dev.hyo.** { *; }
+>>>>>>> e9f0251 (refactor: Change package name from dev.hyochan to dev.hyo)
 -keep class com.android.vending.billing.**
 -dontwarn com.amazon.**
 -keepattributes *Annotation*
