@@ -30,7 +30,7 @@ flutter:
   plugin:
     platforms:
       android:
-        package: com.dooboolab.flutterinapppurchase
+        package: dev.hyochan.flutterinapppurchase
         pluginClass: FlutterInappPurchasePlugin
         mainClass: FlutterInappPurchasePlugin
       ios:

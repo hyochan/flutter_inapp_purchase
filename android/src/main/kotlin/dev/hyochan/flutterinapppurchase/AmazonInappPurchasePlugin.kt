@@ -1,4 +1,4 @@
-package com.dooboolab.flutterinapppurchase
+package dev.hyochan.flutterinapppurchase
 
 import android.app.Activity
 import android.content.Context
