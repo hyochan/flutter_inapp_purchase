@@ -1,907 +1,786 @@
 ---
+title: Basic Store Implementation
+sidebar_label: Basic Store
 sidebar_position: 1
-title: Basic Store
 ---
 
 # Basic Store Implementation
 
-A complete example of implementing a basic in-app purchase store with consumable and non-consumable products.
+A simple store implementation demonstrating core flutter_inapp_purchase concepts and basic purchase flow. Perfect for getting started with in-app purchases.
 
-## Overview
+## Key Features Demonstrated
 
-This example demonstrates:
-- Product loading and display
-- Purchase handling for consumables and non-consumables
-- Error handling and user feedback
-- Purchase restoration
-- Simple state management
+- ✅ **Connection Management** - Initialize and manage store connection
+- ✅ **Product Loading** - Fetch products from both App Store and Google Play
+- ✅ **Purchase Flow** - Complete purchase process with user feedback
+- ✅ **Transaction Finishing** - Properly complete transactions
+- ✅ **Error Handling** - Handle common purchase errors gracefully
+- ✅ **Platform Differences** - Handle iOS and Android specific requirements
+
+## Platform Differences
+
+⚠️ **Important**: This example handles key differences between iOS and Android:
+
+- **iOS**: Uses single SKU per request, requires StoreKit configuration
+- **Android**: Uses SKU arrays, requires Google Play Console setup
+- **Receipt Handling**: Different receipt formats and validation approaches
+- **Transaction States**: Platform-specific state management
 
 ## Complete Implementation
 
-### Store Service
-
 ```dart
-import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 import 'dart:async';
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 
-class StoreService extends ChangeNotifier {
-  static final StoreService _instance = StoreService._internal();
-  factory StoreService() => _instance;
-  StoreService._internal();
+void main() {
+  runApp(BasicStoreApp());
+}
 
+class BasicStoreApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Basic Store Example',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+      home: BasicStoreScreen(),
+    );
+  }
+}
+
+class BasicStoreScreen extends StatefulWidget {
+  @override
+  _BasicStoreScreenState createState() => _BasicStoreScreenState();
+}
+
+class _BasicStoreScreenState extends State<BasicStoreScreen> {
+  // IAP instance
   final FlutterInappPurchase _iap = FlutterInappPurchase.instance;
   
-  // Product configurations
-  static const List<String> _consumableIds = [
-    'com.example.coins_100',
-    'com.example.coins_500',
-    'com.example.coins_1000',
-    'com.example.energy_pack',
-  ];
-  
-  static const List<String> _nonConsumableIds = [
-    'com.example.remove_ads',
-    'com.example.premium_features',
-    'com.example.unlock_themes',
-  ];
-  
-  // State
-  bool _isInitialized = false;
+  // State management
+  bool _isConnected = false;
   bool _isLoading = false;
   List<IAPItem> _products = [];
-  Set<String> _ownedProducts = {};
-  String? _error;
+  String? _errorMessage;
+  PurchasedItem? _latestPurchase;
   
   // Stream subscriptions
   StreamSubscription<PurchasedItem?>? _purchaseSubscription;
   StreamSubscription<PurchaseResult?>? _errorSubscription;
+  StreamSubscription<ConnectionResult>? _connectionSubscription;
   
-  // Getters
-  bool get isInitialized => _isInitialized;
-  bool get isLoading => _isLoading;
-  List<IAPItem> get products => List.unmodifiable(_products);
-  Set<String> get ownedProducts => Set.unmodifiable(_ownedProducts);
-  String? get error => _error;
-  
-  List<IAPItem> get consumables => _products
-      .where((p) => _consumableIds.contains(p.productId))
-      .toList();
-      
-  List<IAPItem> get nonConsumables => _products
-      .where((p) => _nonConsumableIds.contains(p.productId))
-      .toList();
+  // Product IDs - Replace with your actual product IDs
+  final List<String> _productIds = [
+    'coins_100',
+    'coins_500', 
+    'remove_ads',
+    'premium_upgrade',
+  ];
 
-  /// Initialize the store service
-  Future<void> initialize() async {
-    if (_isInitialized) return;
-    
-    try {
-      _setLoading(true);
-      _clearError();
-      
-      // Initialize IAP connection
-      await _iap.initConnection();
-      
-      // Set up purchase listeners
-      _setupPurchaseListeners();
-      
-      // Load products
-      await _loadProducts();
-      
-      // Load owned products
-      await _loadOwnedProducts();
-      
-      _isInitialized = true;
-      print('Store service initialized successfully');
-      
-    } catch (e) {
-      _setError('Failed to initialize store: $e');
-      print('Store initialization error: $e');
-    } finally {
-      _setLoading(false);
-    }
+  @override
+  void initState() {
+    super.initState();
+    _initializeStore();
   }
-  
-  /// Load products from store
-  Future<void> _loadProducts() async {
-    try {
-      final allProductIds = [..._consumableIds, ..._nonConsumableIds];
-      _products = await _iap.requestProducts(skus: allProductIds, type: 'inapp');
-      
-      print('Loaded ${_products.length} products');
-      notifyListeners();
-      
-    } catch (e) {
-      throw Exception('Failed to load products: $e');
-    }
-  }
-  
-  /// Load previously owned products
-  Future<void> _loadOwnedProducts() async {
-    try {
-      final purchases = await _iap.getAvailablePurchases();
-      
-      _ownedProducts.clear();
-      for (var purchase in purchases) {
-        if (_nonConsumableIds.contains(purchase.productId)) {
-          _ownedProducts.add(purchase.productId!);
-        }
-      }
-      
-      print('Loaded ${_ownedProducts.length} owned products');
-      notifyListeners();
-      
-    } catch (e) {
-      print('Error loading owned products: $e');
-    }
-  }
-  
-  /// Set up purchase event listeners
-  void _setupPurchaseListeners() {
-    _purchaseSubscription = FlutterInappPurchase.purchaseUpdated
-        .listen(_handlePurchaseUpdate);
-    
-    _errorSubscription = FlutterInappPurchase.purchaseError
-        .listen(_handlePurchaseError);
-  }
-  
-  /// Handle successful purchase updates
-  Future<void> _handlePurchaseUpdate(PurchasedItem? item) async {
-    if (item == null) return;
-    
-    print('Purchase update: ${item.productId}');
-    
-    try {
-      // Verify the purchase (simplified for example)
-      if (await _verifyPurchase(item)) {
-        // Deliver content
-        await _deliverContent(item);
-        
-        // Finish transaction
-        await _finishTransaction(item);
-        
-        // Update owned products for non-consumables
-        if (_nonConsumableIds.contains(item.productId)) {
-          _ownedProducts.add(item.productId!);
-          notifyListeners();
-        }
-        
-        print('Purchase completed: ${item.productId}');
-        
-      } else {
-        print('Purchase verification failed: ${item.productId}');
-      }
-      
-    } catch (e) {
-      print('Error processing purchase: $e');
-      _setError('Failed to process purchase: $e');
-    }
-  }
-  
-  /// Handle purchase errors
-  void _handlePurchaseError(PurchaseResult? error) {
-    if (error == null) return;
-    
-    print('Purchase error: ${error.message}');
-    
-    String userMessage;
-    switch (error.responseCode) {
-      case 1: // User cancelled
-        return; // Don't show error for user cancellation
-      case 7: // Already owned
-        userMessage = 'You already own this item';
-        break;
-      default:
-        userMessage = error.message ?? 'Purchase failed';
-    }
-    
-    _setError(userMessage);
-  }
-  
-  /// Purchase a product
-  Future<void> purchaseProduct(String productId) async {
-    if (!_isInitialized) {
-      throw Exception('Store not initialized');
-    }
-    
-    // Check if non-consumable is already owned
-    if (_nonConsumableIds.contains(productId) && 
-        _ownedProducts.contains(productId)) {
-      _setError('You already own this item');
-      return;
-    }
-    
-    try {
-      _setLoading(true);
-      _clearError();
-      
-      await _iap.requestPurchase(
-        request: RequestPurchase(
-          ios: RequestPurchaseIOS(
-            sku: productId,
-            appAccountToken: await _getUserId(),
-          ),
-          android: RequestPurchaseAndroid(
-            skus: [productId],
-            obfuscatedAccountIdAndroid: await _getUserId(),
-          ),
-        ),
-        type: PurchaseType.inapp,
-      );
-      
-      // Purchase result will come through purchaseUpdated stream
-      
-    } catch (e) {
-      _setError('Purchase failed: $e');
-      print('Purchase error: $e');
-    } finally {
-      _setLoading(false);
-    }
-  }
-  
-  /// Restore purchases
-  Future<void> restorePurchases() async {
-    if (!_isInitialized) {
-      throw Exception('Store not initialized');
-    }
-    
-    try {
-      _setLoading(true);
-      _clearError();
-      
-      final purchases = await _iap.getAvailablePurchases();
-      int restoredCount = 0;
-      
-      for (var purchase in purchases) {
-        if (_nonConsumableIds.contains(purchase.productId)) {
-          if (!_ownedProducts.contains(purchase.productId)) {
-            // Verify and restore
-            if (await _verifyPurchase(purchase)) {
-              _ownedProducts.add(purchase.productId!);
-              restoredCount++;
-            }
-          }
-        }
-      }
-      
-      if (restoredCount > 0) {
-        print('Restored $restoredCount purchases');
-        notifyListeners();
-      } else {
-        _setError('No purchases to restore');
-      }
-      
-    } catch (e) {
-      _setError('Failed to restore purchases: $e');
-      print('Restore error: $e');
-    } finally {
-      _setLoading(false);
-    }
-  }
-  
-  /// Simple purchase verification (implement proper verification in production)
-  Future<bool> _verifyPurchase(dynamic purchase) async {
-    // In production, verify with your backend server
-    // This is a simplified example
-    await Future.delayed(Duration(milliseconds: 500)); // Simulate network call
-    return true;
-  }
-  
-  /// Deliver purchased content
-  Future<void> _deliverContent(PurchasedItem purchase) async {
-    final productId = purchase.productId!;
-    
-    if (_consumableIds.contains(productId)) {
-      await _deliverConsumable(productId);
-    } else if (_nonConsumableIds.contains(productId)) {
-      await _deliverNonConsumable(productId);
-    }
-  }
-  
-  /// Deliver consumable content
-  Future<void> _deliverConsumable(String productId) async {
-    // Implement your consumable delivery logic
-    switch (productId) {
-      case 'com.example.coins_100':
-        // Add 100 coins to user account
-        print('Added 100 coins');
-        break;
-      case 'com.example.coins_500':
-        // Add 500 coins to user account
-        print('Added 500 coins');
-        break;
-      case 'com.example.coins_1000':
-        // Add 1000 coins to user account
-        print('Added 1000 coins');
-        break;
-      case 'com.example.energy_pack':
-        // Add energy pack to user account
-        print('Added energy pack');
-        break;
-    }
-  }
-  
-  /// Deliver non-consumable content
-  Future<void> _deliverNonConsumable(String productId) async {
-    // Implement your non-consumable delivery logic
-    switch (productId) {
-      case 'com.example.remove_ads':
-        // Remove ads from the app
-        print('Ads removed');
-        break;
-      case 'com.example.premium_features':
-        // Unlock premium features
-        print('Premium features unlocked');
-        break;
-      case 'com.example.unlock_themes':
-        // Unlock all themes
-        print('All themes unlocked');
-        break;
-    }
-  }
-  
-  /// Finish transaction
-  Future<void> _finishTransaction(PurchasedItem purchase) async {
-    await _iap.finishTransactionIOS(
-      purchase,
-      isConsumable: _consumableIds.contains(purchase.productId),
-    );
-  }
-  
-  /// Get user ID for purchase tracking
-  Future<String> _getUserId() async {
-    // Return your user identifier
-    return 'user_${DateTime.now().millisecondsSinceEpoch}';
-  }
-  
-  /// Check if product is owned
-  bool isProductOwned(String productId) {
-    return _ownedProducts.contains(productId);
-  }
-  
-  /// Get product by ID
-  IAPItem? getProduct(String productId) {
-    return _products
-        .where((p) => p.productId == productId)
-        .firstOrNull;
-  }
-  
-  /// Utility methods
-  void _setLoading(bool loading) {
-    _isLoading = loading;
-    notifyListeners();
-  }
-  
-  void _setError(String error) {
-    _error = error;
-    notifyListeners();
-  }
-  
-  void _clearError() {
-    _error = null;
-    notifyListeners();
-  }
-  
-  /// Dispose resources
+
   @override
   void dispose() {
     _purchaseSubscription?.cancel();
     _errorSubscription?.cancel();
-    
-    if (_isInitialized) {
-      _iap.endConnection();
-    }
-    
+    _connectionSubscription?.cancel();
+    _iap.endConnection();
     super.dispose();
   }
-}
-```
 
-### Store Screen UI
-
-```dart
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
-class StoreScreen extends StatefulWidget {
-  @override
-  _StoreScreenState createState() => _StoreScreenState();
-}
-
-class _StoreScreenState extends State<StoreScreen> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initializeStore();
-    });
-  }
-  
+  /// Initialize the store connection and set up listeners
   Future<void> _initializeStore() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
     try {
-      await context.read<StoreService>().initialize();
-    } catch (e) {
-      _showErrorSnackBar('Failed to initialize store: $e');
-    }
-  }
-  
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Store'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.restore),
-            onPressed: _restorePurchases,
-            tooltip: 'Restore Purchases',
-          ),
-        ],
-      ),
-      body: Consumer<StoreService>(
-        builder: (context, store, child) {
-          if (!store.isInitialized) {
-            return _buildLoadingView();
+      // Initialize connection
+      await _iap.initConnection();
+      
+      // Set up purchase success listener
+      _purchaseSubscription = FlutterInappPurchase.purchaseUpdated.listen(
+        (purchase) {
+          if (purchase != null) {
+            _handlePurchaseSuccess(purchase);
           }
-          
-          if (store.products.isEmpty) {
-            return _buildEmptyView();
-          }
-          
-          return _buildStoreContent(store);
         },
-      ),
-    );
-  }
-  
-  Widget _buildLoadingView() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircularProgressIndicator(),
-          SizedBox(height: 16),
-          Text('Loading store...'),
-        ],
-      ),
-    );
-  }
-  
-  Widget _buildEmptyView() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.store, size: 64, color: Colors.grey),
-          SizedBox(height: 16),
-          Text(
-            'No products available',
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          SizedBox(height: 8),
-          Text('Please try again later'),
-          SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: _initializeStore,
-            child: Text('Retry'),
-          ),
-        ],
-      ),
-    );
-  }
-  
-  Widget _buildStoreContent(StoreService store) {
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Error display
-          if (store.error != null)
-            _buildErrorCard(store.error!),
+        onError: (error) {
+          _showError('Purchase stream error: $error');
+        },
+      );
+      
+      // Set up purchase error listener
+      _errorSubscription = FlutterInappPurchase.purchaseError.listen(
+        (error) {
+          if (error != null) {
+            _handlePurchaseError(error);
+          }
+        },
+      );
+      
+      // Set up connection listener
+      _connectionSubscription = FlutterInappPurchase.connectionUpdated.listen(
+        (connectionResult) {
+          setState(() {
+            _isConnected = connectionResult.connected;
+          });
           
-          // Loading indicator
-          if (store.isLoading)
-            _buildLoadingCard(),
-          
-          // Consumables section
-          if (store.consumables.isNotEmpty) ...[
-            _buildSectionHeader('Consumables'),
-            SizedBox(height: 8),
-            _buildProductGrid(store.consumables, store),
-            SizedBox(height: 24),
-          ],
-          
-          // Non-consumables section
-          if (store.nonConsumables.isNotEmpty) ...[
-            _buildSectionHeader('Premium Features'),
-            SizedBox(height: 8),
-            _buildProductGrid(store.nonConsumables, store),
-          ],
-        ],
-      ),
-    );
+          if (connectionResult.connected) {
+            _loadProducts();
+          }
+        },
+      );
+      
+      setState(() {
+        _isConnected = true;
+      });
+      
+      // Load products
+      await _loadProducts();
+      
+    } catch (e) {
+      _showError('Failed to initialize store: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
-  
-  Widget _buildErrorCard(String error) {
-    return Card(
-      color: Colors.red.shade50,
-      child: Padding(
-        padding: EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Icon(Icons.error, color: Colors.red),
-            SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                error,
-                style: TextStyle(color: Colors.red.shade700),
-              ),
-            ),
-            IconButton(
-              icon: Icon(Icons.close),
-              onPressed: () {
-                context.read<StoreService>()._clearError();
-              },
-            ),
-          ],
-        ),
-      ),
-    );
+
+  /// Load products from the store
+  Future<void> _loadProducts() async {
+    if (!_isConnected) return;
+    
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final products = await _iap.getProducts(_productIds);
+      
+      setState(() {
+        _products = products;
+      });
+      
+      print('✅ Loaded ${products.length} products');
+      for (final product in products) {
+        print('Product: ${product.productId} - ${product.localizedPrice}');
+      }
+      
+    } catch (e) {
+      _showError('Failed to load products: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
-  
-  Widget _buildLoadingCard() {
-    return Card(
-      color: Colors.blue.shade50,
-      child: Padding(
-        padding: EdgeInsets.all(16),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-            SizedBox(width: 12),
-            Text('Processing...'),
-          ],
-        ),
-      ),
-    );
+
+  /// Handle successful purchase
+  Future<void> _handlePurchaseSuccess(PurchasedItem purchase) async {
+    print('✅ Purchase successful: ${purchase.productId}');
+    
+    setState(() {
+      _latestPurchase = purchase;
+      _errorMessage = null;
+    });
+    
+    // Show success message
+    _showSuccessSnackBar('Purchase successful: ${purchase.productId}');
+    
+    try {
+      // 1. Here you would typically verify the purchase with your server
+      final isValid = await _verifyPurchase(purchase);
+      
+      if (isValid) {
+        // 2. Deliver the product to the user
+        await _deliverProduct(purchase.productId);
+        
+        // 3. Finish the transaction
+        await _finishTransaction(purchase);
+        
+        print('✅ Purchase completed and delivered');
+      } else {
+        _showError('Purchase verification failed');
+      }
+      
+    } catch (e) {
+      _showError('Error processing purchase: $e');
+    }
   }
-  
-  Widget _buildSectionHeader(String title) {
-    return Text(
-      title,
-      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-        fontWeight: FontWeight.bold,
-      ),
-    );
+
+  /// Handle purchase errors
+  void _handlePurchaseError(PurchaseResult error) {
+    print('❌ Purchase failed: ${error.message}');
+    
+    setState(() {
+      _latestPurchase = null;
+    });
+    
+    // Handle specific error codes
+    switch (error.responseCode) {
+      case 1: // User cancelled
+        // Don't show error for user cancellation
+        print('User cancelled purchase');
+        break;
+        
+      case 2: // Network error
+        _showError('Network error. Please check your connection and try again.');
+        break;
+        
+      case 7: // Already owned
+        _showError('You already own this item. Try restoring your purchases.');
+        break;
+        
+      default:
+        _showError(error.message ?? 'Purchase failed. Please try again.');
+    }
   }
-  
-  Widget _buildProductGrid(List<IAPItem> products, StoreService store) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.8,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-      ),
-      itemCount: products.length,
-      itemBuilder: (context, index) {
-        final product = products[index];
-        return ProductCard(
-          product: product,
-          isOwned: store.isProductOwned(product.productId!),
-          onPurchase: () => _purchaseProduct(product.productId!),
+
+  /// Verify purchase with server (mock implementation)
+  Future<bool> _verifyPurchase(PurchasedItem purchase) async {
+    // In a real app, send the receipt to your server for verification
+    // For this example, we'll just simulate a successful verification
+    await Future.delayed(Duration(milliseconds: 500));
+    
+    print('🔍 Verifying purchase: ${purchase.productId}');
+    print('Receipt: ${purchase.transactionReceipt?.substring(0, 50)}...');
+    
+    return true; // Assume verification successful
+  }
+
+  /// Deliver the purchased product to the user
+  Future<void> _deliverProduct(String? productId) async {
+    if (productId == null) return;
+    
+    print('🎁 Delivering product: $productId');
+    
+    // Implement your product delivery logic here
+    switch (productId) {
+      case 'coins_100':
+        // Add 100 coins to user's account
+        print('Added 100 coins to user account');
+        break;
+        
+      case 'coins_500':
+        // Add 500 coins to user's account
+        print('Added 500 coins to user account');
+        break;
+        
+      case 'remove_ads':
+        // Remove ads for user
+        print('Removed ads for user');
+        break;
+        
+      case 'premium_upgrade':
+        // Upgrade user to premium
+        print('Upgraded user to premium');
+        break;
+        
+      default:
+        print('Unknown product: $productId');
+    }
+  }
+
+  /// Finish the transaction
+  Future<void> _finishTransaction(PurchasedItem purchase) async {
+    try {
+      if (Platform.isAndroid) {
+        // For Android, consume the purchase if it's a consumable product
+        if (purchase.purchaseToken != null) {
+          await _iap.consumePurchaseAndroid(
+            purchaseToken: purchase.purchaseToken!,
+          );
+          print('✅ Android purchase consumed');
+        }
+      } else if (Platform.isIOS) {
+        // For iOS, finish the transaction
+        await _iap.finishTransactionIOS(
+          purchase,
+          isConsumable: _isConsumableProduct(purchase.productId),
         );
-      },
-    );
-  }
-  
-  Future<void> _purchaseProduct(String productId) async {
-    try {
-      await context.read<StoreService>().purchaseProduct(productId);
+        print('✅ iOS transaction finished');
+      }
+      
+      setState(() {
+        _latestPurchase = null;
+      });
+      
     } catch (e) {
-      _showErrorSnackBar('Purchase failed: $e');
+      _showError('Failed to finish transaction: $e');
     }
   }
-  
+
+  /// Check if a product is consumable
+  bool _isConsumableProduct(String? productId) {
+    // Define which products are consumable
+    const consumableProducts = ['coins_100', 'coins_500'];
+    return consumableProducts.contains(productId);
+  }
+
+  /// Make a purchase
+  Future<void> _makePurchase(String productId) async {
+    if (!_isConnected) {
+      _showError('Not connected to store');
+      return;
+    }
+    
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final request = RequestPurchase(
+        ios: RequestPurchaseIOS(
+          sku: productId,
+          quantity: 1,
+        ),
+        android: RequestPurchaseAndroid(
+          skus: [productId],
+        ),
+      );
+      
+      await _iap.requestPurchase(
+        request: request,
+        type: PurchaseType.inapp,
+      );
+      
+      print('🛒 Purchase requested for: $productId');
+      
+    } catch (e) {
+      _showError('Failed to request purchase: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  /// Restore purchases
   Future<void> _restorePurchases() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
     try {
-      await context.read<StoreService>().restorePurchases();
-      _showSuccessSnackBar('Purchases restored successfully');
+      await _iap.restorePurchases();
+      
+      // Get available purchases
+      final availablePurchases = await _iap.getAvailableItemsIOS();
+      
+      if (availablePurchases != null && availablePurchases.isNotEmpty) {
+        _showSuccessSnackBar('Restored ${availablePurchases.length} purchases');
+        
+        // Process restored purchases
+        for (final purchase in availablePurchases) {
+          await _deliverProduct(purchase.productId);
+        }
+      } else {
+        _showSuccessSnackBar('No purchases to restore');
+      }
+      
     } catch (e) {
-      _showErrorSnackBar('Restore failed: $e');
+      _showError('Failed to restore purchases: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
-  
-  void _showErrorSnackBar(String message) {
+
+  /// Show error message
+  void _showError(String message) {
+    setState(() {
+      _errorMessage = message;
+    });
+    
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
         backgroundColor: Colors.red,
+        duration: Duration(seconds: 4),
       ),
     );
   }
-  
+
+  /// Show success message
   void _showSuccessSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
         backgroundColor: Colors.green,
+        duration: Duration(seconds: 3),
       ),
     );
   }
-}
-```
 
-### Product Card Widget
-
-```dart
-import 'package:flutter/material.dart';
-import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
-
-class ProductCard extends StatelessWidget {
-  final IAPItem product;
-  final bool isOwned;
-  final VoidCallback onPurchase;
-  
-  const ProductCard({
-    Key? key,
-    required this.product,
-    required this.isOwned,
-    required this.onPurchase,
-  }) : super(key: key);
-  
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 4,
-      child: InkWell(
-        onTap: isOwned ? null : onPurchase,
-        borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Product icon
-              Container(
-                width: double.infinity,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  _getProductIcon(),
-                  size: 32,
-                  color: isOwned ? Colors.green : Colors.grey.shade600,
-                ),
-              ),
-              
-              SizedBox(height: 12),
-              
-              // Product title
-              Text(
-                product.title ?? 'Product',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              
-              SizedBox(height: 4),
-              
-              // Product description
-              Expanded(
-                child: Text(
-                  product.description ?? '',
-                  style: Theme.of(context).textTheme.bodySmall,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              
-              SizedBox(height: 12),
-              
-              // Purchase button
-              SizedBox(
-                width: double.infinity,
-                child: _buildPurchaseButton(context),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-  
-  Widget _buildPurchaseButton(BuildContext context) {
-    if (isOwned) {
-      return ElevatedButton.icon(
-        onPressed: null,
-        icon: Icon(Icons.check, size: 16),
-        label: Text('Owned'),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.green,
-          foregroundColor: Colors.white,
-        ),
-      );
-    }
-    
-    return ElevatedButton(
-      onPressed: onPurchase,
-      child: Text(product.localizedPrice ?? 'Buy'),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Theme.of(context).primaryColor,
-        foregroundColor: Colors.white,
-      ),
-    );
-  }
-  
-  IconData _getProductIcon() {
-    final productId = product.productId ?? '';
-    
-    if (productId.contains('coins')) {
-      return Icons.monetization_on;
-    } else if (productId.contains('energy')) {
-      return Icons.battery_charging_full;
-    } else if (productId.contains('remove_ads')) {
-      return Icons.block;
-    } else if (productId.contains('premium')) {
-      return Icons.star;
-    } else if (productId.contains('themes')) {
-      return Icons.palette;
-    }
-    
-    return Icons.shopping_cart;
-  }
-}
-```
-
-### Main App Setup
-
-```dart
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => StoreService(),
-      child: MaterialApp(
-        title: 'Basic Store Example',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-          visualDensity: VisualDensity.adaptivePlatformDensity,
-        ),
-        home: HomeScreen(),
-      ),
-    );
-  }
-}
-
-class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Basic Store Example'),
+        title: Text('Basic Store'),
+        backgroundColor: _isConnected ? Colors.green : Colors.red,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.refresh),
+            onPressed: _loadProducts,
+          ),
+          IconButton(
+            icon: Icon(Icons.restore),
+            onPressed: _restorePurchases,
+          ),
+        ],
       ),
-      body: Center(
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
+    return Column(
+      children: [
+        // Connection status
+        _buildConnectionStatus(),
+        
+        // Error message
+        if (_errorMessage != null) _buildErrorBanner(),
+        
+        // Latest purchase info
+        if (_latestPurchase != null) _buildPurchaseInfo(),
+        
+        // Products list
+        Expanded(child: _buildProductsList()),
+      ],
+    );
+  }
+
+  Widget _buildConnectionStatus() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      color: _isConnected ? Colors.green[100] : Colors.red[100],
+      child: Row(
+        children: [
+          Icon(
+            _isConnected ? Icons.cloud_done : Icons.cloud_off,
+            color: _isConnected ? Colors.green[800] : Colors.red[800],
+          ),
+          SizedBox(width: 8),
+          Text(
+            _isConnected ? 'Connected to Store' : 'Not Connected',
+            style: TextStyle(
+              color: _isConnected ? Colors.green[800] : Colors.red[800],
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          Spacer(),
+          if (_isLoading) SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorBanner() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(16),
+      color: Colors.red[50],
+      child: Row(
+        children: [
+          Icon(Icons.error, color: Colors.red[800]),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              _errorMessage!,
+              style: TextStyle(color: Colors.red[800]),
+            ),
+          ),
+          IconButton(
+            onPressed: () => setState(() => _errorMessage = null),
+            icon: Icon(Icons.close, color: Colors.red[800]),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPurchaseInfo() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(16),
+      color: Colors.blue[50],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.shopping_cart, color: Colors.blue[800]),
+              SizedBox(width: 8),
+              Text(
+                'Purchase Successful!',
+                style: TextStyle(
+                  color: Colors.blue[800],
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 4),
+          Text(
+            'Product: ${_latestPurchase!.productId}',
+            style: TextStyle(color: Colors.blue[700]),
+          ),
+          Text(
+            'Transaction: ${_latestPurchase!.transactionId ?? 'N/A'}',
+            style: TextStyle(color: Colors.blue[700]),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProductsList() {
+    if (_isLoading && _products.isEmpty) {
+      return Center(child: CircularProgressIndicator());
+    }
+    
+    if (_products.isEmpty) {
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.store,
-              size: 100,
-              color: Colors.blue,
-            ),
-            SizedBox(height: 32),
-            Text(
-              'Welcome to the Store!',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
+            Icon(Icons.store, size: 64, color: Colors.grey[400]),
             SizedBox(height: 16),
             Text(
-              'Purchase coins, remove ads, and unlock premium features.',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyLarge,
+              'No products available',
+              style: TextStyle(fontSize: 18, color: Colors.grey[600]),
             ),
-            SizedBox(height: 32),
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => StoreScreen(),
+            SizedBox(height: 8),
+            ElevatedButton(
+              onPressed: _loadProducts,
+              child: Text('Reload Products'),
+            ),
+          ],
+        ),
+      );
+    }
+    
+    return ListView.builder(
+      padding: EdgeInsets.all(16),
+      itemCount: _products.length,
+      itemBuilder: (context, index) {
+        final product = _products[index];
+        return _buildProductCard(product);
+      },
+    );
+  }
+
+  Widget _buildProductCard(IAPItem product) {
+    return Card(
+      margin: EdgeInsets.only(bottom: 12),
+      elevation: 4,
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[100],
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                );
-              },
-              icon: Icon(Icons.shopping_cart),
-              label: Text('Open Store'),
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-              ),
+                  child: Icon(
+                    _getProductIcon(product.productId),
+                    color: Colors.blue[800],
+                  ),
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        product.title ?? product.productId ?? 'Unknown',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      if (product.description != null)
+                        Text(
+                          product.description!,
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 14,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  product.localizedPrice ?? product.price ?? 'Unknown',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green[700],
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: _isLoading 
+                    ? null 
+                    : () => _makePurchase(product.productId!),
+                  child: Text('Buy Now'),
+                ),
+              ],
             ),
           ],
         ),
       ),
     );
   }
+
+  IconData _getProductIcon(String? productId) {
+    switch (productId) {
+      case 'coins_100':
+      case 'coins_500':
+        return Icons.monetization_on;
+      case 'remove_ads':
+        return Icons.block;
+      case 'premium_upgrade':
+        return Icons.star;
+      default:
+        return Icons.shopping_bag;
+    }
+  }
 }
 ```
 
-## Key Features
+## Key Features Explained
 
-### 1. State Management
-- Uses Provider for reactive state management
-- Separates business logic from UI
-- Handles loading states and errors
+### 1. Connection Management
+```dart
+await _iap.initConnection();
+```
+- Initializes connection to App Store or Google Play
+- Must be called before any other IAP operations
+- Connection state is monitored via `connectionUpdated` stream
 
-### 2. Product Categories
-- Clearly separates consumables and non-consumables
-- Different handling for each product type
-- Tracks ownership for non-consumables
+### 2. Product Loading
+```dart
+final products = await _iap.getProducts(_productIds);
+```
+- Fetches product information from the store
+- Returns localized pricing and descriptions
+- Product IDs must be configured in store console
 
-### 3. Error Handling
-- Comprehensive error handling for all scenarios
-- User-friendly error messages
-- Retry mechanisms
+### 3. Purchase Flow
+```dart
+final request = RequestPurchase(
+  ios: RequestPurchaseIOS(sku: productId, quantity: 1),
+  android: RequestPurchaseAndroid(skus: [productId]),
+);
+await _iap.requestPurchase(request: request, type: PurchaseType.inapp);
+```
+- Platform-specific request objects handle iOS/Android differences
+- Purchase result comes through `purchaseUpdated` stream
+- Errors are delivered via `purchaseError` stream
 
-### 4. Purchase Restoration
-- Easy restore purchases functionality
-- Verifies and restores owned products
-- User feedback for restore operations
+### 4. Transaction Finishing
+```dart
+// iOS
+await _iap.finishTransactionIOS(purchase, isConsumable: true);
 
-### 5. UI/UX
-- Clean, intuitive interface
-- Loading indicators
-- Error displays
-- Product ownership indication
+// Android  
+await _iap.consumePurchaseAndroid(purchaseToken: token);
+```
+- Essential for completing the purchase flow
+- iOS: `finishTransactionIOS` for all purchases
+- Android: `consumePurchaseAndroid` for consumables
 
-## Usage
+### 5. Error Handling
+The example demonstrates handling common error scenarios:
+- User cancellation (don't show error)
+- Network errors (suggest retry)
+- Already owned items (suggest restore)
+- Generic errors (show user-friendly message)
 
-1. **Configure Product IDs**: Update the product ID constants in `StoreService`
-2. **Implement Content Delivery**: Add your logic in `_deliverConsumable` and `_deliverNonConsumable`
-3. **Add Verification**: Implement proper receipt verification in `_verifyPurchase`
-4. **Customize UI**: Modify the UI components to match your app's design
-5. **Test**: Test with sandbox accounts on both iOS and Android
+## Usage Instructions
 
-## Dependencies
+1. **Replace Product IDs**: Update `_productIds` with your actual product IDs
+2. **Configure Stores**: 
+   - iOS: Add products to App Store Connect
+   - Android: Add products to Google Play Console
+3. **Implement Server Verification**: Replace `_verifyPurchase` with real server validation
+4. **Customize Product Delivery**: Update `_deliverProduct` with your business logic
+5. **Style the UI**: Customize the UI to match your app's design
 
-Add these to your `pubspec.yaml`:
+## Customization Options
 
-```yaml
-dependencies:
-  flutter:
-    sdk: flutter
-  flutter_inapp_purchase: ^6.0.0
-  provider: ^6.0.0
+### Product Types
+```dart
+// For different product types
+enum ProductType { consumable, nonConsumable, subscription }
 
-dev_dependencies:
-  flutter_test:
-    sdk: flutter
+bool _isConsumableProduct(String productId) {
+  // Your logic to determine consumable products
+  return ['coins_100', 'coins_500'].contains(productId);
+}
+```
+
+### Custom Error Handling
+```dart
+void _handlePurchaseError(PurchaseResult error) {
+  switch (error.responseCode) {
+    case 1: /* User cancelled */
+    case 2: /* Network error */
+    case 7: /* Already owned */
+    // Add your custom error handling
+  }
+}
+```
+
+### Loading States
+```dart
+// Add loading indicators for better UX
+bool _isLoading = false;
+String? _loadingMessage;
+
+void _setLoading(bool loading, [String? message]) {
+  setState(() {
+    _isLoading = loading;
+    _loadingMessage = message;
+  });
+}
 ```
 
 ## Next Steps
 
-- Add server-side receipt validation
-- Implement user account integration
-- Add analytics tracking
-- Enhance error handling
-- Add purchase history
-- Implement offline support
-
-This basic store implementation provides a solid foundation that you can extend based on your specific needs.
+- **Learn Subscriptions**: Check out the [Subscription Manager Example](./subscriptions.md)
+- **Advanced Features**: See the [Complete Implementation](./complete-implementation.md)
+- **Error Handling**: Read the [Error Codes Reference](../api/error-codes.md)
+- **Platform Setup**: Review [iOS Setup](../getting-started/ios-setup.md) and [Android Setup](../getting-started/android-setup.md)
