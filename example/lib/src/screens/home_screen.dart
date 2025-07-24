@@ -86,7 +86,7 @@ class HomeScreen extends StatelessWidget {
                   onTap: () => Navigator.pushNamed(context, '/settings'),
                 ),
                 const SizedBox(height: 16),
-                
+
                 if (Platform.isAndroid) ...[
                   _buildMenuItem(
                     context,
@@ -94,7 +94,8 @@ class HomeScreen extends StatelessWidget {
                     title: 'Debug Purchases',
                     subtitle: 'View and consume pending purchases',
                     color: Colors.orange,
-                    onTap: () => Navigator.pushNamed(context, '/debug-purchases'),
+                    onTap: () =>
+                        Navigator.pushNamed(context, '/debug-purchases'),
                   ),
                 ],
               ],

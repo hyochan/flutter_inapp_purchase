@@ -32,10 +32,11 @@ class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
       // Restore purchases first
       await FlutterInappPurchase.instance.restorePurchases();
       await Future<void>.delayed(const Duration(seconds: 1));
-      
+
       // Get all available purchases
-      final purchases = await FlutterInappPurchase.instance.getAvailablePurchases();
-      
+      final purchases =
+          await FlutterInappPurchase.instance.getAvailablePurchases();
+
       setState(() {
         _purchases = purchases;
         _debugInfo = 'Found ${purchases.length} purchases';
@@ -52,21 +53,21 @@ class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
   bool _isSubscription(String? productId) {
     if (productId == null) return false;
     // Check if product ID contains subscription keywords
-    return productId.contains('premium') || 
-           productId.contains('subscription') || 
-           productId.contains('monthly') || 
-           productId.contains('yearly') ||
-           productId.contains('pro');
+    return productId.contains('premium') ||
+        productId.contains('subscription') ||
+        productId.contains('monthly') ||
+        productId.contains('yearly') ||
+        productId.contains('pro');
   }
 
   bool _isConsumable(String? productId) {
     if (productId == null) return false;
     // Check if product ID contains consumable keywords
-    return productId.contains('bulbs') || 
-           productId.contains('coins') || 
-           productId.contains('gems') || 
-           productId.contains('lives') ||
-           productId.contains('consumable');
+    return productId.contains('bulbs') ||
+        productId.contains('coins') ||
+        productId.contains('gems') ||
+        productId.contains('lives') ||
+        productId.contains('consumable');
   }
 
   Future<void> _consumePurchase(iap_types.Purchase purchase) async {
@@ -83,13 +84,13 @@ class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
       final result = await FlutterInappPurchase.instance.consumePurchaseAndroid(
         purchaseToken: purchase.purchaseToken!,
       );
-      
+
       setState(() {
         _debugInfo = 'Consume result: $result';
       });
-      
+
       _showAlert('Success', 'Purchase consumed successfully');
-      
+
       // Reload purchases
       await _loadPurchases();
     } catch (e) {
@@ -102,7 +103,8 @@ class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
 
   Future<void> _cancelSubscription(iap_types.Purchase purchase) async {
     setState(() {
-      _debugInfo = 'Opening subscription management for ${purchase.productId}...';
+      _debugInfo =
+          'Opening subscription management for ${purchase.productId}...';
     });
 
     try {
@@ -113,50 +115,52 @@ class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
           _debugInfo = 'Showing manual cancellation instructions for Android';
         });
         _showAlert(
-          'Cancel Subscription - Android', 
-          'To cancel your subscription "${purchase.productId}":\n\n'
-          '📱 Method 1 - Google Play Store App:\n'
-          '1. Open Google Play Store app\n'
-          '2. Tap Menu (☰) → Subscriptions\n'
-          '3. Find your subscription\n'
-          '4. Tap "Cancel subscription"\n\n'
-          '💻 Method 2 - Web Browser:\n'
-          '1. Go to play.google.com/store/account/subscriptions\n'
-          '2. Sign in with your Google account\n'
-          '3. Find and cancel the subscription\n\n'
-          '⚙️ Method 3 - Phone Settings:\n'
-          '1. Settings → Google → Manage Google Account\n'
-          '2. Payments & subscriptions → Manage subscriptions'
-        );
+            'Cancel Subscription - Android',
+            'To cancel your subscription "${purchase.productId}":\n\n'
+                '📱 Method 1 - Google Play Store App:\n'
+                '1. Open Google Play Store app\n'
+                '2. Tap Menu (☰) → Subscriptions\n'
+                '3. Find your subscription\n'
+                '4. Tap "Cancel subscription"\n\n'
+                '💻 Method 2 - Web Browser:\n'
+                '1. Go to play.google.com/store/account/subscriptions\n'
+                '2. Sign in with your Google account\n'
+                '3. Find and cancel the subscription\n\n'
+                '⚙️ Method 3 - Phone Settings:\n'
+                '1. Settings → Google → Manage Google Account\n'
+                '2. Payments & subscriptions → Manage subscriptions');
       } else if (Platform.isIOS) {
         // For iOS, try App Store subscription management
         try {
           await FlutterInappPurchase.instance.showManageSubscriptions();
           setState(() {
-            _debugInfo = 'App Store subscription management opened successfully';
+            _debugInfo =
+                'App Store subscription management opened successfully';
           });
-          _showAlert('Subscription Management', 'Opened App Store subscription management. You can cancel your subscription there.');
+          _showAlert('Subscription Management',
+              'Opened App Store subscription management. You can cancel your subscription there.');
         } catch (e) {
           // If that fails, show instructions for manual cancellation
           setState(() {
-            _debugInfo = 'Plugin method failed, showing manual instructions: $e';
+            _debugInfo =
+                'Plugin method failed, showing manual instructions: $e';
           });
           _showAlert(
-            'Subscription Management',
-            'To cancel your subscription:\n\n'
-            '1. Open Settings app\n'
-            '2. Tap your name → Subscriptions\n'
-            '3. Find "${purchase.productId}"\n'
-            '4. Tap "Cancel Subscription"\n\n'
-            'Or visit: apps.apple.com and manage subscriptions'
-          );
+              'Subscription Management',
+              'To cancel your subscription:\n\n'
+                  '1. Open Settings app\n'
+                  '2. Tap your name → Subscriptions\n'
+                  '3. Find "${purchase.productId}"\n'
+                  '4. Tap "Cancel Subscription"\n\n'
+                  'Or visit: apps.apple.com and manage subscriptions');
         }
       }
     } catch (e) {
       setState(() {
         _debugInfo = 'Failed to open subscription management: $e';
       });
-      _showAlert('Error', 'Failed to open subscription management. Please cancel manually through your device settings.');
+      _showAlert('Error',
+          'Failed to open subscription management. Please cancel manually through your device settings.');
     }
   }
 
@@ -226,7 +230,7 @@ class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
                     ],
                   ),
                 ),
-                
+
                 // Purchases List
                 Expanded(
                   child: ListView.builder(
@@ -249,16 +253,21 @@ class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
                                 ),
                               ),
                               const SizedBox(height: 8),
-                              Text('Token: ${purchase.purchaseToken?.substring(0, 20)}...'),
-                              Text('Purchase State: ${purchase.purchaseStateAndroid ?? 'N/A'}'),
-                              Text('Transaction Date: ${purchase.transactionDate}'),
-                              Text('Transaction ID: ${purchase.transactionId ?? 'N/A'}'),
+                              Text(
+                                  'Token: ${purchase.purchaseToken?.substring(0, 20)}...'),
+                              Text(
+                                  'Purchase State: ${purchase.purchaseStateAndroid ?? 'N/A'}'),
+                              Text(
+                                  'Transaction Date: ${purchase.transactionDate}'),
+                              Text(
+                                  'Transaction ID: ${purchase.transactionId ?? 'N/A'}'),
                               const SizedBox(height: 8),
                               // Show product type
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: _isSubscription(purchase.productId) 
+                                  color: _isSubscription(purchase.productId)
                                       ? Colors.blue.withValues(alpha: 0.1)
                                       : _isConsumable(purchase.productId)
                                           ? Colors.green.withValues(alpha: 0.1)
@@ -266,7 +275,7 @@ class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
-                                  _isSubscription(purchase.productId) 
+                                  _isSubscription(purchase.productId)
                                       ? 'Subscription'
                                       : _isConsumable(purchase.productId)
                                           ? 'Consumable'
@@ -274,7 +283,7 @@ class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
-                                    color: _isSubscription(purchase.productId) 
+                                    color: _isSubscription(purchase.productId)
                                         ? Colors.blue
                                         : _isConsumable(purchase.productId)
                                             ? Colors.green
@@ -285,13 +294,16 @@ class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
                               const SizedBox(height: 16),
                               if (purchase.purchaseToken != null) ...[
                                 // Show different buttons based on product type
-                                if (_isConsumable(purchase.productId) && Platform.isAndroid)
+                                if (_isConsumable(purchase.productId) &&
+                                    Platform.isAndroid)
                                   SizedBox(
                                     width: double.infinity,
                                     child: CupertinoButton(
                                       color: Colors.red,
-                                      onPressed: () => _consumePurchase(purchase),
-                                      child: const Text('Consume This Purchase'),
+                                      onPressed: () =>
+                                          _consumePurchase(purchase),
+                                      child:
+                                          const Text('Consume This Purchase'),
                                     ),
                                   )
                                 else if (_isSubscription(purchase.productId))
@@ -299,7 +311,8 @@ class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
                                     width: double.infinity,
                                     child: CupertinoButton(
                                       color: Colors.orange,
-                                      onPressed: () => _cancelSubscription(purchase),
+                                      onPressed: () =>
+                                          _cancelSubscription(purchase),
                                       child: const Text('Cancel Subscription'),
                                     ),
                                   )
