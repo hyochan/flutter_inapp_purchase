@@ -5,330 +5,95 @@
 [![Coverage Status](https://codecov.io/gh/hyochan/flutter_inapp_purchase/branch/main/graph/badge.svg?token=WXBlKvRB2G)](https://codecov.io/gh/hyochan/flutter_inapp_purchase)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
-## Flutter V2
+A comprehensive Flutter plugin for implementing in-app purchases on iOS and Android platforms.
 
-This packages is compatible with flutter v2 from `4.0.0`. For those who use older version please use `< 4.0.0`.
+## 🚀 Key Features
 
-## Sun Rise :sunrise:
+- **Cross-platform**: Works seamlessly on both iOS and Android
+- **StoreKit 2 Support**: Full StoreKit 2 support for iOS 15.0+ with automatic fallback
+- **Billing Client v8**: Latest Android Billing Client features
+- **Type-safe**: Complete TypeScript-like support with Dart strong typing
+- **Comprehensive Error Handling**: Detailed error codes and user-friendly messages
+- **Subscription Management**: Advanced subscription handling and validation
+- **Receipt Validation**: Built-in receipt validation for both platforms
 
-Since many one of you wanted me to keep working on this plugin in [#93](https://github.com/hyochan/flutter_inapp_purchase/issues/93), I've decided to keep working on current project. I hope many one of you can help me maintain this. Thank you for all your supports in advance :tada:.
+## 📦 Installation
 
-~~## Deprecated
-I've been maintaining this plugin since there wasn't an official plugin out when I implemented it. I saw in `flutter` github [issue #9591](https://github.com/flutter/flutter/issues/9591) that many people have been waiting for this plugin for more than a year before I've thought of building one. However, there has been an official `Google` plugin rised today which is [in_app_purchase](https://pub.dev/packages/in_app_purchase). Please try to use an official one because you might want to get much prompt support from giant `Google`.
-Also, thanks for all your supports that made me stubborn to work hard on this plugin. I've had great experience with all of you and hope we can meet someday with other projects.
-I'll leave this project as live for those who need time. I'll also try to merge the new `PR`'s and publish to `pub` if there's any further work given to this repo.~~
+Add to your `pubspec.yaml`:
 
-## What this plugin do
+```yaml
+dependencies:
+  flutter_inapp_purchase: ^6.0.0
+```
 
-This is an `In App Purchase` plugin for flutter. This project has been `forked` from [react-native-iap](https://github.com/hyochan/react-native-iap). We are trying to share same experience of `in-app-purchase` in `flutter` as in `react-native`.
-We will keep working on it as time goes by just like we did in `react-native-iap`.
-
-`PR` is always welcomed.
-
-## Breaking Changes
-
-- **v6.0.0**: Major refactoring with improved architecture and StoreKit 2 support
-  - ErrorCode enum values changed to lowerCamelCase (e.g., `E_USER_CANCELLED` → `eUserCancelled`)
-  - PeriodUnitIOS enum values changed to lowerCamelCase (e.g., `DAY` → `day`)
-  - Channel access changed from static to instance member
-  - Platform-specific code now uses mixin architecture
-- Sunrise in `2.0.0` for highly requests from customers on discomfort in what's called an `official` plugin [in_app_purchase](https://pub.dev/packages/in_app_purchase).
-- Migrated to Android X in `0.9.0`. Please check the [Migration Guide](#migration-guide).
-- There was parameter renaming in `0.5.0` to identify different parameters sent from the device. Please check the readme.
-
-## Migration Guide
-
-### Migrating to v6.0.0
-
-1. **Update ErrorCode references:**
-
-   ```dart
-   // Before
-   if (error.code == ErrorCode.E_USER_CANCELLED) { }
-
-   // After
-   if (error.code == ErrorCode.eUserCancelled) { }
-   ```
-
-2. **Update channel access in tests:**
-
-   ```dart
-   // Before
-   FlutterInappPurchase.channel
-
-   // After
-   FlutterInappPurchase.instance.channel
-   ```
-
-3. **Update PeriodUnitIOS references:**
-
-   ```dart
-   // Before
-   if (period == PeriodUnitIOS.DAY) { }
-
-   // After
-   if (period == PeriodUnitIOS.day) { }
-   ```
-
-### Migrating to v0.9.0
-
-To migrate to `0.9.0` you must migrate your Android app to Android X by following the [Migrating to AndroidX Guide](https://developer.android.com/jetpack/androidx/migrate).
-
-## Getting Started
-
-Follow the [Medium Blog](https://medium.com/@hyochan/flutter-in-app-purchase-7a3fb9345e2a) for the configuration.
-
-Follow the [Medium Blog](https://medium.com/bosc-tech-labs-private-limited/how-to-implement-subscriptions-in-app-purchase-in-flutter-7ce8906e608a) to add **subscriptions** in app purchase.
-
-For help getting started with Flutter, view our online
-[documentation](https://flutter.io/).
-
-For help on editing plugin code, view the [documentation](https://flutter.io/developing-packages/#edit-plugin-package).
-
-## Methods
-
-| Func                         |                                                                                     Param                                                                                      |        Return         | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| :--------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| initConnection               |                                                                                                                                                                                |       `String`        | Prepare IAP module. Must be called on Android before any other purchase flow methods. In ios, it will simply call `canMakePayments` method and return value.                                                                                                                                                                                                                                                                                                             |
-| getProducts                  |                                                                        `List<String>` Product IDs/skus                                                                         |    `List<IAPItem>`    | Get a list of products (consumable and non-consumable items, but not subscriptions). Note: On iOS versions earlier than 11.2 this method _will_ return subscriptions if they are included in your list of SKUs. This is because we cannot differentiate between IAP products and subscriptions prior to 11.2.                                                                                                                                                            |
-| getSubscriptions             |                                                                      `List<String>` Subscription IDs/skus                                                                      |    `List<IAPItem>`    | Get a list of subscriptions. Note: On iOS this method has the same output as `getProducts`. Because iOS does not differentiate between IAP products and subscriptions.                                                                                                                                                                                                                                                                                                   |
-| getPurchaseHistory           |                                                                                                                                                                                |    `List<IAPItem>`    | Gets an invetory of purchases made by the user regardless of consumption status (where possible)                                                                                                                                                                                                                                                                                                                                                                         |
-| getAvailablePurchases        |                                                                                                                                                                                | `List<PurchasedItem>` | (aka restore purchase) Get all purchases made by the user (either non-consumable, or haven't been consumed yet)                                                                                                                                                                                                                                                                                                                                                          |
-| getAppStoreInitiatedProducts |                                                                                                                                                                                |    `List<IAPItem>`    | If the user has initiated a purchase directly on the App Store, the products that the user is attempting to purchase will be returned here. (iOS only) Note: On iOS versions earlier than 11.0 this method will always return an empty list, as the functionality was introduced in v11.0. [See Apple Docs for more info](https://developer.apple.com/documentation/storekit/skpaymenttransactionobserver/2877502-paymentqueue) Always returns an empty list on Android. |
-| requestSubscription          | `String` sku, `String` oldSkuAndroid?, `int` prorationModeAndroid?, `String` obfuscatedAccountIdAndroid?, `String` obfuscatedProfileIdAndroid?, `String` purchaseTokenAndroid? |         Null          | Create (request) a subscription to a sku. For upgrading/downgrading subscription on Android pass second parameter with current subscription ID, on iOS this is handled automatically by store. `purchaseUpdatedListener` will receive the result.                                                                                                                                                                                                                        |
-| requestPurchase              |                               `String` sku, `String` obfuscatedAccountIdAndroid?, `String` obfuscatedProfileIdAndroid?, `String` purchaseToken?                                |         Null          | Request a purchase. `purchaseUpdatedListener` will receive the result.                                                                                                                                                                                                                                                                                                                                                                                                   |
-| finishTransactionIOS         |                                                                         `String` purchaseTokenAndroid                                                                          |   `PurchaseResult`    | Send finishTransaction call to Apple IAP server. Call this function after receipt validation process                                                                                                                                                                                                                                                                                                                                                                     |
-| acknowledgePurchaseAndroid   |                                                                             `String` purchaseToken                                                                             |   `PurchaseResult`    | Acknowledge a product (on Android) for `non-consumable` and `subscription` purchase. No-op on iOS.                                                                                                                                                                                                                                                                                                                                                                       |
-| consumePurchaseAndroid       |                                                                             `String` purchaseToken                                                                             |   `PurchaseResult`    | Consume a product (on Android) for `consumable` purchase. No-op on iOS.                                                                                                                                                                                                                                                                                                                                                                                                  |
-| finishTransaction            |                                                                 `String` purchaseToken, `bool` isConsumable? }                                                                 |   `PurchaseResult`    | Send finishTransaction call that abstracts all `acknowledgePurchaseAndroid`, `finishTransactionIOS`, `consumePurchaseAndroid` methods.                                                                                                                                                                                                                                                                                                                                   |
-| endConnection                |                                                                                                                                                                                |       `String`        | End billing connection.                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| consumeAllItems              |                                                                                                                                                                                |       `String`        | Manually consume all items in android. Do NOT call if you have any non-consumables (one time purchase items). No-op on iOS.                                                                                                                                                                                                                                                                                                                                              |
-| validateReceiptIos           |                                                                `Map<String,String>` receiptBody, `bool` isTest                                                                 |    `http.Response`    | Validate receipt for ios.                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| validateReceiptAndroid       |                                  `String` packageName, `String` productId, `String` productToken, `String` accessToken, `bool` isSubscription                                  |    `http.Response`    | Validate receipt for android.                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| showPromoCodesIOS            |                                                                                                                                                                                |                       | Show redeem codes in iOS.                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| showInAppMessageAndroid      |                                                                                                                                                                                |                       | Google Play will show users messaging during grace period and account hold once per day and provide them an opportunity to fix their payment without leaving the app                                                                                                                                                                                                                                                                                                     |
-
-## Purchase flow in `flutter_inapp_purchase@2.0.0+
-
-![purchase-flow-sequence](https://react-native-iap.dooboolab.com/assets/images/react-native-iapv3-8467b005f57bac1f11896c06e15577aa.svg)
-
-> When you've successfully received result from `purchaseUpdated` listener, you'll have to `verify` the purchase either by `acknowledgePurchaseAndroid`, `consumePurchaseAndroid`, `finishTransactionIOS` depending on the purchase types or platforms. You'll have to use `consumePurchaseAndroid` for `consumable` products and `android` and `acknowledgePurchaseAndroid` for `non-consumable` products either `subscription`. For `ios`, there is no differences in `verifying` purchases. You can just call `finishTransaction`. If you do not verify the purchase, it will be refunded within 3 days to users. We recommend you to `verifyReceipt` first before actually finishing transaction. Lastly, if you want to abstract three different methods into one, consider using `finishTransaction` method.
-
-## Data Types
-
-- IAPItem
-
-  ```dart
-  final String productId;
-  final String price;
-  final String currency;
-  final String localizedPrice;
-  final String title;
-  final String description;
-  final String introductoryPrice;
-
-  /// ios only
-  final String subscriptionPeriodNumberIOS;
-  final String subscriptionPeriodUnitIOS;
-  final String introductoryPricePaymentModeIOS;
-  final String introductoryPriceNumberOfPeriodsIOS;
-  final String introductoryPriceSubscriptionPeriodIOS;
-
-  /// android only
-  final String subscriptionPeriodAndroid;
-  final String introductoryPriceCyclesAndroid;
-  final String introductoryPricePeriodAndroid;
-  final String freeTrialPeriodAndroid;
-  final String signatureAndroid;
-
-  final String iconUrl;
-  final String originalJson;
-  final String originalPrice;
-  ```
-
-- PurchasedItem
-
-  ```dart
-  final String productId;
-  final String transactionId;
-  final DateTime transactionDate;
-  final String transactionReceipt;
-  final String purchaseToken;
-
-  // Android only
-  final String dataAndroid;
-  final String signatureAndroid;
-  final bool autoRenewingAndroid;
-  final bool isAcknowledgedAndroid;
-  final int purchaseStateAndroid;
-
-  // iOS only
-  final DateTime originalTransactionDateIOS;
-  final String originalTransactionIdentifierIOS;
-  ```
-
-## Install
-
-Add `flutter_inapp_purchase` as a dependency in pubspec.yaml
-
-For help on adding as a dependency, view the [documentation](https://flutter.io/using-packages/).
-
-## Configuring in app purchase
-
-- Please refer to [Blog](https://medium.com/@hyochan/react-native-in-app-purchase-121622d26b67).
-- [Amazon Kindle Fire](KINDLE.md)
-
-## Usage Guide
-
-#### Android `connect` and `endConnection`
-
-- You should start the billing service in android to use its funtionalities. We recommend you to use `initConnection` getter method in `initState()`. Note that this step is necessary in `ios` also from `flutter_inapp_purchase@2.0.0+` which will also register the `purchaseUpdated` and `purchaseError` `Stream`.
-
-  ```dart
-    /// start connection for android
-    @override
-    void initState() {
-      super.initState();
-      asyncInitState(); // async is not allowed on initState() directly
-    }
-
-    void asyncInitState() async {
-      await FlutterInappPurchase.instance.initConnection;
-    }
-  ```
-
-- You should end the billing service in android when you are done with it. Otherwise it will be keep running in background. We recommend to use this feature in `dispose()`.
-
-- Additionally, we've added `connectionUpdated` stream just in case if you'd like to monitor the connection more thoroughly form `2.0.1`.
-
-  ```
-  _conectionSubscription = FlutterInappPurchase.connectionUpdated.listen((connected) {
-    print('connected: $connected');
-  });
-  ```
-
-  > You can see how you can use this in detail in `example` project.
-
-  ```dart
-    /// start connection for android
-    @override
-    void dispose() async{
-      super.dispose();
-      await FlutterInappPurchase.instance.endConnection;
-    }
-  ```
-
-#### Get IAP items
+## 🔧 Quick Start
 
 ```dart
-void getItems () async {
-  List<IAPItem> items = await FlutterInappPurchase.instance.getProducts(_productLists);
-  for (var item in items) {
-    print('${item.toString()}');
-    this._items.add(item);
-  }
-}
+import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
+
+// Initialize connection
+await FlutterInappPurchase.instance.initConnection();
+
+// Get products
+final products = await FlutterInappPurchase.instance.getProducts(['product_id']);
+
+// Request purchase
+await FlutterInappPurchase.instance.requestPurchase(
+  RequestPurchase(
+    ios: RequestPurchaseIosProps(sku: 'product_id'),
+    android: RequestPurchaseAndroidProps(skus: ['product_id']),
+  ),
+  PurchaseType.inapp,
+);
 ```
 
-#### Purchase Item
+## 📚 Documentation
 
-```dart
-void purchase() {
-  FlutterInappPurchase.instance.requestPurchase(item.productId);
-}
-```
+For comprehensive documentation, guides, API reference, and examples, visit:
 
-#### Register listeners to receive purchase
+**🌐 [flutter-inapp-purchase.hyo.dev](https://flutter-inapp-purchase.hyo.dev)**
 
-```dart
-StreamSubscription _purchaseUpdatedSubscription = FlutterInappPurchase.purchaseUpdated.listen((productItem) {
-  print('purchase-updated: $productItem');
-});
+### Quick Links
 
-StreamSubscription _purchaseErrorSubscription = FlutterInappPurchase.purchaseError.listen((purchaseError) {
-  print('purchase-error: $purchaseError');
-});
-```
+- **[Getting Started](https://flutter-inapp-purchase.hyo.dev/docs/getting-started/installation)** - Installation and setup
+- **[Purchase Guide](https://flutter-inapp-purchase.hyo.dev/docs/guides/purchases)** - Complete purchase implementation 
+- **[API Reference](https://flutter-inapp-purchase.hyo.dev/docs/api/)** - Full API documentation
+- **[Examples](https://flutter-inapp-purchase.hyo.dev/docs/examples/basic-store)** - Working code examples
+- **[Migration Guide](https://flutter-inapp-purchase.hyo.dev/docs/migration/from-v5)** - Upgrading from v5.x
 
-#### Remove listeners when ending connection
+## 🎯 Platform Support
 
-```dart
-_purchaseUpdatedSubscription.cancel();
-_purchaseUpdatedSubscription = null;
-_purchaseErrorSubscription.cancel();
-_purchaseErrorSubscription = null;
-```
+| Feature | iOS | Android |
+|---------|-----|---------|
+| Products & Subscriptions | ✅ | ✅ |
+| Purchase Flow | ✅ | ✅ |
+| Receipt Validation | ✅ | ✅ |
+| Subscription Management | ✅ | ✅ |
+| Promotional Offers | ✅ | N/A |
+| StoreKit 2 | ✅ | N/A |
+| Billing Client v8 | N/A | ✅ |
 
-#### Receipt validation
+## 🚨 Breaking Changes in v6.0.0
 
-From `0.7.1`, we support receipt validation. For Android, you need separate json file from the service account to get the `access_token` from `google-apis`, therefore it is impossible to implement serverless. You should have your own backend and get `access_token`. With `access_token` you can simply call `validateReceiptAndroid` method we implemented. Further reading is [here](https://stackoverflow.com/questions/35127086/android-inapp-purchase-receipt-validation-google-play?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa).
-Currently, serverless receipt validation is possible using `validateReceiptIos` method. The first parameter, you should pass `transactionReceipt` which returns after `requestPurchase`. The second parameter, you should pass whether this is `test` environment. If `true`, it will request to `sandbox` and `false` it will request to `production`.
+- ErrorCode enum values changed to lowerCamelCase (e.g., `E_USER_CANCELLED` → `eUserCancelled`)
+- Channel access changed from static to instance member
+- Platform-specific code now uses mixin architecture
 
-```dart
-validateReceipt() async {
-  var receiptBody = {
-    'receipt-data': purchased.transactionReceipt,
-    'password': '******'
-  };
-  const result = await validateReceiptIos(receiptBody, false);
-  console.log(result);
-}
-```
+See the [Migration Guide](https://flutter-inapp-purchase.hyo.dev/docs/migration/from-v5) for detailed upgrade instructions.
 
-For further information, please refer to [guide](https://developer.apple.com/library/content/releasenotes/General/ValidateAppStoreReceipt/Chapters/ValidateRemotely.html).
+## 🤝 Community & Support
 
-#### Error Handling
+- **GitHub Issues**: [Report bugs and feature requests](https://github.com/hyochan/flutter_inapp_purchase/issues)
+- **Discussions**: [Join community discussions](https://github.com/hyochan/flutter_inapp_purchase/discussions)
+- **Stack Overflow**: [Ask questions](https://stackoverflow.com/questions/tagged/flutter-inapp-purchase)
+- **Slack**: [Join our community](https://hyo.dev/joinSlack)
 
-From v6.0.0, error codes have been standardized to use lowerCamelCase naming convention:
+## 🔧 ProGuard Configuration
 
-```dart
-_purchaseErrorSubscription = FlutterInappPurchase.purchaseError.listen((purchaseError) {
-  print('purchase-error: $purchaseError');
-
-  // Handle specific error codes
-  if (purchaseError.code == ErrorCode.eUserCancelled) {
-    // User cancelled the purchase
-  } else if (purchaseError.code == ErrorCode.eNetworkError) {
-    // Network error occurred
-  } else if (purchaseError.code == ErrorCode.eAlreadyOwned) {
-    // User already owns this product
-  }
-});
-```
-
-Common error codes:
-
-- `ErrorCode.eUserCancelled` - User cancelled the purchase
-- `ErrorCode.eNetworkError` - Network connection error
-- `ErrorCode.eItemUnavailable` - Product not available
-- `ErrorCode.eAlreadyOwned` - User already owns the product
-- `ErrorCode.eDeveloperError` - Configuration error
-- `ErrorCode.eUnknown` - Unknown error occurred
-
-#### App Store initiated purchases
-
-When the user starts an in-app purchase in the App Store, the transaction continues in your app, the product will then be added to a list that you can access through the method `getAppStoreInitiatedProducts`. This means you can decide how and when to continue the transaction.
-To continue the transaction simple use the standard purchase flow from this plugin.
-
-```dart
-void checkForAppStoreInitiatedProducts() async {
-  List<IAPItem> appStoreProducts = await FlutterInappPurchase.getAppStoreInitiatedProducts(); // Get list of products
-  if (appStoreProducts.length > 0) {
-    _requestPurchase(appStoreProducts.last); // Buy last product in the list
-  }
-}
-```
-
-## Example
-
-Direct to [example readme](example/README.md) which is just a `cp` from example project. You can test this in real example project.
-
-## ProGuard
-
-If you have enabled proguard you will need to add the following rules to your `proguard-rules.pro`
+If you have enabled ProGuard, add these rules to your `proguard-rules.pro`:
 
 ```
-#In app Purchase
+# In app Purchase
 -keep class com.amazon.** {*;}
 -keep class dev.hyochan.** { *; }
 -keep class com.android.vending.billing.**
@@ -336,38 +101,13 @@ If you have enabled proguard you will need to add the following rules to your `p
 -keepattributes *Annotation*
 ```
 
-## Q & A
+## 📄 License
 
-#### Can I buy product right away skipping fetching products if I already know productId?
+MIT License - see [LICENSE](LICENSE) file for details.
 
-- You can in `Android` but not in `ios`. In `ios` you should always `fetchProducts` first. You can see more info [here](https://medium.com/ios-development-tips-and-tricks/working-with-ios-in-app-purchases-e4b55491479b).
+## ☕ Support
 
-#### How do I validate receipt in ios?
-
-- Official doc is [here](https://developer.apple.com/library/archive/releasenotes/General/ValidateAppStoreReceipt/Chapters/ValidateRemotely.html).
-
-#### How do I validate receipt in android?
-
-- Offical doc is [here](https://developer.android.com/google/play/billing/billing_library_overview).
-- I've developed this feature for other developers to contribute easily who are aware of these things. The doc says you can also get the `accessToken` via play console without any of your backend server. You can get this by following process.
-  - Select your app > Services & APIs > "YOUR LICENSE KEY FOR THIS APPLICATION Base64-encoded RSA public key to include in your binary". [reference](https://stackoverflow.com/questions/27132443/how-to-find-my-google-play-services-android-base64-public-key).
-
-#### Invalid productId in ios
-
-- Please try below and make sure you've done belows.
-  - Steps
-    1. Completed an effective "Agreements, Tax, and Banking."
-    2. Setup sandbox testing account in "Users and Roles."
-    3. Signed into iOS device with sandbox account.
-    4. Set up three In-App Purchases with the following status:
-       i. Ready to Submit
-       ii. Missing Metadata
-       iii. Waiting for Review
-    5. Enable "In-App Purchase" in Xcode "Capabilities" and in Apple Developer -> "App ID" setting. Delete app / Restart device / Quit "store" related processes in Activity Monitor / Xcode Development Provisioning Profile -> Clean -> Build.
-
-## Help Maintenance
-
-I've been maintaining quite many repos these days and burning out slowly. If you could help me cheer up, buying me a cup of coffee will make my life really happy and get much energy out of it.
+If this plugin helps you, consider buying me a coffee:
 
 [![Paypal](https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-100px.png)](https://paypal.me/dooboolab)
 <a href="https://www.buymeacoffee.com/hyochan" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/purple_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
