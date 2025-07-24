@@ -99,9 +99,9 @@ class IAPiOS {
     }
 
     try {
-      final result = await _channel.invokeMethod('getAppTransaction');
+      final result = await _channel.invokeMethod<Map<dynamic, dynamic>>('getAppTransaction');
       if (result != null) {
-        return Map<String, dynamic>.from(result as Map<dynamic, dynamic>);
+        return Map<String, dynamic>.from(result);
       }
       return null;
     } catch (error) {
@@ -203,7 +203,7 @@ class IAPiOS {
       );
 
       if (result != null) {
-        return Map<String, dynamic>.from(result as Map<dynamic, dynamic>);
+        return Map<String, dynamic>.from(result);
       }
       return null;
     } catch (error) {
