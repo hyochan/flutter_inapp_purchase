@@ -51,7 +51,7 @@ If using ProGuard/R8, add these rules to `android/app/proguard-rules.pro`:
 
 ```proguard title="android/app/proguard-rules.pro"
 # Flutter In-App Purchase
--keep class dev.hyochan.** { *; }
+-keep class dev.hyo.** { *; }
 -keep class com.android.vending.billing.**
 -keep class com.google.android.gms.** { *; }
 

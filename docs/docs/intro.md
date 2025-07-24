@@ -51,7 +51,7 @@ We will keep working on it as time goes by just like we did in **react-native-ia
 
 ## 🔄 Version Information
 
-- **Current Version**: 6.0.0
+- **Current Version**: 6.0.0-rc.1
 - **Flutter Compatibility**: Flutter 3.x+
 - **iOS Requirements**: iOS 11.0+
 - **Android Requirements**: API level 21+
@@ -61,7 +61,7 @@ We will keep working on it as time goes by just like we did in **react-native-ia
 Get started with flutter_inapp_purchase in minutes:
 
 ```bash
-flutter pub add flutter_inapp_purchase
+flutter pub add flutter_inapp_purchase:^6.0.0-rc.1
 ```
 
 ```dart
