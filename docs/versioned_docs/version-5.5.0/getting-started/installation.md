@@ -69,7 +69,7 @@ Ensure your `android/app/build.gradle` has the minimum SDK version:
 ```gradle
 android {
     compileSdkVersion 34
-    
+
     defaultConfig {
         minSdkVersion 21  // Required minimum
         targetSdkVersion 34
@@ -144,6 +144,7 @@ class _MyAppState extends State<MyApp> {
 #### 1. Sandbox Testing
 
 1. Create a sandbox tester account in App Store Connect:
+
    - **Users and Roles** → **Sandbox Testers**
    - Add a test account with unique email
 
@@ -168,6 +169,7 @@ class _MyAppState extends State<MyApp> {
 #### 2. License Testing
 
 Add test accounts in Google Play Console:
+
 - **Setup** → **License Testing**
 - Add email addresses of testers
 
@@ -177,19 +179,21 @@ Add test accounts in Google Play Console:
 
 :::warning Permission Denied
 If you get permission errors, ensure:
+
 - In-App Purchase capability is enabled
 - Your Apple Developer account has active agreements
 - Products are configured in App Store Connect
-:::
+  :::
 
 ### Android Issues
 
 :::warning Billing Unavailable
 If billing is unavailable:
+
 - Ensure you're testing on a real device (not emulator)
 - Check that Google Play is installed and up-to-date
 - Verify your app is signed with the same key as uploaded to Play Console
-:::
+  :::
 
 ## ✅ Verification
 
@@ -200,11 +204,11 @@ Future<void> _testConnection() async {
   try {
     final String? result = await FlutterInappPurchase.instance.initConnection();
     print('Connection result: $result');
-    
+
     // Test product fetching
     final products = await FlutterInappPurchase.instance.getProducts(['test_product_id']);
     print('Found ${products.length} products');
-    
+
   } catch (e) {
     print('Connection test failed: $e');
   }
@@ -221,4 +225,4 @@ Now that you have flutter_inapp_purchase installed and configured:
 
 ---
 
-Need help? Check our [troubleshooting guide](/guides/troubleshooting) or [open an issue](https://github.com/dooboolab/flutter_inapp_purchase/issues) on GitHub.
+Need help? Check our [troubleshooting guide](/guides/troubleshooting) or [open an issue](https://github.com/hyochan/flutter_inapp_purchase/issues) on GitHub.

@@ -14,7 +14,7 @@ A comprehensive Flutter plugin for implementing in-app purchases on iOS and Andr
 
 ## 🚀 What is flutter_inapp_purchase?
 
-This is an **In App Purchase** plugin for Flutter. This project has been **forked** from [react-native-iap](https://github.com/dooboolab/react-native-iap). We are trying to share same experience of **in-app-purchase** in **flutter** as in **react-native**.
+This is an **In App Purchase** plugin for Flutter. This project has been **forked** from [react-native-iap](https://github.com/hyochan/react-native-iap). We are trying to share same experience of **in-app-purchase** in **flutter** as in **react-native**.
 
 We will keep working on it as time goes by just like we did in **react-native-iap**.
 
@@ -31,7 +31,7 @@ We will keep working on it as time goes by just like we did in **react-native-ia
 ## 🎯 What this plugin does
 
 - **Product Management**: Fetch and manage consumable and non-consumable products
-- **Purchase Flow**: Handle complete purchase workflows with proper error handling  
+- **Purchase Flow**: Handle complete purchase workflows with proper error handling
 - **Subscription Support**: Full subscription lifecycle management
 - **Receipt Validation**: Validate purchases on both platforms
 - **Store Communication**: Direct communication with App Store and Google Play
@@ -39,15 +39,15 @@ We will keep working on it as time goes by just like we did in **react-native-ia
 
 ## 🛠️ Platform Support
 
-| Feature | iOS | Android |
-|---------|-----|---------|
-| Products & Subscriptions | ✅ | ✅ |
-| Purchase Flow | ✅ | ✅ |
-| Receipt Validation | ✅ | ✅ |
-| Subscription Management | ✅ | ✅ |
-| Promotional Offers | ✅ | ✅ |
-| StoreKit 2 | ✅ | N/A |
-| Billing Client v8 | N/A | ✅ |
+| Feature                  | iOS | Android |
+| ------------------------ | --- | ------- |
+| Products & Subscriptions | ✅  | ✅      |
+| Purchase Flow            | ✅  | ✅      |
+| Receipt Validation       | ✅  | ✅      |
+| Subscription Management  | ✅  | ✅      |
+| Promotional Offers       | ✅  | ✅      |
+| StoreKit 2               | ✅  | N/A     |
+| Billing Client v8        | N/A | ✅      |
 
 ## 🔄 Version Information
 
@@ -121,11 +121,11 @@ await FlutterInappPurchase.instance.requestPurchase(
 
 ## 🤝 Community & Support
 
-This project is maintained by [dooboolab](https://github.com/dooboolab) and the open-source community.
+This project is maintained by [hyochan](https://github.com/hyochan).
 
-- **GitHub Issues**: [Report bugs and feature requests](https://github.com/dooboolab/flutter_inapp_purchase/issues)
-- **Discussions**: [Join community discussions](https://github.com/dooboolab/flutter_inapp_purchase/discussions)
-- **Contributing**: [Contribute to the project](https://github.com/dooboolab/flutter_inapp_purchase/blob/main/CONTRIBUTING.md)
+- **GitHub Issues**: [Report bugs and feature requests](https://github.com/hyochan/flutter_inapp_purchase/issues)
+- **Discussions**: [Join community discussions](https://github.com/hyochan/flutter_inapp_purchase/discussions)
+- **Contributing**: [Contribute to the project](https://github.com/hyochan/flutter_inapp_purchase/blob/main/CONTRIBUTING.md)
 
 ---
 

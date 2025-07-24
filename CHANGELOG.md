@@ -1,6 +1,7 @@
 ## 6.0.0
 
 ### Breaking Changes
+
 - **iOS**: Now requires iOS 11.0+ (previously 8.0+)
 - **iOS**: StoreKit 2 is now used by default on iOS 15.0+ devices
 - **Android**: Updated to Billing Client v8.0.0 (from v6.0.1)
@@ -11,6 +12,7 @@
   - Channel access changed from static to instance member
 
 ### New Features
+
 - **iOS**: Full StoreKit 2 support for iOS 15.0+
   - Automatic transaction verification
   - Better subscription management
@@ -23,6 +25,7 @@
   - Improved testability and maintainability
 
 ### Migration Guide
+
 - Update all `ErrorCode` references:
   ```dart
   // Before
@@ -92,24 +95,24 @@
 
 ## 5.4.1
 
-- Fixed concurrency issue on iOS. by @OctavianLfrd in https://github.com/dooboolab/flutter_inapp_purchase/pull/413
+- Fixed concurrency issue on iOS. by @OctavianLfrd in https://github.com/hyochan/flutter_inapp_purchase/pull/413
 
 ## 5.4.0
 
-- Fixed wrong casting in checkSubscribed method by @kleeb in https://github.com/dooboolab/flutter_inapp_purchase/pull/368
-- Upgrade to billing 5.1 (reverse compatible) by @SamBergeron in https://github.com/dooboolab/flutter_inapp_purchase/pull/392
+- Fixed wrong casting in checkSubscribed method by @kleeb in https://github.com/hyochan/flutter_inapp_purchase/pull/368
+- Upgrade to billing 5.1 (reverse compatible) by @SamBergeron in https://github.com/hyochan/flutter_inapp_purchase/pull/392
 
 ## 5.3.0
 
 ## What's Changed
 
-- Refactor java to kotlin, add showInAppMessageAndroid by @offline-first in https://github.com/dooboolab/flutter_inapp_purchase/pull/365
+- Refactor java to kotlin, add showInAppMessageAndroid by @offline-first in https://github.com/hyochan/flutter_inapp_purchase/pull/365
 
 ## New Contributors
 
-- @offline-first made their first contribution in https://github.com/dooboolab/flutter_inapp_purchase/pull/365
+- @offline-first made their first contribution in https://github.com/hyochan/flutter_inapp_purchase/pull/365
 
-**Full Changelog**: https://github.com/dooboolab/flutter_inapp_purchase/compare/5.2.0...5.3.0
+**Full Changelog**: https://github.com/hyochan/flutter_inapp_purchase/compare/5.2.0...5.3.0
 
 ## 5.2.0
 
@@ -147,23 +150,23 @@ Support for Amazon devices with Google Play sideloaded (#313)
 
 ## 5.0.3
 
-- Fix plugin exception for `requestProductWithQuantityIOS` [#306](https://github.com/dooboolab/flutter_inapp_purchase/pull/306)
+- Fix plugin exception for `requestProductWithQuantityIOS` [#306](https://github.com/hyochan/flutter_inapp_purchase/pull/306)
 
 ## 5.0.2
 
-- Replaced obfuscatedAccountIdAndroid with obfuscatedAccountId in request purchase method [#299](https://github.com/dooboolab/flutter_inapp_purchase/pull/299)
+- Replaced obfuscatedAccountIdAndroid with obfuscatedAccountId in request purchase method [#299](https://github.com/hyochan/flutter_inapp_purchase/pull/299)
 
 ## 5.0.1
 
-- Add AndroidProrationMode values [#273](https://github.com/dooboolab/flutter_inapp_purchase/pull/273)
+- Add AndroidProrationMode values [#273](https://github.com/hyochan/flutter_inapp_purchase/pull/273)
 
 ## 5.0.0
 
-- Support null safety [#275](https://github.com/dooboolab/flutter_inapp_purchase/pull/275)
+- Support null safety [#275](https://github.com/hyochan/flutter_inapp_purchase/pull/275)
 
 ## 4.0.2
 
-- The dart side requires "introductoryPriceCyclesAndroid" to be a int [#268](https://github.com/dooboolab/flutter_inapp_purchase/pull/268)
+- The dart side requires "introductoryPriceCyclesAndroid" to be a int [#268](https://github.com/hyochan/flutter_inapp_purchase/pull/268)
 
 ## 4.0.1
 
@@ -171,12 +174,12 @@ Support for Amazon devices with Google Play sideloaded (#313)
 
 ## 4.0.0
 
-- Support flutter v2 [#265](https://github.com/dooboolab/flutter_inapp_purchase/pull/265)
+- Support flutter v2 [#265](https://github.com/hyochan/flutter_inapp_purchase/pull/265)
 
 ## 3.0.1
 
-- Migrate to flutter embedding v2 [#240](https://github.com/dooboolab/flutter_inapp_purchase/pull/240)
-- Expose android purchase state as enum [#243](https://github.com/dooboolab/flutter_inapp_purchase/pull/243)
+- Migrate to flutter embedding v2 [#240](https://github.com/hyochan/flutter_inapp_purchase/pull/240)
+- Expose android purchase state as enum [#243](https://github.com/hyochan/flutter_inapp_purchase/pull/243)
 
 ## 3.0.0
 
@@ -192,9 +195,9 @@ Republishing since sourcode seems not merged correctly.
 
 ## 2.3.0
 
-- Bugfix IAPItem deserialization [#212](https://github.com/dooboolab/flutter_inapp_purchase/pull/212)
-- Add introductoryPriceNumberIOS [#214](https://github.com/dooboolab/flutter_inapp_purchase/pull/214)
-- Fix iOS promotional offers [#220](https://github.com/dooboolab/flutter_inapp_purchase/pull/220)
+- Bugfix IAPItem deserialization [#212](https://github.com/hyochan/flutter_inapp_purchase/pull/212)
+- Add introductoryPriceNumberIOS [#214](https://github.com/hyochan/flutter_inapp_purchase/pull/214)
+- Fix iOS promotional offers [#220](https://github.com/hyochan/flutter_inapp_purchase/pull/220)
 
 ## 2.2.0
 
@@ -204,19 +207,19 @@ Republishing since sourcode seems not merged correctly.
 
 ## 2.1.5
 
-- Fix ios failed purchase handling problem in 11.4+ [#176](https://github.com/dooboolab/flutter_inapp_purchase/pull/176)
+- Fix ios failed purchase handling problem in 11.4+ [#176](https://github.com/hyochan/flutter_inapp_purchase/pull/176)
 
 ## 2.1.4
 
-- Fix dart side expression warning [#169](https://github.com/dooboolab/flutter_inapp_purchase/pull/169).
+- Fix dart side expression warning [#169](https://github.com/hyochan/flutter_inapp_purchase/pull/169).
 
 ## 2.1.3
 
-- Fix wrong introductory price number of periods [#164](https://github.com/dooboolab/flutter_inapp_purchase/pull/164).
+- Fix wrong introductory price number of periods [#164](https://github.com/hyochan/flutter_inapp_purchase/pull/164).
 
 ## 2.1.2
 
-- Trigger purchaseUpdated callback when iap purchased [#165](https://github.com/dooboolab/flutter_inapp_purchase/pull/165).
+- Trigger purchaseUpdated callback when iap purchased [#165](https://github.com/hyochan/flutter_inapp_purchase/pull/165).
 
 ## 2.1.1
 
@@ -229,28 +232,28 @@ Republishing since sourcode seems not merged correctly.
 
 ## 2.0.5
 
-- [bugfix] Fix double call of result reply on connection init [#126](https://github.com/dooboolab/flutter_inapp_purchase/pull/126)
+- [bugfix] Fix double call of result reply on connection init [#126](https://github.com/hyochan/flutter_inapp_purchase/pull/126)
 
 ## 2.0.4
 
-- [bugfix] Fix plugin throws exceptions with flutter v1.10.7 beta [#117](https://github.com/dooboolab/flutter_inapp_purchase/pull/117)
+- [bugfix] Fix plugin throws exceptions with flutter v1.10.7 beta [#117](https://github.com/hyochan/flutter_inapp_purchase/pull/117)
 
 ## 2.0.3
 
-- [bugfix] Decode response code for connection updates stream [#114](https://github.com/dooboolab/flutter_inapp_purchase/pull/114)
-- [bugfix] Fix typo in `consumePurchase` [#115](https://github.com/dooboolab/flutter_inapp_purchase/pull/115)
+- [bugfix] Decode response code for connection updates stream [#114](https://github.com/hyochan/flutter_inapp_purchase/pull/114)
+- [bugfix] Fix typo in `consumePurchase` [#115](https://github.com/hyochan/flutter_inapp_purchase/pull/115)
 
 ## 2.0.2
 
-- use ConnectionResult as type for connection stream, fix controller creation [#112](https://github.com/dooboolab/flutter_inapp_purchase/pull/112)
+- use ConnectionResult as type for connection stream, fix controller creation [#112](https://github.com/hyochan/flutter_inapp_purchase/pull/112)
 
 ## 2.0.0+16
 
-- Resolve [#106](https://github.com/dooboolab/flutter_inapp_purchase/issues/106) by not sending `result.error` to the listener. Created use `_conectionSubscription`.
+- Resolve [#106](https://github.com/hyochan/flutter_inapp_purchase/issues/106) by not sending `result.error` to the listener. Created use `_conectionSubscription`.
 
 ## 2.0.0+15
 
-- Fixed minor typo when generating string with `toString`. Resolve [#110](https://github.com/dooboolab/flutter_inapp_purchase/issues/110).
+- Fixed minor typo when generating string with `toString`. Resolve [#110](https://github.com/hyochan/flutter_inapp_purchase/issues/110).
 
 ## 2.0.0+14
 
@@ -262,19 +265,19 @@ Republishing since sourcode seems not merged correctly.
 
 ## 2.0.0+12
 
-- Resolve [#102](https://github.com/dooboolab/flutter_inapp_purchase/issues/102). Fluter seems to only sends strings between platforms.
+- Resolve [#102](https://github.com/hyochan/flutter_inapp_purchase/issues/102). Fluter seems to only sends strings between platforms.
 
 ## 2.0.0+9
 
-- Resolve [#101](https://github.com/dooboolab/flutter_inapp_purchase/issues/101).
+- Resolve [#101](https://github.com/hyochan/flutter_inapp_purchase/issues/101).
 
 ## 2.0.0+8
 
-- Resolve [#100](https://github.com/dooboolab/flutter_inapp_purchase/issues/100).
+- Resolve [#100](https://github.com/hyochan/flutter_inapp_purchase/issues/100).
 
 ## 2.0.0+7
 
-- Resolve [#99](https://github.com/dooboolab/flutter_inapp_purchase/issues/99).
+- Resolve [#99](https://github.com/hyochan/flutter_inapp_purchase/issues/99).
 
 ## 2.0.0+6
 
@@ -290,7 +293,7 @@ Republishing since sourcode seems not merged correctly.
 
 ## 2.0.0+3
 
-- Correctly mock invoke method and return results [#94](https://github.com/dooboolab/flutter_inapp_purchase/pull/96)
+- Correctly mock invoke method and return results [#94](https://github.com/hyochan/flutter_inapp_purchase/pull/96)
 
 ## 2.0.0+2
 
@@ -344,7 +347,7 @@ Republishing since sourcode seems not merged correctly.
 
 - Breaking change. Migrate from the deprecated original Android Support Library to AndroidX. This shouldn't result in any functional changes, but it requires any Android apps using this plugin to also migrate to Android X if they're using the original support library. [Android's Migrating to Android X Guide](https://developer.android.com/jetpack/androidx/migrate).
 
-* Improved getPurchaseHistory's speed 44% faster [#68](https://github.com/dooboolab/flutter_inapp_purchase/pull/68).
+* Improved getPurchaseHistory's speed 44% faster [#68](https://github.com/hyochan/flutter_inapp_purchase/pull/68).
 
 ## 0.8.+
 
@@ -360,7 +363,7 @@ Republishing since sourcode seems not merged correctly.
 - Fixed wrong npe in `android` when `getAvailablePurchases`.
 
 * Only parse `orderId` when exists in `Android` to prevent crashing.
-* Add additional success purchase listener in `iOS`. Related [#54](https://github.com/dooboolab/flutter_inapp_purchase/issues/54)
+* Add additional success purchase listener in `iOS`. Related [#54](https://github.com/hyochan/flutter_inapp_purchase/issues/54)
 
 ## 0.7.1
 
@@ -471,7 +474,7 @@ Republishing since sourcode seems not merged correctly.
 
 ## 0.2.3
 
-- Quickly fixed purchase bug out there in [issue](https://github.com/dooboolab/flutter_inapp_purchase/issues/2). Need much more improvement currently.
+- Quickly fixed purchase bug out there in [issue](https://github.com/hyochan/flutter_inapp_purchase/issues/2). Need much more improvement currently.
 
 ## 0.2.2
 
@@ -480,4 +483,4 @@ Republishing since sourcode seems not merged correctly.
 ## 0.1.0
 
 - Initial release of beta
-- Moved code from [react-native-iap](https://github.com/dooboolab/react-native-iap)
+- Moved code from [react-native-iap](https://github.com/hyochan/react-native-iap)

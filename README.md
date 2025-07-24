@@ -1,8 +1,8 @@
 # flutter_inapp_purchase
 
 [![Pub Version](https://img.shields.io/pub/v/flutter_inapp_purchase.svg?style=flat-square)](https://pub.dartlang.org/packages/flutter_inapp_purchase)
-[![Flutter CI](https://github.com/dooboolab/flutter_inapp_purchase/actions/workflows/ci.yml/badge.svg)](https://github.com/dooboolab/flutter_inapp_purchase/actions/workflows/ci.yml)
-[![Coverage Status](https://codecov.io/gh/dooboolab/flutter_inapp_purchase/branch/main/graph/badge.svg?token=WXBlKvRB2G)](https://codecov.io/gh/dooboolab/flutter_inapp_purchase)
+[![Flutter CI](https://github.com/hyochan/flutter_inapp_purchase/actions/workflows/ci.yml/badge.svg)](https://github.com/hyochan/flutter_inapp_purchase/actions/workflows/ci.yml)
+[![Coverage Status](https://codecov.io/gh/hyochan/flutter_inapp_purchase/branch/main/graph/badge.svg?token=WXBlKvRB2G)](https://codecov.io/gh/hyochan/flutter_inapp_purchase)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
 ## Flutter V2
@@ -11,7 +11,7 @@ This packages is compatible with flutter v2 from `4.0.0`. For those who use olde
 
 ## Sun Rise :sunrise:
 
-Since many one of you wanted me to keep working on this plugin in [#93](https://github.com/dooboolab/flutter_inapp_purchase/issues/93), I've decided to keep working on current project. I hope many one of you can help me maintain this. Thank you for all your supports in advance :tada:.
+Since many one of you wanted me to keep working on this plugin in [#93](https://github.com/hyochan/flutter_inapp_purchase/issues/93), I've decided to keep working on current project. I hope many one of you can help me maintain this. Thank you for all your supports in advance :tada:.
 
 ~~## Deprecated
 I've been maintaining this plugin since there wasn't an official plugin out when I implemented it. I saw in `flutter` github [issue #9591](https://github.com/flutter/flutter/issues/9591) that many people have been waiting for this plugin for more than a year before I've thought of building one. However, there has been an official `Google` plugin rised today which is [in_app_purchase](https://pub.dev/packages/in_app_purchase). Please try to use an official one because you might want to get much prompt support from giant `Google`.
@@ -20,7 +20,7 @@ I'll leave this project as live for those who need time. I'll also try to merge 
 
 ## What this plugin do
 
-This is an `In App Purchase` plugin for flutter. This project has been `forked` from [react-native-iap](https://github.com/dooboolab/react-native-iap). We are trying to share same experience of `in-app-purchase` in `flutter` as in `react-native`.
+This is an `In App Purchase` plugin for flutter. This project has been `forked` from [react-native-iap](https://github.com/hyochan/react-native-iap). We are trying to share same experience of `in-app-purchase` in `flutter` as in `react-native`.
 We will keep working on it as time goes by just like we did in `react-native-iap`.
 
 `PR` is always welcomed.
@@ -41,38 +41,42 @@ We will keep working on it as time goes by just like we did in `react-native-iap
 ### Migrating to v6.0.0
 
 1. **Update ErrorCode references:**
+
    ```dart
    // Before
    if (error.code == ErrorCode.E_USER_CANCELLED) { }
-   
+
    // After
    if (error.code == ErrorCode.eUserCancelled) { }
    ```
 
 2. **Update channel access in tests:**
+
    ```dart
    // Before
    FlutterInappPurchase.channel
-   
+
    // After
    FlutterInappPurchase.instance.channel
    ```
 
 3. **Update PeriodUnitIOS references:**
+
    ```dart
    // Before
    if (period == PeriodUnitIOS.DAY) { }
-   
+
    // After
    if (period == PeriodUnitIOS.day) { }
    ```
 
 ### Migrating to v0.9.0
+
 To migrate to `0.9.0` you must migrate your Android app to Android X by following the [Migrating to AndroidX Guide](https://developer.android.com/jetpack/androidx/migrate).
 
 ## Getting Started
 
-Follow the [Medium Blog](https://medium.com/@dooboolab/flutter-in-app-purchase-7a3fb9345e2a) for the configuration.
+Follow the [Medium Blog](https://medium.com/@hyochan/flutter-in-app-purchase-7a3fb9345e2a) for the configuration.
 
 Follow the [Medium Blog](https://medium.com/bosc-tech-labs-private-limited/how-to-implement-subscriptions-in-app-purchase-in-flutter-7ce8906e608a) to add **subscriptions** in app purchase.
 
@@ -102,7 +106,7 @@ For help on editing plugin code, view the [documentation](https://flutter.io/dev
 | validateReceiptIos           |                                                                `Map<String,String>` receiptBody, `bool` isTest                                                                 |    `http.Response`    | Validate receipt for ios.                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | validateReceiptAndroid       |                                  `String` packageName, `String` productId, `String` productToken, `String` accessToken, `bool` isSubscription                                  |    `http.Response`    | Validate receipt for android.                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | showPromoCodesIOS            |                                                                                                                                                                                |                       | Show redeem codes in iOS.                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| showInAppMessageAndroid      |                                                                                                                                                                                |                       | Google Play will show users messaging during grace period and account hold once per day and provide them an opportunity to fix their payment without leaving the app                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| showInAppMessageAndroid      |                                                                                                                                                                                |                       | Google Play will show users messaging during grace period and account hold once per day and provide them an opportunity to fix their payment without leaving the app                                                                                                                                                                                                                                                                                                     |
 
 ## Purchase flow in `flutter_inapp_purchase@2.0.0+
 
@@ -171,7 +175,7 @@ For help on adding as a dependency, view the [documentation](https://flutter.io/
 
 ## Configuring in app purchase
 
-- Please refer to [Blog](https://medium.com/@dooboolab/react-native-in-app-purchase-121622d26b67).
+- Please refer to [Blog](https://medium.com/@hyochan/react-native-in-app-purchase-121622d26b67).
 - [Amazon Kindle Fire](KINDLE.md)
 
 ## Usage Guide
@@ -280,7 +284,7 @@ From v6.0.0, error codes have been standardized to use lowerCamelCase naming con
 ```dart
 _purchaseErrorSubscription = FlutterInappPurchase.purchaseError.listen((purchaseError) {
   print('purchase-error: $purchaseError');
-  
+
   // Handle specific error codes
   if (purchaseError.code == ErrorCode.eUserCancelled) {
     // User cancelled the purchase
@@ -293,6 +297,7 @@ _purchaseErrorSubscription = FlutterInappPurchase.purchaseError.listen((purchase
 ```
 
 Common error codes:
+
 - `ErrorCode.eUserCancelled` - User cancelled the purchase
 - `ErrorCode.eNetworkError` - Network connection error
 - `ErrorCode.eItemUnavailable` - Product not available

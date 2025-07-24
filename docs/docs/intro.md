@@ -14,7 +14,7 @@ A comprehensive Flutter plugin for implementing in-app purchases on iOS and Andr
 
 ## 🚀 What is flutter_inapp_purchase?
 
-This is an **In App Purchase** plugin for Flutter. This project has been **forked** from [react-native-iap](https://github.com/dooboolab/react-native-iap). We are trying to share same experience of **in-app-purchase** in **flutter** as in **react-native**.
+This is an **In App Purchase** plugin for Flutter. This project has been **forked** from [react-native-iap](https://github.com/hyochan/react-native-iap). We are trying to share same experience of **in-app-purchase** in **flutter** as in **react-native**.
 
 We will keep working on it as time goes by just like we did in **react-native-iap**.
 
@@ -31,7 +31,7 @@ We will keep working on it as time goes by just like we did in **react-native-ia
 ## 🎯 What this plugin does
 
 - **Product Management**: Fetch and manage consumable and non-consumable products
-- **Purchase Flow**: Handle complete purchase workflows with proper error handling  
+- **Purchase Flow**: Handle complete purchase workflows with proper error handling
 - **Subscription Support**: Full subscription lifecycle management
 - **Receipt Validation**: Validate purchases on both platforms
 - **Store Communication**: Direct communication with App Store and Google Play
@@ -39,15 +39,15 @@ We will keep working on it as time goes by just like we did in **react-native-ia
 
 ## 🛠️ Platform Support
 
-| Feature | iOS | Android |
-|---------|-----|---------|
-| Products & Subscriptions | ✅ | ✅ |
-| Purchase Flow | ✅ | ✅ |
-| Receipt Validation | ✅ | ✅ |
-| Subscription Management | ✅ | ✅ |
-| Promotional Offers | ✅ | N/A |
-| StoreKit 2 | ✅ | N/A |
-| Billing Client v8 | N/A | ✅ |
+| Feature                  | iOS | Android |
+| ------------------------ | --- | ------- |
+| Products & Subscriptions | ✅  | ✅      |
+| Purchase Flow            | ✅  | ✅      |
+| Receipt Validation       | ✅  | ✅      |
+| Subscription Management  | ✅  | ✅      |
+| Promotional Offers       | ✅  | N/A     |
+| StoreKit 2               | ✅  | N/A     |
+| Billing Client v8        | N/A | ✅      |
 
 ## 🔄 Version Information
 
@@ -90,7 +90,7 @@ await FlutterInappPurchase.instance.requestPurchase(
     <div className="card-body">
       <h3>🏁 Getting Started</h3>
       <p>Learn how to install and configure flutter_inapp_purchase in your project.</p>
-      <a href="/getting-started/installation" className="button button--primary">Get Started →</a>
+      <a href="/docs/getting-started/installation" className="button button--primary">Get Started →</a>
     </div>
   </div>
   
@@ -98,7 +98,7 @@ await FlutterInappPurchase.instance.requestPurchase(
     <div className="card-body">
       <h3>📖 Guides</h3>
       <p>Follow step-by-step guides for implementing purchases and subscriptions.</p>
-      <a href="/guides/purchases" className="button button--secondary">View Guides →</a>
+      <a href="/docs/guides/purchases" className="button button--secondary">View Guides →</a>
     </div>
   </div>
   
@@ -106,7 +106,7 @@ await FlutterInappPurchase.instance.requestPurchase(
     <div className="card-body">
       <h3>🔧 API Reference</h3>
       <p>Comprehensive API documentation with examples and type definitions.</p>
-      <a href="/api/" className="button button--secondary">API Docs →</a>
+      <a href="/docs/api/" className="button button--secondary">API Docs →</a>
     </div>
   </div>
   
@@ -114,7 +114,7 @@ await FlutterInappPurchase.instance.requestPurchase(
     <div className="card-body">
       <h3>💡 Examples</h3>
       <p>Real-world examples and implementation patterns.</p>
-      <a href="/examples/basic-store" className="button button--secondary">See Examples →</a>
+      <a href="/docs/examples/basic-store" className="button button--secondary">See Examples →</a>
     </div>
   </div>
 </div>
@@ -123,10 +123,10 @@ await FlutterInappPurchase.instance.requestPurchase(
 
 This project is maintained by [dooboolab](https://github.com/dooboolab) and the open-source community.
 
-- **GitHub Issues**: [Report bugs and feature requests](https://github.com/dooboolab/flutter_inapp_purchase/issues)
-- **Discussions**: [Join community discussions](https://github.com/dooboolab/flutter_inapp_purchase/discussions)
-- **Contributing**: [Contribute to the project](https://github.com/dooboolab/flutter_inapp_purchase/blob/main/CONTRIBUTING.md)
+- **GitHub Issues**: [Report bugs and feature requests](https://github.com/hyochan/flutter_inapp_purchase/issues)
+- **Discussions**: [Join community discussions](https://github.com/hyochan/flutter_inapp_purchase/discussions)
+- **Contributing**: [Contribute to the project](https://github.com/hyochan/flutter_inapp_purchase/blob/main/CONTRIBUTING.md)
 
 ---
 
-Ready to implement in-app purchases in your Flutter app? Let's [get started](/getting-started/installation)! 🚀
+Ready to implement in-app purchases in your Flutter app? Let's [get started](/docs/getting-started/installation)! 🚀
