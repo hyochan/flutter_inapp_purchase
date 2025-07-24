@@ -5,9 +5,13 @@ import 'package:platform/platform.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  final MethodChannel channel = FlutterInappPurchase.instance.channel;
 
   group('FlutterInappPurchase', () {
+    late MethodChannel channel;
+    
+    setUpAll(() {
+      channel = FlutterInappPurchase.instance.channel;
+    });
     // Platform detection tests removed as getCurrentPlatform() uses Platform directly
     // and cannot be properly mocked in tests
 
