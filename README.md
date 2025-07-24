@@ -27,12 +27,47 @@ We will keep working on it as time goes by just like we did in `react-native-iap
 
 ## Breaking Changes
 
+- **v6.0.0**: Major refactoring with improved architecture and StoreKit 2 support
+  - ErrorCode enum values changed to lowerCamelCase (e.g., `E_USER_CANCELLED` → `eUserCancelled`)
+  - PeriodUnitIOS enum values changed to lowerCamelCase (e.g., `DAY` → `day`)
+  - Channel access changed from static to instance member
+  - Platform-specific code now uses mixin architecture
 - Sunrise in `2.0.0` for highly requests from customers on discomfort in what's called an `official` plugin [in_app_purchase](https://pub.dev/packages/in_app_purchase).
 - Migrated to Android X in `0.9.0`. Please check the [Migration Guide](#migration-guide).
 - There was parameter renaming in `0.5.0` to identify different parameters sent from the device. Please check the readme.
 
 ## Migration Guide
 
+### Migrating to v6.0.0
+
+1. **Update ErrorCode references:**
+   ```dart
+   // Before
+   if (error.code == ErrorCode.E_USER_CANCELLED) { }
+   
+   // After
+   if (error.code == ErrorCode.eUserCancelled) { }
+   ```
+
+2. **Update channel access in tests:**
+   ```dart
+   // Before
+   FlutterInappPurchase.channel
+   
+   // After
+   FlutterInappPurchase.instance.channel
+   ```
+
+3. **Update PeriodUnitIOS references:**
+   ```dart
+   // Before
+   if (period == PeriodUnitIOS.DAY) { }
+   
+   // After
+   if (period == PeriodUnitIOS.day) { }
+   ```
+
+### Migrating to v0.9.0
 To migrate to `0.9.0` you must migrate your Android app to Android X by following the [Migrating to AndroidX Guide](https://developer.android.com/jetpack/androidx/migrate).
 
 ## Getting Started
@@ -237,6 +272,33 @@ validateReceipt() async {
 ```
 
 For further information, please refer to [guide](https://developer.apple.com/library/content/releasenotes/General/ValidateAppStoreReceipt/Chapters/ValidateRemotely.html).
+
+#### Error Handling
+
+From v6.0.0, error codes have been standardized to use lowerCamelCase naming convention:
+
+```dart
+_purchaseErrorSubscription = FlutterInappPurchase.purchaseError.listen((purchaseError) {
+  print('purchase-error: $purchaseError');
+  
+  // Handle specific error codes
+  if (purchaseError.code == ErrorCode.eUserCancelled) {
+    // User cancelled the purchase
+  } else if (purchaseError.code == ErrorCode.eNetworkError) {
+    // Network error occurred
+  } else if (purchaseError.code == ErrorCode.eAlreadyOwned) {
+    // User already owns this product
+  }
+});
+```
+
+Common error codes:
+- `ErrorCode.eUserCancelled` - User cancelled the purchase
+- `ErrorCode.eNetworkError` - Network connection error
+- `ErrorCode.eItemUnavailable` - Product not available
+- `ErrorCode.eAlreadyOwned` - User already owns the product
+- `ErrorCode.eDeveloperError` - Configuration error
+- `ErrorCode.eUnknown` - Unknown error occurred
 
 #### App Store initiated purchases
 
