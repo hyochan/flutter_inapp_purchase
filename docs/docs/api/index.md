@@ -3,12 +3,7 @@ title: API Reference
 sidebar_position: 1
 ---
 
-import AdFitTopFixed from "@site/src/uis/AdFitTopFixed";
-
 # API Reference
-
-<AdFitTopFixed />
-
 Complete reference for flutter_inapp_purchase v6.0.0 - A unified API for implementing in-app purchases across iOS and Android platforms.
 
 ## Available APIs
