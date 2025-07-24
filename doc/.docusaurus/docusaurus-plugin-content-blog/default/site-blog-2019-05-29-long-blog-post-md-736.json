@@ -1,0 +1,58 @@
+{
+  "permalink": "/blog/long-blog-post",
+  "editUrl": "https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/blog/2019-05-29-long-blog-post.md",
+  "source": "@site/blog/2019-05-29-long-blog-post.md",
+  "title": "Long Blog Post",
+  "description": "This is the summary of a very long blog post,",
+  "date": "2019-05-29T00:00:00.000Z",
+  "tags": [
+    {
+      "inline": false,
+      "label": "Hello",
+      "permalink": "/blog/tags/hello",
+      "description": "Hello tag description"
+    },
+    {
+      "inline": false,
+      "label": "Docusaurus",
+      "permalink": "/blog/tags/docusaurus",
+      "description": "Docusaurus tag description"
+    }
+  ],
+  "readingTime": 2.04,
+  "hasTruncateMarker": true,
+  "authors": [
+    {
+      "name": "Hyo Chang Lee",
+      "title": "Creator of flutter_inapp_purchase & expo-iap",
+      "url": "https://github.com/hyochan",
+      "page": {
+        "permalink": "/blog/authors/hyochan"
+      },
+      "socials": {
+        "x": "https://x.com/hyochan",
+        "github": "https://github.com/hyochan"
+      },
+      "imageURL": "https://github.com/hyochan.png",
+      "key": "hyochan"
+    }
+  ],
+  "frontMatter": {
+    "slug": "long-blog-post",
+    "title": "Long Blog Post",
+    "authors": "hyochan",
+    "tags": [
+      "hello",
+      "docusaurus"
+    ]
+  },
+  "unlisted": false,
+  "prevItem": {
+    "title": "MDX Blog Post",
+    "permalink": "/blog/mdx-blog-post"
+  },
+  "nextItem": {
+    "title": "First Blog Post",
+    "permalink": "/blog/first-blog-post"
+  }
+}

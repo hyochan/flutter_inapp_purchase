@@ -1,0 +1,28 @@
+{
+  "id": "guides/faq",
+  "title": "FAQ",
+  "description": "Common questions and answers about flutterinapppurchase v6.0.0, covering implementation, platform differences, best practices, and migration.",
+  "source": "@site/docs/guides/faq.md",
+  "sourceDirName": "guides",
+  "slug": "/guides/faq",
+  "permalink": "/docs/guides/faq",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/docs/guides/faq.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 10,
+  "frontMatter": {
+    "sidebar_position": 10,
+    "title": "FAQ"
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Troubleshooting",
+    "permalink": "/docs/guides/troubleshooting"
+  },
+  "next": {
+    "title": "Migration from v5.x to v6.0",
+    "permalink": "/docs/migration/from-v5"
+  }
+}

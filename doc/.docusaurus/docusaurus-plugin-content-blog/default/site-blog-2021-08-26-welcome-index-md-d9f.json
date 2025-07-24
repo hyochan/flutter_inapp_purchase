@@ -1,0 +1,67 @@
+{
+  "permalink": "/blog/welcome",
+  "editUrl": "https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/blog/2021-08-26-welcome/index.md",
+  "source": "@site/blog/2021-08-26-welcome/index.md",
+  "title": "Welcome",
+  "description": "Docusaurus blogging features are powered by the blog plugin.",
+  "date": "2021-08-26T00:00:00.000Z",
+  "tags": [
+    {
+      "inline": false,
+      "label": "Facebook",
+      "permalink": "/blog/tags/facebook",
+      "description": "Facebook tag description"
+    },
+    {
+      "inline": false,
+      "label": "Hello",
+      "permalink": "/blog/tags/hello",
+      "description": "Hello tag description"
+    },
+    {
+      "inline": false,
+      "label": "Docusaurus",
+      "permalink": "/blog/tags/docusaurus",
+      "description": "Docusaurus tag description"
+    }
+  ],
+  "readingTime": 0.56,
+  "hasTruncateMarker": true,
+  "authors": [
+    {
+      "name": "Hyo Chang Lee",
+      "title": "Creator of flutter_inapp_purchase & expo-iap",
+      "url": "https://github.com/hyochan",
+      "page": {
+        "permalink": "/blog/authors/hyochan"
+      },
+      "socials": {
+        "x": "https://x.com/hyochan",
+        "github": "https://github.com/hyochan"
+      },
+      "imageURL": "https://github.com/hyochan.png",
+      "key": "hyochan"
+    }
+  ],
+  "frontMatter": {
+    "slug": "welcome",
+    "title": "Welcome",
+    "authors": [
+      "hyochan"
+    ],
+    "tags": [
+      "facebook",
+      "hello",
+      "docusaurus"
+    ]
+  },
+  "unlisted": false,
+  "prevItem": {
+    "title": "🎉 flutter_inapp_purchase 6.0.0 Release - StoreKit 2 & Billing Client v8 Support",
+    "permalink": "/blog/flutter-iap-6.0.0-release"
+  },
+  "nextItem": {
+    "title": "MDX Blog Post",
+    "permalink": "/blog/mdx-blog-post"
+  }
+}

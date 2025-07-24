@@ -1,0 +1,29 @@
+{
+  "id": "examples/basic-store",
+  "title": "Basic Store Implementation",
+  "description": "A simple store implementation demonstrating core flutterinapppurchase concepts and basic purchase flow. Perfect for getting started with in-app purchases.",
+  "source": "@site/docs/examples/basic-store.md",
+  "sourceDirName": "examples",
+  "slug": "/examples/basic-store",
+  "permalink": "/docs/examples/basic-store",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/docs/examples/basic-store.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "title": "Basic Store Implementation",
+    "sidebar_label": "Basic Store",
+    "sidebar_position": 1
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Error Codes",
+    "permalink": "/docs/api/error-codes"
+  },
+  "next": {
+    "title": "Subscription Store",
+    "permalink": "/docs/examples/subscription-store"
+  }
+}

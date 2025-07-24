@@ -1,0 +1,19 @@
+{
+  "id": "migration/from-expo-iap",
+  "title": "Migration from expo-iap",
+  "description": "This guide helps you migrate from expo-iap to flutterinapppurchase, highlighting key differences and providing migration strategies.",
+  "source": "@site/docs/migration/from-expo-iap.md",
+  "sourceDirName": "migration",
+  "slug": "/migration/from-expo-iap",
+  "permalink": "/docs/migration/from-expo-iap",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/docs/migration/from-expo-iap.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "sidebar_position": 2,
+    "title": "Migration from expo-iap"
+  }
+}

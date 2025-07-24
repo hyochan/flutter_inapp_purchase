@@ -1,3 +1,58 @@
+## 6.0.0-rc.1
+
+### Release Candidate
+
+This is a release candidate for v6.0.0 with significant breaking changes. Please test thoroughly before using in production.
+
+### Package Changes
+
+- **Package**: Changed package name from `dev.hyochan.flutterinapppurchase` to `dev.hyo.flutterinapppurchase`
+- **Documentation**: Moved from `docs/` to `doc/` directory for pub.dev convention
+- **Version**: First release candidate for v6.0.0 major version
+
+### Breaking Changes
+
+- **iOS**: Now requires iOS 11.0+ (previously 8.0+)
+- **iOS**: StoreKit 2 is now used by default on iOS 15.0+ devices
+- **Android**: Updated to Billing Client v8.0.0 (from v6.0.1)
+- **API**: Complete refactoring of class structure and enum naming conventions
+  - `ErrorCode` enum values changed from `E_UNKNOWN` to `eUnknown` (lowerCamelCase)
+  - `PeriodUnitIOS` enum values changed from `DAY` to `day` (lowerCamelCase)
+  - Platform-specific classes moved to mixins (`FlutterInappPurchaseIOS`, `FlutterInappPurchaseAndroid`)
+  - Channel access changed from static to instance member
+
+### New Features
+
+- **iOS**: Full StoreKit 2 support for iOS 15.0+
+  - Automatic transaction verification
+  - Better subscription management
+  - Improved error handling
+  - No receipt validation needed for StoreKit 2
+- **iOS**: Automatic fallback to StoreKit 1 for iOS 11.0-14.x
+- **Android**: Support for all Billing Client v8 features
+- **Architecture**: New mixin-based architecture for better code organization
+  - Platform-specific code separated into `modules/ios.dart` and `modules/android.dart`
+  - Improved testability and maintainability
+
+### Migration Guide
+
+- Update all `ErrorCode` references:
+  ```dart
+  // Before
+  ErrorCode.E_USER_CANCELLED
+  // After
+  ErrorCode.eUserCancelled
+  ```
+- Update channel access in tests:
+  ```dart
+  // Before
+  FlutterInappPurchase.channel
+  // After
+  FlutterInappPurchase.instance.channel
+  ```
+- StoreKit 2 will be used automatically on supported devices
+- StoreKit Configuration files (.storekit) work with StoreKit 2 on iOS 15+
+
 ## 6.0.0
 
 ### Breaking Changes

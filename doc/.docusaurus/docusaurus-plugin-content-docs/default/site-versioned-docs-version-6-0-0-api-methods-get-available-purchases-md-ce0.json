@@ -1,0 +1,19 @@
+{
+  "id": "api/methods/get-available-purchases",
+  "title": "getAvailablePurchases",
+  "description": "Retrieves all non-consumed purchases made by the user.",
+  "source": "@site/versioned_docs/version-6.0.0/api/methods/get-available-purchases.md",
+  "sourceDirName": "api/methods",
+  "slug": "/api/methods/get-available-purchases",
+  "permalink": "/docs/6.0.0/api/methods/get-available-purchases",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/versioned_docs/version-6.0.0/api/methods/get-available-purchases.md",
+  "tags": [],
+  "version": "6.0.0",
+  "sidebarPosition": 7,
+  "frontMatter": {
+    "sidebar_position": 7,
+    "title": "getAvailablePurchases"
+  }
+}

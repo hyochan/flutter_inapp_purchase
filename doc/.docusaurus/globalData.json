@@ -1,0 +1,231 @@
+{
+  "docusaurus-plugin-content-docs": {
+    "default": {
+      "path": "/docs",
+      "versions": [
+        {
+          "name": "current",
+          "label": "6.0 (Current)",
+          "isLast": true,
+          "path": "/docs",
+          "mainDocId": "intro",
+          "docs": [
+            {
+              "id": "api/classes/flutter-inapp-purchase",
+              "path": "/docs/api/classes/flutter-inapp-purchase"
+            },
+            {
+              "id": "api/classes/iap-item",
+              "path": "/docs/api/classes/iap-item"
+            },
+            {
+              "id": "api/classes/purchase-item",
+              "path": "/docs/api/classes/purchase-item"
+            },
+            {
+              "id": "api/core-methods",
+              "path": "/docs/api/core-methods",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "api/error-codes",
+              "path": "/docs/api/error-codes",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "api/flutter-inapp-purchase",
+              "path": "/docs/api/flutter-inapp-purchase"
+            },
+            {
+              "id": "api/index",
+              "path": "/docs/api/",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "api/listeners",
+              "path": "/docs/api/listeners",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "api/methods/finish-transaction",
+              "path": "/docs/api/methods/finish-transaction"
+            },
+            {
+              "id": "api/methods/get-available-purchases",
+              "path": "/docs/api/methods/get-available-purchases"
+            },
+            {
+              "id": "api/methods/get-products",
+              "path": "/docs/api/methods/get-products"
+            },
+            {
+              "id": "api/methods/init-connection",
+              "path": "/docs/api/methods/init-connection"
+            },
+            {
+              "id": "api/methods/request-purchase",
+              "path": "/docs/api/methods/request-purchase"
+            },
+            {
+              "id": "api/methods/request-subscription",
+              "path": "/docs/api/methods/request-subscription"
+            },
+            {
+              "id": "api/methods/validate-receipt",
+              "path": "/docs/api/methods/validate-receipt"
+            },
+            {
+              "id": "api/overview",
+              "path": "/docs/api/overview"
+            },
+            {
+              "id": "api/types",
+              "path": "/docs/api/types",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "api/types/error-codes",
+              "path": "/docs/api/types/error-codes"
+            },
+            {
+              "id": "api/types/product-type",
+              "path": "/docs/api/types/product-type"
+            },
+            {
+              "id": "api/types/purchase-state",
+              "path": "/docs/api/types/purchase-state"
+            },
+            {
+              "id": "api/use-iap",
+              "path": "/docs/api/use-iap",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "examples/basic-store",
+              "path": "/docs/examples/basic-store",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "examples/complete-implementation",
+              "path": "/docs/examples/complete-implementation",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "examples/subscription-store",
+              "path": "/docs/examples/subscription-store",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "faq",
+              "path": "/docs/faq"
+            },
+            {
+              "id": "getting-started/android-setup",
+              "path": "/docs/getting-started/android-setup",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "getting-started/installation",
+              "path": "/docs/getting-started/installation",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "getting-started/ios-setup",
+              "path": "/docs/getting-started/ios-setup",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "getting-started/quickstart",
+              "path": "/docs/getting-started/quickstart"
+            },
+            {
+              "id": "getting-started/setup-android",
+              "path": "/docs/getting-started/setup-android"
+            },
+            {
+              "id": "getting-started/setup-ios",
+              "path": "/docs/getting-started/setup-ios"
+            },
+            {
+              "id": "guides/basic-setup",
+              "path": "/docs/guides/basic-setup"
+            },
+            {
+              "id": "guides/error-handling",
+              "path": "/docs/guides/error-handling"
+            },
+            {
+              "id": "guides/faq",
+              "path": "/docs/guides/faq",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "guides/lifecycle",
+              "path": "/docs/guides/lifecycle",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "guides/offer-code-redemption",
+              "path": "/docs/guides/offer-code-redemption",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "guides/products",
+              "path": "/docs/guides/products"
+            },
+            {
+              "id": "guides/purchases",
+              "path": "/docs/guides/purchases",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "guides/receipt-validation",
+              "path": "/docs/guides/receipt-validation"
+            },
+            {
+              "id": "guides/subscriptions",
+              "path": "/docs/guides/subscriptions"
+            },
+            {
+              "id": "guides/testing",
+              "path": "/docs/guides/testing"
+            },
+            {
+              "id": "guides/troubleshooting",
+              "path": "/docs/guides/troubleshooting",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "intro",
+              "path": "/docs/intro",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "migration/from-expo-iap",
+              "path": "/docs/migration/from-expo-iap"
+            },
+            {
+              "id": "migration/from-v5",
+              "path": "/docs/migration/from-v5",
+              "sidebar": "docsSidebar"
+            },
+            {
+              "id": "troubleshooting",
+              "path": "/docs/troubleshooting"
+            }
+          ],
+          "draftIds": [],
+          "sidebars": {
+            "docsSidebar": {
+              "link": {
+                "path": "/docs/intro",
+                "label": "intro"
+              }
+            }
+          }
+        }
+      ],
+      "breadcrumbs": true
+    }
+  }
+}

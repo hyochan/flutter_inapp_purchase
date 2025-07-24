@@ -1,0 +1,18 @@
+{
+  "id": "getting-started/setup-android",
+  "title": "Android Setup",
+  "description": "This guide covers the complete setup process for implementing in-app purchases on Android.",
+  "source": "@site/docs/getting-started/setup-android.md",
+  "sourceDirName": "getting-started",
+  "slug": "/getting-started/setup-android",
+  "permalink": "/docs/getting-started/setup-android",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/docs/getting-started/setup-android.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "sidebar_position": 3
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "id": "examples/complete-implementation",
+  "title": "Complete Implementation",
+  "description": "A comprehensive, production-ready implementation with all best practices for a robust in-app purchase system.",
+  "source": "@site/versioned_docs/version-6.0.0/examples/complete-implementation.md",
+  "sourceDirName": "examples",
+  "slug": "/examples/complete-implementation",
+  "permalink": "/docs/6.0.0/examples/complete-implementation",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/versioned_docs/version-6.0.0/examples/complete-implementation.md",
+  "tags": [],
+  "version": "6.0.0",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "sidebar_position": 3,
+    "title": "Complete Implementation"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "getting-started/ios-setup",
+  "title": "iOS Setup",
+  "description": "Complete guide to configure flutterinapppurchase for iOS with StoreKit 2 support.",
+  "source": "@site/docs/getting-started/ios-setup.md",
+  "sourceDirName": "getting-started",
+  "slug": "/getting-started/ios-setup",
+  "permalink": "/docs/getting-started/ios-setup",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/docs/getting-started/ios-setup.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "title": "iOS Setup",
+    "sidebar_label": "iOS Setup",
+    "sidebar_position": 2
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Installation",
+    "permalink": "/docs/getting-started/installation"
+  },
+  "next": {
+    "title": "Android Setup",
+    "permalink": "/docs/getting-started/android-setup"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "id": "guides/testing",
+  "title": "Testing",
+  "description": "Comprehensive guide to testing in-app purchases during development and before release.",
+  "source": "@site/versioned_docs/version-6.0.0/guides/testing.md",
+  "sourceDirName": "guides",
+  "slug": "/guides/testing",
+  "permalink": "/docs/6.0.0/guides/testing",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/versioned_docs/version-6.0.0/guides/testing.md",
+  "tags": [],
+  "version": "6.0.0",
+  "sidebarPosition": 6,
+  "frontMatter": {
+    "sidebar_position": 6,
+    "title": "Testing"
+  }
+}
