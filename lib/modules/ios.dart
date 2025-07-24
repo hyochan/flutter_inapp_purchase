@@ -1,26 +1,27 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 
-import '../enums.dart';
+import '../types.dart';
 
-/// iOS-specific IAP functionality
-class IAPiOS {
-  static const MethodChannel _channel = MethodChannel('flutter_inapp_purchase');
+/// iOS-specific IAP functionality as a mixin
+mixin FlutterInappPurchaseIOS {
+  MethodChannel get channel;
+  bool get _isIOS;
+  String get _operatingSystem;
 
   /// Sync purchases that are not finished yet to be finished.
   /// Returns true if successful, false if running on Android
-  static Future<bool> syncIOS() async {
-    if (!Platform.isIOS) {
+  Future<bool> syncIOS() async {
+    if (!_isIOS) {
       debugPrint('syncIOS is only supported on iOS');
       return false;
     }
 
     try {
-      await _channel.invokeMethod('endConnection');
-      await _channel.invokeMethod('initConnection');
+      await channel.invokeMethod('endConnection');
+      await channel.invokeMethod('initConnection');
       return true;
     } catch (error) {
       debugPrint('Error syncing iOS purchases: $error');
@@ -30,13 +31,13 @@ class IAPiOS {
 
   /// Checks if the current user is eligible for an introductory offer
   /// for a given product ID
-  static Future<bool> isEligibleForIntroOfferIOS(String productId) async {
-    if (!Platform.isIOS) {
+  Future<bool> isEligibleForIntroOfferIOS(String productId) async {
+    if (!_isIOS) {
       return false;
     }
 
     try {
-      final result = await _channel.invokeMethod<bool>(
+      final result = await channel.invokeMethod<bool>(
         'isEligibleForIntroOffer',
         {'productId': productId},
       );
@@ -48,348 +49,214 @@ class IAPiOS {
   }
 
   /// Gets the subscription status for a specific SKU
-  /// Returns null if not iOS or if status cannot be determined
-  static Future<SubscriptionState?> subscriptionStatusIOS(String sku) async {
-    if (!Platform.isIOS) {
+  Future<Map<String, dynamic>?> getSubscriptionStatusIOS(String sku) async {
+    if (!_isIOS) {
       return null;
     }
 
     try {
-      final result = await _channel.invokeMethod<Map<dynamic, dynamic>>(
+      final result = await channel.invokeMethod<Map<dynamic, dynamic>>(
         'getSubscriptionStatus',
         {'sku': sku},
       );
-
-      if (result == null) {
-        return null;
-      }
-
-      final status = result['status'] as String?;
-      if (status == null) {
-        return null;
-      }
-
-      // Map the status string to SubscriptionState enum
-      switch (status) {
-        case 'active':
-          return SubscriptionState.active;
-        case 'expired':
-          return SubscriptionState.expired;
-        case 'in_billing_retry':
-          return SubscriptionState.inBillingRetry;
-        case 'in_grace_period':
-          return SubscriptionState.inGracePeriod;
-        case 'revoked':
-          return SubscriptionState.revoked;
-        default:
-          return null;
-      }
+      return result?.cast<String, dynamic>();
     } catch (error) {
       debugPrint('Error getting subscription status: $error');
       return null;
     }
   }
 
-  /// Retrieves the latest App Transaction information
-  /// Only available on iOS 18.4+
-  static Future<Map<String, dynamic>?> getAppTransactionIOS() async {
-    if (!Platform.isIOS) {
+  /// Gets the subscription group for a given SKU
+  Future<String?> getSubscriptionGroupIOS(String sku) async {
+    if (!_isIOS) {
       return null;
     }
 
     try {
-      final result = await _channel
-          .invokeMethod<Map<dynamic, dynamic>>('getAppTransaction');
-      if (result != null) {
-        return Map<String, dynamic>.from(result);
-      }
-      return null;
-    } catch (error) {
-      debugPrint('getAppTransaction error: $error');
-      return null;
-    }
-  }
-
-  /// Presents the offer code redemption sheet
-  /// Returns true if presented successfully
-  static Future<bool> presentOfferCodeRedemptionSheetIOS() async {
-    if (!Platform.isIOS) {
-      return false;
-    }
-
-    try {
-      final result =
-          await _channel.invokeMethod<bool>('presentCodeRedemptionSheet');
-      return result ?? false;
-    } catch (error) {
-      debugPrint('Error presenting offer code redemption sheet: $error');
-      return false;
-    }
-  }
-
-  /// Shows the manage subscriptions page in App Store
-  static Future<void> showManageSubscriptionsIOS() async {
-    if (!Platform.isIOS) {
-      debugPrint('showManageSubscriptionsIOS is only supported on iOS');
-      return;
-    }
-
-    try {
-      await _channel.invokeMethod('showManageSubscriptions');
-    } catch (error) {
-      debugPrint('Error showing manage subscriptions: $error');
-      rethrow;
-    }
-  }
-
-  /// Clears all pending transactions
-  /// This is useful for testing or when transactions get stuck
-  static Future<void> clearTransactionsIOS() async {
-    if (!Platform.isIOS) {
-      debugPrint('clearTransactionsIOS is only supported on iOS');
-      return;
-    }
-
-    try {
-      await _channel.invokeMethod('clearTransactions');
-    } catch (error) {
-      debugPrint('Error clearing transactions: $error');
-      rethrow;
-    }
-  }
-
-  /// Processes pending transactions
-  /// Returns a list of processed transaction IDs
-  static Future<List<String>> processPendingTransactionsIOS() async {
-    if (!Platform.isIOS) {
-      return [];
-    }
-
-    try {
-      final result = await _channel
-          .invokeMethod<List<dynamic>>('processPendingTransactions');
-
-      if (result == null) {
-        return [];
-      }
-
-      return result.map((e) => e.toString()).toList();
-    } catch (error) {
-      debugPrint('Error processing pending transactions: $error');
-      return [];
-    }
-  }
-
-  /// Validates the receipt with Apple's servers
-  /// This is for server-side validation and should not be used in production
-  /// from the client side
-  static Future<Map<String, dynamic>?> validateReceiptIOS({
-    required String receiptBody,
-    bool isTest = false,
-  }) async {
-    if (!Platform.isIOS) {
-      return null;
-    }
-
-    try {
-      final result = await _channel.invokeMethod<Map<dynamic, dynamic>>(
-        'validateReceipt',
-        {
-          'receiptBody': receiptBody,
-          'isTest': isTest,
-        },
+      return await channel.invokeMethod<String>(
+        'getSubscriptionGroup',
+        {'sku': sku},
       );
+    } catch (error) {
+      debugPrint('Error getting subscription group: $error');
+      return null;
+    }
+  }
 
-      if (result != null) {
-        return Map<String, dynamic>.from(result);
+  /// Requests a purchase with offer (iOS 12.2+)
+  @Deprecated(
+      'Use requestPurchase() with RequestPurchase object. Will be removed in 6.0.0')
+  Future<void> requestProductWithOfferIOS(
+    String sku,
+    String appAccountToken,
+    Map<String, dynamic> withOffer,
+  ) async {
+    if (!_isIOS) {
+      throw PlatformException(
+        code: _operatingSystem,
+        message: 'requestProductWithOfferIOS is only supported on iOS',
+      );
+    }
+
+    await channel.invokeMethod('requestProductWithOfferIOS', <String, dynamic>{
+      'sku': sku,
+      'appAccountToken': appAccountToken,
+      'withOffer': withOffer,
+    });
+  }
+
+  /// Requests a purchase with quantity (iOS)
+  @Deprecated(
+      'Use requestPurchase() with RequestPurchase object. Will be removed in 6.0.0')
+  Future<void> requestPurchaseWithQuantityIOS(String sku, int quantity) async {
+    if (!_isIOS) {
+      throw PlatformException(
+        code: _operatingSystem,
+        message: 'requestPurchaseWithQuantityIOS is only supported on iOS',
+      );
+    }
+
+    await channel
+        .invokeMethod('requestPurchaseWithQuantityIOS', <String, dynamic>{
+      'sku': sku,
+      'quantity': quantity,
+    });
+  }
+
+  /// Gets the iOS app store country code
+  Future<String?> getAppStoreCountryIOS() async {
+    if (!_isIOS) {
+      return null;
+    }
+
+    try {
+      return await channel.invokeMethod<String>('getAppStoreCountry');
+    } catch (error) {
+      debugPrint('Error getting App Store country: $error');
+      return null;
+    }
+  }
+
+  /// Presents the code redemption sheet (iOS 14+)
+  Future<void> presentCodeRedemptionSheetIOS() async {
+    if (!_isIOS) {
+      throw PlatformException(
+        code: _operatingSystem,
+        message: 'presentCodeRedemptionSheetIOS is only supported on iOS',
+      );
+    }
+
+    await channel.invokeMethod('presentCodeRedemptionSheet');
+  }
+
+  /// Shows manage subscriptions screen (iOS)
+  Future<void> showManageSubscriptionsIOS() async {
+    if (!_isIOS) {
+      throw PlatformException(
+        code: _operatingSystem,
+        message: 'showManageSubscriptionsIOS is only supported on iOS',
+      );
+    }
+
+    await channel.invokeMethod('showManageSubscriptions');
+  }
+
+  /// Gets available items (iOS)
+  Future<List<PurchasedItem>?> getAvailableItemsIOS() async {
+    if (!_isIOS) {
+      return null;
+    }
+
+    try {
+      final result = await channel.invokeMethod<String>('getAvailableItems');
+      if (result == null) return null;
+
+      return extractPurchasedItems(result);
+    } catch (error) {
+      debugPrint('Error getting available items: $error');
+      return null;
+    }
+  }
+
+  /// Gets the iOS app transaction (iOS 18.4+)
+  Future<Map<String, dynamic>?> getAppTransactionIOS() async {
+    if (!_isIOS) {
+      return null;
+    }
+
+    try {
+      final result = await channel
+          .invokeMethod<Map<dynamic, dynamic>>('getAppTransaction');
+      return result?.cast<String, dynamic>();
+    } catch (error) {
+      debugPrint('Error getting app transaction: $error');
+      return null;
+    }
+  }
+
+  /// Gets the typed iOS app transaction (iOS 18.4+)
+  Future<AppTransaction?> getAppTransactionTypedIOS() async {
+    final transactionMap = await getAppTransactionIOS();
+    if (transactionMap != null) {
+      try {
+        return AppTransaction.fromMap(transactionMap);
+      } catch (e) {
+        debugPrint('getAppTransactionTyped parsing error: $e');
+        return null;
       }
-      return null;
-    } catch (error) {
-      debugPrint('Error validating receipt: $error');
-      return null;
     }
+    return null;
   }
 
-  /// Gets the current App Store receipt
-  /// Returns base64 encoded receipt data
-  static Future<String?> getReceiptIOS() async {
-    if (!Platform.isIOS) {
-      return null;
-    }
+  /// iOS-specific utility function
+  List<PurchasedItem>? extractPurchasedItems(dynamic result);
+}
 
-    try {
-      final result = await _channel.invokeMethod<String>('getReceipt');
-      return result;
-    } catch (error) {
-      debugPrint('Error getting receipt: $error');
-      return null;
-    }
+/// iOS App Transaction model (iOS 18.4+)
+class AppTransaction {
+  final int version;
+  final String bundleId;
+  final String originalPurchaseDate;
+  final String originalTransactionId;
+  final String deviceVerification;
+  final String deviceVerificationNonce;
+  final bool preorder;
+  final String deviceId;
+
+  AppTransaction({
+    required this.version,
+    required this.bundleId,
+    required this.originalPurchaseDate,
+    required this.originalTransactionId,
+    required this.deviceVerification,
+    required this.deviceVerificationNonce,
+    required this.preorder,
+    required this.deviceId,
+  });
+
+  factory AppTransaction.fromMap(Map<String, dynamic> map) {
+    return AppTransaction(
+      version: map['version'] as int,
+      bundleId: map['bundleId'] as String,
+      originalPurchaseDate: map['originalPurchaseDate'] as String,
+      originalTransactionId: map['originalTransactionId'] as String,
+      deviceVerification: map['deviceVerification'] as String,
+      deviceVerificationNonce: map['deviceVerificationNonce'] as String,
+      preorder: map['preorder'] as bool,
+      deviceId: map['deviceId'] as String,
+    );
   }
 
-  /// Requests a review prompt using StoreKit
-  /// Note: This doesn't guarantee the prompt will be shown
-  static Future<void> requestReviewIOS() async {
-    if (!Platform.isIOS) {
-      debugPrint('requestReviewIOS is only supported on iOS');
-      return;
-    }
-
-    try {
-      await _channel.invokeMethod('requestReview');
-    } catch (error) {
-      debugPrint('Error requesting review: $error');
-    }
-  }
-
-  /// Gets promoted products (products promoted in the App Store)
-  /// These are products that the App Store is trying to promote to the user
-  static Future<List<String>> getPromotedProductsIOS() async {
-    if (!Platform.isIOS) {
-      return [];
-    }
-
-    try {
-      final result =
-          await _channel.invokeMethod<List<dynamic>>('getPromotedProducts');
-
-      if (result == null) {
-        return [];
-      }
-
-      return result.map((e) => e.toString()).toList();
-    } catch (error) {
-      debugPrint('Error getting promoted products: $error');
-      return [];
-    }
-  }
-
-  /// Sets whether a product should be visible in the App Store promotion
-  static Future<void> setPromotedProductIOS({
-    required String productId,
-    required bool visible,
-  }) async {
-    if (!Platform.isIOS) {
-      debugPrint('setPromotedProductIOS is only supported on iOS');
-      return;
-    }
-
-    try {
-      await _channel.invokeMethod('setPromotedProduct', {
-        'productId': productId,
-        'visible': visible,
-      });
-    } catch (error) {
-      debugPrint('Error setting promoted product: $error');
-      rethrow;
-    }
-  }
-
-  /// Gets the order of promoted products
-  static Future<List<String>> getPromotedProductOrderIOS() async {
-    if (!Platform.isIOS) {
-      return [];
-    }
-
-    try {
-      final result =
-          await _channel.invokeMethod<List<dynamic>>('getPromotedProductOrder');
-
-      if (result == null) {
-        return [];
-      }
-
-      return result.map((e) => e.toString()).toList();
-    } catch (error) {
-      debugPrint('Error getting promoted product order: $error');
-      return [];
-    }
-  }
-
-  /// Sets the order of promoted products
-  static Future<void> setPromotedProductOrderIOS(
-      List<String> productIds) async {
-    if (!Platform.isIOS) {
-      debugPrint('setPromotedProductOrderIOS is only supported on iOS');
-      return;
-    }
-
-    try {
-      await _channel.invokeMethod('setPromotedProductOrder', {
-        'productIds': productIds,
-      });
-    } catch (error) {
-      debugPrint('Error setting promoted product order: $error');
-      rethrow;
-    }
-  }
-
-  /// Gets pending transactions that need to be finished
-  static Future<List<Map<String, dynamic>>> getPendingTransactionsIOS() async {
-    if (!Platform.isIOS) {
-      return [];
-    }
-
-    try {
-      final result =
-          await _channel.invokeMethod<List<dynamic>>('getPendingTransactions');
-
-      if (result == null) {
-        return [];
-      }
-
-      return result
-          .map((item) =>
-              Map<String, dynamic>.from(item as Map<dynamic, dynamic>))
-          .toList();
-    } catch (error) {
-      debugPrint('Error getting pending transactions: $error');
-      return [];
-    }
-  }
-
-  /// Finishes all pending transactions
-  /// Useful for cleanup and testing
-  static Future<void> finishAllTransactionsIOS() async {
-    if (!Platform.isIOS) {
-      debugPrint('finishAllTransactionsIOS is only supported on iOS');
-      return;
-    }
-
-    try {
-      await _channel.invokeMethod('finishAllTransactions');
-    } catch (error) {
-      debugPrint('Error finishing all transactions: $error');
-      rethrow;
-    }
-  }
-
-  /// Gets the storefront identifier (country code)
-  static Future<String?> getStorefrontIOS() async {
-    if (!Platform.isIOS) {
-      return null;
-    }
-
-    try {
-      final result = await _channel.invokeMethod<String>('getStorefront');
-      return result;
-    } catch (error) {
-      debugPrint('Error getting storefront: $error');
-      return null;
-    }
-  }
-
-  /// Checks if the app can make payments
-  static Future<bool> canMakePaymentsIOS() async {
-    if (!Platform.isIOS) {
-      return false;
-    }
-
-    try {
-      final result = await _channel.invokeMethod<bool>('canMakePayments');
-      return result ?? false;
-    } catch (error) {
-      debugPrint('Error checking if can make payments: $error');
-      return false;
-    }
+  Map<String, dynamic> toMap() {
+    return {
+      'version': version,
+      'bundleId': bundleId,
+      'originalPurchaseDate': originalPurchaseDate,
+      'originalTransactionId': originalTransactionId,
+      'deviceVerification': deviceVerification,
+      'deviceVerificationNonce': deviceVerificationNonce,
+      'preorder': preorder,
+      'deviceId': deviceId,
+    };
   }
 }

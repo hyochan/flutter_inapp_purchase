@@ -1,25 +1,28 @@
 import 'dart:async';
-import 'dart:io';
+import 'dart:convert';
 
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
-import '../enums.dart';
+import '../types.dart';
 
-/// Android-specific IAP functionality
-class IAPAndroid {
-  static const MethodChannel _channel = MethodChannel('flutter_inapp_purchase');
+/// Android-specific IAP functionality as a mixin
+mixin FlutterInappPurchaseAndroid {
+  MethodChannel get channel;
+  bool get _isAndroid;
+  String get _operatingSystem;
 
   /// Deep links to subscriptions screen on Android devices
   /// @param sku - The SKU of the subscription to deep link to
-  static Future<void> deepLinkToSubscriptionsAndroid({String? sku}) async {
-    if (!Platform.isAndroid) {
+  Future<void> deepLinkToSubscriptionsAndroid({String? sku}) async {
+    if (!_isAndroid) {
       debugPrint('deepLinkToSubscriptionsAndroid is only supported on Android');
       return;
     }
 
     try {
-      await _channel.invokeMethod('manageSubscription', {
+      await channel.invokeMethod('manageSubscription', {
         if (sku != null) 'sku': sku,
       });
     } catch (error) {
@@ -34,19 +37,19 @@ class IAPAndroid {
   /// @param productToken - The purchase token
   /// @param accessToken - The access token for validation
   /// @param isSub - Whether this is a subscription
-  static Future<Map<String, dynamic>?> validateReceiptAndroid({
+  Future<Map<String, dynamic>?> validateReceiptAndroid({
     required String packageName,
     required String productId,
     required String productToken,
     required String accessToken,
     required bool isSub,
   }) async {
-    if (!Platform.isAndroid) {
+    if (!_isAndroid) {
       return null;
     }
 
     try {
-      final result = await _channel.invokeMethod<Map<dynamic, dynamic>>(
+      final result = await channel.invokeMethod<Map<dynamic, dynamic>>(
         'validateReceiptAndroid',
         {
           'packageName': packageName,
@@ -56,373 +59,220 @@ class IAPAndroid {
           'isSub': isSub,
         },
       );
-
-      if (result != null) {
-        return Map<String, dynamic>.from(result);
-      }
-      return null;
+      return result?.cast<String, dynamic>();
     } catch (error) {
-      debugPrint('Error validating Android receipt: $error');
+      debugPrint('Error validating receipt: $error');
       return null;
     }
   }
 
-  /// Acknowledges a purchase on Android
-  /// @param token - The purchase token to acknowledge
-  /// @param developerPayload - Optional developer payload
-  static Future<PurchaseResult?> acknowledgePurchaseAndroid({
-    required String token,
-    String? developerPayload,
+  /// Acknowledges a purchase on Android (required within 3 days)
+  /// @param purchaseToken - The purchase token to acknowledge
+  @Deprecated('Use finishTransaction() instead. Will be removed in 6.0.0')
+  Future<bool> acknowledgePurchaseAndroid({
+    required String purchaseToken,
   }) async {
-    if (!Platform.isAndroid) {
-      return null;
+    if (!_isAndroid) {
+      return false;
     }
 
     try {
-      final result = await _channel.invokeMethod<Map<dynamic, dynamic>>(
+      final result = await channel.invokeMethod<bool>(
         'acknowledgePurchase',
-        {
-          'token': token,
-          if (developerPayload != null) 'developerPayload': developerPayload,
-        },
+        {'purchaseToken': purchaseToken},
       );
-
-      if (result != null) {
-        return PurchaseResult(
-          responseCode: (result['responseCode'] as int?) ?? 0,
-          debugMessage: result['debugMessage'] as String?,
-          code: result['code'] as String?,
-          message: result['message'] as String?,
-        );
-      }
-      return null;
+      return result ?? false;
     } catch (error) {
       debugPrint('Error acknowledging purchase: $error');
-      return null;
+      return false;
     }
   }
 
-  /// Consumes a purchase on Android
-  /// @param token - The purchase token to consume
-  /// @param developerPayload - Optional developer payload
-  static Future<PurchaseResult?> consumePurchaseAndroid({
-    required String token,
-    String? developerPayload,
+  /// Consumes a purchase on Android (for consumable products)
+  /// @param purchaseToken - The purchase token to consume
+  Future<bool> consumePurchaseAndroid({
+    required String purchaseToken,
   }) async {
-    if (!Platform.isAndroid) {
-      return null;
+    if (!_isAndroid) {
+      return false;
     }
 
     try {
-      final result = await _channel.invokeMethod<Map<dynamic, dynamic>>(
-        'consumeProduct',
-        {
-          'token': token,
-          if (developerPayload != null) 'developerPayload': developerPayload,
-        },
+      final result = await channel.invokeMethod<bool>(
+        'consumePurchase',
+        {'purchaseToken': purchaseToken},
       );
-
-      if (result != null) {
-        return PurchaseResult(
-          responseCode: (result['responseCode'] as int?) ?? 0,
-          debugMessage: result['debugMessage'] as String?,
-          code: result['code'] as String?,
-          message: result['message'] as String?,
-        );
-      }
-      return null;
+      return result ?? false;
     } catch (error) {
       debugPrint('Error consuming purchase: $error');
-      return null;
+      return false;
     }
   }
 
-  /// Flushes any pending purchases
-  /// This ensures all purchase events are processed
-  static Future<void> flushAndroid() async {
-    if (!Platform.isAndroid) {
-      debugPrint('flushAndroid is only supported on Android');
-      return;
+  /// Gets in-app messages for Android
+  Future<List<InAppMessage>> getInAppMessagesAndroid() async {
+    if (!_isAndroid) {
+      return [];
     }
 
     try {
-      await _channel.invokeMethod('flush');
+      final result = await channel.invokeMethod<String>('getInAppMessages');
+      if (result == null) return [];
+
+      final List<dynamic> messages = json.decode(result) as List<dynamic>;
+      return messages
+          .map((message) =>
+              InAppMessage.fromMap(message as Map<String, dynamic>))
+          .toList();
     } catch (error) {
-      debugPrint('Error flushing purchases: $error');
-      rethrow;
+      debugPrint('Error getting in-app messages: $error');
+      return [];
+    }
+  }
+
+  /// Shows in-app messages for Android
+  /// @param messageType - The type of message to show
+  Future<bool> showInAppMessagesAndroid({
+    InAppMessageType messageType = InAppMessageType.generic,
+  }) async {
+    if (!_isAndroid) {
+      return false;
+    }
+
+    try {
+      final result = await channel.invokeMethod<bool>(
+        'showInAppMessages',
+        {'messageType': messageType.index},
+      );
+      return result ?? false;
+    } catch (error) {
+      debugPrint('Error showing in-app messages: $error');
+      return false;
+    }
+  }
+
+  /// Validates a receipt on Google Play (server-side)
+  /// @param packageName - The package name
+  /// @param productId - The product ID
+  /// @param productToken - The purchase token
+  /// @param accessToken - The access token
+  /// @param isSub - Whether this is a subscription
+  Future<PurchaseResult?> validateReceiptAndroidInGooglePlay({
+    required String packageName,
+    required String productId,
+    required String productToken,
+    required String accessToken,
+    required bool isSub,
+  }) async {
+    final type = isSub ? 'subscriptions' : 'products';
+    final url =
+        'https://androidpublisher.googleapis.com/androidpublisher/v3/applications/$packageName/purchases/$type/$productId/tokens/$productToken?access_token=$accessToken';
+
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body) as Map<String, dynamic>;
+        return PurchaseResult.fromJSON({
+          'responseCode': 0,
+          'purchaseData': data,
+        });
+      } else {
+        return PurchaseResult.fromJSON({
+          'responseCode': response.statusCode,
+          'debugMessage': response.body,
+        });
+      }
+    } catch (error) {
+      return PurchaseResult.fromJSON({
+        'responseCode': -1,
+        'debugMessage': error.toString(),
+      });
     }
   }
 
   /// Gets the Play Store connection state
-  static Future<bool> getConnectionStateAndroid() async {
-    if (!Platform.isAndroid) {
-      return false;
+  Future<BillingClientState> getConnectionStateAndroid() async {
+    if (!_isAndroid) {
+      return BillingClientState.disconnected;
     }
 
     try {
-      final result = await _channel.invokeMethod<bool>('isReady');
-      return result ?? false;
+      final result = await channel.invokeMethod<int>('getConnectionState');
+      switch (result) {
+        case 0:
+          return BillingClientState.disconnected;
+        case 1:
+          return BillingClientState.connecting;
+        case 2:
+          return BillingClientState.connected;
+        case 3:
+          return BillingClientState.closed;
+        default:
+          return BillingClientState.disconnected;
+      }
     } catch (error) {
       debugPrint('Error getting connection state: $error');
-      return false;
+      return BillingClientState.disconnected;
     }
   }
 
-  /// Checks if billing is supported for the given type
-  /// @param type - The purchase type (inapp or subs)
-  static Future<bool> isBillingSupportedAndroid(PurchaseType type) async {
-    if (!Platform.isAndroid) {
-      return false;
-    }
-
-    try {
-      final result = await _channel.invokeMethod<bool>(
-        'isBillingSupported',
-        {'type': type == PurchaseType.subs ? 'subs' : 'inapp'},
+  /// Manages a subscription on Android
+  @Deprecated('Not available in flutter IAP. Will be removed in 6.0.0')
+  Future<void> manageSubscriptionAndroid(String sku, String packageName) async {
+    if (!_isAndroid) {
+      throw PlatformException(
+        code: _operatingSystem,
+        message: 'manageSubscriptionAndroid is only supported on Android',
       );
-      return result ?? false;
-    } catch (error) {
-      debugPrint('Error checking billing support: $error');
-      return false;
     }
+
+    await channel.invokeMethod('manageSubscription', <String, dynamic>{
+      'sku': sku,
+      'packageName': packageName,
+    });
   }
 
-  /// Gets purchase history for Android
-  /// @param type - The type of purchases to retrieve (inapp or subs)
-  static Future<List<Map<String, dynamic>>> getPurchaseHistoryAndroid({
-    PurchaseType type = PurchaseType.inapp,
-  }) async {
-    if (!Platform.isAndroid) {
-      return [];
-    }
-
-    try {
-      final result = await _channel.invokeMethod<List<dynamic>>(
-        'getPurchaseHistoryByType',
-        {'type': type == PurchaseType.subs ? 'subs' : 'inapp'},
+  /// Acknowledges a purchase on Android (private method)
+  @Deprecated('Use finishTransaction() instead. Will be removed in 6.0.0')
+  Future<void> acknowledgePurchaseAndroidInternal(String purchaseToken) async {
+    if (!_isAndroid) {
+      throw PlatformException(
+        code: _operatingSystem,
+        message: '_acknowledgePurchaseAndroid is only supported on Android',
       );
-
-      if (result == null) {
-        return [];
-      }
-
-      return result
-          .map((item) =>
-              Map<String, dynamic>.from(item as Map<dynamic, dynamic>))
-          .toList();
-    } catch (error) {
-      debugPrint('Error getting purchase history: $error');
-      return [];
-    }
-  }
-
-  /// Gets available items (owned items) on Android
-  /// @param type - The type of items to retrieve (inapp or subs)
-  static Future<List<Map<String, dynamic>>> getAvailableItemsAndroid({
-    PurchaseType type = PurchaseType.inapp,
-  }) async {
-    if (!Platform.isAndroid) {
-      return [];
     }
 
-    try {
-      final result = await _channel.invokeMethod<List<dynamic>>(
-        'getAvailableItemsByType',
-        {'type': type == PurchaseType.subs ? 'subs' : 'inapp'},
-      );
-
-      if (result == null) {
-        return [];
-      }
-
-      return result
-          .map((item) =>
-              Map<String, dynamic>.from(item as Map<dynamic, dynamic>))
-          .toList();
-    } catch (error) {
-      debugPrint('Error getting available items: $error');
-      return [];
-    }
-  }
-
-  /// Shows the in-app messages for Android
-  /// This displays any pending messages from Google Play
-  static Future<void> showInAppMessagesAndroid() async {
-    if (!Platform.isAndroid) {
-      debugPrint('showInAppMessagesAndroid is only supported on Android');
-      return;
-    }
-
-    try {
-      await _channel.invokeMethod('showInAppMessages');
-    } catch (error) {
-      debugPrint('Error showing in-app messages: $error');
-      rethrow;
-    }
-  }
-
-  /// Gets the installed Google Play Store package info
-  static Future<Map<String, dynamic>?> getPlayStorePackageInfoAndroid() async {
-    if (!Platform.isAndroid) {
-      return null;
-    }
-
-    try {
-      final result = await _channel
-          .invokeMethod<Map<dynamic, dynamic>>('getPlayStorePackageInfo');
-
-      if (result != null) {
-        return Map<String, dynamic>.from(result);
-      }
-      return null;
-    } catch (error) {
-      debugPrint('Error getting Play Store package info: $error');
-      return null;
-    }
-  }
-
-  /// Checks if the Google Play Store is available
-  static Future<bool> isPlayStoreAvailableAndroid() async {
-    if (!Platform.isAndroid) {
-      return false;
-    }
-
-    try {
-      final result = await _channel.invokeMethod<bool>('isPlayStoreAvailable');
-      return result ?? false;
-    } catch (error) {
-      debugPrint('Error checking Play Store availability: $error');
-      return false;
-    }
-  }
-
-  /// Gets the billing client version
-  static Future<String?> getBillingClientVersionAndroid() async {
-    if (!Platform.isAndroid) {
-      return null;
-    }
-
-    try {
-      final result =
-          await _channel.invokeMethod<String>('getBillingClientVersion');
-      return result;
-    } catch (error) {
-      debugPrint('Error getting billing client version: $error');
-      return null;
-    }
-  }
-
-  /// Sets obfuscated account ID for purchases
-  /// @param accountId - The obfuscated account ID
-  static Future<void> setObfuscatedAccountIdAndroid(String accountId) async {
-    if (!Platform.isAndroid) {
-      debugPrint('setObfuscatedAccountIdAndroid is only supported on Android');
-      return;
-    }
-
-    try {
-      await _channel.invokeMethod('setObfuscatedAccountId', {
-        'accountId': accountId,
-      });
-    } catch (error) {
-      debugPrint('Error setting obfuscated account ID: $error');
-      rethrow;
-    }
-  }
-
-  /// Sets obfuscated profile ID for purchases
-  /// @param profileId - The obfuscated profile ID
-  static Future<void> setObfuscatedProfileIdAndroid(String profileId) async {
-    if (!Platform.isAndroid) {
-      debugPrint('setObfuscatedProfileIdAndroid is only supported on Android');
-      return;
-    }
-
-    try {
-      await _channel.invokeMethod('setObfuscatedProfileId', {
-        'profileId': profileId,
-      });
-    } catch (error) {
-      debugPrint('Error setting obfuscated profile ID: $error');
-      rethrow;
-    }
-  }
-
-  /// Launches the billing flow for a product
-  /// @param sku - The SKU to purchase
-  /// @param prorationMode - The proration mode for subscription upgrades/downgrades
-  /// @param obfuscatedAccountId - Optional obfuscated account ID
-  /// @param obfuscatedProfileId - Optional obfuscated profile ID
-  /// @param purchaseToken - Optional purchase token for subscription replacement
-  static Future<bool> launchBillingFlowAndroid({
-    required String sku,
-    ProrationMode? prorationMode,
-    String? obfuscatedAccountId,
-    String? obfuscatedProfileId,
-    String? purchaseToken,
-  }) async {
-    if (!Platform.isAndroid) {
-      return false;
-    }
-
-    try {
-      final result = await _channel.invokeMethod<bool>(
-        'launchBillingFlow',
-        {
-          'sku': sku,
-          if (prorationMode != null) 'prorationMode': prorationMode.index,
-          if (obfuscatedAccountId != null)
-            'obfuscatedAccountId': obfuscatedAccountId,
-          if (obfuscatedProfileId != null)
-            'obfuscatedProfileId': obfuscatedProfileId,
-          if (purchaseToken != null) 'purchaseToken': purchaseToken,
-        },
-      );
-      return result ?? false;
-    } catch (error) {
-      debugPrint('Error launching billing flow: $error');
-      return false;
-    }
-  }
-
-  /// Gets pending purchases
-  static Future<List<Map<String, dynamic>>> getPendingPurchasesAndroid() async {
-    if (!Platform.isAndroid) {
-      return [];
-    }
-
-    try {
-      final result =
-          await _channel.invokeMethod<List<dynamic>>('getPendingPurchases');
-
-      if (result == null) {
-        return [];
-      }
-
-      return result
-          .map((item) =>
-              Map<String, dynamic>.from(item as Map<dynamic, dynamic>))
-          .toList();
-    } catch (error) {
-      debugPrint('Error getting pending purchases: $error');
-      return [];
-    }
+    await channel.invokeMethod('acknowledgePurchase', <String, dynamic>{
+      'purchaseToken': purchaseToken,
+    });
   }
 }
 
-/// Purchase result from Android operations
-class PurchaseResult {
-  final int responseCode;
-  final String? debugMessage;
-  final String? code;
-  final String? message;
+/// In-app message model for Android
+class InAppMessage {
+  final String messageId;
+  final String campaignName;
+  final InAppMessageType messageType;
 
-  PurchaseResult({
-    required this.responseCode,
-    this.debugMessage,
-    this.code,
-    this.message,
+  InAppMessage({
+    required this.messageId,
+    required this.campaignName,
+    required this.messageType,
   });
 
-  bool get isSuccess => responseCode == 0;
+  factory InAppMessage.fromMap(Map<String, dynamic> map) {
+    return InAppMessage(
+      messageId: map['messageId'] as String,
+      campaignName: map['campaignName'] as String,
+      messageType: InAppMessageType.values[map['messageType'] as int],
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'messageId': messageId,
+      'campaignName': campaignName,
+      'messageType': messageType.index,
+    };
+  }
 }
