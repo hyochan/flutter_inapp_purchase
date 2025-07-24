@@ -8,7 +8,7 @@ void main() {
 
   group('FlutterInappPurchase', () {
     late MethodChannel channel;
-    
+
     setUpAll(() {
       channel = FlutterInappPurchase.instance.channel;
     });
