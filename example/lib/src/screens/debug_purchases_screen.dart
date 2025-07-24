@@ -107,23 +107,56 @@ class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
 
     try {
       if (Platform.isAndroid) {
-        // For Android, open Google Play subscription management
-        await FlutterInappPurchase.instance.showManageSubscriptions();
-        _showAlert('Subscription Management', 'Opened Google Play subscription management. You can cancel your subscription there.');
+        // For Android, directly show manual cancellation instructions
+        // as the plugin's Android subscription management has issues
+        setState(() {
+          _debugInfo = 'Showing manual cancellation instructions for Android';
+        });
+        _showAlert(
+          'Cancel Subscription - Android', 
+          'To cancel your subscription "${purchase.productId}":\n\n'
+          '📱 Method 1 - Google Play Store App:\n'
+          '1. Open Google Play Store app\n'
+          '2. Tap Menu (☰) → Subscriptions\n'
+          '3. Find your subscription\n'
+          '4. Tap "Cancel subscription"\n\n'
+          '💻 Method 2 - Web Browser:\n'
+          '1. Go to play.google.com/store/account/subscriptions\n'
+          '2. Sign in with your Google account\n'
+          '3. Find and cancel the subscription\n\n'
+          '⚙️ Method 3 - Phone Settings:\n'
+          '1. Settings → Google → Manage Google Account\n'
+          '2. Payments & subscriptions → Manage subscriptions'
+        );
       } else if (Platform.isIOS) {
-        // For iOS, open App Store subscription management
-        await FlutterInappPurchase.instance.showManageSubscriptions();
-        _showAlert('Subscription Management', 'Opened App Store subscription management. You can cancel your subscription there.');
+        // For iOS, try App Store subscription management
+        try {
+          await FlutterInappPurchase.instance.showManageSubscriptions();
+          setState(() {
+            _debugInfo = 'App Store subscription management opened successfully';
+          });
+          _showAlert('Subscription Management', 'Opened App Store subscription management. You can cancel your subscription there.');
+        } catch (e) {
+          // If that fails, show instructions for manual cancellation
+          setState(() {
+            _debugInfo = 'Plugin method failed, showing manual instructions: $e';
+          });
+          _showAlert(
+            'Subscription Management',
+            'To cancel your subscription:\n\n'
+            '1. Open Settings app\n'
+            '2. Tap your name → Subscriptions\n'
+            '3. Find "${purchase.productId}"\n'
+            '4. Tap "Cancel Subscription"\n\n'
+            'Or visit: apps.apple.com and manage subscriptions'
+          );
+        }
       }
-      
-      setState(() {
-        _debugInfo = 'Subscription management opened successfully';
-      });
     } catch (e) {
       setState(() {
         _debugInfo = 'Failed to open subscription management: $e';
       });
-      _showAlert('Error', 'Failed to open subscription management: $e');
+      _showAlert('Error', 'Failed to open subscription management. Please cancel manually through your device settings.');
     }
   }
 
