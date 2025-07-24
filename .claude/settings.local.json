@@ -32,7 +32,9 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(grep:*)",
-      "Bash(dart analyze:*)"
+      "Bash(dart analyze:*)",
+      "Bash(git checkout:*)",
+      "Bash(git push:*)"
     ],
     "deny": []
   }

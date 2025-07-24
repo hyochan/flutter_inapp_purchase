@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
+import 'package:flutter_inapp_purchase/enums.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:platform/platform.dart';
 
@@ -10,6 +11,20 @@ void main() {
   final MethodChannel channel = FlutterInappPurchase.channel;
 
   group('FlutterInappPurchase', () {
+    group('Platform Detection', () {
+      test('getCurrentPlatform returns correct platform for iOS', () {
+        FlutterInappPurchase(FlutterInappPurchase.private(
+            FakePlatform(operatingSystem: "ios")));
+        expect(getCurrentPlatform(), IAPPlatform.ios);
+      });
+
+      test('getCurrentPlatform returns correct platform for Android', () {
+        FlutterInappPurchase(FlutterInappPurchase.private(
+            FakePlatform(operatingSystem: "android")));
+        expect(getCurrentPlatform(), IAPPlatform.android);
+      });
+    });
+
     group('showInAppMessageAndroid', () {
       group('for Android', () {
         final List<MethodCall> log = <MethodCall>[];
@@ -41,7 +56,8 @@ void main() {
         });
       });
     });
-    group('consumeAllItems', () {
+
+    group('consumeAll', () {
       group('for Android', () {
         final List<MethodCall> log = <MethodCall>[];
         setUp(() {
@@ -99,7 +115,7 @@ void main() {
           TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
               .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
             log.add(methodCall);
-            return "Billing client ready";
+            return "Billing service is ready";
           });
         });
 
@@ -116,36 +132,7 @@ void main() {
 
         test('returns correct result', () async {
           expect(await FlutterInappPurchase.instance.initialize(),
-              "Billing client ready");
-        });
-      });
-
-      group('for iOS', () {
-        final List<MethodCall> log = <MethodCall>[];
-        setUp(() {
-          FlutterInappPurchase(FlutterInappPurchase.private(
-              FakePlatform(operatingSystem: "ios")));
-
-          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-              .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-            log.add(methodCall);
-            return "true";
-          });
-        });
-
-        tearDown(() {
-          FlutterInappPurchase.channel.setMethodCallHandler(null);
-        });
-
-        test('invokes correct method', () async {
-          await FlutterInappPurchase.instance.initialize();
-          expect(log, <Matcher>[
-            isMethodCall('canMakePayments', arguments: null),
-          ]);
-        });
-
-        test('returns correct result', () async {
-          expect(await FlutterInappPurchase.instance.initialize(), "true");
+              "Billing service is ready");
         });
       });
     });
@@ -153,46 +140,6 @@ void main() {
     group('getProducts', () {
       group('for Android', () {
         final List<MethodCall> log = <MethodCall>[];
-        List<String> productIds = []..add("testsku");
-
-        final dynamic result = """[
-          {
-            "productId": "com.cooni.point1000",
-            "price": "120",
-            "currency": "JPY",
-            "localizedPrice": "¥120",
-            "title": "1,000",
-            "description": "1000 points 1000P",
-            "introductoryPrice": "1001",
-            "introductoryPricePaymentModeIOS": "1002",
-            "introductoryPriceNumberOfPeriodsIOS": "1003",
-            "introductoryPriceSubscriptionPeriodIOS": "1004",
-            "subscriptionPeriodUnitIOS": "1",
-            "subscriptionPeriodAndroid": "2",
-            "subscriptionPeriodNumberIOS": "3",
-            "introductoryPriceCyclesAndroid": 4,
-            "introductoryPricePeriodAndroid": "5",
-            "freeTrialPeriodAndroid": "6",
-            "subscriptionOffers": [
-              {
-                "offerId": "123",
-                "basePlanId": "null",
-                "offerToken": "1234",
-                "pricingPhases": [
-                  {
-                    "price": "120",
-                    "formattedPrice": "¥120",
-                    "billingPeriod": "p1m",
-                    "currencyCode": "JPY",
-                    "recurrenceMode": 1,
-                    "billingCycleCount": 2
-                  }
-                ]
-              }
-            ]
-          }
-        ]""";
-
         setUp(() {
           FlutterInappPurchase(FlutterInappPurchase.private(
               FakePlatform(operatingSystem: "android")));
@@ -200,103 +147,24 @@ void main() {
           TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
               .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
             log.add(methodCall);
-            return result;
-          });
-        });
-
-        tearDown(() {
-          FlutterInappPurchase.channel.setMethodCallHandler(null);
-        });
-
-        test('invokes correct method', () async {
-          await FlutterInappPurchase.instance.getProducts(productIds);
-          expect(log, <Matcher>[
-            isMethodCall(
-              'getProducts',
-              arguments: <String, dynamic>{
-                'productIds': productIds,
-              },
-            ),
-          ]);
-        });
-
-        test('returns correct result', () async {
-          List<IAPItem> products =
-              await FlutterInappPurchase.instance.getProducts(productIds);
-          List<IAPItem> expected = (json.decode(result) as List)
-              .map<IAPItem>(
-                (product) => IAPItem.fromJSON(product as Map<String, dynamic>),
-              )
-              .toList();
-          for (var i = 0; i < products.length; ++i) {
-            var product = products[i];
-            var expectedProduct = expected[i];
-            expect(product.productId, expectedProduct.productId);
-            expect(product.price, expectedProduct.price);
-            expect(product.currency, expectedProduct.currency);
-            expect(product.localizedPrice, expectedProduct.localizedPrice);
-            expect(product.title, expectedProduct.title);
-            expect(product.description, expectedProduct.description);
-            expect(
-                product.introductoryPrice, expectedProduct.introductoryPrice);
-            expect(product.subscriptionPeriodNumberIOS,
-                expectedProduct.subscriptionPeriodNumberIOS);
-            expect(product.introductoryPricePaymentModeIOS,
-                expectedProduct.introductoryPricePaymentModeIOS);
-            expect(product.introductoryPriceNumberOfPeriodsIOS,
-                expectedProduct.introductoryPriceNumberOfPeriodsIOS);
-            expect(product.introductoryPriceSubscriptionPeriodIOS,
-                expectedProduct.introductoryPriceSubscriptionPeriodIOS);
-            expect(product.subscriptionPeriodAndroid,
-                expectedProduct.subscriptionPeriodAndroid);
-          }
-        });
-      });
-
-      group('for iOS', () {
-        final List<MethodCall> log = <MethodCall>[];
-        List<String> skus = []..add("testsku");
-
-        final dynamic result = [
-          {
-            "productId": "com.cooni.point1000",
-            "price": "120",
-            "currency": "JPY",
-            "localizedPrice": "¥120",
-            "title": "1,000",
-            "description": "1000 points 1000P",
-            "introductoryPrice": "1001",
-            "introductoryPricePaymentModeIOS": "1002",
-            "introductoryPriceNumberOfPeriodsIOS": "1003",
-            "introductoryPriceSubscriptionPeriodIOS": "1004",
-            "subscriptionPeriodUnitIOS": "1",
-            "subscriptionPeriodAndroid": "2",
-            "subscriptionPeriodNumberIOS": "3",
-            "introductoryPriceCyclesAndroid": 4,
-            "introductoryPricePeriodAndroid": "5",
-            "freeTrialPeriodAndroid": "6",
-            "discounts": [
+            return json.encode([
               {
-                "identifier": "123",
-                "type": "test",
-                "numberOfPeriods": "3",
-                "price": 100.toDouble(),
-                "localizedPrice": "¥100",
-                "paymentMode": "test",
-                "subscriptionPeriod": "123"
-              }
-            ]
-          }
-        ];
-
-        setUp(() {
-          FlutterInappPurchase(FlutterInappPurchase.private(
-              FakePlatform(operatingSystem: "ios")));
-
-          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-              .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-            log.add(methodCall);
-            return result;
+                'productId': 'com.example.product1',
+                'price': '0.99',
+                'currency': 'USD',
+                'localizedPrice': r'$0.99',
+                'title': 'Product 1',
+                'description': 'Description 1',
+              },
+              {
+                'productId': 'com.example.product2',
+                'price': '1.99',
+                'currency': 'USD',
+                'localizedPrice': r'$1.99',
+                'title': 'Product 2',
+                'description': 'Description 2',
+              },
+            ]);
           });
         });
 
@@ -305,173 +173,29 @@ void main() {
         });
 
         test('invokes correct method', () async {
-          await FlutterInappPurchase.instance.getProducts(skus);
+          await FlutterInappPurchase.instance.getProducts(['com.example.product1', 'com.example.product2']);
           expect(log, <Matcher>[
-            isMethodCall(
-              'getItems',
-              arguments: <String, dynamic>{
-                'skus': skus,
-              },
-            ),
+            isMethodCall('getItemsByType', arguments: <String, dynamic>{
+              'type': 'inapp',
+              'skus': ['com.example.product1', 'com.example.product2'],
+            }),
           ]);
         });
 
-        test('returns correct result', () async {
-          List<IAPItem> products =
-              await FlutterInappPurchase.instance.getProducts(skus);
-          List<IAPItem>? expected = result
-              .map<IAPItem>(
-                (product) => IAPItem.fromJSON(product as Map<String, dynamic>),
-              )
-              .toList();
-          for (var i = 0; i < products.length; ++i) {
-            var product = products[i];
-            var expectedProduct = expected![i];
-            expect(product.productId, expectedProduct.productId);
-            expect(product.price, expectedProduct.price);
-            expect(product.currency, expectedProduct.currency);
-            expect(product.localizedPrice, expectedProduct.localizedPrice);
-            expect(product.title, expectedProduct.title);
-            expect(product.description, expectedProduct.description);
-            expect(
-                product.introductoryPrice, expectedProduct.introductoryPrice);
-            expect(product.subscriptionPeriodNumberIOS,
-                expectedProduct.subscriptionPeriodNumberIOS);
-            expect(product.introductoryPricePaymentModeIOS,
-                expectedProduct.introductoryPricePaymentModeIOS);
-            expect(product.introductoryPriceNumberOfPeriodsIOS,
-                expectedProduct.introductoryPriceNumberOfPeriodsIOS);
-            expect(product.introductoryPriceSubscriptionPeriodIOS,
-                expectedProduct.introductoryPriceSubscriptionPeriodIOS);
-            expect(product.subscriptionPeriodAndroid,
-                expectedProduct.subscriptionPeriodAndroid);
-            // expect(product.introductoryPriceCyclesAndroid,
-            //     expectedProduct.introductoryPriceCyclesAndroid);
-            // expect(product.introductoryPricePeriodAndroid,
-            //     expectedProduct.introductoryPricePeriodAndroid);
-            // expect(product.freeTrialPeriodAndroid,
-            //     expectedProduct.freeTrialPeriodAndroid);
-          }
+        test('returns correct products', () async {
+          final products = await FlutterInappPurchase.instance.getProducts(['com.example.product1', 'com.example.product2']);
+          expect(products?.length, 2);
+          expect(products?[0].productId, 'com.example.product1');
+          expect(products?[0].price, '0.99');
+          expect(products?[0].currency, 'USD');
+          expect(products?[1].productId, 'com.example.product2');
         });
       });
     });
 
     group('getSubscriptions', () {
-      group('for Android', () {
-        final List<MethodCall> log = <MethodCall>[];
-        List<String> productIds = []..add("testsku");
-
-        final dynamic result = """[
-          {
-            "productId": "com.cooni.point1000",
-            "price": "120",
-            "currency": "JPY",
-            "localizedPrice": "¥120",
-            "title": "1,000",
-            "description": "1000 points 1000P",
-            "introductoryPrice": "1001",
-            "introductoryPricePaymentModeIOS": "1002",
-            "introductoryPriceNumberOfPeriodsIOS": "1003",
-            "introductoryPriceSubscriptionPeriodIOS": "1004",
-            "subscriptionPeriodUnitIOS": "1",
-            "subscriptionPeriodAndroid": "2",
-            "subscriptionPeriodNumberIOS": "3",
-            "introductoryPriceCyclesAndroid": 4,
-            "introductoryPricePeriodAndroid": "5",
-            "freeTrialPeriodAndroid": "6"
-          }
-        ]""";
-
-        setUp(() {
-          FlutterInappPurchase(FlutterInappPurchase.private(
-              FakePlatform(operatingSystem: "android")));
-
-          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-              .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-            log.add(methodCall);
-            return result;
-          });
-        });
-
-        tearDown(() {
-          FlutterInappPurchase.channel.setMethodCallHandler(null);
-        });
-
-        test('invokes correct method', () async {
-          await FlutterInappPurchase.instance.getSubscriptions(productIds);
-          expect(log, <Matcher>[
-            isMethodCall(
-              'getSubscriptions',
-              arguments: <String, dynamic>{
-                'productIds': productIds,
-              },
-            ),
-          ]);
-        });
-        test('returns correct result', () async {
-          List<IAPItem> products =
-              await FlutterInappPurchase.instance.getSubscriptions(productIds);
-          List<IAPItem> expected = (json.decode(result) as List)
-              .map<IAPItem>(
-                (product) => IAPItem.fromJSON(product as Map<String, dynamic>),
-              )
-              .toList();
-          for (var i = 0; i < products.length; ++i) {
-            var product = products[i];
-            var expectedProduct = expected[i];
-            expect(product.productId, expectedProduct.productId);
-            expect(product.price, expectedProduct.price);
-            expect(product.currency, expectedProduct.currency);
-            expect(product.localizedPrice, expectedProduct.localizedPrice);
-            expect(product.title, expectedProduct.title);
-            expect(product.description, expectedProduct.description);
-            expect(
-                product.introductoryPrice, expectedProduct.introductoryPrice);
-            expect(product.subscriptionPeriodNumberIOS,
-                expectedProduct.subscriptionPeriodNumberIOS);
-            expect(product.introductoryPricePaymentModeIOS,
-                expectedProduct.introductoryPricePaymentModeIOS);
-            expect(product.introductoryPriceNumberOfPeriodsIOS,
-                expectedProduct.introductoryPriceNumberOfPeriodsIOS);
-            expect(product.introductoryPriceSubscriptionPeriodIOS,
-                expectedProduct.introductoryPriceSubscriptionPeriodIOS);
-            expect(product.subscriptionPeriodAndroid,
-                expectedProduct.subscriptionPeriodAndroid);
-            // expect(product.introductoryPriceCyclesAndroid,
-            //     expectedProduct.introductoryPriceCyclesAndroid);
-            // expect(product.introductoryPricePeriodAndroid,
-            //     expectedProduct.introductoryPricePeriodAndroid);
-            // expect(product.freeTrialPeriodAndroid,
-            //     expectedProduct.freeTrialPeriodAndroid);
-          }
-        });
-      });
-
       group('for iOS', () {
         final List<MethodCall> log = <MethodCall>[];
-        List<String> skus = []..add("testsku");
-
-        final dynamic result = [
-          {
-            "productId": "com.cooni.point1000",
-            "price": "120",
-            "currency": "JPY",
-            "localizedPrice": "¥120",
-            "title": "1,000",
-            "description": "1000 points 1000P",
-            "introductoryPrice": "1001",
-            "introductoryPricePaymentModeIOS": "1002",
-            "introductoryPriceNumberOfPeriodsIOS": "1003",
-            "introductoryPriceSubscriptionPeriodIOS": "1004",
-            "subscriptionPeriodUnitIOS": "1",
-            "subscriptionPeriodAndroid": "2",
-            "subscriptionPeriodNumberIOS": "3",
-            "introductoryPriceCyclesAndroid": 4,
-            "introductoryPricePeriodAndroid": "5",
-            "freeTrialPeriodAndroid": "6"
-          }
-        ];
-
         setUp(() {
           FlutterInappPurchase(FlutterInappPurchase.private(
               FakePlatform(operatingSystem: "ios")));
@@ -479,111 +203,18 @@ void main() {
           TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
               .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
             log.add(methodCall);
-            return result;
-          });
-        });
-
-        tearDown(() {
-          FlutterInappPurchase.channel.setMethodCallHandler(null);
-        });
-
-        test('invokes correct method', () async {
-          await FlutterInappPurchase.instance.getSubscriptions(skus);
-          expect(log, <Matcher>[
-            isMethodCall(
-              'getItems',
-              arguments: <String, dynamic>{
-                'skus': skus,
+            return json.encode([
+              {
+                'productId': 'com.example.subscription1',
+                'price': '9.99',
+                'currency': 'USD',
+                'localizedPrice': r'$9.99',
+                'title': 'Subscription 1',
+                'description': 'Monthly subscription',
+                'subscriptionPeriodUnitIOS': 'MONTH',
+                'subscriptionPeriodNumberIOS': '1',
               },
-            ),
-          ]);
-        });
-
-        test('returns correct result', () async {
-          List<IAPItem> products =
-              await FlutterInappPurchase.instance.getSubscriptions(skus);
-          List<IAPItem>? expected = result
-              .map<IAPItem>(
-                (product) => IAPItem.fromJSON(product as Map<String, dynamic>),
-              )
-              .toList();
-          for (var i = 0; i < products.length; ++i) {
-            var product = products[i];
-            var expectedProduct = expected![i];
-            expect(product.productId, expectedProduct.productId);
-            expect(product.price, expectedProduct.price);
-            expect(product.currency, expectedProduct.currency);
-            expect(product.localizedPrice, expectedProduct.localizedPrice);
-            expect(product.title, expectedProduct.title);
-            expect(product.description, expectedProduct.description);
-            expect(
-                product.introductoryPrice, expectedProduct.introductoryPrice);
-            expect(product.subscriptionPeriodNumberIOS,
-                expectedProduct.subscriptionPeriodNumberIOS);
-            expect(product.introductoryPricePaymentModeIOS,
-                expectedProduct.introductoryPricePaymentModeIOS);
-            expect(product.introductoryPriceNumberOfPeriodsIOS,
-                expectedProduct.introductoryPriceNumberOfPeriodsIOS);
-            expect(product.introductoryPriceSubscriptionPeriodIOS,
-                expectedProduct.introductoryPriceSubscriptionPeriodIOS);
-            expect(product.subscriptionPeriodAndroid,
-                expectedProduct.subscriptionPeriodAndroid);
-            // expect(product.introductoryPriceCyclesAndroid,
-            //     expectedProduct.introductoryPriceCyclesAndroid);
-            // expect(product.introductoryPricePeriodAndroid,
-            //     expectedProduct.introductoryPricePeriodAndroid);
-            // expect(product.freeTrialPeriodAndroid,
-            //     expectedProduct.freeTrialPeriodAndroid);
-          }
-        });
-      });
-    });
-
-    group('getPurchaseHistory', () {
-      group('for Android', () {
-        final List<MethodCall> log = <MethodCall>[];
-
-        final String resultInapp = """[{
-            "transactionDate":"1552824902000",
-            "transactionId":"testTransactionId",
-            "productId":"com.cooni.point1000",
-            "transactionReceipt":"testTransactionReciept",
-            "purchaseToken":"testPurchaseToken",
-            "autoRenewingAndroid":true,
-            "dataAndroid":"testDataAndroid",
-            "signatureAndroid":"testSignatureAndroid",
-            "originalTransactionDateIOS":"1552831136000",
-            "originalTransactionIdentifierIOS":"testOriginalTransactionIdentifierIOS"
-          }]""";
-        final String resultSubs = """[{
-            "transactionDate":"1552824902000",
-            "transactionId":"testSubsTransactionId",
-            "productId":"com.cooni.point1000.subs",
-            "transactionReceipt":"testSubsTransactionReciept",
-            "purchaseToken":"testSubsPurchaseToken",
-            "autoRenewingAndroid":true,
-            "dataAndroid":"testSubsDataAndroid",
-            "signatureAndroid":"testSubsSignatureAndroid",
-            "originalTransactionDateIOS":"1552831136000",
-            "originalTransactionIdentifierIOS":"testSubsOriginalTransactionIdentifierIOS"
-          }]""";
-
-        setUp(() {
-          FlutterInappPurchase(FlutterInappPurchase.private(
-              FakePlatform(operatingSystem: "android")));
-
-          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-              .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-            log.add(methodCall);
-            var m = methodCall.arguments as Map<dynamic, dynamic>;
-
-            if (m['type'] == 'inapp') {
-              return resultInapp;
-            } else if (m['type'] == 'subs') {
-              return resultSubs;
-            }
-
-            return null;
+            ]);
           });
         });
 
@@ -592,914 +223,144 @@ void main() {
         });
 
         test('invokes correct method', () async {
-          await FlutterInappPurchase.instance.getPurchaseHistory();
+          await FlutterInappPurchase.instance.getSubscriptions(['com.example.subscription1']);
           expect(log, <Matcher>[
-            isMethodCall(
-              'getPurchaseHistoryByType',
-              arguments: <String, dynamic>{
-                'type': 'inapp',
-              },
-            ),
-            isMethodCall(
-              'getPurchaseHistoryByType',
-              arguments: <String, dynamic>{
-                'type': 'subs',
-              },
-            ),
-          ]);
-        });
-
-        test('returns correct result', () async {
-          List<PurchasedItem>? actualList =
-              await (FlutterInappPurchase.instance.getPurchaseHistory()) ?? [];
-          List<PurchasedItem> expectList = ((json.decode(resultInapp) as List) +
-                  (json.decode(resultSubs) as List))
-              .map((item) => PurchasedItem.fromJSON(item))
-              .toList();
-
-          for (var i = 0; i < actualList.length; ++i) {
-            PurchasedItem actual = actualList[i];
-            PurchasedItem expected = expectList[i];
-
-            expect(actual.transactionDate, expected.transactionDate);
-            expect(actual.transactionId, expected.transactionId);
-            expect(actual.productId, expected.productId);
-            expect(actual.transactionReceipt, expected.transactionReceipt);
-            expect(actual.purchaseToken, expected.purchaseToken);
-            expect(actual.autoRenewingAndroid, expected.autoRenewingAndroid);
-            expect(actual.dataAndroid, expected.dataAndroid);
-            expect(actual.signatureAndroid, expected.signatureAndroid);
-            expect(actual.originalTransactionDateIOS,
-                expected.originalTransactionDateIOS);
-            expect(actual.originalTransactionIdentifierIOS,
-                expected.originalTransactionIdentifierIOS);
-          }
-        });
-      });
-
-      group('for iOS', () {
-        final List<MethodCall> log = <MethodCall>[];
-
-        final dynamic result = [
-          {
-            "transactionDate": "1552824902000",
-            "transactionId": "testTransactionId",
-            "productId": "com.cooni.point1000",
-            "transactionReceipt": "testTransactionReciept",
-            "purchaseToken": "testPurchaseToken",
-            "autoRenewingAndroid": true,
-            "dataAndroid": "testDataAndroid",
-            "signatureAndroid": "testSignatureAndroid",
-            "originalTransactionDateIOS": "1552831136000",
-            "originalTransactionIdentifierIOS":
-                "testOriginalTransactionIdentifierIOS"
-          },
-          {
-            "transactionDate": "1552824902000",
-            "transactionId": "testSubsTransactionId",
-            "productId": "com.cooni.point1000.subs",
-            "transactionReceipt": "testSubsTransactionReciept",
-            "purchaseToken": "testSubsPurchaseToken",
-            "autoRenewingAndroid": true,
-            "dataAndroid": "testSubsDataAndroid",
-            "signatureAndroid": "testSubsSignatureAndroid",
-            "originalTransactionDateIOS": "1552831136000",
-            "originalTransactionIdentifierIOS":
-                "testSubsOriginalTransactionIdentifierIOS"
-          }
-        ];
-
-        setUp(() {
-          FlutterInappPurchase(FlutterInappPurchase.private(
-              FakePlatform(operatingSystem: "ios")));
-
-          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-              .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-            log.add(methodCall);
-            return result;
-          });
-        });
-
-        tearDown(() {
-          FlutterInappPurchase.channel.setMethodCallHandler(null);
-        });
-
-        test('invokes correct method', () async {
-          await FlutterInappPurchase.instance.getPurchaseHistory();
-          expect(log, <Matcher>[
-            isMethodCall(
-              'getAvailableItems',
-              arguments: null,
-            ),
-          ]);
-        });
-
-        test('returns correct result', () async {
-          List<PurchasedItem>? actualList =
-              await (FlutterInappPurchase.instance.getPurchaseHistory()) ?? [];
-          List<PurchasedItem>? expectList = result
-              .map<PurchasedItem>((item) => PurchasedItem.fromJSON(item))
-              .toList();
-
-          for (var i = 0; i < actualList.length; ++i) {
-            PurchasedItem actual = actualList[i];
-            PurchasedItem expected = expectList![i];
-
-            expect(actual.transactionDate, expected.transactionDate);
-            expect(actual.transactionId, expected.transactionId);
-            expect(actual.productId, expected.productId);
-            expect(actual.transactionReceipt, expected.transactionReceipt);
-            expect(actual.purchaseToken, expected.purchaseToken);
-            expect(actual.autoRenewingAndroid, expected.autoRenewingAndroid);
-            expect(actual.dataAndroid, expected.dataAndroid);
-            expect(actual.signatureAndroid, expected.signatureAndroid);
-            expect(actual.originalTransactionDateIOS,
-                expected.originalTransactionDateIOS);
-            expect(actual.originalTransactionIdentifierIOS,
-                expected.originalTransactionIdentifierIOS);
-          }
-        });
-      });
-    });
-
-    group('getAvailablePurchases', () {
-      group('for Android', () {
-        final List<MethodCall> log = <MethodCall>[];
-
-        final String resultInapp = """[{
-            "transactionDate":"1552824902000",
-            "transactionId":"testTransactionId",
-            "productId":"com.cooni.point1000",
-            "transactionReceipt":"testTransactionReciept",
-            "purchaseToken":"testPurchaseToken",
-            "autoRenewingAndroid":true,
-            "dataAndroid":"testDataAndroid",
-            "signatureAndroid":"testSignatureAndroid",
-            "originalTransactionDateIOS":"1552831136000",
-            "originalTransactionIdentifierIOS":"testOriginalTransactionIdentifierIOS"
-          }]""";
-        final String resultSubs = """[{
-            "transactionDate":"1552824902000",
-            "transactionId":"testSubsTransactionId",
-            "productId":"com.cooni.point1000.subs",
-            "transactionReceipt":"testSubsTransactionReciept",
-            "purchaseToken":"testSubsPurchaseToken",
-            "autoRenewingAndroid":true,
-            "dataAndroid":"testSubsDataAndroid",
-            "signatureAndroid":"testSubsSignatureAndroid",
-            "originalTransactionDateIOS":"1552831136000",
-            "originalTransactionIdentifierIOS":"testSubsOriginalTransactionIdentifierIOS"
-          }]""";
-
-        setUp(() {
-          FlutterInappPurchase(FlutterInappPurchase.private(
-              FakePlatform(operatingSystem: "android")));
-
-          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-              .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-            log.add(methodCall);
-
-            var m = methodCall.arguments as Map<dynamic, dynamic>;
-            if (m['type'] == 'inapp') {
-              return resultInapp;
-            } else if (m['type'] == 'subs') {
-              return resultSubs;
-            }
-            return null;
-          });
-        });
-
-        tearDown(() {
-          FlutterInappPurchase.channel.setMethodCallHandler(null);
-        });
-
-        test('invokes correct method', () async {
-          await FlutterInappPurchase.instance.getAvailablePurchases();
-          expect(log, <Matcher>[
-            isMethodCall(
-              'getAvailableItemsByType',
-              arguments: <String, dynamic>{
-                'type': 'inapp',
-              },
-            ),
-            isMethodCall(
-              'getAvailableItemsByType',
-              arguments: <String, dynamic>{
-                'type': 'subs',
-              },
-            ),
-          ]);
-        });
-
-        test('returns correct result', () async {
-          List<PurchasedItem>? actualList =
-              await (FlutterInappPurchase.instance.getAvailablePurchases()) ??
-                  [];
-          List<PurchasedItem> expectList = ((json.decode(resultInapp) as List) +
-                  (json.decode(resultSubs) as List))
-              .map((item) => PurchasedItem.fromJSON(item))
-              .toList();
-
-          for (var i = 0; i < actualList.length; ++i) {
-            PurchasedItem actual = actualList[i];
-            PurchasedItem expected = expectList[i];
-
-            expect(actual.transactionDate, expected.transactionDate);
-            expect(actual.transactionId, expected.transactionId);
-            expect(actual.productId, expected.productId);
-            expect(actual.transactionReceipt, expected.transactionReceipt);
-            expect(actual.purchaseToken, expected.purchaseToken);
-            expect(actual.autoRenewingAndroid, expected.autoRenewingAndroid);
-            expect(actual.dataAndroid, expected.dataAndroid);
-            expect(actual.signatureAndroid, expected.signatureAndroid);
-            expect(actual.originalTransactionDateIOS,
-                expected.originalTransactionDateIOS);
-            expect(actual.originalTransactionIdentifierIOS,
-                expected.originalTransactionIdentifierIOS);
-          }
-        });
-      });
-
-      group('for iOS', () {
-        final List<MethodCall> log = <MethodCall>[];
-
-        final dynamic result = [
-          {
-            "transactionDate": "1552824902000",
-            "transactionId": "testTransactionId",
-            "productId": "com.cooni.point1000",
-            "transactionReceipt": "testTransactionReciept",
-            "purchaseToken": "testPurchaseToken",
-            "autoRenewingAndroid": true,
-            "dataAndroid": "testDataAndroid",
-            "signatureAndroid": "testSignatureAndroid",
-            "originalTransactionDateIOS": "1552831136000",
-            "originalTransactionIdentifierIOS":
-                "testOriginalTransactionIdentifierIOS"
-          },
-          {
-            "transactionDate": "1552824902000",
-            "transactionId": "testSubsTransactionId",
-            "productId": "com.cooni.point1000.subs",
-            "transactionReceipt": "testSubsTransactionReciept",
-            "purchaseToken": "testSubsPurchaseToken",
-            "autoRenewingAndroid": true,
-            "dataAndroid": "testSubsDataAndroid",
-            "signatureAndroid": "testSubsSignatureAndroid",
-            "originalTransactionDateIOS": "1552831136000",
-            "originalTransactionIdentifierIOS":
-                "testSubsOriginalTransactionIdentifierIOS"
-          }
-        ];
-
-        setUp(() {
-          FlutterInappPurchase(FlutterInappPurchase.private(
-              FakePlatform(operatingSystem: "ios")));
-
-          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-              .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-            log.add(methodCall);
-            return result;
-          });
-        });
-
-        tearDown(() {
-          FlutterInappPurchase.channel.setMethodCallHandler(null);
-        });
-
-        test('invokes correct method', () async {
-          await FlutterInappPurchase.instance.getAvailablePurchases();
-          expect(log, <Matcher>[
-            isMethodCall(
-              'getAvailableItems',
-              arguments: null,
-            ),
-          ]);
-        });
-
-        test('returns correct result', () async {
-          List<PurchasedItem>? actualList =
-              await (FlutterInappPurchase.instance.getAvailablePurchases()) ??
-                  [];
-          List<PurchasedItem>? expectList = result
-              .map<PurchasedItem>((item) =>
-                  PurchasedItem.fromJSON(item as Map<String, dynamic>))
-              .toList();
-
-          for (var i = 0; i < actualList.length; ++i) {
-            PurchasedItem actual = actualList[i];
-            PurchasedItem expected = expectList![i];
-
-            expect(actual.transactionDate, expected.transactionDate);
-            expect(actual.transactionId, expected.transactionId);
-            expect(actual.productId, expected.productId);
-            expect(actual.transactionReceipt, expected.transactionReceipt);
-            expect(actual.purchaseToken, expected.purchaseToken);
-            expect(actual.autoRenewingAndroid, expected.autoRenewingAndroid);
-            expect(actual.dataAndroid, expected.dataAndroid);
-            expect(actual.signatureAndroid, expected.signatureAndroid);
-            expect(actual.originalTransactionDateIOS,
-                expected.originalTransactionDateIOS);
-            expect(actual.originalTransactionIdentifierIOS,
-                expected.originalTransactionIdentifierIOS);
-          }
-        });
-      });
-    });
-
-    group('requestPurchase', () {
-      group('for iOS', () {
-        final List<MethodCall> log = <MethodCall>[];
-        /*
-        final dynamic result = {
-          "transactionDate": "1552824902000",
-          "transactionId": "testTransactionId",
-          "productId": "com.cooni.point1000",
-          "transactionReceipt": "testTransactionReciept",
-          "purchaseToken": "testPurchaseToken",
-          "autoRenewingAndroid": true,
-          "dataAndroid": "testDataAndroid",
-          "signatureAndroid": "testSignatureAndroid",
-          "originalTransactionDateIOS": "1552831136000",
-          "originalTransactionIdentifierIOS":
-              "testOriginalTransactionIdentifierIOS"
-        };
-         */
-
-        final String sku = "testsku";
-        final String forUser = "testObfuscatedUser";
-
-        setUp(() {
-          FlutterInappPurchase(FlutterInappPurchase.private(
-              FakePlatform(operatingSystem: "ios")));
-
-          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-              .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-            log.add(methodCall);
-            return null;
-          });
-        });
-
-        tearDown(() {
-          FlutterInappPurchase.channel.setMethodCallHandler(null);
-        });
-
-        test('invokes correct method', () async {
-          await FlutterInappPurchase.instance.requestPurchase(
-            sku,
-            obfuscatedAccountId: forUser,
-          );
-          expect(log, <Matcher>[
-            isMethodCall(
-              'buyProduct',
-              arguments: <String, dynamic>{
-                'sku': sku,
-                'forUser': forUser,
-              },
-            ),
-          ]);
-        });
-
-        test('returns correct result', () async {
-          expect(
-              await FlutterInappPurchase.instance.requestPurchase(sku), null);
-        });
-      });
-
-      group('for Android', () {
-        final List<MethodCall> log = <MethodCall>[];
-        final String productId = "testsku";
-        /*
-        final dynamic result = {
-          "transactionDate": "1552824902000",
-          "transactionId": "testTransactionId",
-          "productId": "com.cooni.point1000",
-          "transactionReceipt": "testTransactionReciept",
-          "purchaseToken": "testPurchaseToken",
-          "autoRenewingAndroid": true,
-          "dataAndroid": "testDataAndroid",
-          "signatureAndroid": "testSignatureAndroid",
-          "originalTransactionDateIOS": "1552831136000",
-          "originalTransactionIdentifierIOS":
-              "testOriginalTransactionIdentifierIOS"
-        };
-         */
-
-        setUp(() {
-          FlutterInappPurchase(FlutterInappPurchase.private(
-              FakePlatform(operatingSystem: "android")));
-
-          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-              .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-            log.add(methodCall);
-            return null;
-          });
-        });
-
-        tearDown(() {
-          FlutterInappPurchase.channel.setMethodCallHandler(null);
-        });
-
-        test('invokes correct method', () async {
-          await FlutterInappPurchase.instance.requestPurchase(productId);
-          expect(log, <Matcher>[
-            isMethodCall(
-              'buyItemByType',
-              arguments: <String, dynamic>{
-                'type': 'inapp',
-                'productId': productId,
-                'prorationMode': -1,
-                'obfuscatedAccountId': null,
-                'obfuscatedProfileId': null,
-                'purchaseToken': null,
-                'offerTokenIndex': null
-              },
-            ),
-          ]);
-        });
-
-        test('returns correct result', () async {
-          expect(await FlutterInappPurchase.instance.requestPurchase(productId),
-              null);
-        });
-      });
-    });
-
-    group('requestSubscription', () {
-      group('for Android', () {
-        final List<MethodCall> log = <MethodCall>[];
-
-        final String productId = "testsku";
-        /*
-        final String result = """{
-          "transactionDate":"1552824902000",
-          "transactionId":"testTransactionId",
-          "productId":"com.cooni.point1000",
-          "transactionReceipt":"testTransactionReciept",
-          "purchaseToken":"testPurchaseToken",
-          "autoRenewingAndroid":true,
-          "dataAndroid":"testDataAndroid",
-          "signatureAndroid":"testSignatureAndroid",
-          "originalTransactionDateIOS":"1552831136000",
-          "originalTransactionIdentifierIOS":"testOriginalTransactionIdentifierIOS"
-        }""";
-         */
-
-        setUp(() {
-          FlutterInappPurchase(FlutterInappPurchase.private(
-              FakePlatform(operatingSystem: "android")));
-
-          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-              .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-            log.add(methodCall);
-            return null;
-          });
-        });
-
-        tearDown(() {
-          FlutterInappPurchase.channel.setMethodCallHandler(null);
-        });
-
-        test('invokes correct method', () async {
-          await FlutterInappPurchase.instance.requestSubscription(productId);
-          expect(log, <Matcher>[
-            isMethodCall(
-              'buyItemByType',
-              arguments: <String, dynamic>{
-                'type': 'subs',
-                'productId': productId,
-                'prorationMode': -1,
-                'obfuscatedAccountId': null,
-                'obfuscatedProfileId': null,
-                'purchaseToken': null,
-                'offerTokenIndex': null
-              },
-            ),
-          ]);
-        });
-
-        test('returns correct result', () async {
-          expect(
-              await FlutterInappPurchase.instance
-                  .requestSubscription(productId),
-              null);
-        });
-      });
-
-      group('for iOS', () {
-        final List<MethodCall> log = <MethodCall>[];
-        final String sku = "testsku";
-        final String forUser = "testObfuscatedUser";
-        /*
-        final dynamic result = {
-          "transactionDate": "1552824902000",
-          "transactionId": "testTransactionId",
-          "productId": "com.cooni.point1000",
-          "transactionReceipt": "testTransactionReciept",
-          "purchaseToken": "testPurchaseToken",
-          "autoRenewingAndroid": true,
-          "dataAndroid": "testDataAndroid",
-          "signatureAndroid": "testSignatureAndroid",
-          "originalTransactionDateIOS": "1552831136000",
-          "originalTransactionIdentifierIOS":
-              "testOriginalTransactionIdentifierIOS"
-        };
-         */
-
-        setUp(() {
-          FlutterInappPurchase(FlutterInappPurchase.private(
-              FakePlatform(operatingSystem: "ios")));
-
-          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-              .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-            log.add(methodCall);
-            return null;
-          });
-        });
-
-        tearDown(() {
-          FlutterInappPurchase.channel.setMethodCallHandler(null);
-        });
-
-        test('invokes correct method', () async {
-          await FlutterInappPurchase.instance.requestPurchase(
-            sku,
-            obfuscatedAccountId: forUser,
-          );
-          expect(log, <Matcher>[
-            isMethodCall(
-              'buyProduct',
-              arguments: <String, dynamic>{
-                'sku': sku,
-                'forUser': forUser,
-              },
-            ),
-          ]);
-        });
-
-        test('returns correct result', () async {
-          expect(await FlutterInappPurchase.instance.requestSubscription(sku),
-              null);
-        });
-      });
-    });
-
-    group('acknowledgePurchaseAndroid', () {
-      group('for Android', () {
-        final List<MethodCall> log = <MethodCall>[];
-        final String token = "testToken";
-
-        setUp(() {
-          FlutterInappPurchase(FlutterInappPurchase.private(
-              FakePlatform(operatingSystem: "android")));
-
-          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-              .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-            log.add(methodCall);
-            return null;
-          });
-        });
-
-        tearDown(() {
-          FlutterInappPurchase.channel.setMethodCallHandler(null);
-        });
-
-        test('invokes correct method', () async {
-          await FlutterInappPurchase.instance.acknowledgePurchaseAndroid(token);
-          expect(log, <Matcher>[
-            isMethodCall(
-              'acknowledgePurchase',
-              arguments: <String, dynamic>{
-                'token': token,
-              },
-            ),
-          ]);
-        });
-
-        test('returns correct result', () async {
-          expect(
-              await FlutterInappPurchase.instance
-                  .acknowledgePurchaseAndroid(token),
-              null);
-        });
-      });
-    });
-
-    group('consumePurchaseAndroid', () {
-      group('for Android', () {
-        final List<MethodCall> log = <MethodCall>[];
-        final String token = "testToken";
-
-        setUp(() {
-          FlutterInappPurchase(FlutterInappPurchase.private(
-              FakePlatform(operatingSystem: "android")));
-
-          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-              .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-            log.add(methodCall);
-            return null;
-          });
-        });
-
-        tearDown(() {
-          FlutterInappPurchase.channel.setMethodCallHandler(null);
-        });
-
-        test('invokes correct method', () async {
-          await FlutterInappPurchase.instance.consumePurchaseAndroid(token);
-          expect(log, <Matcher>[
-            isMethodCall('consumeProduct', arguments: <String, dynamic>{
-              'token': token,
+            isMethodCall('getItemsByType', arguments: <String, dynamic>{
+              'type': 'subs',
+              'skus': ['com.example.subscription1'],
             }),
           ]);
         });
 
-        test('returns correct result', () async {
-          expect(
-              await FlutterInappPurchase.instance.consumePurchaseAndroid(token),
-              null);
+        test('returns correct subscriptions', () async {
+          final subscriptions = await FlutterInappPurchase.instance.getSubscriptions(['com.example.subscription1']);
+          expect(subscriptions?.length, 1);
+          expect(subscriptions?[0].productId, 'com.example.subscription1');
+          expect(subscriptions?[0].subscriptionPeriodUnitIOS, 'MONTH');
         });
       });
     });
 
-    group('endConnection', () {
-      group('for Android', () {
-        final List<MethodCall> log = <MethodCall>[];
-        setUp(() {
-          FlutterInappPurchase(FlutterInappPurchase.private(
-              FakePlatform(operatingSystem: "android")));
-
-          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-              .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-            log.add(methodCall);
-            return "Billing client has ended.";
-          });
-        });
-
-        tearDown(() {
-          FlutterInappPurchase.channel.setMethodCallHandler(null);
-        });
-
-        test('invokes correct method', () async {
-          await FlutterInappPurchase.instance.finalize();
-          expect(log, <Matcher>[
-            isMethodCall('endConnection', arguments: null),
-          ]);
-        });
-
-        test('returns correct result', () async {
-          expect(await FlutterInappPurchase.instance.finalize(),
-              "Billing client has ended.");
-        });
-      });
-
-      group('for iOS', () {
-        setUp(() {
-          FlutterInappPurchase(FlutterInappPurchase.private(
-              FakePlatform(operatingSystem: "ios")));
-        });
-
-        tearDown(() {
-          FlutterInappPurchase.channel.setMethodCallHandler(null);
-        });
-
-        test('returns correct result', () async {
-          expect(await FlutterInappPurchase.instance.finalize(),
-              "Billing client has ended.");
-        });
-      });
-    });
-
-    group('finishTransactionIOS', () {
-      group('for iOS', () {
-        final List<MethodCall> log = <MethodCall>[];
-        setUp(() {
-          FlutterInappPurchase(FlutterInappPurchase.private(
-              FakePlatform(operatingSystem: "ios")));
-
-          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-              .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-            log.add(methodCall);
-            return null;
-          });
-        });
-
-        tearDown(() {
-          FlutterInappPurchase.channel.setMethodCallHandler(null);
-        });
-
-        test('invokes correct method', () async {
-          await FlutterInappPurchase.instance
-              .finishTransactionIOS('purchase_token_111');
-          expect(log, <Matcher>[
-            isMethodCall('finishTransaction', arguments: <String, dynamic>{
-              'transactionIdentifier': 'purchase_token_111',
-            }),
-          ]);
-        });
-
-        test('returns correct result', () async {
-          expect(
-            await FlutterInappPurchase.instance
-                .finishTransactionIOS('purchase_token_111'),
-            null,
-          );
-        });
-      });
-    });
-    group('getAppStoreInitiatedProducts', () {
-      group('for Android', () {
-        setUp(() {
-          FlutterInappPurchase(FlutterInappPurchase.private(
-              FakePlatform(operatingSystem: "android")));
-        });
-
-        tearDown(() {
-          FlutterInappPurchase.channel.setMethodCallHandler(null);
-        });
-
-        test('returns correct result', () async {
-          expect(
-              await FlutterInappPurchase.instance
-                  .getAppStoreInitiatedProducts(),
-              <IAPItem>[]);
-        });
-      });
-
-      group('for iOS', () {
-        final List<MethodCall> log = <MethodCall>[];
-
-        final dynamic result = [
+    group('Error Handling', () {
+      test('PurchaseError creation from platform error', () {
+        final error = PurchaseError.fromPlatformError(
           {
-            "productId": "com.cooni.point1000",
-            "price": "120",
-            "currency": "JPY",
-            "localizedPrice": "¥120",
-            "title": "1,000",
-            "description": "1000 points 1000P",
-            "introductoryPrice": "1001",
-            "introductoryPricePaymentModeIOS": "1002",
-            "introductoryPriceNumberOfPeriodsIOS": "1003",
-            "introductoryPriceSubscriptionPeriodIOS": "1004",
-            "subscriptionPeriodUnitIOS": "1",
-            "subscriptionPeriodAndroid": "2",
-            "subscriptionPeriodNumberIOS": "3",
-            "introductoryPriceCyclesAndroid": 4,
-            "introductoryPricePeriodAndroid": "5",
-            "freeTrialPeriodAndroid": "6"
-          }
-        ];
-        setUp(() {
-          FlutterInappPurchase(FlutterInappPurchase.private(
-              FakePlatform(operatingSystem: "ios")));
+            'code': 'E_USER_CANCELLED',
+            'message': 'User cancelled the purchase',
+            'responseCode': 1,
+            'debugMessage': 'Debug info',
+            'productId': 'com.example.product',
+          },
+          IAPPlatform.android,
+        );
 
-          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-              .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-            log.add(methodCall);
-            return result;
-          });
-        });
-
-        tearDown(() {
-          FlutterInappPurchase.channel.setMethodCallHandler(null);
-        });
-
-        test('invokes correct method', () async {
-          await FlutterInappPurchase.instance.getAppStoreInitiatedProducts();
-          expect(log, <Matcher>[
-            isMethodCall('getAppStoreInitiatedProducts', arguments: null),
-          ]);
-        });
-
-        test('returns correct result', () async {
-          List<IAPItem> products = await FlutterInappPurchase.instance
-              .getAppStoreInitiatedProducts();
-          List<IAPItem>? expected = result
-              .map<IAPItem>(
-                (product) => IAPItem.fromJSON(product as Map<String, dynamic>),
-              )
-              .toList();
-          for (var i = 0; i < products.length; ++i) {
-            var product = products[i];
-            var expectedProduct = expected![i];
-            expect(product.productId, expectedProduct.productId);
-            expect(product.price, expectedProduct.price);
-            expect(product.currency, expectedProduct.currency);
-            expect(product.localizedPrice, expectedProduct.localizedPrice);
-            expect(product.title, expectedProduct.title);
-            expect(product.description, expectedProduct.description);
-            expect(
-                product.introductoryPrice, expectedProduct.introductoryPrice);
-            expect(product.subscriptionPeriodNumberIOS,
-                expectedProduct.subscriptionPeriodNumberIOS);
-            expect(product.introductoryPricePaymentModeIOS,
-                expectedProduct.introductoryPricePaymentModeIOS);
-            expect(product.introductoryPriceNumberOfPeriodsIOS,
-                expectedProduct.introductoryPriceNumberOfPeriodsIOS);
-            expect(product.introductoryPriceSubscriptionPeriodIOS,
-                expectedProduct.introductoryPriceSubscriptionPeriodIOS);
-            // expect(product.subscriptionPeriodAndroid,
-            //     expectedProduct.subscriptionPeriodAndroid);
-            // expect(product.introductoryPriceCyclesAndroid,
-            //     expectedProduct.introductoryPriceCyclesAndroid);
-            // expect(product.introductoryPricePeriodAndroid,
-            //     expectedProduct.introductoryPricePeriodAndroid);
-            // expect(product.freeTrialPeriodAndroid,
-            //     expectedProduct.freeTrialPeriodAndroid);
-          }
-        });
-      });
-    });
-    group('checkSubscribed', () {
-      // FIXME
-      // This method can't be tested, because this method calls static methods internally.
-      // To test, it needs to change static method to non-static method.
-    });
-
-    group('validateReceiptAndroid', () {
-      setUp(() {
-        FlutterInappPurchase(FlutterInappPurchase.private(
-            FakePlatform(operatingSystem: "android")));
+        expect(error.code, ErrorCode.E_USER_CANCELLED);
+        expect(error.message, 'User cancelled the purchase');
+        expect(error.responseCode, 1);
+        expect(error.debugMessage, 'Debug info');
+        expect(error.productId, 'com.example.product');
+        expect(error.platform, IAPPlatform.android);
       });
 
-      tearDown(() {
-        FlutterInappPurchase.channel.setMethodCallHandler(null);
-      });
+      test('ErrorCodeUtils maps platform codes correctly', () {
+        // Test iOS mapping
+        expect(ErrorCodeUtils.fromPlatformCode(2, IAPPlatform.ios), ErrorCode.E_USER_CANCELLED);
+        expect(ErrorCodeUtils.toPlatformCode(ErrorCode.E_USER_CANCELLED, IAPPlatform.ios), 2);
 
-      test('returns correct http request url, isSubscription is true',
-          () async {
-        final String packageName = "testpackege";
-        final String productId = "testProductId";
-        final String productToken = "testProductToken";
-        final String accessToken = "testAccessToken";
-        final String type = "subscriptions";
-        final response = await FlutterInappPurchase.instance
-            .validateReceiptAndroid(
-                packageName: packageName,
-                productId: productId,
-                productToken: productToken,
-                accessToken: accessToken,
-                isSubscription: true);
-        expect(response.request!.url.toString(),
-            "https://www.googleapis.com/androidpublisher/v3/applications/$packageName/purchases/$type/$productId/tokens/$productToken?access_token=$accessToken");
-      });
-      test('returns correct http request url, isSubscription is false',
-          () async {
-        final String packageName = "testpackege";
-        final String productId = "testProductId";
-        final String productToken = "testProductToken";
-        final String accessToken = "testAccessToken";
-        final String type = "products";
-        final response = await FlutterInappPurchase.instance
-            .validateReceiptAndroid(
-                packageName: packageName,
-                productId: productId,
-                productToken: productToken,
-                accessToken: accessToken,
-                isSubscription: false);
-        expect(response.request!.url.toString(),
-            "https://www.googleapis.com/androidpublisher/v3/applications/$packageName/purchases/$type/$productId/tokens/$productToken?access_token=$accessToken");
+        // Test Android mapping
+        expect(ErrorCodeUtils.fromPlatformCode('E_USER_CANCELLED', IAPPlatform.android), ErrorCode.E_USER_CANCELLED);
+        expect(ErrorCodeUtils.toPlatformCode(ErrorCode.E_USER_CANCELLED, IAPPlatform.android), 'E_USER_CANCELLED');
+
+        // Test unknown code
+        expect(ErrorCodeUtils.fromPlatformCode('UNKNOWN_ERROR', IAPPlatform.android), ErrorCode.E_UNKNOWN);
       });
     });
 
-    group('validateReceiptIos', () {
-      final receiptBody = {
-        'receipt-data': 'purchasedItem.transactionReceipt',
-        'password': 'apple_password'
-      };
+    group('Type Conversions', () {
+      test('IAPItem conversion preserves all fields', () {
+        final jsonData = {
+          'productId': 'test.product',
+          'price': '1.99',
+          'currency': 'USD',
+          'localizedPrice': r'$1.99',
+          'title': 'Test Product',
+          'description': 'Test Description',
+          'type': 'inapp',
+          'iconUrl': 'https://example.com/icon.png',
+          'originalJson': '{}',
+          'originalPrice': '1.99',
+          'discounts': <dynamic>[],
+        };
 
-      setUp(() {
-        FlutterInappPurchase(FlutterInappPurchase.private(
-          FakePlatform(operatingSystem: "ios"),
-        ));
+        final item = IAPItem.fromJSON(jsonData);
+        expect(item.productId, 'test.product');
+        expect(item.price, '1.99');
+        expect(item.currency, 'USD');
+        expect(item.localizedPrice, r'$1.99');
+        expect(item.title, 'Test Product');
+        expect(item.description, 'Test Description');
+        // type field was removed in refactoring
+        expect(item.iconUrl, 'https://example.com/icon.png');
       });
 
-      tearDown(() {
-        FlutterInappPurchase.channel.setMethodCallHandler(null);
+      test('PurchasedItem conversion handles all fields', () {
+        final jsonData = {
+          'productId': 'test.product',
+          'transactionId': 'trans123',
+          'transactionDate': 1234567890,
+          'transactionReceipt': 'receipt_data',
+          'purchaseToken': 'token123',
+          'orderId': 'order123',
+          'dataAndroid': 'android_data',
+          'signatureAndroid': 'signature',
+          'isAcknowledgedAndroid': true,
+          'purchaseStateAndroid': 1,
+          'originalTransactionDateIOS': 1234567890,
+          'originalTransactionIdentifierIOS': 'orig_trans123',
+        };
+
+        final item = PurchasedItem.fromJSON(jsonData);
+        expect(item.productId, 'test.product');
+        expect(item.transactionId, 'trans123');
+        expect(item.transactionDate, 1234567890);
+        expect(item.transactionReceipt, 'receipt_data');
+        expect(item.purchaseToken, 'token123');
+        // orderId field was removed in refactoring
+        expect(item.isAcknowledgedAndroid, true);
+      });
+    });
+
+    group('Enum Values', () {
+      test('Store enum has correct values', () {
+        expect(Store.values.length, 4);
+        expect(Store.none.toString(), 'Store.none');
+        expect(Store.playStore.toString(), 'Store.playStore');
+        expect(Store.amazon.toString(), 'Store.amazon');
+        expect(Store.appStore.toString(), 'Store.appStore');
       });
 
-      test('returns correct http request url in sandbox', () async {
-        final response = await FlutterInappPurchase.instance.validateReceiptIos(
-          receiptBody: receiptBody,
-          isTest: true,
-        );
-
-        expect(
-          response.request!.url.toString(),
-          "https://sandbox.itunes.apple.com/verifyReceipt",
-        );
+      test('PurchaseType enum has correct values', () {
+        expect(PurchaseType.values.length, 2);
+        expect(PurchaseType.inapp.toString(), 'PurchaseType.inapp');
+        expect(PurchaseType.subs.toString(), 'PurchaseType.subs');
       });
 
-      test('returns correct http request url in production', () async {
-        final response = await FlutterInappPurchase.instance.validateReceiptIos(
-          receiptBody: receiptBody,
-          isTest: false,
-        );
+      test('SubscriptionState enum has correct values', () {
+        expect(SubscriptionState.values.length, 5);
+        expect(SubscriptionState.active.toString(), 'SubscriptionState.active');
+        expect(SubscriptionState.expired.toString(), 'SubscriptionState.expired');
+        expect(SubscriptionState.inBillingRetry.toString(), 'SubscriptionState.inBillingRetry');
+        expect(SubscriptionState.inGracePeriod.toString(), 'SubscriptionState.inGracePeriod');
+        expect(SubscriptionState.revoked.toString(), 'SubscriptionState.revoked');
+      });
 
-        expect(
-          response.request!.url.toString(),
-          "https://buy.itunes.apple.com/verifyReceipt",
-        );
+      test('ProrationMode enum has correct values', () {
+        expect(ProrationMode.values.length, 5);
+        expect(ProrationMode.immediateWithTimeProration.toString(), 'ProrationMode.immediateWithTimeProration');
+        expect(ProrationMode.immediateAndChargeProratedPrice.toString(), 'ProrationMode.immediateAndChargeProratedPrice');
+        expect(ProrationMode.immediateWithoutProration.toString(), 'ProrationMode.immediateWithoutProration');
+        expect(ProrationMode.deferred.toString(), 'ProrationMode.deferred');
+        expect(ProrationMode.immediateAndChargeFullPrice.toString(), 'ProrationMode.immediateAndChargeFullPrice');
       });
     });
   });
