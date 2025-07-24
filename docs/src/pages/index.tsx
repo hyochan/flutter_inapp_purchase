@@ -22,21 +22,23 @@ function HomepageHeader() {
             <div className={styles.buttons}>
               <Link
                 className="button button--primary button--lg"
-                to="/docs/intro">
+                to="/docs/intro"
+              >
                 Get Started - 5min ⏱️
               </Link>
               <Link
                 className="button button--secondary button--lg"
-                to="/docs/getting-started/installation">
+                to="/docs/getting-started/installation"
+              >
                 Installation Guide
               </Link>
             </div>
           </div>
           <div className={styles.heroImage}>
-            <img 
-              src="/img/hero.png" 
-              alt="flutter_inapp_purchase Hero" 
-              className={styles.heroImg} 
+            <img
+              src="/img/hero.png"
+              alt="flutter_inapp_purchase Hero"
+              className={styles.heroImg}
             />
           </div>
         </div>
