@@ -156,6 +156,7 @@ await FlutterInappPurchase.instance.requestPurchase(
 ## 🤝 Community & Support
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 This project is maintained by [hyochan](https://github.com/hyochan).
 
 - **GitHub Issues**: [Report bugs and feature requests](https://github.com/hyochan/flutter_inapp_purchase/issues)
@@ -167,6 +168,9 @@ This project is maintained by [hyochan](https://github.com/hyochan).
 Ready to implement in-app purchases in your Flutter app? Let's [get started](/getting-started/installation)! 🚀
 =======
 This project is maintained by [dooboolab](https://github.com/dooboolab) and the open-source community.
+=======
+This project is maintained by [hyochan](https://github.com/hyochan).
+>>>>>>> f429402 (refactor: Change package name from com.dooboolab to dev.hyochan)
 
 - **GitHub Issues**: [Report bugs and feature requests](https://github.com/hyochan/flutter_inapp_purchase/issues)
 - **Discussions**: [Join community discussions](https://github.com/hyochan/flutter_inapp_purchase/discussions)

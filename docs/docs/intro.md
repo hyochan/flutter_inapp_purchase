@@ -125,7 +125,7 @@ await FlutterInappPurchase.instance.requestPurchase(
 
 ## 🤝 Community & Support
 
-This project is maintained by [dooboolab](https://github.com/dooboolab) and the open-source community.
+This project is maintained by [hyochan](https://github.com/hyochan).
 
 - **GitHub Issues**: [Report bugs and feature requests](https://github.com/hyochan/flutter_inapp_purchase/issues)
 - **Discussions**: [Join community discussions](https://github.com/hyochan/flutter_inapp_purchase/discussions)

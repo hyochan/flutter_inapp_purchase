@@ -52,10 +52,14 @@ If using ProGuard/R8, add these rules to `android/app/proguard-rules.pro`:
 ```proguard title="android/app/proguard-rules.pro"
 # Flutter In-App Purchase
 <<<<<<< HEAD
+<<<<<<< HEAD
 -keep class dev.hyo.** { *; }
 =======
 -keep class com.dooboolab.** { *; }
 >>>>>>> 5e86ee0 (docs: Update community links and fix configuration)
+=======
+-keep class dev.hyochan.** { *; }
+>>>>>>> f429402 (refactor: Change package name from com.dooboolab to dev.hyochan)
 -keep class com.android.vending.billing.**
 -keep class com.google.android.gms.** { *; }
 

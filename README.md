@@ -330,7 +330,7 @@ If you have enabled proguard you will need to add the following rules to your `p
 ```
 #In app Purchase
 -keep class com.amazon.** {*;}
--keep class com.dooboolab.** { *; }
+-keep class dev.hyochan.** { *; }
 -keep class com.android.vending.billing.**
 -dontwarn com.amazon.**
 -keepattributes *Annotation*
@@ -352,7 +352,7 @@ If you have enabled proguard you will need to add the following rules to your `p
 - I've developed this feature for other developers to contribute easily who are aware of these things. The doc says you can also get the `accessToken` via play console without any of your backend server. You can get this by following process.
   - Select your app > Services & APIs > "YOUR LICENSE KEY FOR THIS APPLICATION Base64-encoded RSA public key to include in your binary". [reference](https://stackoverflow.com/questions/27132443/how-to-find-my-google-play-services-android-base64-public-key).
 
-#### Invalid productId in ios.
+#### Invalid productId in ios
 
 - Please try below and make sure you've done belows.
   - Steps
@@ -370,4 +370,4 @@ If you have enabled proguard you will need to add the following rules to your `p
 I've been maintaining quite many repos these days and burning out slowly. If you could help me cheer up, buying me a cup of coffee will make my life really happy and get much energy out of it.
 
 [![Paypal](https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-100px.png)](https://paypal.me/dooboolab)
-<a href="https://www.buymeacoffee.com/dooboolab" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/purple_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
+<a href="https://www.buymeacoffee.com/hyochan" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/purple_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
