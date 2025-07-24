@@ -2,6 +2,7 @@
 .vagrant/
 .sconsign.dblite
 .svn/
+.claude/
 
 .DS_Store
 *.swp
