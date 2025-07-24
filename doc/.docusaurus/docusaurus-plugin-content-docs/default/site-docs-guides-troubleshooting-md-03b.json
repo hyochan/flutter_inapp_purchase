@@ -1,0 +1,28 @@
+{
+  "id": "guides/troubleshooting",
+  "title": "Troubleshooting",
+  "description": "Common issues and solutions when working with flutterinapppurchase v6.0.0.",
+  "source": "@site/docs/guides/troubleshooting.md",
+  "sourceDirName": "guides",
+  "slug": "/guides/troubleshooting",
+  "permalink": "/docs/guides/troubleshooting",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/docs/guides/troubleshooting.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 9,
+  "frontMatter": {
+    "sidebar_position": 9,
+    "title": "Troubleshooting"
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Offer Code Redemption",
+    "permalink": "/docs/guides/offer-code-redemption"
+  },
+  "next": {
+    "title": "FAQ",
+    "permalink": "/docs/guides/faq"
+  }
+}

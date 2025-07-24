@@ -1,0 +1,19 @@
+{
+  "id": "api/methods/init-connection",
+  "title": "initConnection",
+  "description": "Initializes the connection to the platform's billing service.",
+  "source": "@site/versioned_docs/version-5.5.0/api/methods/init-connection.md",
+  "sourceDirName": "api/methods",
+  "slug": "/api/methods/init-connection",
+  "permalink": "/docs/5.5.0/api/methods/init-connection",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/versioned_docs/version-5.5.0/api/methods/init-connection.md",
+  "tags": [],
+  "version": "5.5.0",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "sidebar_position": 1,
+    "title": "initConnection"
+  }
+}

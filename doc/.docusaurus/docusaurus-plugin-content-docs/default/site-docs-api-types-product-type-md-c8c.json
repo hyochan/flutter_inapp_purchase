@@ -1,0 +1,19 @@
+{
+  "id": "api/types/product-type",
+  "title": "Product Types",
+  "description": "Types and enums related to products and purchases in flutterinapppurchase.",
+  "source": "@site/docs/api/types/product-type.md",
+  "sourceDirName": "api/types",
+  "slug": "/api/types/product-type",
+  "permalink": "/docs/api/types/product-type",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/docs/api/types/product-type.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "sidebar_position": 1,
+    "title": "Product Types"
+  }
+}

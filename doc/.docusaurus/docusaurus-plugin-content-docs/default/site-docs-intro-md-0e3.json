@@ -1,0 +1,25 @@
+{
+  "id": "intro",
+  "title": "flutter_inapp_purchase",
+  "description": "A comprehensive Flutter plugin for implementing in-app purchases on iOS and Android platforms.",
+  "source": "@site/docs/intro.md",
+  "sourceDirName": ".",
+  "slug": "/intro",
+  "permalink": "/docs/intro",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/docs/intro.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "title": "flutter_inapp_purchase",
+    "sidebar_label": "Introduction",
+    "sidebar_position": 1
+  },
+  "sidebar": "docsSidebar",
+  "next": {
+    "title": "Installation",
+    "permalink": "/docs/getting-started/installation"
+  }
+}

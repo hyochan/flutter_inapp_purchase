@@ -1,0 +1,18 @@
+{
+  "id": "getting-started/quickstart",
+  "title": "Quick Start",
+  "description": "Get up and running with Flutter In-App Purchase in minutes.",
+  "source": "@site/versioned_docs/version-6.0.0/getting-started/quickstart.md",
+  "sourceDirName": "getting-started",
+  "slug": "/getting-started/quickstart",
+  "permalink": "/docs/6.0.0/getting-started/quickstart",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/versioned_docs/version-6.0.0/getting-started/quickstart.md",
+  "tags": [],
+  "version": "6.0.0",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "sidebar_position": 4
+  }
+}

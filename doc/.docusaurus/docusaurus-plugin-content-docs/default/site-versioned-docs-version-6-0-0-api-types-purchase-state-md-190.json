@@ -1,0 +1,19 @@
+{
+  "id": "api/types/purchase-state",
+  "title": "Purchase States",
+  "description": "Types and enums representing the state of purchases and transactions.",
+  "source": "@site/versioned_docs/version-6.0.0/api/types/purchase-state.md",
+  "sourceDirName": "api/types",
+  "slug": "/api/types/purchase-state",
+  "permalink": "/docs/6.0.0/api/types/purchase-state",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/versioned_docs/version-6.0.0/api/types/purchase-state.md",
+  "tags": [],
+  "version": "6.0.0",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "sidebar_position": 2,
+    "title": "Purchase States"
+  }
+}

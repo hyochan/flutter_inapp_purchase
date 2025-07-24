@@ -1,0 +1,19 @@
+{
+  "id": "guides/purchases",
+  "title": "Purchases",
+  "description": "Complete guide to implementing one-time purchases (consumable and non-consumable) in your Flutter app.",
+  "source": "@site/versioned_docs/version-5.5.0/guides/purchases.md",
+  "sourceDirName": "guides",
+  "slug": "/guides/purchases",
+  "permalink": "/docs/5.5.0/guides/purchases",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/versioned_docs/version-5.5.0/guides/purchases.md",
+  "tags": [],
+  "version": "5.5.0",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "sidebar_position": 3,
+    "title": "Purchases"
+  }
+}

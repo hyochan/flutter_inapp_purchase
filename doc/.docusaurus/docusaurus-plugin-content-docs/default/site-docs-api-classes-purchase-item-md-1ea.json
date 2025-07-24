@@ -1,0 +1,19 @@
+{
+  "id": "api/classes/purchase-item",
+  "title": "PurchasedItem",
+  "description": "Represents an item that was purchased from either the Google Play Store or iOS App Store.",
+  "source": "@site/docs/api/classes/purchase-item.md",
+  "sourceDirName": "api/classes",
+  "slug": "/api/classes/purchase-item",
+  "permalink": "/docs/api/classes/purchase-item",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/docs/api/classes/purchase-item.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "sidebar_position": 3,
+    "title": "PurchasedItem"
+  }
+}

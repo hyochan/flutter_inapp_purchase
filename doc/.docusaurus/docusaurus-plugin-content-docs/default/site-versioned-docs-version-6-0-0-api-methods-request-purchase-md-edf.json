@@ -1,0 +1,19 @@
+{
+  "id": "api/methods/request-purchase",
+  "title": "requestPurchase",
+  "description": "Initiates a purchase flow for the specified product.",
+  "source": "@site/versioned_docs/version-6.0.0/api/methods/request-purchase.md",
+  "sourceDirName": "api/methods",
+  "slug": "/api/methods/request-purchase",
+  "permalink": "/docs/6.0.0/api/methods/request-purchase",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/versioned_docs/version-6.0.0/api/methods/request-purchase.md",
+  "tags": [],
+  "version": "6.0.0",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "sidebar_position": 4,
+    "title": "requestPurchase"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "id": "guides/offer-code-redemption",
+  "title": "Offer Code Redemption",
+  "description": "Guide to implementing promotional offer codes and subscription management with flutterinapppurchase v6.0.0, covering iOS and Android platforms.",
+  "source": "@site/docs/guides/offer-code-redemption.md",
+  "sourceDirName": "guides",
+  "slug": "/guides/offer-code-redemption",
+  "permalink": "/docs/guides/offer-code-redemption",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/docs/guides/offer-code-redemption.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 8,
+  "frontMatter": {
+    "sidebar_position": 8,
+    "title": "Offer Code Redemption"
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Lifecycle",
+    "permalink": "/docs/guides/lifecycle"
+  },
+  "next": {
+    "title": "Troubleshooting",
+    "permalink": "/docs/guides/troubleshooting"
+  }
+}

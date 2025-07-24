@@ -1,0 +1,19 @@
+{
+  "id": "faq",
+  "title": "FAQ",
+  "description": "Common questions and answers about flutterinapppurchase.",
+  "source": "@site/versioned_docs/version-5.5.0/faq.md",
+  "sourceDirName": ".",
+  "slug": "/faq",
+  "permalink": "/docs/5.5.0/faq",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/versioned_docs/version-5.5.0/faq.md",
+  "tags": [],
+  "version": "5.5.0",
+  "sidebarPosition": 9,
+  "frontMatter": {
+    "sidebar_position": 9,
+    "title": "FAQ"
+  }
+}

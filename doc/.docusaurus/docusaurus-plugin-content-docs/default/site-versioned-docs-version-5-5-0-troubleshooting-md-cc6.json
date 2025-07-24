@@ -1,0 +1,19 @@
+{
+  "id": "troubleshooting",
+  "title": "Troubleshooting",
+  "description": "Common issues and solutions when implementing in-app purchases with flutterinapppurchase.",
+  "source": "@site/versioned_docs/version-5.5.0/troubleshooting.md",
+  "sourceDirName": ".",
+  "slug": "/troubleshooting",
+  "permalink": "/docs/5.5.0/troubleshooting",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/versioned_docs/version-5.5.0/troubleshooting.md",
+  "tags": [],
+  "version": "5.5.0",
+  "sidebarPosition": 8,
+  "frontMatter": {
+    "sidebar_position": 8,
+    "title": "Troubleshooting"
+  }
+}

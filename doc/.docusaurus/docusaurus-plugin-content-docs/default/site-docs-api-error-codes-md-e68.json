@@ -1,0 +1,28 @@
+{
+  "id": "api/error-codes",
+  "title": "Error Codes",
+  "description": "Comprehensive error handling reference for flutterinapppurchase v6.0.0. This guide covers all error codes, their meanings, and how to handle them effectively.",
+  "source": "@site/docs/api/error-codes.md",
+  "sourceDirName": "api",
+  "slug": "/api/error-codes",
+  "permalink": "/docs/api/error-codes",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/docs/api/error-codes.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 5,
+  "frontMatter": {
+    "title": "Error Codes",
+    "sidebar_position": 5
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "useIAP Hook",
+    "permalink": "/docs/api/use-iap"
+  },
+  "next": {
+    "title": "Basic Store",
+    "permalink": "/docs/examples/basic-store"
+  }
+}

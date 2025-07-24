@@ -1,0 +1,19 @@
+{
+  "id": "guides/error-handling",
+  "title": "Error Handling",
+  "description": "Comprehensive guide to handling errors in flutterinapppurchase for robust and user-friendly applications.",
+  "source": "@site/docs/guides/error-handling.md",
+  "sourceDirName": "guides",
+  "slug": "/guides/error-handling",
+  "permalink": "/docs/guides/error-handling",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/docs/guides/error-handling.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 5,
+  "frontMatter": {
+    "sidebar_position": 5,
+    "title": "Error Handling"
+  }
+}

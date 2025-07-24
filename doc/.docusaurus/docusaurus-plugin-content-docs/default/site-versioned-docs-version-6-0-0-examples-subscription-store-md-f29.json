@@ -1,0 +1,19 @@
+{
+  "id": "examples/subscription-store",
+  "title": "Subscription Store",
+  "description": "A complete subscription store implementation with monthly and yearly plans.",
+  "source": "@site/versioned_docs/version-6.0.0/examples/subscription-store.md",
+  "sourceDirName": "examples",
+  "slug": "/examples/subscription-store",
+  "permalink": "/docs/6.0.0/examples/subscription-store",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/versioned_docs/version-6.0.0/examples/subscription-store.md",
+  "tags": [],
+  "version": "6.0.0",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "sidebar_position": 2,
+    "title": "Subscription Store"
+  }
+}

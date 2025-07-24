@@ -1,0 +1,18 @@
+{
+  "id": "api/overview",
+  "title": "API Overview",
+  "description": "Flutter In-App Purchase provides a comprehensive API for managing in-app purchases across iOS and Android platforms.",
+  "source": "@site/docs/api/overview.md",
+  "sourceDirName": "api",
+  "slug": "/api/overview",
+  "permalink": "/docs/api/overview",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/docs/api/overview.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "sidebar_position": 1
+  }
+}

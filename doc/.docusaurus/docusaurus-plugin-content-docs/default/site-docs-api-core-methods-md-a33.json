@@ -1,0 +1,28 @@
+{
+  "id": "api/core-methods",
+  "title": "Core Methods",
+  "description": "Essential methods for implementing in-app purchases with flutterinapppurchase v6.0.0. All methods support both iOS and Android platforms with unified APIs.",
+  "source": "@site/docs/api/core-methods.md",
+  "sourceDirName": "api",
+  "slug": "/api/core-methods",
+  "permalink": "/docs/api/core-methods",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/docs/api/core-methods.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "title": "Core Methods",
+    "sidebar_position": 3
+  },
+  "sidebar": "docsSidebar",
+  "previous": {
+    "title": "Types",
+    "permalink": "/docs/api/types"
+  },
+  "next": {
+    "title": "Listeners",
+    "permalink": "/docs/api/listeners"
+  }
+}

@@ -1,0 +1,387 @@
+{
+  "/__docusaurus/debug-5ff": {
+    "__comp": "__comp---theme-debug-config-23-a-2ff",
+    "__context": {
+      "plugin": "plugin---docusaurus-debugb-38-ad3"
+    }
+  },
+  "/__docusaurus/debug/config-5ba": {
+    "__comp": "__comp---theme-debug-config-23-a-2ff",
+    "__context": {
+      "plugin": "plugin---docusaurus-debugb-38-ad3"
+    }
+  },
+  "/__docusaurus/debug/content-a2b": {
+    "__comp": "__comp---theme-debug-contentba-8-ce7",
+    "__context": {
+      "plugin": "plugin---docusaurus-debugb-38-ad3"
+    },
+    "__props": "__props---docusaurus-debug-content-3-c-0-be2"
+  },
+  "/__docusaurus/debug/globalData-c3c": {
+    "__comp": "__comp---theme-debug-global-dataede-0fa",
+    "__context": {
+      "plugin": "plugin---docusaurus-debugb-38-ad3"
+    }
+  },
+  "/__docusaurus/debug/metadata-156": {
+    "__comp": "__comp---theme-debug-site-metadata-68-e-3d4",
+    "__context": {
+      "plugin": "plugin---docusaurus-debugb-38-ad3"
+    }
+  },
+  "/__docusaurus/debug/registry-88c": {
+    "__comp": "__comp---theme-debug-registry-679-501",
+    "__context": {
+      "plugin": "plugin---docusaurus-debugb-38-ad3"
+    }
+  },
+  "/__docusaurus/debug/routes-000": {
+    "__comp": "__comp---theme-debug-routes-946-699",
+    "__context": {
+      "plugin": "plugin---docusaurus-debugb-38-ad3"
+    }
+  },
+  "/blog-939": {
+    "__comp": "__comp---theme-blog-list-pagea-6-a-7ba",
+    "__context": {
+      "plugin": "plugin---blog-369-22e"
+    },
+    "sidebar": "sidebar---blog-814-8ac",
+    "items": [
+      {
+        "content": "content---blogbdc-853"
+      }
+    ],
+    "__props": "__props---blogc-15-573"
+  },
+  "/blog/archive-182": {
+    "__comp": "__comp---theme-blog-archive-page-9-e-4-1d8",
+    "__context": {
+      "plugin": "plugin---blog-369-22e"
+    },
+    "__props": "__props---blog-archivef-81-229"
+  },
+  "/blog/authors-0b7": {
+    "__comp": "__comp---theme-blog-pages-blog-authors-list-page-621-70c",
+    "__context": {
+      "data": {
+        "blogMetadata": "blogMetadata---blog-authorsace-e7d"
+      },
+      "plugin": "plugin---blog-369-22e"
+    },
+    "sidebar": "sidebar---blog-814-8ac",
+    "__props": "__props---blog-authorsef-8-44f"
+  },
+  "/blog/authors/hyochan-c05": {
+    "__comp": "__comp---theme-blog-pages-blog-authors-posts-page-33-f-bd5",
+    "__context": {
+      "data": {
+        "blogMetadata": "blogMetadata---blog-authorsace-e7d"
+      },
+      "plugin": "plugin---blog-369-22e"
+    },
+    "items": [
+      {
+        "content": "content---blogbdc-853"
+      }
+    ],
+    "sidebar": "sidebar---blog-814-8ac",
+    "__props": "__props---blog-authors-hyochan-582-6c3"
+  },
+  "/blog/flutter-iap-6.0.0-release-4c4": {
+    "__comp": "__comp---theme-blog-post-pageccc-cab",
+    "__context": {
+      "data": {
+        "blogMetadata": "blogMetadata---blog-authorsace-e7d"
+      },
+      "plugin": "plugin---blog-369-22e"
+    },
+    "sidebar": "sidebar---blog-814-8ac",
+    "content": "content---blog-flutter-iap-6-0-0-releasef-39-0ea"
+  },
+  "/blog/tags-287": {
+    "__comp": "__comp---theme-blog-tags-list-page-01-a-d0b",
+    "__context": {
+      "plugin": "plugin---blog-369-22e"
+    },
+    "sidebar": "sidebar---blog-814-8ac",
+    "__props": "__props---blog-tags-3-a-2-fa2"
+  },
+  "/blog/tags/billing-client-v-8-948": {
+    "__comp": "__comp---theme-blog-tags-posts-page-687-b6c",
+    "__context": {
+      "plugin": "plugin---blog-369-22e"
+    },
+    "sidebar": "sidebar---blog-814-8ac",
+    "items": [
+      {
+        "content": "content---blogbdc-853"
+      }
+    ],
+    "__props": "__props---blog-tags-billing-client-v-8145-cfe"
+  },
+  "/blog/tags/flutter-f35": {
+    "__comp": "__comp---theme-blog-tags-posts-page-687-b6c",
+    "__context": {
+      "plugin": "plugin---blog-369-22e"
+    },
+    "sidebar": "sidebar---blog-814-8ac",
+    "items": [
+      {
+        "content": "content---blogbdc-853"
+      }
+    ],
+    "__props": "__props---blog-tags-flutter-510-719"
+  },
+  "/blog/tags/in-app-purchase-5d3": {
+    "__comp": "__comp---theme-blog-tags-posts-page-687-b6c",
+    "__context": {
+      "plugin": "plugin---blog-369-22e"
+    },
+    "sidebar": "sidebar---blog-814-8ac",
+    "items": [
+      {
+        "content": "content---blogbdc-853"
+      }
+    ],
+    "__props": "__props---blog-tags-in-app-purchasecae-657"
+  },
+  "/blog/tags/release-6d5": {
+    "__comp": "__comp---theme-blog-tags-posts-page-687-b6c",
+    "__context": {
+      "plugin": "plugin---blog-369-22e"
+    },
+    "sidebar": "sidebar---blog-814-8ac",
+    "items": [
+      {
+        "content": "content---blogbdc-853"
+      }
+    ],
+    "__props": "__props---blog-tags-releasec-9-c-173"
+  },
+  "/blog/tags/storekit-2-360": {
+    "__comp": "__comp---theme-blog-tags-posts-page-687-b6c",
+    "__context": {
+      "plugin": "plugin---blog-369-22e"
+    },
+    "sidebar": "sidebar---blog-814-8ac",
+    "items": [
+      {
+        "content": "content---blogbdc-853"
+      }
+    ],
+    "__props": "__props---blog-tags-storekit-2-d-06-703"
+  },
+  "/markdown-page-3d7": {
+    "__comp": "__comp---theme-mdx-page-1-f-3-b90",
+    "__context": {
+      "plugin": "plugin---markdown-pagea-74-7b5"
+    },
+    "content": "content---markdown-page-393-028"
+  },
+  "/docs-c85": {
+    "__comp": "__comp---theme-docs-root-5-e-9-0b6",
+    "__context": {
+      "plugin": "plugin---docsaba-d7c"
+    }
+  },
+  "/docs-13c": {
+    "__comp": "__comp---theme-doc-version-roota-7-b-5de",
+    "__props": "__props---docs-005-788"
+  },
+  "/docs-fa0": {
+    "__comp": "__comp---theme-doc-roota-94-67a"
+  },
+  "/docs/api/-b31": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-api-5-e-8-853"
+  },
+  "/docs/api/classes/flutter-inapp-purchase-d87": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-api-classes-flutter-inapp-purchase-170-ba6"
+  },
+  "/docs/api/classes/iap-item-fcd": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-api-classes-iap-itema-1-d-e78"
+  },
+  "/docs/api/classes/purchase-item-c14": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-api-classes-purchase-item-1-ea-877"
+  },
+  "/docs/api/core-methods-493": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-api-core-methodsa-33-9ff"
+  },
+  "/docs/api/error-codes-755": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-api-error-codese-68-967"
+  },
+  "/docs/api/flutter-inapp-purchase-e25": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-api-flutter-inapp-purchasefb-2-078"
+  },
+  "/docs/api/listeners-3a0": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-api-listeners-252-9a8"
+  },
+  "/docs/api/methods/finish-transaction-951": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-api-methods-finish-transaction-7-ef-e61"
+  },
+  "/docs/api/methods/get-available-purchases-993": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-api-methods-get-available-purchases-1-d-1-131"
+  },
+  "/docs/api/methods/get-products-05b": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-api-methods-get-productsc-40-cdc"
+  },
+  "/docs/api/methods/init-connection-155": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-api-methods-init-connectiondd-8-04a"
+  },
+  "/docs/api/methods/request-purchase-36d": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-api-methods-request-purchasef-6-c-2db"
+  },
+  "/docs/api/methods/request-subscription-24b": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-api-methods-request-subscription-821-099"
+  },
+  "/docs/api/methods/validate-receipt-378": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-api-methods-validate-receipt-5-f-2-43f"
+  },
+  "/docs/api/overview-5d7": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-api-overview-65-d-0e3"
+  },
+  "/docs/api/types-773": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-api-typesb-99-93c"
+  },
+  "/docs/api/types/error-codes-47b": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-api-types-error-codes-540-20c"
+  },
+  "/docs/api/types/product-type-c29": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-api-types-product-typec-8-c-935"
+  },
+  "/docs/api/types/purchase-state-c7c": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-api-types-purchase-statebd-4-0c8"
+  },
+  "/docs/api/use-iap-c6e": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-api-use-iapbb-2-9f9"
+  },
+  "/docs/examples/basic-store-b8a": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-examples-basic-store-35-f-586"
+  },
+  "/docs/examples/complete-implementation-fac": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-examples-complete-implementation-7-a-6-f5e"
+  },
+  "/docs/examples/subscription-store-612": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-examples-subscription-storecf-4-184"
+  },
+  "/docs/faq-489": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-faq-048-db5"
+  },
+  "/docs/getting-started/android-setup-8b2": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-getting-started-android-setup-93-e-a24"
+  },
+  "/docs/getting-started/installation-f1f": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-getting-started-installation-54-f-18d"
+  },
+  "/docs/getting-started/ios-setup-cf8": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-getting-started-ios-setupd-2-c-80d"
+  },
+  "/docs/getting-started/quickstart-748": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-getting-started-quickstartfbd-5fc"
+  },
+  "/docs/getting-started/setup-android-fa7": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-getting-started-setup-android-3-db-1d2"
+  },
+  "/docs/getting-started/setup-ios-2d1": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-getting-started-setup-ios-61-c-9d5"
+  },
+  "/docs/guides/basic-setup-bc8": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-guides-basic-setupcdb-9b1"
+  },
+  "/docs/guides/error-handling-de1": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-guides-error-handling-0-a-3-646"
+  },
+  "/docs/guides/faq-113": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-guides-faq-965-052"
+  },
+  "/docs/guides/lifecycle-9fb": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-guides-lifecycleb-16-dff"
+  },
+  "/docs/guides/offer-code-redemption-0c3": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-guides-offer-code-redemption-94-b-90e"
+  },
+  "/docs/guides/products-87e": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-guides-productsb-61-c12"
+  },
+  "/docs/guides/purchases-f35": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-guides-purchasese-29-2cf"
+  },
+  "/docs/guides/receipt-validation-e5c": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-guides-receipt-validation-33-f-e9b"
+  },
+  "/docs/guides/subscriptions-70a": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-guides-subscriptions-91-d-028"
+  },
+  "/docs/guides/testing-baa": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-guides-testinge-44-a61"
+  },
+  "/docs/guides/troubleshooting-b6c": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-guides-troubleshooting-03-b-dc6"
+  },
+  "/docs/intro-058": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-intro-0-e-3-be1"
+  },
+  "/docs/migration/from-expo-iap-3ae": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-migration-from-expo-iap-6-d-0-7a0"
+  },
+  "/docs/migration/from-v5-e8d": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-migration-from-v-5-bfd-c47"
+  },
+  "/docs/troubleshooting-53f": {
+    "__comp": "__comp---theme-doc-item-178-a40",
+    "content": "content---docs-troubleshooting-9-d-9-0bf"
+  },
+  "/-e5f": {
+    "__comp": "__comp---site-src-pages-index-tsx-1-df-d3e",
+    "__context": {
+      "plugin": "plugin---markdown-pagea-74-7b5"
+    },
+    "config": "config---5-e-9-4f3"
+  }
+}

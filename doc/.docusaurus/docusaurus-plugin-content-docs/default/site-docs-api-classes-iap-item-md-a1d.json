@@ -1,0 +1,19 @@
+{
+  "id": "api/classes/iap-item",
+  "title": "IAPItem",
+  "description": "Represents an item available for purchase from either the Google Play Store or iOS App Store.",
+  "source": "@site/docs/api/classes/iap-item.md",
+  "sourceDirName": "api/classes",
+  "slug": "/api/classes/iap-item",
+  "permalink": "/docs/api/classes/iap-item",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/docs/api/classes/iap-item.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "sidebar_position": 2,
+    "title": "IAPItem"
+  }
+}

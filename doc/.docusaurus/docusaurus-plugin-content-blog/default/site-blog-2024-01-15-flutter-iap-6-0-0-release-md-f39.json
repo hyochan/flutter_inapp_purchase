@@ -1,0 +1,68 @@
+{
+  "permalink": "/blog/flutter-iap-6.0.0-release",
+  "editUrl": "https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/blog/2024-01-15-flutter-iap-6.0.0-release.md",
+  "source": "@site/blog/2024-01-15-flutter-iap-6.0.0-release.md",
+  "title": "🎉 flutter_inapp_purchase 6.0.0 Release - StoreKit 2 & Billing Client v8 Support",
+  "description": "We're excited to announce the release of flutter_inapp_purchase 6.0.0, a major update that brings modern platform support and significant improvements to the Flutter ecosystem!",
+  "date": "2024-01-15T00:00:00.000Z",
+  "tags": [
+    {
+      "inline": true,
+      "label": "release",
+      "permalink": "/blog/tags/release"
+    },
+    {
+      "inline": true,
+      "label": "storekit2",
+      "permalink": "/blog/tags/storekit-2"
+    },
+    {
+      "inline": true,
+      "label": "billing-client-v8",
+      "permalink": "/blog/tags/billing-client-v-8"
+    },
+    {
+      "inline": true,
+      "label": "flutter",
+      "permalink": "/blog/tags/flutter"
+    },
+    {
+      "inline": true,
+      "label": "in-app-purchase",
+      "permalink": "/blog/tags/in-app-purchase"
+    }
+  ],
+  "readingTime": 2.51,
+  "hasTruncateMarker": true,
+  "authors": [
+    {
+      "name": "Hyo Chang Lee",
+      "title": "Creator of flutter_inapp_purchase & expo-iap",
+      "url": "https://github.com/hyochan",
+      "page": {
+        "permalink": "/blog/authors/hyochan"
+      },
+      "socials": {
+        "x": "https://x.com/hyochan",
+        "github": "https://github.com/hyochan"
+      },
+      "imageURL": "https://github.com/hyochan.png",
+      "key": "hyochan"
+    }
+  ],
+  "frontMatter": {
+    "slug": "flutter-iap-6.0.0-release",
+    "title": "🎉 flutter_inapp_purchase 6.0.0 Release - StoreKit 2 & Billing Client v8 Support",
+    "authors": [
+      "hyochan"
+    ],
+    "tags": [
+      "release",
+      "storekit2",
+      "billing-client-v8",
+      "flutter",
+      "in-app-purchase"
+    ]
+  },
+  "unlisted": false
+}
