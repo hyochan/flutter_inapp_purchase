@@ -35,7 +35,19 @@
       "Bash(dart analyze:*)",
       "Bash(git checkout:*)",
       "Bash(git push:*)",
-      "Bash(dart format:*)"
+      "Bash(dart format:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(chmod:*)",
+      "Bash(./replace_error_codes.sh:*)",
+      "Bash(python3:*)",
+      "Bash(sed:*)",
+      "Bash(-e 's/ErrorCode\\.E_USER_CANCELLED/ErrorCode.eUserCancelled/g' )",
+      "Bash(-e 's/ErrorCode\\.E_NETWORK_ERROR/ErrorCode.eNetworkError/g' )",
+      "Bash(-e 's/ErrorCode\\.E_ALREADY_OWNED/ErrorCode.eAlreadyOwned/g' )",
+      "Bash(-e 's/ErrorCode\\.E_DEFERRED_PAYMENT/ErrorCode.eDeferredPayment/g' )",
+      "Bash(-e 's/ErrorCode\\.E_DEVELOPER_ERROR/ErrorCode.eDeveloperError/g' )",
+      "Bash(-e 's/ErrorCode\\.E_SERVICE_ERROR/ErrorCode.eServiceError/g' )",
+      "Bash(example/lib/src/screens/error_handling_example.dart)"
     ],
     "deny": []
   }
