@@ -47,7 +47,7 @@ class ProductIos {
       periodUnitIOS: json['periodUnitIOS'] != null
           ? PeriodUnitIOS.values.firstWhere(
               (e) => e.toString().split('.').last == json['periodUnitIOS'],
-              orElse: () => PeriodUnitIOS.NONE,
+              orElse: () => PeriodUnitIOS.none,
             )
           : null,
       discountId: json['discountId'] as String?,
@@ -97,11 +97,11 @@ enum PeriodUnit {
 
 /// iOS-specific period units
 enum PeriodUnitIOS {
-  DAY,
-  WEEK,
-  MONTH,
-  YEAR,
-  NONE,
+  day,
+  week,
+  month,
+  year,
+  none,
 }
 
 /// iOS subscription information
