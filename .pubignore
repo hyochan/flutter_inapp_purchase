@@ -1,15 +1,20 @@
 # Documentation site (not needed for pub.dev)
-doc/
+
+docs/
 
 # Development files
+
 .vscode/
 .claude/
 
 # CI/CD files
+
 .github/
 
 # Example app
+
 example/
 
 # Test files
+
 test/
