@@ -8,8 +8,7 @@ import '../enums.dart';
 
 /// Android-specific IAP functionality
 class IAPAndroid {
-  static const MethodChannel _channel = 
-      MethodChannel('flutter_inapp_purchase');
+  static const MethodChannel _channel = MethodChannel('flutter_inapp_purchase');
 
   /// Deep links to subscriptions screen on Android devices
   /// @param sku - The SKU of the subscription to deep link to
@@ -207,7 +206,10 @@ class IAPAndroid {
         return [];
       }
 
-      return result.map((item) => Map<String, dynamic>.from(item as Map<dynamic, dynamic>)).toList();
+      return result
+          .map((item) =>
+              Map<String, dynamic>.from(item as Map<dynamic, dynamic>))
+          .toList();
     } catch (error) {
       debugPrint('Error getting purchase history: $error');
       return [];
@@ -233,7 +235,10 @@ class IAPAndroid {
         return [];
       }
 
-      return result.map((item) => Map<String, dynamic>.from(item as Map<dynamic, dynamic>)).toList();
+      return result
+          .map((item) =>
+              Map<String, dynamic>.from(item as Map<dynamic, dynamic>))
+          .toList();
     } catch (error) {
       debugPrint('Error getting available items: $error');
       return [];
@@ -263,9 +268,8 @@ class IAPAndroid {
     }
 
     try {
-      final result = await _channel.invokeMethod<Map<dynamic, dynamic>>(
-        'getPlayStorePackageInfo'
-      );
+      final result = await _channel
+          .invokeMethod<Map<dynamic, dynamic>>('getPlayStorePackageInfo');
 
       if (result != null) {
         return Map<String, dynamic>.from(result);
@@ -299,7 +303,8 @@ class IAPAndroid {
     }
 
     try {
-      final result = await _channel.invokeMethod<String>('getBillingClientVersion');
+      final result =
+          await _channel.invokeMethod<String>('getBillingClientVersion');
       return result;
     } catch (error) {
       debugPrint('Error getting billing client version: $error');
@@ -366,8 +371,10 @@ class IAPAndroid {
         {
           'sku': sku,
           if (prorationMode != null) 'prorationMode': prorationMode.index,
-          if (obfuscatedAccountId != null) 'obfuscatedAccountId': obfuscatedAccountId,
-          if (obfuscatedProfileId != null) 'obfuscatedProfileId': obfuscatedProfileId,
+          if (obfuscatedAccountId != null)
+            'obfuscatedAccountId': obfuscatedAccountId,
+          if (obfuscatedProfileId != null)
+            'obfuscatedProfileId': obfuscatedProfileId,
           if (purchaseToken != null) 'purchaseToken': purchaseToken,
         },
       );
@@ -385,15 +392,17 @@ class IAPAndroid {
     }
 
     try {
-      final result = await _channel.invokeMethod<List<dynamic>>(
-        'getPendingPurchases'
-      );
+      final result =
+          await _channel.invokeMethod<List<dynamic>>('getPendingPurchases');
 
       if (result == null) {
         return [];
       }
 
-      return result.map((item) => Map<String, dynamic>.from(item as Map<dynamic, dynamic>)).toList();
+      return result
+          .map((item) =>
+              Map<String, dynamic>.from(item as Map<dynamic, dynamic>))
+          .toList();
     } catch (error) {
       debugPrint('Error getting pending purchases: $error');
       return [];

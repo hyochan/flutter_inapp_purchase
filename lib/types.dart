@@ -45,13 +45,15 @@ class ErrorCodeMapping {
     ErrorCode.E_NOT_ENDED: 'E_NOT_ENDED',
     ErrorCode.E_ALREADY_OWNED: 'E_ALREADY_OWNED',
     ErrorCode.E_DEVELOPER_ERROR: 'E_DEVELOPER_ERROR',
-    ErrorCode.E_BILLING_RESPONSE_JSON_PARSE_ERROR: 'E_BILLING_RESPONSE_JSON_PARSE_ERROR',
+    ErrorCode.E_BILLING_RESPONSE_JSON_PARSE_ERROR:
+        'E_BILLING_RESPONSE_JSON_PARSE_ERROR',
     ErrorCode.E_DEFERRED_PAYMENT: 'E_DEFERRED_PAYMENT',
     ErrorCode.E_INTERRUPTED: 'E_INTERRUPTED',
     ErrorCode.E_IAP_NOT_AVAILABLE: 'E_IAP_NOT_AVAILABLE',
     ErrorCode.E_PURCHASE_ERROR: 'E_PURCHASE_ERROR',
     ErrorCode.E_SYNC_ERROR: 'E_SYNC_ERROR',
-    ErrorCode.E_TRANSACTION_VALIDATION_FAILED: 'E_TRANSACTION_VALIDATION_FAILED',
+    ErrorCode.E_TRANSACTION_VALIDATION_FAILED:
+        'E_TRANSACTION_VALIDATION_FAILED',
     ErrorCode.E_ACTIVITY_UNAVAILABLE: 'E_ACTIVITY_UNAVAILABLE',
     ErrorCode.E_ALREADY_PREPARED: 'E_ALREADY_PREPARED',
     ErrorCode.E_PENDING: 'E_PENDING',
@@ -150,7 +152,7 @@ class Product extends BaseProduct {
     this.originalJson,
     this.originalPrice,
     this.discountsIOS,
-  }) : type = type ?? 'inapp',
+  })  : type = type ?? 'inapp',
         super(
           productId: productId,
           price: price,
@@ -214,7 +216,7 @@ class Subscription extends BaseProduct {
     this.introductoryPrice,
     this.introductoryPriceNumberOfPeriodsIOS,
     this.introductoryPriceSubscriptionPeriod,
-  }) : type = type ?? 'subs',
+  })  : type = type ?? 'subs',
         super(
           productId: productId,
           price: price,
@@ -457,12 +459,12 @@ class PaymentDiscount {
   });
 
   Map<String, dynamic> toJson() => {
-    'identifier': identifier,
-    'keyIdentifier': keyIdentifier,
-    'nonce': nonce,
-    'signature': signature,
-    'timestamp': timestamp,
-  };
+        'identifier': identifier,
+        'keyIdentifier': keyIdentifier,
+        'nonce': nonce,
+        'signature': signature,
+        'timestamp': timestamp,
+      };
 }
 
 /// Android specific purchase request
@@ -502,14 +504,14 @@ class RequestSubscriptionAndroid extends RequestPurchaseAndroid {
     this.replacementModeAndroid,
     this.subscriptionOffers,
   }) : super(
-    skus: skus,
-    obfuscatedAccountIdAndroid: obfuscatedAccountIdAndroid,
-    obfuscatedProfileIdAndroid: obfuscatedProfileIdAndroid,
-    isOfferPersonalized: isOfferPersonalized,
-    purchaseToken: purchaseToken,
-    offerTokenIndex: offerTokenIndex,
-    prorationMode: prorationMode,
-  );
+          skus: skus,
+          obfuscatedAccountIdAndroid: obfuscatedAccountIdAndroid,
+          obfuscatedProfileIdAndroid: obfuscatedProfileIdAndroid,
+          isOfferPersonalized: isOfferPersonalized,
+          purchaseToken: purchaseToken,
+          offerTokenIndex: offerTokenIndex,
+          prorationMode: prorationMode,
+        );
 }
 
 /// Subscription offer for Android
@@ -585,16 +587,17 @@ class UnifiedRequestSubscriptionProps extends UnifiedRequestPurchaseProps {
     this.replacementModeAndroid,
     this.subscriptionOffers,
   }) : super(
-    sku: sku,
-    skus: skus,
-    andDangerouslyFinishTransactionAutomaticallyIOS: andDangerouslyFinishTransactionAutomaticallyIOS,
-    appAccountToken: appAccountToken,
-    quantity: quantity,
-    withOffer: withOffer,
-    obfuscatedAccountIdAndroid: obfuscatedAccountIdAndroid,
-    obfuscatedProfileIdAndroid: obfuscatedProfileIdAndroid,
-    isOfferPersonalized: isOfferPersonalized,
-  );
+          sku: sku,
+          skus: skus,
+          andDangerouslyFinishTransactionAutomaticallyIOS:
+              andDangerouslyFinishTransactionAutomaticallyIOS,
+          appAccountToken: appAccountToken,
+          quantity: quantity,
+          withOffer: withOffer,
+          obfuscatedAccountIdAndroid: obfuscatedAccountIdAndroid,
+          obfuscatedProfileIdAndroid: obfuscatedProfileIdAndroid,
+          isOfferPersonalized: isOfferPersonalized,
+        );
 }
 
 /// Request products parameters
@@ -643,7 +646,7 @@ class AppTransaction {
   final int appID;
   final int appVersionID;
   final DateTime? preorderDate;
-  
+
   // iOS 18.4+ specific properties
   final String? appTransactionID;
   final String? originalPlatform;
@@ -702,7 +705,8 @@ bool isPlatformRequestProps(dynamic props) {
 }
 
 bool isUnifiedRequestProps(dynamic props) {
-  return props is UnifiedRequestPurchaseProps || props is UnifiedRequestSubscriptionProps;
+  return props is UnifiedRequestPurchaseProps ||
+      props is UnifiedRequestSubscriptionProps;
 }
 
 // Platform-specific product purchase types
@@ -729,11 +733,11 @@ class ProductPurchaseIos extends PurchaseBase {
     this.revocationDate,
     this.revocationReason,
   }) : super(
-    id: id,
-    transactionId: transactionId,
-    transactionDate: transactionDate,
-    transactionReceipt: transactionReceipt,
-  );
+          id: id,
+          transactionId: transactionId,
+          transactionDate: transactionDate,
+          transactionReceipt: transactionReceipt,
+        );
 }
 
 class ProductPurchaseAndroid extends PurchaseBase {
@@ -757,16 +761,18 @@ class ProductPurchaseAndroid extends PurchaseBase {
     this.isAcknowledgedAndroid,
     this.purchaseStateAndroid,
   }) : super(
-    id: id,
-    transactionId: transactionId,
-    transactionDate: transactionDate,
-    transactionReceipt: transactionReceipt,
-  );
+          id: id,
+          transactionId: transactionId,
+          transactionDate: transactionDate,
+          transactionReceipt: transactionReceipt,
+        );
 }
 
 // Union types
-typedef ProductPurchase = dynamic; // ProductPurchaseAndroid | ProductPurchaseIos
-typedef SubscriptionPurchase = dynamic; // ProductPurchaseAndroid | ProductPurchaseIos
+typedef ProductPurchase
+    = dynamic; // ProductPurchaseAndroid | ProductPurchaseIos
+typedef SubscriptionPurchase
+    = dynamic; // ProductPurchaseAndroid | ProductPurchaseIos
 typedef PurchaseUnion = dynamic; // ProductPurchase | SubscriptionPurchase
 
 /// Store constants
@@ -782,7 +788,7 @@ class PurchaseUpdate {
   final Purchase? purchase;
   final PurchaseError? error;
   final String? message;
-  
+
   PurchaseUpdate({
     this.purchase,
     this.error,
@@ -796,7 +802,7 @@ class ReceiptValidationResult {
   final int? status;
   final Map<String, dynamic>? receipt;
   final String? message;
-  
+
   ReceiptValidationResult({
     required this.isValid,
     this.status,
@@ -811,7 +817,7 @@ class PurchaseTokenInfo {
   final bool isValid;
   final DateTime? expiryTime;
   final String? productId;
-  
+
   PurchaseTokenInfo({
     required this.token,
     required this.isValid,
@@ -826,7 +832,7 @@ class StoreInfo {
   final String? countryCode;
   final String? currencyCode;
   final bool isAvailable;
-  
+
   StoreInfo({
     required this.storeName,
     this.countryCode,
@@ -841,7 +847,7 @@ class IAPConfig {
   final bool enablePendingPurchases;
   final Duration? connectionTimeout;
   final bool validateReceipts;
-  
+
   const IAPConfig({
     this.autoFinishTransactions = true,
     this.enablePendingPurchases = true,
@@ -862,7 +868,7 @@ class PlatformCheck {
 class DeepLinkOptions {
   final String? sku;
   final bool? showPriceChangeIfNeeded;
-  
+
   DeepLinkOptions({
     this.sku,
     this.showPriceChangeIfNeeded,
@@ -874,7 +880,7 @@ class PromotedProduct {
   final String productId;
   final int order;
   final bool visible;
-  
+
   PromotedProduct({
     required this.productId,
     required this.order,
@@ -889,7 +895,7 @@ class TransactionInfo {
   final DateTime date;
   final TransactionState state;
   final String? receipt;
-  
+
   TransactionInfo({
     required this.id,
     required this.productId,
@@ -905,7 +911,7 @@ class BillingInfo {
   final double? price;
   final String? currency;
   final String? countryCode;
-  
+
   BillingInfo({
     this.billingPeriod,
     this.price,
@@ -918,7 +924,7 @@ class BillingInfo {
 class SkuDetailsParams {
   final List<String> skuList;
   final String skuType;
-  
+
   SkuDetailsParams({
     required this.skuList,
     required this.skuType,
@@ -930,7 +936,7 @@ class PurchaseHistoryRecord {
   final Purchase purchase;
   final DateTime date;
   final String? developerPayload;
-  
+
   PurchaseHistoryRecord({
     required this.purchase,
     required this.date,
@@ -942,7 +948,7 @@ class PurchaseHistoryRecord {
 class AcknowledgementParams {
   final String purchaseToken;
   final String? developerPayload;
-  
+
   AcknowledgementParams({
     required this.purchaseToken,
     this.developerPayload,
@@ -953,7 +959,7 @@ class AcknowledgementParams {
 class ConsumptionParams {
   final String purchaseToken;
   final String? developerPayload;
-  
+
   ConsumptionParams({
     required this.purchaseToken,
     this.developerPayload,

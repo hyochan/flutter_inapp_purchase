@@ -84,7 +84,7 @@ class UseIAPReturn {
 UseIAPReturn useIAP([UseIAPOptions? options]) {
   final iap = useMemoized(() => FlutterInappPurchase.instance);
   final optionsRef = useRef<UseIAPOptions?>(options);
-  
+
   // State management
   final connected = useState<bool>(false);
   final products = useState<List<Product>>([]);
@@ -94,7 +94,7 @@ UseIAPReturn useIAP([UseIAPOptions? options]) {
   final availablePurchases = useState<List<Purchase>>([]);
   final currentPurchase = useState<Purchase?>(null);
   final currentPurchaseError = useState<PurchaseError?>(null);
-  
+
   // Subscriptions ref
   final subscriptionsRef = useRef<Map<String, StreamSubscription<dynamic>>>({});
   final subscriptionsRefState = useRef<List<Subscription>>([]);
@@ -146,7 +146,7 @@ UseIAPReturn useIAP([UseIAPOptions? options]) {
       );
       final result = await iap.requestProducts(params);
       final productList = result.whereType<Product>().toList();
-      
+
       products.value = mergeWithDuplicateCheck(
         products.value,
         productList,
@@ -167,7 +167,7 @@ UseIAPReturn useIAP([UseIAPOptions? options]) {
       );
       final result = await iap.requestProducts(params);
       final subscriptionList = result.whereType<Subscription>().toList();
-      
+
       subscriptions.value = mergeWithDuplicateCheck(
         subscriptions.value,
         subscriptionList,
@@ -187,7 +187,7 @@ UseIAPReturn useIAP([UseIAPOptions? options]) {
     try {
       final params = RequestProductsParams(skus: skus, type: type);
       final result = await iap.requestProducts(params);
-      
+
       if (type == PurchaseType.subs) {
         final subscriptionList = result.whereType<Subscription>().toList();
         subscriptions.value = mergeWithDuplicateCheck(
@@ -238,7 +238,7 @@ UseIAPReturn useIAP([UseIAPOptions? options]) {
   }) async {
     try {
       await iap.finishTransaction(purchase, isConsumable: isConsumable);
-      
+
       // Clear current purchase if it matches
       if (purchase.productId == currentPurchase.value?.productId) {
         clearCurrentPurchase();
@@ -269,7 +269,8 @@ UseIAPReturn useIAP([UseIAPOptions? options]) {
   // Refresh subscription status
   final refreshSubscriptionStatus = useCallback((String productId) async {
     try {
-      if (subscriptionsRefState.value.any((sub) => sub.productId == productId)) {
+      if (subscriptionsRefState.value
+          .any((sub) => sub.productId == productId)) {
         await getSubscriptionsInternal([productId]);
         await getAvailablePurchasesInternal();
       }
@@ -327,33 +328,33 @@ UseIAPReturn useIAP([UseIAPOptions? options]) {
         connected.value = true;
 
         // Set up purchase update listener
-        subscriptionsRef.value['purchaseUpdate'] = 
-          iap.purchaseUpdatedListener.listen((purchase) async {
-            currentPurchaseError.value = null;
-            currentPurchase.value = purchase;
+        subscriptionsRef.value['purchaseUpdate'] =
+            iap.purchaseUpdatedListener.listen((purchase) async {
+          currentPurchaseError.value = null;
+          currentPurchase.value = purchase;
 
-            // Refresh subscription status if it's a subscription
-            if (purchase.expirationDate != null) {
-              await refreshSubscriptionStatus(purchase.productId);
-            }
+          // Refresh subscription status if it's a subscription
+          if (purchase.expirationDate != null) {
+            await refreshSubscriptionStatus(purchase.productId);
+          }
 
-            // Call success callback
-            if (optionsRef.value?.onPurchaseSuccess != null) {
-              optionsRef.value!.onPurchaseSuccess!(purchase);
-            }
-          });
+          // Call success callback
+          if (optionsRef.value?.onPurchaseSuccess != null) {
+            optionsRef.value!.onPurchaseSuccess!(purchase);
+          }
+        });
 
         // Set up purchase error listener
-        subscriptionsRef.value['purchaseError'] = 
-          iap.purchaseErrorListener.listen((error) {
-            currentPurchase.value = null;
-            currentPurchaseError.value = error;
+        subscriptionsRef.value['purchaseError'] =
+            iap.purchaseErrorListener.listen((error) {
+          currentPurchase.value = null;
+          currentPurchaseError.value = error;
 
-            // Call error callback
-            if (optionsRef.value?.onPurchaseError != null) {
-              optionsRef.value!.onPurchaseError!(error);
-            }
-          });
+          // Call error callback
+          if (optionsRef.value?.onPurchaseError != null) {
+            optionsRef.value!.onPurchaseError!(error);
+          }
+        });
 
         // iOS promoted products handling
         if (Platform.isIOS) {
@@ -376,12 +377,12 @@ UseIAPReturn useIAP([UseIAPOptions? options]) {
         subscription.cancel();
       });
       subscriptionsRef.value.clear();
-      
+
       // End connection
       iap.endConnection().catchError((dynamic error) {
         debugPrint('Error ending connection: $error');
       });
-      
+
       connected.value = false;
     };
   }, [iap, refreshSubscriptionStatus]);

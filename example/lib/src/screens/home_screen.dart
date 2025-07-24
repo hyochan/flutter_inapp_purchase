@@ -33,7 +33,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 32),
-                
+
                 // Menu Items
                 _buildMenuItem(
                   context,
@@ -44,7 +44,7 @@ class HomeScreen extends StatelessWidget {
                   onTap: () => Navigator.pushNamed(context, '/products'),
                 ),
                 const SizedBox(height: 16),
-                
+
                 _buildMenuItem(
                   context,
                   icon: CupertinoIcons.creditcard,
@@ -54,7 +54,7 @@ class HomeScreen extends StatelessWidget {
                   onTap: () => Navigator.pushNamed(context, '/subscriptions'),
                 ),
                 const SizedBox(height: 16),
-                
+
                 _buildMenuItem(
                   context,
                   icon: CupertinoIcons.clock,
@@ -64,7 +64,7 @@ class HomeScreen extends StatelessWidget {
                   onTap: () => Navigator.pushNamed(context, '/history'),
                 ),
                 const SizedBox(height: 16),
-                
+
                 if (Platform.isIOS) ...[
                   _buildMenuItem(
                     context,
@@ -76,7 +76,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                 ],
-                
+
                 _buildMenuItem(
                   context,
                   icon: CupertinoIcons.settings,

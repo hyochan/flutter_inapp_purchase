@@ -76,21 +76,21 @@ class HooksExampleScreen extends HookWidget {
           // Products Section
           _buildSectionTitle('Products'),
           ...iap.products.map((product) => _buildProductCard(
-            product: product,
-            onBuy: () => _purchaseProduct(iap, product),
-          )),
+                product: product,
+                onBuy: () => _purchaseProduct(iap, product),
+              )),
 
           const SizedBox(height: 20),
 
           // Subscriptions Section
           _buildSectionTitle('Subscriptions'),
           ...iap.subscriptions.map((subscription) => _buildSubscriptionCard(
-            subscription: subscription,
-            isSubscribed: iap.availablePurchases.any(
-              (p) => p.productId == subscription.productId,
-            ),
-            onBuy: () => _purchaseSubscription(iap, subscription),
-          )),
+                subscription: subscription,
+                isSubscribed: iap.availablePurchases.any(
+                  (p) => p.productId == subscription.productId,
+                ),
+                onBuy: () => _purchaseSubscription(iap, subscription),
+              )),
 
           const SizedBox(height: 20),
 
@@ -129,14 +129,16 @@ class HooksExampleScreen extends HookWidget {
             connected
                 ? CupertinoIcons.checkmark_circle_fill
                 : CupertinoIcons.xmark_circle_fill,
-            color: connected ? const Color(0xFF4CAF50) : const Color(0xFFF44336),
+            color:
+                connected ? const Color(0xFF4CAF50) : const Color(0xFFF44336),
             size: 20,
           ),
           const SizedBox(width: 8),
           Text(
             connected ? 'Store Connected' : 'Store Disconnected',
             style: TextStyle(
-              color: connected ? const Color(0xFF4CAF50) : const Color(0xFFF44336),
+              color:
+                  connected ? const Color(0xFF4CAF50) : const Color(0xFFF44336),
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -461,7 +463,8 @@ class HooksExampleScreen extends HookWidget {
     }
   }
 
-  Future<void> _purchaseSubscription(UseIAPReturn iap, Subscription subscription) async {
+  Future<void> _purchaseSubscription(
+      UseIAPReturn iap, Subscription subscription) async {
     try {
       await iap.requestPurchase(
         request: RequestPurchase(

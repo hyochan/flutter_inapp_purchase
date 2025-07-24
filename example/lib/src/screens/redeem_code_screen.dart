@@ -260,8 +260,7 @@ class _RedeemCodeScreenState extends State<RedeemCodeScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          _buildInstructionStep(
-              '1', 'Tap the "Enter Code" button above'),
+          _buildInstructionStep('1', 'Tap the "Enter Code" button above'),
           _buildInstructionStep(
               '2', 'Enter your promo code in the system dialog'),
           _buildInstructionStep(

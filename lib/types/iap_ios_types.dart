@@ -38,7 +38,7 @@ class ProductIos {
       localizedPrice: (json['localizedPrice'] as String?) ?? '',
       title: (json['title'] as String?) ?? '',
       description: (json['description'] as String?) ?? '',
-      periodUnit: json['periodUnit'] != null 
+      periodUnit: json['periodUnit'] != null
           ? PeriodUnit.values.firstWhere(
               (e) => e.toString().split('.').last == json['periodUnit'],
               orElse: () => PeriodUnit.unknown,
@@ -52,14 +52,17 @@ class ProductIos {
           : null,
       discountId: json['discountId'] as String?,
       discounts: (json['discounts'] as List<dynamic>?)
-          ?.map((e) => PaymentDiscount.fromJson(e as Map<String, dynamic>))
-          .toList() ?? [],
+              ?.map((e) => PaymentDiscount.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
       introductoryOffers: (json['introductoryOffers'] as List<dynamic>?)
-          ?.map((e) => PaymentDiscount.fromJson(e as Map<String, dynamic>))
-          .toList() ?? [],
+              ?.map((e) => PaymentDiscount.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
       subscriptionOffers: (json['subscriptionOffers'] as List<dynamic>?)
-          ?.map((e) => SubscriptionInfo.fromJson(e as Map<String, dynamic>))
-          .toList() ?? [],
+              ?.map((e) => SubscriptionInfo.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 
@@ -71,8 +74,10 @@ class ProductIos {
       'localizedPrice': localizedPrice,
       'title': title,
       'description': description,
-      if (periodUnit != null) 'periodUnit': periodUnit!.toString().split('.').last,
-      if (periodUnitIOS != null) 'periodUnitIOS': periodUnitIOS!.toString().split('.').last,
+      if (periodUnit != null)
+        'periodUnit': periodUnit!.toString().split('.').last,
+      if (periodUnitIOS != null)
+        'periodUnitIOS': periodUnitIOS!.toString().split('.').last,
       if (discountId != null) 'discountId': discountId,
       'discounts': discounts.map((e) => e.toJson()).toList(),
       'introductoryOffers': introductoryOffers.map((e) => e.toJson()).toList(),
@@ -114,8 +119,10 @@ class SubscriptionInfo {
   factory SubscriptionInfo.fromJson(Map<String, dynamic> json) {
     return SubscriptionInfo(
       subscriptionOffers: (json['subscriptionOffers'] as List<dynamic>?)
-          ?.map((e) => SubscriptionOffer.fromJson(e as Map<String, dynamic>))
-          .toList() ?? [],
+              ?.map(
+                  (e) => SubscriptionOffer.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
       groupIdentifier: json['groupIdentifier'] as String?,
       subscriptionPeriod: json['subscriptionPeriod'] as String?,
     );
@@ -143,7 +150,7 @@ class SubscriptionOffer {
   factory SubscriptionOffer.fromJson(Map<String, dynamic> json) {
     return SubscriptionOffer(
       sku: json['sku'] as String?,
-      offer: json['offer'] != null 
+      offer: json['offer'] != null
           ? PaymentDiscount.fromJson(json['offer'] as Map<String, dynamic>)
           : null,
     );
@@ -221,8 +228,10 @@ class RequestPurchaseIosProps {
   Map<String, dynamic> toJson() {
     return {
       'sku': sku,
-      if (applicationUsername != null) 'applicationUsername': applicationUsername,
-      if (simulatesAskToBuyInSandbox != null) 'simulatesAskToBuyInSandbox': simulatesAskToBuyInSandbox,
+      if (applicationUsername != null)
+        'applicationUsername': applicationUsername,
+      if (simulatesAskToBuyInSandbox != null)
+        'simulatesAskToBuyInSandbox': simulatesAskToBuyInSandbox,
       if (quantity != null) 'quantity': quantity,
       if (withOffer != null) 'withOffer': withOffer!.toJson(),
     };
@@ -261,7 +270,8 @@ class PurchaseIos {
       applicationUsername: json['applicationUsername'] as String?,
       transactionDate: json['transactionDate'] as int?,
       originalTransactionDateIOS: json['originalTransactionDateIOS'] as String?,
-      originalTransactionIdentifierIOS: json['originalTransactionIdentifierIOS'] as String?,
+      originalTransactionIdentifierIOS:
+          json['originalTransactionIdentifierIOS'] as String?,
       isUpgrade: json['isUpgrade'] as bool?,
       verificationData: json['verificationData'] as String?,
     );
@@ -272,10 +282,13 @@ class PurchaseIos {
       if (productId != null) 'productId': productId,
       if (transactionId != null) 'transactionId': transactionId,
       if (transactionReceipt != null) 'transactionReceipt': transactionReceipt,
-      if (applicationUsername != null) 'applicationUsername': applicationUsername,
+      if (applicationUsername != null)
+        'applicationUsername': applicationUsername,
       if (transactionDate != null) 'transactionDate': transactionDate,
-      if (originalTransactionDateIOS != null) 'originalTransactionDateIOS': originalTransactionDateIOS,
-      if (originalTransactionIdentifierIOS != null) 'originalTransactionIdentifierIOS': originalTransactionIdentifierIOS,
+      if (originalTransactionDateIOS != null)
+        'originalTransactionDateIOS': originalTransactionDateIOS,
+      if (originalTransactionIdentifierIOS != null)
+        'originalTransactionIdentifierIOS': originalTransactionIdentifierIOS,
       if (isUpgrade != null) 'isUpgrade': isUpgrade,
       if (verificationData != null) 'verificationData': verificationData,
     };
@@ -325,11 +338,13 @@ class AppTransactionIOS {
       if (appAppleId != null) 'appAppleId': appAppleId,
       if (bundleId != null) 'bundleId': bundleId,
       if (originalAppVersion != null) 'originalAppVersion': originalAppVersion,
-      if (originalPurchaseDate != null) 'originalPurchaseDate': originalPurchaseDate,
+      if (originalPurchaseDate != null)
+        'originalPurchaseDate': originalPurchaseDate,
       if (appTransactionID != null) 'appTransactionID': appTransactionID,
       if (originalPlatform != null) 'originalPlatform': originalPlatform,
       if (deviceVerification != null) 'deviceVerification': deviceVerification,
-      if (deviceVerificationNonce != null) 'deviceVerificationNonce': deviceVerificationNonce,
+      if (deviceVerificationNonce != null)
+        'deviceVerificationNonce': deviceVerificationNonce,
       if (preorderDate != null) 'preorderDate': preorderDate,
     };
   }
@@ -401,7 +416,8 @@ class ReceiptValidationResponseIOS {
       receipt: json['receipt'] as Map<String, dynamic>?,
       latestReceiptInfo: json['latest_receipt_info'] as Map<String, dynamic>?,
       latestReceipts: json['latest_receipts'] != null
-          ? List<Map<String, dynamic>>.from(json['latest_receipts'] as List<dynamic>)
+          ? List<Map<String, dynamic>>.from(
+              json['latest_receipts'] as List<dynamic>)
           : null,
     );
   }

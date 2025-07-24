@@ -42,16 +42,23 @@ class ProductAndroid {
       localizedPrice: (json['localizedPrice'] as String?) ?? '',
       title: (json['title'] as String?) ?? '',
       description: (json['description'] as String?) ?? '',
-      subscriptionPeriodAndroid: (json['subscriptionPeriodAndroid'] as String?) ?? '',
+      subscriptionPeriodAndroid:
+          (json['subscriptionPeriodAndroid'] as String?) ?? '',
       freeTrialPeriodAndroid: (json['freeTrialPeriodAndroid'] as String?) ?? '',
-      introductoryPriceAndroid: (json['introductoryPriceAndroid'] as String?) ?? '',
-      introductoryPricePeriodAndroid: (json['introductoryPricePeriodAndroid'] as String?) ?? '',
-      introductoryPriceCyclesAndroid: (json['introductoryPriceCyclesAndroid'] as String?) ?? '',
+      introductoryPriceAndroid:
+          (json['introductoryPriceAndroid'] as String?) ?? '',
+      introductoryPricePeriodAndroid:
+          (json['introductoryPricePeriodAndroid'] as String?) ?? '',
+      introductoryPriceCyclesAndroid:
+          (json['introductoryPriceCyclesAndroid'] as String?) ?? '',
       iconUrl: (json['iconUrl'] as String?) ?? '',
       originalJson: (json['originalJson'] as String?) ?? '',
-      subscriptionOffersAndroid: (json['subscriptionOffersAndroid'] as List<dynamic>?)
-          ?.map((e) => SubscriptionOfferDetail.fromJson(e as Map<String, dynamic>))
-          .toList() ?? [],
+      subscriptionOffersAndroid: (json['subscriptionOffersAndroid']
+                  as List<dynamic>?)
+              ?.map((e) =>
+                  SubscriptionOfferDetail.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 
@@ -70,7 +77,8 @@ class ProductAndroid {
       'introductoryPriceCyclesAndroid': introductoryPriceCyclesAndroid,
       'iconUrl': iconUrl,
       'originalJson': originalJson,
-      'subscriptionOffersAndroid': subscriptionOffersAndroid.map((e) => e.toJson()).toList(),
+      'subscriptionOffersAndroid':
+          subscriptionOffersAndroid.map((e) => e.toJson()).toList(),
     };
   }
 }
@@ -89,8 +97,9 @@ class SubscriptionOfferDetail {
     return SubscriptionOfferDetail(
       offerToken: (json['offerToken'] as String?) ?? '',
       pricingPhases: (json['pricingPhases'] as List<dynamic>?)
-          ?.map((e) => PricingPhase.fromJson(e as Map<String, dynamic>))
-          .toList() ?? [],
+              ?.map((e) => PricingPhase.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 
@@ -162,9 +171,12 @@ class RequestPurchaseAndroidProps {
   Map<String, dynamic> toJson() {
     return {
       'skus': skus,
-      if (isOfferPersonalized != null) 'isOfferPersonalized': isOfferPersonalized,
-      if (obfuscatedAccountId != null) 'obfuscatedAccountId': obfuscatedAccountId,
-      if (obfuscatedProfileId != null) 'obfuscatedProfileId': obfuscatedProfileId,
+      if (isOfferPersonalized != null)
+        'isOfferPersonalized': isOfferPersonalized,
+      if (obfuscatedAccountId != null)
+        'obfuscatedAccountId': obfuscatedAccountId,
+      if (obfuscatedProfileId != null)
+        'obfuscatedProfileId': obfuscatedProfileId,
       if (purchaseToken != null) 'purchaseToken': purchaseToken,
     };
   }
@@ -190,21 +202,21 @@ class RequestPurchaseSubscriptionAndroid {
 
 /// Android proration modes
 enum ProrationModeAndroid {
-  /// Replacement takes effect immediately, and the user is charged the full price 
-  /// of the new plan and is given a full billing cycle of subscription, 
+  /// Replacement takes effect immediately, and the user is charged the full price
+  /// of the new plan and is given a full billing cycle of subscription,
   /// plus remaining prorated time from the old plan.
   immediateAndChargeFullPrice,
 
-  /// Replacement takes effect immediately, and the billing cycle remains the same. 
-  /// The price for the remaining period will be charged. 
+  /// Replacement takes effect immediately, and the billing cycle remains the same.
+  /// The price for the remaining period will be charged.
   /// This is the default behavior.
   immediateWithTimeProration,
 
-  /// Replacement takes effect immediately, and the new plan will take effect 
+  /// Replacement takes effect immediately, and the new plan will take effect
   /// immediately and be charged when the old plan expires.
   immediateWithoutProration,
 
-  /// Replacement takes effect immediately, and the user is charged the prorated 
+  /// Replacement takes effect immediately, and the user is charged the prorated
   /// price for the rest of the billing period.
   immediateAndChargeProratedPrice,
 
@@ -278,13 +290,19 @@ class PurchaseAndroid {
       if (dataAndroid != null) 'dataAndroid': dataAndroid,
       if (signatureAndroid != null) 'signatureAndroid': signatureAndroid,
       if (orderId != null) 'orderId': orderId,
-      if (purchaseStateAndroid != null) 'purchaseStateAndroid': purchaseStateAndroid,
-      if (isAcknowledgedAndroid != null) 'isAcknowledgedAndroid': isAcknowledgedAndroid,
+      if (purchaseStateAndroid != null)
+        'purchaseStateAndroid': purchaseStateAndroid,
+      if (isAcknowledgedAndroid != null)
+        'isAcknowledgedAndroid': isAcknowledgedAndroid,
       if (packageNameAndroid != null) 'packageNameAndroid': packageNameAndroid,
-      if (developerPayloadAndroid != null) 'developerPayloadAndroid': developerPayloadAndroid,
-      if (accountIdentifiersAndroid != null) 'accountIdentifiersAndroid': accountIdentifiersAndroid,
-      if (obfuscatedAccountIdAndroid != null) 'obfuscatedAccountIdAndroid': obfuscatedAccountIdAndroid,
-      if (obfuscatedProfileIdAndroid != null) 'obfuscatedProfileIdAndroid': obfuscatedProfileIdAndroid,
+      if (developerPayloadAndroid != null)
+        'developerPayloadAndroid': developerPayloadAndroid,
+      if (accountIdentifiersAndroid != null)
+        'accountIdentifiersAndroid': accountIdentifiersAndroid,
+      if (obfuscatedAccountIdAndroid != null)
+        'obfuscatedAccountIdAndroid': obfuscatedAccountIdAndroid,
+      if (obfuscatedProfileIdAndroid != null)
+        'obfuscatedProfileIdAndroid': obfuscatedProfileIdAndroid,
     };
   }
 }
@@ -331,8 +349,10 @@ class AccountIdentifiers {
 
   Map<String, dynamic> toJson() {
     return {
-      if (obfuscatedAccountId != null) 'obfuscatedAccountId': obfuscatedAccountId,
-      if (obfuscatedProfileId != null) 'obfuscatedProfileId': obfuscatedProfileId,
+      if (obfuscatedAccountId != null)
+        'obfuscatedAccountId': obfuscatedAccountId,
+      if (obfuscatedProfileId != null)
+        'obfuscatedProfileId': obfuscatedProfileId,
     };
   }
 }
