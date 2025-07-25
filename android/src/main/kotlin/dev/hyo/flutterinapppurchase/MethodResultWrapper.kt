@@ -1,4 +1,4 @@
-package com.dooboolab.flutterinapppurchase
+package dev.hyo.flutterinapppurchase
 
 import android.os.Handler
 import io.flutter.plugin.common.MethodChannel

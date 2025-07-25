@@ -1,4 +1,4 @@
-group 'com.dooboolab.flutterinapppurchase'
+group 'dev.hyo.flutterinapppurchase'
 version '1.0-SNAPSHOT'
 
 buildscript {
@@ -26,9 +26,9 @@ apply plugin: 'kotlin-android'
 
 android {
     if (project.android.hasProperty('namespace')) {
-        namespace 'com.dooboolab.flutterinapppurchase'
+        namespace 'dev.hyo.flutterinapppurchase'
     }
-    compileSdkVersion 33
+    compileSdkVersion 34
 
     defaultConfig {
         minSdkVersion 21
@@ -41,17 +41,17 @@ android {
         disable 'InvalidPackage'
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '17'
     }
 }
 
 dependencies {
-    def billing_version = "6.0.1"
+    def billing_version = "8.0.0"
 
     implementation "com.android.billingclient:billing-ktx:$billing_version"
     implementation files('jars/in-app-purchasing-2.0.76.jar')

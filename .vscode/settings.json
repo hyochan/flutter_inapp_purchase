@@ -2,7 +2,7 @@
   // Editor settings
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
-    "source.fixAll": true
+    "source.fixAll": "explicit"
   },
 
   // Dart & Flutter settings
@@ -13,7 +13,7 @@
     "editor.suggest.snippetsPreventQuickSuggestions": false,
     "editor.suggestSelection": "first",
     "editor.tabCompletion": "onlySnippets",
-    "editor.wordBasedSuggestions": false
+    "editor.wordBasedSuggestions": "off"
   },
 
   // Files to exclude from explorer
@@ -62,5 +62,5 @@
   // Docusaurus specific
   "typescript.tsdk": "docs/node_modules/typescript/lib",
   "npm.packageManager": "npm",
-  "cSpell.words": ["inapp"]
+  "cSpell.words": ["Inapp", "inapp"]
 }
