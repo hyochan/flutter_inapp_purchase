@@ -4,7 +4,11 @@ sidebar_label: Installation
 sidebar_position: 1
 ---
 
+import AdFitTopFixed from "@site/src/uis/AdFitTopFixed";
+
 # Installation & Setup
+
+<AdFitTopFixed />
 
 Learn how to install and configure flutter_inapp_purchase in your Flutter project.
 

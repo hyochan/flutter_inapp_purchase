@@ -52,7 +52,8 @@
       "Bash(sips:*)",
       "Bash(cp:*)",
       "Bash(npm run docusaurus:*)",
-      "Bash(npm start:*)"
+      "Bash(npm start:*)",
+      "Bash(git reset:*)"
     ],
     "deny": []
   }

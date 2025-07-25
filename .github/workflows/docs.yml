@@ -39,5 +39,5 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs/build
           publish_branch: gh-pages
-          cname: flutter_inapp_purchase.hyo.dev
+          cname: flutter-inapp-purchase.hyo.dev
           force_orphan: true

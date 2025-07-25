@@ -3,7 +3,11 @@ sidebar_position: 3
 title: Purchases
 ---
 
+import AdFitTopFixed from "@site/src/uis/AdFitTopFixed";
+
 # Purchases
+
+<AdFitTopFixed />
 
 Complete guide to implementing in-app purchases with flutter_inapp_purchase v6.0.0, covering everything from basic setup to advanced purchase handling.
 
