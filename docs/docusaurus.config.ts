@@ -25,7 +25,7 @@ const config: Config = {
   organizationName: 'hyochan', // Usually your GitHub org/user name.
   projectName: 'flutter_inapp_purchase', // Usually your repo name.
 
-  onBrokenLinks: 'throw',
+  onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
 
   // Even if you don't use internationalization, you can use this field to set

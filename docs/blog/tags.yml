@@ -17,3 +17,28 @@ hola:
   label: Hola
   permalink: /hola
   description: Hola tag description
+
+release:
+  label: Release
+  permalink: /release
+  description: New version releases and updates
+
+storekit2:
+  label: StoreKit 2
+  permalink: /storekit2
+  description: Apple StoreKit 2 related topics
+
+billing-client-v8:
+  label: Billing Client v8
+  permalink: /billing-client-v8
+  description: Android Billing Client v8 related topics
+
+flutter:
+  label: Flutter
+  permalink: /flutter
+  description: Flutter framework related topics
+
+in-app-purchase:
+  label: In-App Purchase
+  permalink: /in-app-purchase
+  description: In-app purchase implementation and best practices
