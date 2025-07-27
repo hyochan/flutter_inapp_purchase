@@ -492,13 +492,15 @@ class FlutterInappPurchase {
   }
 
   /// Initializes iap features for both `Android` and `iOS`.
+  @Deprecated('Use initConnection() instead. Will be removed in version 7.0.0')
   Future<String?> initialize() async {
     if (_platform.isAndroid) {
       await _setPurchaseListener();
       return await _channel.invokeMethod('initConnection');
     } else if (_platform.isIOS) {
       await _setPurchaseListener();
-      return await _channel.invokeMethod('canMakePayments');
+      final canMakePayments = await _channel.invokeMethod('canMakePayments');
+      return canMakePayments.toString();
     }
     throw PlatformException(
         code: _platform.operatingSystem, message: "platform not supported");
