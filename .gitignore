@@ -6,6 +6,7 @@
 pubspec.lock
 
 build/
+.claude/
 
 .idea/
 flutter_inapp.iml
