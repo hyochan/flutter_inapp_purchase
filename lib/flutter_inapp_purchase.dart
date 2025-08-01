@@ -1299,11 +1299,8 @@ class FlutterInappPurchase
     if (_platform.isIOS) {
       await _channel.invokeMethod('showManageSubscriptions');
     } else if (_platform.isAndroid) {
-      // For Android, you would open the Play Store subscriptions page
-      throw PlatformException(
-        code: 'NOT_IMPLEMENTED',
-        message: 'Manage subscriptions not implemented for Android',
-      );
+      // For Android, use deepLinkToSubscriptionsAndroid
+      await deepLinkToSubscriptionsAndroid();
     }
   }
 
