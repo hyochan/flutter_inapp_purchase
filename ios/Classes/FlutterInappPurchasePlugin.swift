@@ -227,7 +227,11 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
             event["revocationReason"] = transaction.revocationReason?.rawValue
         }
         
-        channel?.invokeMethod("purchase-updated", arguments: event)
+        // Convert to JSON string as expected by Flutter side
+        if let jsonData = try? JSONSerialization.data(withJSONObject: event),
+           let jsonString = String(data: jsonData, encoding: .utf8) {
+            channel?.invokeMethod("purchase-updated", arguments: jsonString)
+        }
     }
     
     private func getTransactionState(_ transaction: Transaction) -> String {
@@ -409,6 +413,9 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                         "transactionReceipt": transaction.jsonRepresentation.base64EncodedString(),
                         "platform": "ios"
                     ]
+                    
+                    // Trigger the purchase-updated event
+                    await processTransaction(transaction)
                     
                     await transaction.finish()
                     

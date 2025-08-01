@@ -923,7 +923,7 @@ class FlutterInappPurchase
   Future<String?> consumePurchaseAndroidLegacy(String token) async {
     if (_platform.isAndroid) {
       return await _channel.invokeMethod('consumeProduct', <String, dynamic>{
-        'token': token,
+        'purchaseToken': token,
       });
     } else if (_platform.isIOS) {
       return 'no-ops in ios';
@@ -989,7 +989,7 @@ class FlutterInappPurchase
     if (_platform.isAndroid) {
       if (isConsumable) {
         return await _channel.invokeMethod('consumeProduct', <String, dynamic>{
-          'token': purchasedItem.purchaseToken,
+          'purchaseToken': purchasedItem.purchaseToken,
         });
       } else {
         if (purchasedItem.isAcknowledgedAndroid == true) {
@@ -997,7 +997,7 @@ class FlutterInappPurchase
         } else {
           return await _channel
               .invokeMethod('acknowledgePurchase', <String, dynamic>{
-            'token': purchasedItem.purchaseToken,
+            'purchaseToken': purchasedItem.purchaseToken,
           });
         }
       }
@@ -1260,11 +1260,11 @@ class FlutterInappPurchase
       // For Android, the transactionId is actually the purchaseToken
       if (consume) {
         await _channel.invokeMethod('consumeProduct', <String, dynamic>{
-          'token': transactionId,
+          'purchaseToken': transactionId,
         });
       } else {
         await _channel.invokeMethod('acknowledgePurchase', <String, dynamic>{
-          'token': transactionId,
+          'purchaseToken': transactionId,
         });
       }
     }
