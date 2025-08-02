@@ -35,3 +35,4 @@ flutter:
         mainClass: FlutterInappPurchasePlugin
       ios:
         pluginClass: FlutterInappPurchasePlugin
+        sharedDarwinSource: true
