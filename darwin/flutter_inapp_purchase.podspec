@@ -12,13 +12,7 @@ In App Purchase plugin for flutter. This project has been forked by react-native
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'Your Company' => 'email@example.com' }
   s.source           = { :path => '.' }
-  if File.exist?(File.join(File.dirname(__FILE__), '.symlinks'))
-    # Flutter add-to-app
-    s.source_files = 'Classes/**/*.swift'
-  else
-    # Standard Flutter plugin
-    s.source_files = 'Classes/**/*.swift', 'flutter_inapp_purchase/Sources/flutter_inapp_purchase/**/*.swift'
-  end
+  s.source_files = 'Classes/**/*.swift'
   s.dependency 'Flutter'
   
   s.ios.deployment_target = '15.0'
