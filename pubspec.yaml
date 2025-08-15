@@ -11,7 +11,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_hooks: ^0.20.5
   http: ^1.2.0
   meta: ^1.11.0
   platform: ^3.1.4
