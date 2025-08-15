@@ -13,7 +13,7 @@ class OfferCodeScreen extends StatefulWidget {
 class _OfferCodeScreenState extends State<OfferCodeScreen> {
   final FlutterInappPurchase _iap = FlutterInappPurchase.instance;
   final TextEditingController _codeController = TextEditingController();
-  
+
   bool _loading = false;
   bool _connected = false;
   String? _statusMessage;
@@ -36,7 +36,7 @@ class _OfferCodeScreenState extends State<OfferCodeScreen> {
     setState(() {
       _loading = true;
     });
-    
+
     try {
       await _iap.initConnection();
       setState(() {
@@ -72,7 +72,8 @@ class _OfferCodeScreenState extends State<OfferCodeScreen> {
     try {
       await _iap.presentCodeRedemptionSheet();
       setState(() {
-        _statusMessage = 'Redemption sheet presented. Complete the redemption in the system dialog.';
+        _statusMessage =
+            'Redemption sheet presented. Complete the redemption in the system dialog.';
         _isSuccess = true;
       });
     } catch (e) {
@@ -91,7 +92,7 @@ class _OfferCodeScreenState extends State<OfferCodeScreen> {
   @override
   Widget build(BuildContext context) {
     final bool isIOS = Platform.isIOS;
-    
+
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
       appBar: AppBar(
@@ -135,7 +136,7 @@ class _OfferCodeScreenState extends State<OfferCodeScreen> {
                   ),
                   const SizedBox(height: 16),
                 ],
-                
+
                 // Connection Status
                 Container(
                   padding: const EdgeInsets.all(12),
@@ -161,7 +162,7 @@ class _OfferCodeScreenState extends State<OfferCodeScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Info Card
                 Card(
                   child: Padding(
@@ -200,7 +201,7 @@ class _OfferCodeScreenState extends State<OfferCodeScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Redemption Card
                 Card(
                   child: Padding(
@@ -217,21 +218,21 @@ class _OfferCodeScreenState extends State<OfferCodeScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          isIOS 
-                            ? 'Tap the button below to open the iOS redemption sheet where you can enter your offer code.'
-                            : 'Offer code redemption is not available on Android. Please use an iOS device.',
+                          isIOS
+                              ? 'Tap the button below to open the iOS redemption sheet where you can enter your offer code.'
+                              : 'Offer code redemption is not available on Android. Please use an iOS device.',
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.grey[600],
                           ),
                         ),
                         const SizedBox(height: 16),
-                        
+
                         // Redemption Button
                         ElevatedButton.icon(
-                          onPressed: (isIOS && _connected && !_loading) 
-                            ? _presentCodeRedemptionSheet 
-                            : null,
+                          onPressed: (isIOS && _connected && !_loading)
+                              ? _presentCodeRedemptionSheet
+                              : null,
                           icon: const Icon(Icons.card_giftcard),
                           label: const Text('Open Redemption Sheet'),
                           style: ElevatedButton.styleFrom(
@@ -244,7 +245,7 @@ class _OfferCodeScreenState extends State<OfferCodeScreen> {
                     ),
                   ),
                 ),
-                
+
                 // Status Message
                 if (_statusMessage != null) ...[
                   const SizedBox(height: 16),
@@ -254,21 +255,25 @@ class _OfferCodeScreenState extends State<OfferCodeScreen> {
                       color: _isSuccess ? Colors.green[50] : Colors.red[50],
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: _isSuccess ? Colors.green[200]! : Colors.red[200]!,
+                        color:
+                            _isSuccess ? Colors.green[200]! : Colors.red[200]!,
                       ),
                     ),
                     child: Row(
                       children: [
                         Icon(
                           _isSuccess ? Icons.check_circle : Icons.error_outline,
-                          color: _isSuccess ? Colors.green[700] : Colors.red[700],
+                          color:
+                              _isSuccess ? Colors.green[700] : Colors.red[700],
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             _statusMessage!,
                             style: TextStyle(
-                              color: _isSuccess ? Colors.green[700] : Colors.red[700],
+                              color: _isSuccess
+                                  ? Colors.green[700]
+                                  : Colors.red[700],
                             ),
                           ),
                         ),
@@ -276,9 +281,9 @@ class _OfferCodeScreenState extends State<OfferCodeScreen> {
                     ),
                   ),
                 ],
-                
+
                 const SizedBox(height: 24),
-                
+
                 // How to Get Offer Codes Section
                 Card(
                   child: Padding(

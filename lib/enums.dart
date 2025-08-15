@@ -27,7 +27,7 @@ enum ErrorCode {
   ePending,
   eNotEnded,
   eDeveloperError,
-  
+
   // Legacy codes kept for compatibility
   eReceiptFinishedFailed,
   eNotPrepared,

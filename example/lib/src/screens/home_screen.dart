@@ -37,7 +37,7 @@ class HomeScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              
+
               // Menu Items
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -54,7 +54,8 @@ class HomeScreen extends StatelessWidget {
                         title: 'Purchase Flow',
                         subtitle: 'Buy consumable products',
                         color: const Color(0xFF007AFF),
-                        onTap: () => Navigator.pushNamed(context, '/purchase-flow'),
+                        onTap: () =>
+                            Navigator.pushNamed(context, '/purchase-flow'),
                       ),
                       const Divider(height: 1),
                       _buildMenuItem(
@@ -63,7 +64,8 @@ class HomeScreen extends StatelessWidget {
                         title: 'Subscription Flow',
                         subtitle: 'Manage subscriptions',
                         color: const Color(0xFF34C759),
-                        onTap: () => Navigator.pushNamed(context, '/subscription-flow'),
+                        onTap: () =>
+                            Navigator.pushNamed(context, '/subscription-flow'),
                       ),
                       const Divider(height: 1),
                       _buildMenuItem(
@@ -72,24 +74,28 @@ class HomeScreen extends StatelessWidget {
                         title: 'Available Purchases',
                         subtitle: 'View and restore purchases',
                         color: const Color(0xFF5856D6),
-                        onTap: () => Navigator.pushNamed(context, '/available-purchases'),
+                        onTap: () => Navigator.pushNamed(
+                            context, '/available-purchases'),
                       ),
                       const Divider(height: 1),
                       _buildMenuItem(
                         context,
                         icon: CupertinoIcons.gift,
                         title: 'Redeem Offer Code',
-                        subtitle: Platform.isIOS ? 'Redeem promotional codes' : 'iOS only feature',
+                        subtitle: Platform.isIOS
+                            ? 'Redeem promotional codes'
+                            : 'iOS only feature',
                         color: const Color(0xFFFF3B30),
-                        onTap: () => Navigator.pushNamed(context, '/offer-code'),
+                        onTap: () =>
+                            Navigator.pushNamed(context, '/offer-code'),
                       ),
                     ],
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 32),
-              
+
               // Info Section
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 32),

@@ -29,8 +29,7 @@ class _TestScreenState extends State<TestScreen> {
     try {
       // First run our diagnostic test
       setState(() => _status = 'Running StoreKit diagnostics...');
-      final diagnostics = await _iap.channel
-          .invokeMethod('testStoreKit');
+      final diagnostics = await _iap.channel.invokeMethod('testStoreKit');
       setState(() => _status = 'Diagnostics: $diagnostics');
 
       // Wait a bit before continuing
@@ -38,8 +37,7 @@ class _TestScreenState extends State<TestScreen> {
 
       // Test 1: Initialize connection (this will check can make payments internally)
       setState(() => _status = 'Testing if can make payments...');
-      final canMake = await _iap.channel
-          .invokeMethod('canMakePayments');
+      final canMake = await _iap.channel.invokeMethod('canMakePayments');
       setState(() => _status = 'Can make payments: $canMake');
 
       if (canMake != true) {
@@ -54,8 +52,7 @@ class _TestScreenState extends State<TestScreen> {
 
       // Test 3: Get simple product
       setState(() => _status = 'Getting products...');
-      final products = await _iap
-          .getProducts(['dev.hyo.martie.10bulbs']);
+      final products = await _iap.getProducts(['dev.hyo.martie.10bulbs']);
       setState(() => _status = 'Got ${products.length} products');
 
       if (products.isNotEmpty) {

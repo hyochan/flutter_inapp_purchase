@@ -4,16 +4,15 @@ import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 // Extension methods for PurchaseError
 extension PurchaseErrorExtensions on PurchaseError {
   bool get isUserCancelled => code == ErrorCode.eUserCancelled;
-  
-  bool get isNetworkRelated => 
-      code == ErrorCode.eNetworkError || 
-      code == ErrorCode.eRemoteError;
-  
+
+  bool get isNetworkRelated =>
+      code == ErrorCode.eNetworkError || code == ErrorCode.eRemoteError;
+
   bool get isRecoverable =>
       code == ErrorCode.eNetworkError ||
       code == ErrorCode.eServiceError ||
       code == ErrorCode.eRemoteError;
-      
+
   String get userFriendlyMessage {
     switch (code) {
       case ErrorCode.eUserCancelled:
@@ -39,16 +38,15 @@ extension PurchaseErrorExtensions on PurchaseError {
 // Extension methods for ErrorCode
 extension ErrorCodeExtensions on ErrorCode {
   bool get isUserCancelled => this == ErrorCode.eUserCancelled;
-  
-  bool get isNetworkRelated => 
-      this == ErrorCode.eNetworkError || 
-      this == ErrorCode.eRemoteError;
-  
+
+  bool get isNetworkRelated =>
+      this == ErrorCode.eNetworkError || this == ErrorCode.eRemoteError;
+
   bool get isRecoverable =>
       this == ErrorCode.eNetworkError ||
       this == ErrorCode.eServiceError ||
       this == ErrorCode.eRemoteError;
-      
+
   String get userFriendlyMessage {
     switch (this) {
       case ErrorCode.eUserCancelled:
@@ -90,8 +88,8 @@ bool isRecoverableError(dynamic error) {
   if (error is PurchaseError) {
     // Network errors and service errors are often recoverable
     return error.code == ErrorCode.eNetworkError ||
-           error.code == ErrorCode.eServiceError ||
-           error.code == ErrorCode.eRemoteError;
+        error.code == ErrorCode.eServiceError ||
+        error.code == ErrorCode.eRemoteError;
   }
   return false;
 }

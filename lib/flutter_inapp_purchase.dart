@@ -272,7 +272,8 @@ class FlutterInappPurchase
           );
         }
 
-        final sku = androidRequest.skus.isNotEmpty ? androidRequest.skus.first : '';
+        final sku =
+            androidRequest.skus.isNotEmpty ? androidRequest.skus.first : '';
         if (type == iap_types.PurchaseType.subs) {
           await requestSubscription(
             sku,
@@ -372,7 +373,7 @@ class FlutterInappPurchase
       if (_platform.isAndroid) {
         // Get both consumable and subscription purchases on Android
         final List<iap_types.PurchasedItem> allPurchases = [];
-        
+
         // Get consumable purchases
         dynamic result1 = await _channel.invokeMethod(
           'getAvailableItemsByType',
@@ -382,7 +383,7 @@ class FlutterInappPurchase
         );
         final consumables = extractPurchased(result1) ?? [];
         allPurchases.addAll(consumables);
-        
+
         // Get subscription purchases
         dynamic result2 = await _channel.invokeMethod(
           'getAvailableItemsByType',
@@ -392,11 +393,12 @@ class FlutterInappPurchase
         );
         final subscriptions = extractPurchased(result2) ?? [];
         allPurchases.addAll(subscriptions);
-        
+
         return allPurchases.map((item) => _convertToPurchase(item)).toList();
       } else if (_platform.isIOS) {
         final purchases = await getAvailableItemsIOS();
-        return purchases?.map((item) => _convertToPurchase(item)).toList() ?? [];
+        return purchases?.map((item) => _convertToPurchase(item)).toList() ??
+            [];
       }
       return [];
     } catch (e) {
@@ -730,7 +732,6 @@ class FlutterInappPurchase
   }
 
   // Original API methods (with deprecation annotations where needed)
-
 
   /// Initializes iap features for both `Android` and `iOS`.
   @Deprecated('Use initConnection() instead. Will be removed in version 7.0.0')
@@ -1266,7 +1267,7 @@ class FlutterInappPurchase
     _channel.setMethodCallHandler((MethodCall call) async {
       print('[flutter_inapp_purchase] Received method call: ${call.method}');
       print('[flutter_inapp_purchase] Arguments: ${call.arguments}');
-      
+
       switch (call.method) {
         case 'purchase-updated':
           print('[flutter_inapp_purchase] Processing purchase-updated event');
@@ -1274,21 +1275,23 @@ class FlutterInappPurchase
             Map<String, dynamic> result =
                 jsonDecode(call.arguments as String) as Map<String, dynamic>;
             print('[flutter_inapp_purchase] Decoded result: $result');
-            
+
             iap_types.PurchasedItem item =
                 iap_types.PurchasedItem.fromJSON(result);
             print('[flutter_inapp_purchase] Created PurchasedItem: $item');
-            
+
             _purchaseController!.add(item);
             print('[flutter_inapp_purchase] Added to purchaseController');
-            
+
             // Also emit to flutter IAP compatible stream
             final purchase = _convertToPurchase(item);
             print('[flutter_inapp_purchase] Converted to Purchase: $purchase');
-            print('[flutter_inapp_purchase] Emitting purchase to purchaseUpdatedController: $purchase');
-            
+            print(
+                '[flutter_inapp_purchase] Emitting purchase to purchaseUpdatedController: $purchase');
+
             _purchaseUpdatedController.add(purchase);
-            print('[flutter_inapp_purchase] Successfully emitted to purchaseUpdatedController');
+            print(
+                '[flutter_inapp_purchase] Successfully emitted to purchaseUpdatedController');
           } catch (e, stackTrace) {
             print('[flutter_inapp_purchase] ERROR in purchase-updated: $e');
             print('[flutter_inapp_purchase] Stack trace: $stackTrace');
@@ -1303,7 +1306,8 @@ class FlutterInappPurchase
           _purchaseErrorController!.add(purchaseResult);
           // Also emit to Open IAP compatible stream
           final error = _convertToPurchaseError(purchaseResult);
-          print('[flutter_inapp_purchase] Emitting error to purchaseErrorListenerController: $error');
+          print(
+              '[flutter_inapp_purchase] Emitting error to purchaseErrorListenerController: $error');
           _purchaseErrorListenerController.add(error);
           break;
         case 'connection-updated':

@@ -13,7 +13,7 @@ class SubscriptionFlowScreen extends StatefulWidget {
 
 class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
   final FlutterInappPurchase _iap = FlutterInappPurchase.instance;
-  
+
   // Subscription IDs
   final List<String> subscriptionIds = [
     'dev.hyo.martie.premium',
@@ -49,35 +49,34 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
     setState(() {
       _isConnecting = true;
     });
-    
+
     try {
       // Step 1: Initialize connection
       final connectionResult = await _iap.initConnection();
       setState(() {
         _connected = connectionResult == true;
       });
-      
+
       if (!_connected) {
         setState(() {
           _initError = 'Failed to connect to store';
         });
         return;
       }
-      
+
       // Step 2: Connection successful, setup listeners and load products
       _setupPurchaseListeners();
-      
+
       setState(() {
         _isConnecting = false;
         _isLoadingProducts = true;
       });
-      
+
       // Load active purchases and subscription products in parallel
       await Future.wait([
         _loadActiveSubscriptions(),
         _loadSubscriptions(),
       ]);
-      
     } catch (e) {
       debugPrint('Failed to initialize IAP connection: $e');
       setState(() {
@@ -94,7 +93,7 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
 
   void _setupPurchaseListeners() {
     debugPrint('Setting up subscription purchase listeners...');
-    
+
     // Listen to purchase updates
     _purchaseUpdatedSubscription = _iap.purchaseUpdatedListener.listen(
       (purchase) {
@@ -117,17 +116,17 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
         _handlePurchaseError(purchaseError);
       },
     );
-    
+
     debugPrint('Subscription listeners setup complete');
   }
 
   Future<void> _handlePurchaseUpdate(Purchase purchase) async {
     debugPrint('Subscription successful: ${purchase.productId}');
-    
+
     setState(() {
       _isProcessing = false;
       _currentPurchase = purchase;
-      
+
       // Format subscription result like KMP-IAP
       _purchaseResult = '''
 ✅ Subscription successful (${Platform.operatingSystem})
@@ -135,7 +134,8 @@ Product: ${purchase.productId}
 Transaction ID: ${purchase.transactionId ?? "N/A"}
 Date: ${purchase.transactionDate ?? "N/A"}
 Receipt: ${purchase.transactionReceipt?.substring(0, purchase.transactionReceipt!.length > 50 ? 50 : purchase.transactionReceipt!.length)}...
-      '''.trim();
+      '''
+          .trim();
     });
 
     // IMPORTANT: Server-side receipt validation should be performed here
@@ -155,11 +155,13 @@ Receipt: ${purchase.transactionReceipt?.substring(0, purchase.transactionReceipt
       await _iap.finishTransaction(purchase, isConsumable: false);
       debugPrint('Subscription transaction finished successfully');
       setState(() {
-        _purchaseResult = '$_purchaseResult\n\n✅ Transaction finished successfully';
-        
+        _purchaseResult =
+            '$_purchaseResult\n\n✅ Transaction finished successfully';
+
         // Update active subscriptions list
         if (subscriptionIds.contains(purchase.productId)) {
-          if (!_activeSubscriptions.any((p) => p.productId == purchase.productId)) {
+          if (!_activeSubscriptions
+              .any((p) => p.productId == purchase.productId)) {
             _activeSubscriptions.add(purchase);
           }
         }
@@ -167,7 +169,8 @@ Receipt: ${purchase.transactionReceipt?.substring(0, purchase.transactionReceipt
     } catch (e) {
       debugPrint('Error finishing subscription transaction: $e');
       setState(() {
-        _purchaseResult = '$_purchaseResult\n\n❌ Failed to finish transaction: $e';
+        _purchaseResult =
+            '$_purchaseResult\n\n❌ Failed to finish transaction: $e';
       });
     }
   }
@@ -175,7 +178,7 @@ Receipt: ${purchase.transactionReceipt?.substring(0, purchase.transactionReceipt
   void _handlePurchaseError(PurchaseError error) {
     setState(() {
       _isProcessing = false;
-      
+
       // Format error result like KMP-IAP
       if (error.code == ErrorCode.eUserCancelled) {
         _purchaseResult = '⚠️ Subscription cancelled by user';
@@ -184,7 +187,8 @@ Receipt: ${purchase.transactionReceipt?.substring(0, purchase.transactionReceipt
 ❌ Error: ${error.message}
 Code: ${error.code}
 Platform: ${error.platform}
-        '''.trim();
+        '''
+            .trim();
       }
     });
   }
@@ -193,9 +197,9 @@ Platform: ${error.platform}
     try {
       final purchases = await _iap.getAvailablePurchases();
       setState(() {
-        _activeSubscriptions = purchases.where((p) => 
-          subscriptionIds.contains(p.productId)
-        ).toList();
+        _activeSubscriptions = purchases
+            .where((p) => subscriptionIds.contains(p.productId))
+            .toList();
       });
       debugPrint('Loaded ${_activeSubscriptions.length} active subscriptions');
     } catch (e) {
@@ -207,15 +211,17 @@ Platform: ${error.platform}
     if (!_connected) return;
 
     try {
-      debugPrint('Loading subscriptions for IDs: ${subscriptionIds.join(", ")}');
+      debugPrint(
+          'Loading subscriptions for IDs: ${subscriptionIds.join(", ")}');
       final subscriptions = await _iap.getSubscriptions(subscriptionIds);
       setState(() {
         _subscriptions = subscriptions;
       });
-      
+
       if (_subscriptions.isEmpty) {
         setState(() {
-          _purchaseResult = 'No subscriptions found for IDs: ${subscriptionIds.join(", ")}';
+          _purchaseResult =
+              'No subscriptions found for IDs: ${subscriptionIds.join(", ")}';
         });
       } else {
         debugPrint('Loaded ${_subscriptions.length} subscription products');
@@ -301,9 +307,9 @@ Platform: ${error.platform}
                   ),
                 const SizedBox(width: 8),
                 Text(
-                  _isConnecting 
-                    ? 'Connecting...' 
-                    : (_connected ? '✓ Connected to Store' : 'Not connected'),
+                  _isConnecting
+                      ? 'Connecting...'
+                      : (_connected ? '✓ Connected to Store' : 'Not connected'),
                   style: TextStyle(
                     color: _connected ? Colors.green : Colors.grey[700],
                     fontWeight: FontWeight.w600,
@@ -313,7 +319,7 @@ Platform: ${error.platform}
             ),
           ),
           const SizedBox(height: 20),
-                
+
           // Subscriptions Section Title
           const Text(
             'Available Subscriptions',
@@ -324,7 +330,7 @@ Platform: ${error.platform}
             ),
           ),
           const SizedBox(height: 12),
-                
+
           // Subscriptions
           if (_isLoadingProducts)
             Card(
@@ -339,17 +345,18 @@ Platform: ${error.platform}
               child: Container(
                 padding: const EdgeInsets.all(16),
                 child: Text(
-                  _connected ? 'No subscriptions available' : 'Connect to load subscriptions',
+                  _connected
+                      ? 'No subscriptions available'
+                      : 'Connect to load subscriptions',
                   style: TextStyle(color: Colors.grey[600]),
                 ),
               ),
             )
           else
             ..._subscriptions.map((subscription) {
-              final isSubscribed = _activeSubscriptions.any(
-                (p) => p.productId == subscription.productId
-              );
-              
+              final isSubscribed = _activeSubscriptions
+                  .any((p) => p.productId == subscription.productId);
+
               return Card(
                 margin: const EdgeInsets.only(bottom: 12),
                 child: Padding(
@@ -366,7 +373,9 @@ Platform: ${error.platform}
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  subscription.title ?? subscription.productId ?? '',
+                                  subscription.title ??
+                                      subscription.productId ??
+                                      '',
                                   style: const TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w600,
@@ -380,7 +389,9 @@ Platform: ${error.platform}
                                     color: Colors.grey[600],
                                   ),
                                 ),
-                                if (Platform.isAndroid && subscription.subscriptionPeriodAndroid != null) ...[
+                                if (Platform.isAndroid &&
+                                    subscription.subscriptionPeriodAndroid !=
+                                        null) ...[
                                   const SizedBox(height: 4),
                                   Text(
                                     'Period: ${subscription.subscriptionPeriodAndroid}',
@@ -443,7 +454,8 @@ Platform: ${error.platform}
                           child: ElevatedButton(
                             onPressed: _isProcessing || !_connected
                                 ? null
-                                : () => _handleSubscribe(subscription.productId!),
+                                : () =>
+                                    _handleSubscribe(subscription.productId!),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF007AFF),
                               padding: const EdgeInsets.symmetric(vertical: 12),
@@ -459,7 +471,7 @@ Platform: ${error.platform}
                 ),
               );
             }),
-            
+
           // Purchase Result Card (like KMP-IAP)
           if (_purchaseResult != null) ...[
             const SizedBox(height: 20),

@@ -7,10 +7,10 @@ import 'errors.dart';
 enum IapEvent {
   /// Purchase successful or updated
   purchaseUpdated,
-  
+
   /// Purchase failed or cancelled
   purchaseError,
-  
+
   /// Promoted product clicked (iOS)
   promotedProductIos,
 }
@@ -18,21 +18,21 @@ enum IapEvent {
 /// Purchase updated event payload
 class PurchaseUpdatedEvent {
   final Purchase purchase;
-  
+
   PurchaseUpdatedEvent({required this.purchase});
 }
 
 /// Purchase error event payload
 class PurchaseErrorEvent {
   final PurchaseError error;
-  
+
   PurchaseErrorEvent({required this.error});
 }
 
 /// Promoted product event payload (iOS)
 class PromotedProductEvent {
   final String productId;
-  
+
   PromotedProductEvent({required this.productId});
 }
 
@@ -40,7 +40,7 @@ class PromotedProductEvent {
 class ConnectionStateEvent {
   final bool isConnected;
   final String? message;
-  
+
   ConnectionStateEvent({
     required this.isConnected,
     this.message,
@@ -50,9 +50,9 @@ class ConnectionStateEvent {
 /// Event listener subscription
 class EventSubscription {
   final void Function() _removeListener;
-  
+
   EventSubscription(this._removeListener);
-  
+
   /// Remove this event listener
   void remove() {
     _removeListener();

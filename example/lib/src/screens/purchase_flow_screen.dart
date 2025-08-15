@@ -13,7 +13,7 @@ class PurchaseFlowScreen extends StatefulWidget {
 
 class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
   final FlutterInappPurchase _iap = FlutterInappPurchase.instance;
-  
+
   // Product IDs - consumable products
   final List<String> productIds = [
     'dev.hyo.martie.10bulbs',
@@ -47,13 +47,13 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
     setState(() {
       _loading = true;
     });
-    
+
     try {
       await _iap.initConnection();
       setState(() {
         _connected = true;
       });
-      
+
       _setupPurchaseListeners();
       await _loadProducts();
     } catch (e) {
@@ -67,7 +67,7 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
 
   void _setupPurchaseListeners() {
     debugPrint('Setting up purchase listeners...');
-    
+
     // Listen to purchase updates (using new purchaseUpdatedListener)
     _purchaseUpdatedSubscription = _iap.purchaseUpdatedListener.listen(
       (purchase) {
@@ -98,7 +98,7 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
         debugPrint('❌ Error stream error: $error');
       },
     );
-    
+
     debugPrint('Purchase listeners setup complete');
   }
 
@@ -106,11 +106,11 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
     debugPrint('Purchase successful: ${purchase.productId}');
     debugPrint('Purchase token: ${purchase.purchaseToken}');
     debugPrint('Transaction ID: ${purchase.transactionId}');
-    
+
     setState(() {
       _isProcessing = false;
       _currentPurchase = purchase;
-      
+
       // Format purchase result like KMP-IAP
       _purchaseResult = '''
 ✅ Purchase successful (${Platform.operatingSystem})
@@ -119,7 +119,8 @@ Transaction ID: ${purchase.transactionId ?? "N/A"}
 Date: ${purchase.transactionDate ?? "N/A"}
 Receipt: ${purchase.transactionReceipt?.substring(0, purchase.transactionReceipt!.length > 50 ? 50 : purchase.transactionReceipt!.length)}...
 Purchase Token: ${purchase.purchaseToken?.substring(0, 30)}...
-      '''.trim();
+      '''
+          .trim();
     });
 
     // IMPORTANT: Server-side receipt validation should be performed here
@@ -139,12 +140,14 @@ Purchase Token: ${purchase.purchaseToken?.substring(0, 30)}...
       await _iap.finishTransaction(purchase, isConsumable: true);
       debugPrint('Transaction finished successfully');
       setState(() {
-        _purchaseResult = '$_purchaseResult\n\n✅ Transaction finished successfully';
+        _purchaseResult =
+            '$_purchaseResult\n\n✅ Transaction finished successfully';
       });
     } catch (e) {
       debugPrint('Error finishing transaction: $e');
       setState(() {
-        _purchaseResult = '$_purchaseResult\n\n❌ Failed to finish transaction: $e';
+        _purchaseResult =
+            '$_purchaseResult\n\n❌ Failed to finish transaction: $e';
       });
     }
   }
@@ -152,7 +155,7 @@ Purchase Token: ${purchase.purchaseToken?.substring(0, 30)}...
   void _handlePurchaseError(PurchaseError error) {
     setState(() {
       _isProcessing = false;
-      
+
       // Format error result like KMP-IAP
       if (error.code == ErrorCode.eUserCancelled) {
         _purchaseResult = '⚠️ Purchase cancelled by user';
@@ -161,7 +164,8 @@ Purchase Token: ${purchase.purchaseToken?.substring(0, 30)}...
 ❌ Error: ${error.message}
 Code: ${error.code}
 Platform: ${error.platform}
-        '''.trim();
+        '''
+            .trim();
       }
     });
   }
@@ -205,7 +209,7 @@ Platform: ${error.platform}
         _isProcessing = false;
       });
       debugPrint('❌ Purchase request error: $error');
-      
+
       // Show error to user
       if (mounted) {
         showDialog<void>(
@@ -271,7 +275,7 @@ Platform: ${error.platform}
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Purchase Result Card (like KMP-IAP)
                 if (_purchaseResult != null) ...[
                   Card(
@@ -348,7 +352,8 @@ ${_currentPurchase!.purchaseToken}
                                 debugPrint(fullInfo);
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('Purchase info logged to console'),
+                                    content:
+                                        Text('Purchase info logged to console'),
                                   ),
                                 );
                               },
@@ -366,7 +371,7 @@ ${_currentPurchase!.purchaseToken}
                   ),
                   const SizedBox(height: 16),
                 ],
-                
+
                 // Products
                 if (_products.isEmpty)
                   const Center(
@@ -377,48 +382,52 @@ ${_currentPurchase!.purchaseToken}
                   )
                 else
                   ..._products.map((product) => Card(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            product.title ?? product.productId ?? '',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            product.description ?? '',
-                            style: TextStyle(color: Colors.grey[600]),
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        margin: const EdgeInsets.only(bottom: 12),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                product.localizedPrice ?? '',
+                                product.title ?? product.productId ?? '',
                                 style: const TextStyle(
-                                  fontSize: 20,
+                                  fontSize: 18,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF007AFF),
                                 ),
                               ),
-                              ElevatedButton(
-                                onPressed: _isProcessing || !_connected
-                                    ? null
-                                    : () => _handlePurchase(product.productId!),
-                                child: Text(_isProcessing ? 'Processing...' : 'Buy'),
+                              const SizedBox(height: 8),
+                              Text(
+                                product.description ?? '',
+                                style: TextStyle(color: Colors.grey[600]),
+                              ),
+                              const SizedBox(height: 16),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    product.localizedPrice ?? '',
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF007AFF),
+                                    ),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: _isProcessing || !_connected
+                                        ? null
+                                        : () =>
+                                            _handlePurchase(product.productId!),
+                                    child: Text(_isProcessing
+                                        ? 'Processing...'
+                                        : 'Buy'),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                        ],
-                      ),
-                    ),
-                  )),
+                        ),
+                      )),
               ],
             ),
     );

@@ -847,7 +847,7 @@ class RequestPurchaseAndroid {
     this.obfuscatedProfileIdAndroid,
     this.isOfferPersonalized,
   });
-  
+
   /// Convenience getter for single SKU
   String get sku => skus.isNotEmpty ? skus.first : '';
 }
@@ -1024,8 +1024,9 @@ class RequestProductsParams {
     List<String>? productIds,
     List<String>? skus, // Support legacy parameter name
     this.type = PurchaseType.inapp,
-  }) : productIds = productIds ?? skus ?? [],
-       assert(productIds != null || skus != null, 'Either productIds or skus must be provided');
+  })  : productIds = productIds ?? skus ?? [],
+        assert(productIds != null || skus != null,
+            'Either productIds or skus must be provided');
 }
 
 /// Unified purchase request (OpenIAP compliant)
