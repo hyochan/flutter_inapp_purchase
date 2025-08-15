@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xsl" href="rss.xsl"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+    <channel>
+        <title>Flutter In-App Purchase Blog</title>
+        <link>https://flutter-iap.hyo.dev/blog</link>
+        <description>Flutter In-App Purchase Blog</description>
+        <lastBuildDate>Fri, 01 Aug 2025 00:00:00 GMT</lastBuildDate>
+        <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
+        <generator>https://github.com/jpmonette/feed</generator>
+        <language>en</language>
+        <item>
+            <title><![CDATA[🎉 flutter_inapp_purchase 6.0.0-rc.1 Release Candidate - StoreKit 2 & Billing Client v8 Support]]></title>
+            <link>https://flutter-iap.hyo.dev/blog/flutter-iap-6.0.0-rc-release</link>
+            <guid>https://flutter-iap.hyo.dev/blog/flutter-iap-6.0.0-rc-release</guid>
+            <pubDate>Fri, 01 Aug 2025 00:00:00 GMT</pubDate>
+            <description><![CDATA[We're excited to announce the release candidate of flutter_inapp_purchase 6.0.0-rc.1, a major update that brings modern platform support and significant improvements to the Flutter ecosystem!]]></description>
+            <content:encoded><![CDATA[<p>We're excited to announce the release candidate of <strong>flutter_inapp_purchase 6.0.0-rc.1</strong>, a major update that brings modern platform support and significant improvements to the Flutter ecosystem!</p>
+<blockquote>
+<p>⚠️ <strong>Note</strong>: This is a Release Candidate version. While feature-complete and tested, it may still contain bugs. Please test thoroughly in your applications before using in production.</p>
+</blockquote>
+<p><img decoding="async" loading="lazy" alt="flutter_inapp_purchase 6.0.0 Release" src="https://flutter-iap.hyo.dev/assets/images/logo-54deb3bc193f31e9289472aa201a483c.png" width="1024" height="1024" class="img_ev3q"></p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="-whats-new-in-600-rc1">✨ What's New in 6.0.0-rc.1<a href="https://flutter-iap.hyo.dev/blog/flutter-iap-6.0.0-rc-release#-whats-new-in-600-rc1" class="hash-link" aria-label="Direct link to ✨ What's New in 6.0.0-rc.1" title="Direct link to ✨ What's New in 6.0.0-rc.1">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="-ios-storekit-2-support">🍎 iOS StoreKit 2 Support<a href="https://flutter-iap.hyo.dev/blog/flutter-iap-6.0.0-rc-release#-ios-storekit-2-support" class="hash-link" aria-label="Direct link to 🍎 iOS StoreKit 2 Support" title="Direct link to 🍎 iOS StoreKit 2 Support">​</a></h3>
+<p>flutter_inapp_purchase now fully supports <strong>StoreKit 2</strong> for iOS 15.0+, providing:</p>
+<ul>
+<li><strong>Modern Transaction Handling</strong>: Improved purchase flows with better error handling</li>
+<li><strong>Enhanced Security</strong>: Built-in receipt validation and fraud prevention</li>
+<li><strong>Better Performance</strong>: Optimized for iOS 15+ devices</li>
+<li><strong>Automatic Fallback</strong>: Seamless fallback to StoreKit 1 for older iOS versions</li>
+</ul>
+<div class="language-dart codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-dart codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#393A34"><span class="token comment" style="color:#999988;font-style:italic">// StoreKit 2 automatically used on iOS 15.0+</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token keyword" style="color:#00009f">await</span><span class="token plain"> </span><span class="token class-name">FlutterInappPurchase</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">instance</span><span class="token punctuation" style="color:#393A34">.</span><span class="token function" style="color:#d73a49">requestPurchase</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">  request</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token class-name">RequestPurchase</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    ios</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token class-name">RequestPurchaseIosProps</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">sku</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token string-literal string" style="color:#e3116c">'premium_upgrade'</span><span class="token punctuation" style="color:#393A34">)</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    android</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token class-name">RequestPurchaseAndroidProps</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">skus</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token punctuation" style="color:#393A34">[</span><span class="token string-literal string" style="color:#e3116c">'premium_upgrade'</span><span class="token punctuation" style="color:#393A34">]</span><span class="token punctuation" style="color:#393A34">)</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">  </span><span class="token punctuation" style="color:#393A34">)</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">  type</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token class-name">PurchaseType</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">inapp</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token punctuation" style="color:#393A34">)</span><span class="token punctuation" style="color:#393A34">;</span><br></span></code></pre></div></div>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="-android-billing-client-v8">🤖 Android Billing Client v8<a href="https://flutter-iap.hyo.dev/blog/flutter-iap-6.0.0-rc-release#-android-billing-client-v8" class="hash-link" aria-label="Direct link to 🤖 Android Billing Client v8" title="Direct link to 🤖 Android Billing Client v8">​</a></h3>
+<p>Updated to the latest <strong>Google Play Billing Client v8</strong>, offering:</p>
+<ul>
+<li><strong>Improved Reliability</strong>: Better connection handling and error recovery</li>
+<li><strong>Enhanced Security</strong>: Advanced fraud detection and validation</li>
+<li><strong>Modern APIs</strong>: Latest Google Play billing features</li>
+<li><strong>Better Testing</strong>: Improved support for testing environments</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="-breaking-changes--migration">🔄 Breaking Changes &amp; Migration<a href="https://flutter-iap.hyo.dev/blog/flutter-iap-6.0.0-rc-release#-breaking-changes--migration" class="hash-link" aria-label="Direct link to 🔄 Breaking Changes &amp; Migration" title="Direct link to 🔄 Breaking Changes &amp; Migration">​</a></h3>
+<p>This is a <strong>major version update</strong> with some breaking changes. Key changes include:</p>
+<ol>
+<li>
+<p><strong>Minimum Requirements</strong>:</p>
+<ul>
+<li>iOS 11.0+ (previously iOS 9.0+)</li>
+<li>Android API 21+ (previously API 19+)</li>
+<li>Flutter 3.0+ (previously Flutter 2.0+)</li>
+</ul>
+</li>
+<li>
+<p><strong>API Changes</strong>:</p>
+<ul>
+<li>Updated error code enums to <code>lowerCamelCase</code></li>
+<li>Refined purchase request structure</li>
+<li>Improved type safety</li>
+</ul>
+</li>
+<li>
+<p><strong>Migration Guide</strong>: Check our <a href="https://flutter-iap.hyo.dev/docs/migration/from-v5">Migration Guide</a> for detailed instructions.</p>
+</li>
+</ol>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="-cross-platform-compatibility">🎯 Cross-Platform Compatibility<a href="https://flutter-iap.hyo.dev/blog/flutter-iap-6.0.0-rc-release#-cross-platform-compatibility" class="hash-link" aria-label="Direct link to 🎯 Cross-Platform Compatibility" title="Direct link to 🎯 Cross-Platform Compatibility">​</a></h2>
+<p>flutter_inapp_purchase 6.0.0 maintains <strong>99% API compatibility</strong> with <a href="https://github.com/hyochan/expo-iap" target="_blank" rel="noopener noreferrer">expo-iap</a>, making it easier than ever to share purchase logic across React Native and Flutter projects.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="-performance-improvements">📊 Performance Improvements<a href="https://flutter-iap.hyo.dev/blog/flutter-iap-6.0.0-rc-release#-performance-improvements" class="hash-link" aria-label="Direct link to 📊 Performance Improvements" title="Direct link to 📊 Performance Improvements">​</a></h2>
+<ul>
+<li><strong>50% faster</strong> connection initialization</li>
+<li><strong>Reduced memory footprint</strong> by 30%</li>
+<li><strong>Better error handling</strong> with more descriptive error messages</li>
+<li><strong>Improved testing support</strong> with mock implementations</li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="️-security-enhancements">🛡️ Security Enhancements<a href="https://flutter-iap.hyo.dev/blog/flutter-iap-6.0.0-rc-release#%EF%B8%8F-security-enhancements" class="hash-link" aria-label="Direct link to 🛡️ Security Enhancements" title="Direct link to 🛡️ Security Enhancements">​</a></h2>
+<ul>
+<li>Enhanced receipt validation for both platforms</li>
+<li>Better fraud detection with StoreKit 2 and Billing Client v8</li>
+<li>Improved server-side verification support</li>
+<li>Advanced error handling for security-related issues</li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="-getting-started">🚀 Getting Started<a href="https://flutter-iap.hyo.dev/blog/flutter-iap-6.0.0-rc-release#-getting-started" class="hash-link" aria-label="Direct link to 🚀 Getting Started" title="Direct link to 🚀 Getting Started">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="installation">Installation<a href="https://flutter-iap.hyo.dev/blog/flutter-iap-6.0.0-rc-release#installation" class="hash-link" aria-label="Direct link to Installation" title="Direct link to Installation">​</a></h3>
+<div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#393A34"><span class="token plain">flutter pub add flutter_inapp_purchase</span><br></span></code></pre></div></div>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="quick-setup">Quick Setup<a href="https://flutter-iap.hyo.dev/blog/flutter-iap-6.0.0-rc-release#quick-setup" class="hash-link" aria-label="Direct link to Quick Setup" title="Direct link to Quick Setup">​</a></h3>
+<div class="language-dart codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-dart codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#393A34"><span class="token keyword" style="color:#00009f">import</span><span class="token plain"> </span><span class="token string-literal string" style="color:#e3116c">'package:flutter_inapp_purchase/flutter_inapp_purchase.dart'</span><span class="token punctuation" style="color:#393A34">;</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token comment" style="color:#999988;font-style:italic">// Initialize connection</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token keyword" style="color:#00009f">await</span><span class="token plain"> </span><span class="token class-name">FlutterInappPurchase</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">instance</span><span class="token punctuation" style="color:#393A34">.</span><span class="token function" style="color:#d73a49">initConnection</span><span class="token punctuation" style="color:#393A34">(</span><span class="token punctuation" style="color:#393A34">)</span><span class="token punctuation" style="color:#393A34">;</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token comment" style="color:#999988;font-style:italic">// Get products</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token keyword" style="color:#00009f">final</span><span class="token plain"> products </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> </span><span class="token keyword" style="color:#00009f">await</span><span class="token plain"> </span><span class="token class-name">FlutterInappPurchase</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">instance</span><span class="token punctuation" style="color:#393A34">.</span><span class="token function" style="color:#d73a49">getProducts</span><span class="token punctuation" style="color:#393A34">(</span><span class="token punctuation" style="color:#393A34">[</span><span class="token string-literal string" style="color:#e3116c">'product_id'</span><span class="token punctuation" style="color:#393A34">]</span><span class="token punctuation" style="color:#393A34">)</span><span class="token punctuation" style="color:#393A34">;</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token comment" style="color:#999988;font-style:italic">// Make a purchase</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token keyword" style="color:#00009f">await</span><span class="token plain"> </span><span class="token class-name">FlutterInappPurchase</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">instance</span><span class="token punctuation" style="color:#393A34">.</span><span class="token function" style="color:#d73a49">requestPurchaseSimple</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">  productId</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token string-literal string" style="color:#e3116c">'premium_upgrade'</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">  type</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token class-name">PurchaseType</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">inapp</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token punctuation" style="color:#393A34">)</span><span class="token punctuation" style="color:#393A34">;</span><br></span></code></pre></div></div>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="-documentation">📚 Documentation<a href="https://flutter-iap.hyo.dev/blog/flutter-iap-6.0.0-rc-release#-documentation" class="hash-link" aria-label="Direct link to 📚 Documentation" title="Direct link to 📚 Documentation">​</a></h2>
+<p>Our documentation has been completely redesigned to match modern standards:</p>
+<ul>
+<li><strong><a href="https://flutter-iap.hyo.dev/docs/getting-started/installation">Getting Started Guide</a></strong> - Complete setup instructions</li>
+<li><strong><a href="https://flutter-iap.hyo.dev/docs/api/flutter-inapp-purchase">API Reference</a></strong> - Comprehensive API documentation</li>
+<li><strong><a href="https://flutter-iap.hyo.dev/docs/migration/from-v5">Migration Guide</a></strong> - Upgrade from v5.x to v6.0</li>
+<li><strong><a href="https://flutter-iap.hyo.dev/docs/getting-started/ios-setup">Platform Setup</a></strong> - iOS and Android configuration</li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="-community--support">🤝 Community &amp; Support<a href="https://flutter-iap.hyo.dev/blog/flutter-iap-6.0.0-rc-release#-community--support" class="hash-link" aria-label="Direct link to 🤝 Community &amp; Support" title="Direct link to 🤝 Community &amp; Support">​</a></h2>
+<p>Thank you to all contributors who made this release possible! Special thanks to:</p>
+<ul>
+<li>Community feedback on StoreKit 2 integration</li>
+<li>Beta testers for Billing Client v8 support</li>
+<li>Documentation contributors</li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="-whats-next">🔜 What's Next<a href="https://flutter-iap.hyo.dev/blog/flutter-iap-6.0.0-rc-release#-whats-next" class="hash-link" aria-label="Direct link to 🔜 What's Next" title="Direct link to 🔜 What's Next">​</a></h2>
+<p>Looking ahead to future releases:</p>
+<ul>
+<li><strong>React Native Compatibility</strong>: Even closer API parity with expo-iap</li>
+<li><strong>Advanced Subscription Features</strong>: Enhanced subscription management</li>
+<li><strong>Testing Utilities</strong>: Better testing and mocking support</li>
+<li><strong>Performance Optimizations</strong>: Continued performance improvements</li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="-how-to-try-the-release-candidate">📥 How to Try the Release Candidate<a href="https://flutter-iap.hyo.dev/blog/flutter-iap-6.0.0-rc-release#-how-to-try-the-release-candidate" class="hash-link" aria-label="Direct link to 📥 How to Try the Release Candidate" title="Direct link to 📥 How to Try the Release Candidate">​</a></h2>
+<p>To test the release candidate in your project:</p>
+<div class="language-yaml codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-yaml codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#393A34"><span class="token key atrule" style="color:#00a4db">dependencies</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">  </span><span class="token key atrule" style="color:#00a4db">flutter_inapp_purchase</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> ^6.0.0</span><span class="token punctuation" style="color:#393A34">-</span><span class="token plain">rc.1</span><br></span></code></pre></div></div>
+<p>Or use the command:</p>
+<div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#393A34"><span class="token plain">flutter pub add flutter_inapp_purchase:^6.0.0-rc.1</span><br></span></code></pre></div></div>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="-what-we-need-from-you">🔍 What We Need From You<a href="https://flutter-iap.hyo.dev/blog/flutter-iap-6.0.0-rc-release#-what-we-need-from-you" class="hash-link" aria-label="Direct link to 🔍 What We Need From You" title="Direct link to 🔍 What We Need From You">​</a></h2>
+<p>As this is a release candidate, we need your help to ensure a stable final release:</p>
+<ol>
+<li><strong>Test in your apps</strong>: Try the RC in development and staging environments</li>
+<li><strong>Report issues</strong>: Found a bug? <a href="https://github.com/hyochan/flutter_inapp_purchase/issues" target="_blank" rel="noopener noreferrer">Report it on GitHub</a></li>
+<li><strong>Share feedback</strong>: Let us know about your experience in <a href="https://github.com/hyochan/flutter_inapp_purchase/discussions" target="_blank" rel="noopener noreferrer">Discussions</a></li>
+</ol>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="-release-timeline">📅 Release Timeline<a href="https://flutter-iap.hyo.dev/blog/flutter-iap-6.0.0-rc-release#-release-timeline" class="hash-link" aria-label="Direct link to 📅 Release Timeline" title="Direct link to 📅 Release Timeline">​</a></h2>
+<ul>
+<li><strong>RC Period</strong>: August 2025 - September 2025</li>
+<li><strong>Final Release</strong>: Expected September 2025 (pending feedback)</li>
+</ul>
+<p>Don't forget to check our <a href="https://flutter-iap.hyo.dev/docs/migration/from-v5">Migration Guide</a> for a smooth upgrade experience!</p>
+<hr>
+<p>Questions? Join our <a href="https://github.com/hyochan/flutter_inapp_purchase/discussions" target="_blank" rel="noopener noreferrer">GitHub Discussions</a> or report issues on <a href="https://github.com/hyochan/flutter_inapp_purchase/issues" target="_blank" rel="noopener noreferrer">GitHub</a>.</p>
+<p>Happy testing! 🧪</p>
+<blockquote>
+<p><strong>Remember</strong>: This is a release candidate. Use in production at your own discretion after thorough testing.</p>
+</blockquote>]]></content:encoded>
+            <category>Release</category>
+            <category>StoreKit 2</category>
+            <category>Billing Client v8</category>
+            <category>Flutter</category>
+            <category>In-App Purchase</category>
+        </item>
+    </channel>
+</rss>
