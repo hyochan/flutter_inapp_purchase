@@ -5,12 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 
 class StoreKit2Demo extends StatefulWidget {
+  const StoreKit2Demo({Key? key}) : super(key: key);
+
   @override
   _StoreKit2DemoState createState() => _StoreKit2DemoState();
 }
 
 class _StoreKit2DemoState extends State<StoreKit2Demo> {
-  final FlutterInappPurchase _iap = FlutterInappPurchase.instance;
+  final FlutterInappPurchase _iap = FlutterInappPurchase();
   StreamSubscription<PurchasedItem?>? _purchaseUpdatedSubscription;
   StreamSubscription<PurchaseResult?>? _purchaseErrorSubscription;
 
@@ -51,15 +53,13 @@ class _StoreKit2DemoState extends State<StoreKit2Demo> {
       await _iap.initConnection();
 
       // Set up purchase listeners
-      _purchaseUpdatedSubscription =
-          FlutterInappPurchase.purchaseUpdated.listen((purchase) {
+      _purchaseUpdatedSubscription = _iap.purchaseUpdated.listen((purchase) {
         if (purchase != null) {
           _handlePurchaseUpdate(purchase);
         }
       });
 
-      _purchaseErrorSubscription =
-          FlutterInappPurchase.purchaseError.listen((error) {
+      _purchaseErrorSubscription = _iap.purchaseError.listen((error) {
         setState(() {
           _error = error?.message ?? 'Unknown purchase error';
           _loading = false;
@@ -175,7 +175,7 @@ class _StoreKit2DemoState extends State<StoreKit2Demo> {
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Purchases restored successfully'),
           backgroundColor: Colors.blue,
         ),
@@ -191,7 +191,7 @@ class _StoreKit2DemoState extends State<StoreKit2Demo> {
   Future<void> _presentCodeRedemption() async {
     if (!Platform.isIOS) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Code redemption is only available on iOS'),
           backgroundColor: Colors.orange,
         ),
@@ -211,7 +211,7 @@ class _StoreKit2DemoState extends State<StoreKit2Demo> {
   Future<void> _showManageSubscriptions() async {
     if (!Platform.isIOS) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Manage subscriptions is only available on iOS'),
           backgroundColor: Colors.orange,
         ),
@@ -232,9 +232,9 @@ class _StoreKit2DemoState extends State<StoreKit2Demo> {
     final isSubscription = product.productId?.contains('subscription') ?? false;
 
     return Card(
-      margin: EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 16),
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -244,7 +244,7 @@ class _StoreKit2DemoState extends State<StoreKit2Demo> {
                   isSubscription ? Icons.repeat : Icons.shopping_bag,
                   color: isSubscription ? Colors.blue : Colors.green,
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     product.title ?? product.productId ?? 'Unknown Product',
@@ -260,20 +260,20 @@ class _StoreKit2DemoState extends State<StoreKit2Demo> {
                 ),
               ],
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               product.description ?? 'No description available',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             if (isSubscription &&
                 product.subscriptionPeriodUnitIOS != null) ...[
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Text(
                 'Subscription period: ${product.subscriptionPeriodNumberIOS} ${product.subscriptionPeriodUnitIOS}',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -291,9 +291,9 @@ class _StoreKit2DemoState extends State<StoreKit2Demo> {
   Widget _buildPurchaseItem(PurchasedItem purchase) {
     return Card(
       color: Colors.green.shade50,
-      margin: EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
-        leading: Icon(Icons.check_circle, color: Colors.green),
+        leading: const Icon(Icons.check_circle, color: Colors.green),
         title: Text(purchase.productId ?? 'Unknown'),
         subtitle: Text(
           'Transaction: ${purchase.transactionId ?? 'N/A'}\n'
@@ -308,18 +308,18 @@ class _StoreKit2DemoState extends State<StoreKit2Demo> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('StoreKit 2 Demo'),
+        title: const Text('StoreKit 2 Demo'),
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh),
             onPressed: _loading ? null : _initializeStore,
           ),
         ],
       ),
       body: _loading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -329,14 +329,14 @@ class _StoreKit2DemoState extends State<StoreKit2Demo> {
                         ? Colors.green.shade100
                         : Colors.red.shade100,
                     child: Padding(
-                      padding: EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(16),
                       child: Row(
                         children: [
                           Icon(
                             _connected ? Icons.check_circle : Icons.error,
                             color: _connected ? Colors.green : Colors.red,
                           ),
-                          SizedBox(width: 8),
+                          const SizedBox(width: 8),
                           Text(
                             _connected
                                 ? 'Store Connected'
@@ -353,19 +353,19 @@ class _StoreKit2DemoState extends State<StoreKit2Demo> {
 
                   // Error Message
                   if (_error != null) ...[
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     Card(
                       color: Colors.red.shade100,
                       child: Padding(
-                        padding: EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(16),
                         child: Row(
                           children: [
-                            Icon(Icons.error, color: Colors.red),
-                            SizedBox(width: 8),
+                            const Icon(Icons.error, color: Colors.red),
+                            const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 _error!,
-                                style: TextStyle(color: Colors.red),
+                                style: const TextStyle(color: Colors.red),
                               ),
                             ),
                           ],
@@ -375,45 +375,45 @@ class _StoreKit2DemoState extends State<StoreKit2Demo> {
                   ],
 
                   // StoreKit 2 Actions
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   Text(
                     'StoreKit 2 Features',
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
                     children: [
                       ElevatedButton.icon(
                         onPressed: _loading ? null : _restorePurchases,
-                        icon: Icon(Icons.restore),
-                        label: Text('Restore Purchases'),
+                        icon: const Icon(Icons.restore),
+                        label: const Text('Restore Purchases'),
                       ),
                       if (Platform.isIOS) ...[
                         ElevatedButton.icon(
                           onPressed: _loading ? null : _presentCodeRedemption,
-                          icon: Icon(Icons.card_giftcard),
-                          label: Text('Redeem Code'),
+                          icon: const Icon(Icons.card_giftcard),
+                          label: const Text('Redeem Code'),
                         ),
                         ElevatedButton.icon(
                           onPressed: _loading ? null : _showManageSubscriptions,
-                          icon: Icon(Icons.subscriptions),
-                          label: Text('Manage Subscriptions'),
+                          icon: const Icon(Icons.subscriptions),
+                          label: const Text('Manage Subscriptions'),
                         ),
                       ],
                     ],
                   ),
 
                   // Products Section
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
                   Text(
                     'Available Products',
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   if (_products.isEmpty)
-                    Card(
+                    const Card(
                       child: Padding(
                         padding: EdgeInsets.all(16),
                         child: Text('No products available'),
@@ -423,14 +423,14 @@ class _StoreKit2DemoState extends State<StoreKit2Demo> {
                     ..._products.map(_buildProductCard),
 
                   // Purchases Section
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
                   Text(
                     'Your Purchases',
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   if (_purchases.isEmpty)
-                    Card(
+                    const Card(
                       child: Padding(
                         padding: EdgeInsets.all(16),
                         child: Text('No purchases found'),

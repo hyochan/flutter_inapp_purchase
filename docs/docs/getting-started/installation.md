@@ -150,6 +150,10 @@ The plugin automatically adds the required billing permission to your manifest.
 
 ### Initialize the Plugin
 
+You have three options for managing IAP instances:
+
+#### Option 1: Create Your Own Instance
+
 ```dart
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 
@@ -159,6 +163,8 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  final FlutterInappPurchase iap = FlutterInappPurchase();
+  
   @override
   void initState() {
     super.initState();
@@ -167,7 +173,7 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _initializeIAP() async {
     try {
-      await FlutterInappPurchase.instance.initConnection();
+      await iap.initConnection();
       print('IAP connection initialized successfully');
     } catch (e) {
       print('Failed to initialize IAP connection: $e');
@@ -176,7 +182,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void dispose() {
-    FlutterInappPurchase.instance.endConnection();
+    iap.endConnection();
     super.dispose();
   }
 
@@ -189,18 +195,44 @@ class _MyAppState extends State<MyApp> {
 }
 ```
 
+#### Option 2: Use Singleton Instance
+
+```dart
+class _MyAppState extends State<MyApp> {
+  final iap = FlutterInappPurchase.instance;
+  
+  Future<void> _initializeIAP() async {
+    await iap.initConnection();
+  }
+}
+```
+
+#### Option 3: With Flutter Hooks
+
+```dart
+class MyWidget extends HookWidget {
+  @override
+  Widget build(BuildContext context) {
+    final iapState = useIAP();
+    
+    return Text('Connected: ${iapState.connected}');
+  }
+}
+```
+
 ### Test Connection
 
 Test your setup with this verification code:
 
 ```dart
 Future<void> _testConnection() async {
+  final iap = FlutterInappPurchase(); // or FlutterInappPurchase.instance
   try {
-    final String? result = await FlutterInappPurchase.instance.initConnection();
+    final String? result = await iap.initConnection();
     print('Connection result: $result');
     
     // Test product fetching
-    final products = await FlutterInappPurchase.instance.getProducts(['test_product_id']);
+    final products = await iap.getProducts(['test_product_id']);
     print('Found ${products.length} products');
     
   } catch (e) {

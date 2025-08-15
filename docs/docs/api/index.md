@@ -27,10 +27,11 @@ Access iOS and Android specific features and capabilities.
 - **iOS Features**: Offer code redemption, subscription management, StoreKit 2 support
 - **Android Features**: Billing client state, pending purchases, deep links
 
-### 🎧 Event Listeners
+### 🎧 Event Listeners (Open IAP Spec)
 Real-time streams for monitoring purchase events and connection states.
 
-- **Purchase Events**: Success, errors, and state changes
+- **purchaseUpdatedListener**: Stream for successful purchase updates
+- **purchaseErrorListener**: Stream for purchase errors
 - **Connection Events**: Store connection status updates
 
 ### 🔧 Types & Enums
@@ -42,37 +43,51 @@ Comprehensive type definitions for type-safe development.
 
 ## Quick Start
 
+### Instance Management
+
+flutter_inapp_purchase provides flexible instance management:
+
+```dart
+// Option 1: Create your own instance (recommended for most cases)
+final iap = FlutterInappPurchase();
+
+// Option 2: Use singleton for global state management
+final iap = FlutterInappPurchase.instance;
+
+// Option 3: Use with IapProvider (recommended for Flutter apps)
+final iapProvider = IapProvider.of(context);
+```
+
+### Basic Implementation
+
 ```dart
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 
 class PurchaseManager {
-  StreamSubscription<PurchasedItem?>? _purchaseSubscription;
-  StreamSubscription<PurchaseResult?>? _errorSubscription;
+  final FlutterInappPurchase iap = FlutterInappPurchase();
+  StreamSubscription<Purchase>? _purchaseSubscription;
+  StreamSubscription<PurchaseError>? _errorSubscription;
 
   Future<void> initializePurchases() async {
     // Initialize connection
-    await FlutterInappPurchase.instance.initConnection();
+    await iap.initConnection();
     
-    // Set up listeners
-    _purchaseSubscription = FlutterInappPurchase.purchaseUpdated.listen(
+    // Set up listeners (Open IAP spec)
+    _purchaseSubscription = iap.purchaseUpdatedListener.listen(
       (purchase) {
-        if (purchase != null) {
-          handlePurchaseSuccess(purchase);
-        }
+        handlePurchaseSuccess(purchase);
       },
     );
     
-    _errorSubscription = FlutterInappPurchase.purchaseError.listen(
+    _errorSubscription = iap.purchaseErrorListener.listen(
       (error) {
-        if (error != null) {
-          handlePurchaseError(error);
-        }
+        handlePurchaseError(error);
       },
     );
   }
   
   Future<void> makePurchase(String productId) async {
-    await FlutterInappPurchase.instance.requestPurchase(
+    await iap.requestPurchase(
       request: RequestPurchase(
         ios: RequestPurchaseIOS(sku: productId, quantity: 1),
         android: RequestPurchaseAndroid(skus: [productId]),
@@ -83,7 +98,7 @@ class PurchaseManager {
 }
 ```
 
-## TypeScript Support
+## Dart Type Safety
 
 flutter_inapp_purchase provides full type safety with comprehensive type definitions for all methods, parameters, and return values.
 

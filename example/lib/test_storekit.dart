@@ -20,6 +20,7 @@ class TestScreen extends StatefulWidget {
 }
 
 class _TestScreenState extends State<TestScreen> {
+  final FlutterInappPurchase _iap = FlutterInappPurchase();
   String _status = 'Not started';
 
   void _testStoreKit() async {
@@ -28,7 +29,7 @@ class _TestScreenState extends State<TestScreen> {
     try {
       // First run our diagnostic test
       setState(() => _status = 'Running StoreKit diagnostics...');
-      final diagnostics = await FlutterInappPurchase.instance.channel
+      final diagnostics = await _iap.channel
           .invokeMethod('testStoreKit');
       setState(() => _status = 'Diagnostics: $diagnostics');
 
@@ -37,7 +38,7 @@ class _TestScreenState extends State<TestScreen> {
 
       // Test 1: Initialize connection (this will check can make payments internally)
       setState(() => _status = 'Testing if can make payments...');
-      final canMake = await FlutterInappPurchase.instance.channel
+      final canMake = await _iap.channel
           .invokeMethod('canMakePayments');
       setState(() => _status = 'Can make payments: $canMake');
 
@@ -48,12 +49,12 @@ class _TestScreenState extends State<TestScreen> {
 
       // Test 2: Initialize connection
       setState(() => _status = 'Initializing connection...');
-      await FlutterInappPurchase.instance.initConnection();
+      await _iap.initConnection();
       setState(() => _status = 'Connection initialized');
 
       // Test 3: Get simple product
       setState(() => _status = 'Getting products...');
-      final products = await FlutterInappPurchase.instance
+      final products = await _iap
           .getProducts(['dev.hyo.martie.10bulbs']);
       setState(() => _status = 'Got ${products.length} products');
 
@@ -70,20 +71,20 @@ class _TestScreenState extends State<TestScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('StoreKit 2 Test')),
+      appBar: AppBar(title: const Text('StoreKit 2 Test')),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               _status,
-              style: TextStyle(fontSize: 16),
+              style: const TextStyle(fontSize: 16),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _testStoreKit,
-              child: Text('Test StoreKit'),
+              child: const Text('Test StoreKit'),
             ),
           ],
         ),

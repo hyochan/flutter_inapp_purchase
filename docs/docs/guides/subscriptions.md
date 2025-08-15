@@ -19,7 +19,8 @@ Subscriptions are recurring purchases that provide access to content or services
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 
 class SubscriptionService {
-  final _iap = FlutterInappPurchase.instance;
+  // Using constructor for subscription management
+  final _iap = FlutterInappPurchase();
   bool _isInitialized = false;
   
   Future<void> initialize() async {
@@ -35,8 +36,8 @@ class SubscriptionService {
   }
   
   void _setupListeners() {
-    FlutterInappPurchase.purchaseUpdated.listen(_handlePurchase);
-    FlutterInappPurchase.purchaseError.listen(_handleError);
+    _iap.purchaseUpdated.listen(_handlePurchase);
+    _iap.purchaseError.listen(_handleError);
   }
 }
 ```
@@ -45,6 +46,9 @@ class SubscriptionService {
 
 ```dart
 class SubscriptionManager {
+  // Create instance for subscription manager
+  final _iap = FlutterInappPurchase();
+  
   final _subscriptionIds = [
     'com.example.monthly_premium',
     'com.example.yearly_premium',
@@ -55,8 +59,12 @@ class SubscriptionManager {
   
   Future<void> loadSubscriptions() async {
     try {
-      _subscriptions = await FlutterInappPurchase.instance
-          .requestProducts(skus: _subscriptionIds, type: 'subs');
+      _subscriptions = await _iap.requestProducts(
+        RequestProductsParams(
+          skus: _subscriptionIds,
+          type: PurchaseType.subs,
+        ),
+      );
       
       // Sort by price or preference
       _subscriptions.sort((a, b) => 
@@ -81,8 +89,11 @@ class SubscriptionManager {
 
 ```dart
 Future<void> purchaseSubscription(String subscriptionId) async {
+  // Using instance created in the class
+  final iap = FlutterInappPurchase();
+  
   try {
-    await FlutterInappPurchase.instance.requestPurchase(
+    await iap.requestPurchase(
       request: RequestPurchase(
         ios: RequestPurchaseIOS(sku: subscriptionId),
         android: RequestPurchaseAndroid(
@@ -110,12 +121,15 @@ Future<void> purchaseSubscriptionAdvanced({
   String? upgradeFromId,
   int? prorationMode,
 }) async {
+  // Create a new instance for this subscription flow
+  final iap = FlutterInappPurchase();
+  
   try {
     if (Platform.isAndroid && upgradeFromId != null) {
       // Android subscription upgrade/downgrade
       final currentToken = await _getCurrentSubscriptionToken(upgradeFromId);
       
-      await FlutterInappPurchase.instance.requestPurchase(
+      await iap.requestPurchase(
         request: RequestPurchase(
           ios: RequestPurchaseIOS(sku: subscriptionId),
           android: RequestPurchaseAndroid(
@@ -130,7 +144,7 @@ Future<void> purchaseSubscriptionAdvanced({
       );
     } else {
       // New subscription or iOS
-      await FlutterInappPurchase.instance.requestPurchase(
+      await iap.requestPurchase(
         request: RequestPurchase(
           ios: RequestPurchaseIOS(sku: subscriptionId),
           android: RequestPurchaseAndroid(

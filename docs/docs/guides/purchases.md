@@ -47,6 +47,7 @@ import 'dart:io';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 
 class PurchaseHandler {
+  // Using singleton instance for in-app purchases
   final _iap = FlutterInappPurchase.instance;
   
   StreamSubscription<PurchasedItem?>? _purchaseUpdatedSubscription;
@@ -54,7 +55,7 @@ class PurchaseHandler {
   
   void setupPurchaseListeners() {
     // Listen to successful purchases
-    _purchaseUpdatedSubscription = FlutterInappPurchase.purchaseUpdated.listen(
+    _purchaseUpdatedSubscription = _iap.purchaseUpdated.listen(
       (purchasedItem) {
         if (purchasedItem != null) {
           debugPrint('Purchase update received: ${purchasedItem.productId}');
@@ -64,7 +65,7 @@ class PurchaseHandler {
     );
 
     // Listen to purchase errors
-    _purchaseErrorSubscription = FlutterInappPurchase.purchaseError.listen(
+    _purchaseErrorSubscription = _iap.purchaseError.listen(
       (purchaseError) {
         if (purchaseError != null) {
           debugPrint('Purchase failed: ${purchaseError.message}');
@@ -132,6 +133,9 @@ Use the new `requestPurchase` API for initiating purchases:
 
 ```dart
 Future<void> _handlePurchase(String productId) async {
+  // Using singleton instance for in-app purchases
+  final iap = FlutterInappPurchase.instance;
+  
   try {
     setState(() {
       _isProcessing = true;
@@ -139,7 +143,7 @@ Future<void> _handlePurchase(String productId) async {
     });
 
     // Use the new requestPurchase API
-    await FlutterInappPurchase.instance.requestPurchase(
+    await iap.requestPurchase(
       request: RequestPurchase(
         ios: RequestPurchaseIOS(
           sku: productId,

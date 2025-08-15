@@ -9,21 +9,28 @@ enum IAPPlatform { ios, android }
 /// Purchase type enum
 enum PurchaseType { inapp, subs }
 
-/// Error codes matching flutter IAP
+/// Error codes (OpenIAP compliant)
 enum ErrorCode {
+  // Common error codes per OpenIAP spec
   eUnknown,
   eUserCancelled,
   eUserError,
   eItemUnavailable,
-  eRemoteError,
+  eProductNotAvailable,
+  eProductAlreadyOwned,
+  eReceiptFinished,
+  eAlreadyOwned,
   eNetworkError,
   eServiceError,
+  eRemoteError,
   eReceiptFailed,
+  ePending,
+  eNotEnded,
+  eDeveloperError,
+  
+  // Legacy codes kept for compatibility
   eReceiptFinishedFailed,
   eNotPrepared,
-  eNotEnded,
-  eAlreadyOwned,
-  eDeveloperError,
   eBillingResponseJsonParseError,
   eDeferredPayment,
   eInterrupted,
@@ -33,11 +40,8 @@ enum ErrorCode {
   eTransactionValidationFailed,
   eActivityUnavailable,
   eAlreadyPrepared,
-  ePending,
   eConnectionClosed,
-  // Additional error codes
   eBillingUnavailable,
-  eProductAlreadyOwned,
   ePurchaseNotAllowed,
   eQuotaExceeded,
   eFeatureNotSupported,
@@ -140,16 +144,16 @@ enum TypeInApp { inapp, subs }
 
 /// Android billing response codes
 enum ResponseCodeAndroid {
-  BILLING_RESPONSE_RESULT_OK,
-  BILLING_RESPONSE_RESULT_USER_CANCELED,
-  BILLING_RESPONSE_RESULT_SERVICE_UNAVAILABLE,
-  BILLING_RESPONSE_RESULT_BILLING_UNAVAILABLE,
-  BILLING_RESPONSE_RESULT_ITEM_UNAVAILABLE,
-  BILLING_RESPONSE_RESULT_DEVELOPER_ERROR,
-  BILLING_RESPONSE_RESULT_ERROR,
-  BILLING_RESPONSE_RESULT_ITEM_ALREADY_OWNED,
-  BILLING_RESPONSE_RESULT_ITEM_NOT_OWNED,
-  UNKNOWN,
+  billingResponseResultOk,
+  billingResponseResultUserCanceled,
+  billingResponseResultServiceUnavailable,
+  billingResponseResultBillingUnavailable,
+  billingResponseResultItemUnavailable,
+  billingResponseResultDeveloperError,
+  billingResponseResultError,
+  billingResponseResultItemAlreadyOwned,
+  billingResponseResultItemNotOwned,
+  unknown,
 }
 
 /// See also https://developer.android.com/reference/com/android/billingclient/api/Purchase.PurchaseState

@@ -11,95 +11,109 @@ class HomeScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFF7F8FA),
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Flutter IAP Demo',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1A1A1A),
+          child: Column(
+            children: [
+              // Header
+              Container(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  children: [
+                    const Text(
+                      'Flutter IAP Demo',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF007AFF),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'In-app purchase example',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              
+              // Menu Items
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      _buildMenuItem(
+                        context,
+                        icon: CupertinoIcons.shopping_cart,
+                        title: 'Purchase Flow',
+                        subtitle: 'Buy consumable products',
+                        color: const Color(0xFF007AFF),
+                        onTap: () => Navigator.pushNamed(context, '/purchase-flow'),
+                      ),
+                      const Divider(height: 1),
+                      _buildMenuItem(
+                        context,
+                        icon: CupertinoIcons.creditcard,
+                        title: 'Subscription Flow',
+                        subtitle: 'Manage subscriptions',
+                        color: const Color(0xFF34C759),
+                        onTap: () => Navigator.pushNamed(context, '/subscription-flow'),
+                      ),
+                      const Divider(height: 1),
+                      _buildMenuItem(
+                        context,
+                        icon: CupertinoIcons.bag,
+                        title: 'Available Purchases',
+                        subtitle: 'View and restore purchases',
+                        color: const Color(0xFF5856D6),
+                        onTap: () => Navigator.pushNamed(context, '/available-purchases'),
+                      ),
+                      const Divider(height: 1),
+                      _buildMenuItem(
+                        context,
+                        icon: CupertinoIcons.gift,
+                        title: 'Redeem Offer Code',
+                        subtitle: Platform.isIOS ? 'Redeem promotional codes' : 'iOS only feature',
+                        color: const Color(0xFFFF3B30),
+                        onTap: () => Navigator.pushNamed(context, '/offer-code'),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  'StoreKit 2 Example',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.grey[600],
-                  ),
+              ),
+              
+              const SizedBox(height: 32),
+              
+              // Info Section
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Column(
+                  children: [
+                    Text(
+                      'Platform: ${Platform.operatingSystem}',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Version: 6.0.0',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 32),
-
-                // Menu Items
-                _buildMenuItem(
-                  context,
-                  icon: CupertinoIcons.shopping_cart,
-                  title: 'Products',
-                  subtitle: 'View and purchase products',
-                  color: const Color(0xFF007AFF),
-                  onTap: () => Navigator.pushNamed(context, '/products'),
-                ),
-                const SizedBox(height: 16),
-
-                _buildMenuItem(
-                  context,
-                  icon: CupertinoIcons.creditcard,
-                  title: 'Subscriptions',
-                  subtitle: 'Manage your subscriptions',
-                  color: const Color(0xFF34C759),
-                  onTap: () => Navigator.pushNamed(context, '/subscriptions'),
-                ),
-                const SizedBox(height: 16),
-
-                _buildMenuItem(
-                  context,
-                  icon: CupertinoIcons.clock,
-                  title: 'Purchase History',
-                  subtitle: 'View past purchases',
-                  color: const Color(0xFF5856D6),
-                  onTap: () => Navigator.pushNamed(context, '/history'),
-                ),
-                const SizedBox(height: 16),
-
-                if (Platform.isIOS) ...[
-                  _buildMenuItem(
-                    context,
-                    icon: CupertinoIcons.gift,
-                    title: 'Redeem Code',
-                    subtitle: 'Enter promotional codes',
-                    color: const Color(0xFFFF3B30),
-                    onTap: () => Navigator.pushNamed(context, '/redeem'),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-
-                _buildMenuItem(
-                  context,
-                  icon: CupertinoIcons.settings,
-                  title: 'Settings',
-                  subtitle: 'Debug options and info',
-                  color: const Color(0xFF8E8E93),
-                  onTap: () => Navigator.pushNamed(context, '/settings'),
-                ),
-                const SizedBox(height: 16),
-
-                if (Platform.isAndroid) ...[
-                  _buildMenuItem(
-                    context,
-                    icon: CupertinoIcons.exclamationmark_triangle,
-                    title: 'Debug Purchases',
-                    subtitle: 'View and consume pending purchases',
-                    color: Colors.orange,
-                    onTap: () =>
-                        Navigator.pushNamed(context, '/debug-purchases'),
-                  ),
-                ],
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -114,28 +128,17 @@ class HomeScreen extends StatelessWidget {
     required Color color,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
+    return InkWell(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 10,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
         child: Row(
           children: [
             Container(
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
+                color: color.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
@@ -152,9 +155,8 @@ class HomeScreen extends StatelessWidget {
                   Text(
                     title,
                     style: const TextStyle(
-                      fontSize: 18,
+                      fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF1A1A1A),
                     ),
                   ),
                   const SizedBox(height: 4),

@@ -397,41 +397,6 @@ final purchaseToken = item.purchaseTokenAndroid;
 await validatePurchaseOnServer(purchaseToken, item.productId);
 ```
 
-## Performance Issues
-
-### Slow Product Loading
-
-**Problem:** Products take long time to load
-
-**Solutions:**
-
-1. **Cache products:**
-   ```dart
-   class ProductCache {
-     static List<IAPItem>? _cachedProducts;
-     static DateTime? _cacheTime;
-     
-     static Future<List<IAPItem>> getProducts(List<String> ids) async {
-       final now = DateTime.now();
-       if (_cachedProducts != null && 
-           _cacheTime != null &&
-           now.difference(_cacheTime!).inMinutes < 5) {
-         return _cachedProducts!;
-       }
-       
-       _cachedProducts = await FlutterInappPurchase.instance.requestProducts(skus: ids, type: 'inapp');
-       _cacheTime = now;
-       return _cachedProducts!;
-     }
-   }
-   ```
-
-2. **Batch requests:**
-   ```dart
-   // Load all products at once instead of individual requests
-   final allProducts = await FlutterInappPurchase.instance
-       .requestProducts(skus: allProductIds, type: 'inapp');
-   ```
 
 ## Debug Tools
 

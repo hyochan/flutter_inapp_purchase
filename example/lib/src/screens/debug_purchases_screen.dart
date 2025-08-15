@@ -12,6 +12,7 @@ class DebugPurchasesScreen extends StatefulWidget {
 }
 
 class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
+  late FlutterInappPurchase _iap;
   List<iap_types.Purchase> _purchases = [];
   bool _isLoading = false;
   String _debugInfo = '';
@@ -19,6 +20,7 @@ class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
   @override
   void initState() {
     super.initState();
+    _iap = FlutterInappPurchase();
     _loadPurchases();
   }
 
@@ -30,12 +32,11 @@ class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
 
     try {
       // Restore purchases first
-      await FlutterInappPurchase.instance.restorePurchases();
+      await _iap.restorePurchases();
       await Future<void>.delayed(const Duration(seconds: 1));
 
       // Get all available purchases
-      final purchases =
-          await FlutterInappPurchase.instance.getAvailablePurchases();
+      final purchases = await _iap.getAvailablePurchases();
 
       setState(() {
         _purchases = purchases;
@@ -81,7 +82,7 @@ class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
     });
 
     try {
-      final result = await FlutterInappPurchase.instance.consumePurchaseAndroid(
+      final result = await _iap.consumePurchaseAndroid(
         purchaseToken: purchase.purchaseToken!,
       );
 
@@ -132,7 +133,7 @@ class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
       } else if (Platform.isIOS) {
         // For iOS, try App Store subscription management
         try {
-          await FlutterInappPurchase.instance.showManageSubscriptions();
+          await _iap.showManageSubscriptions();
           setState(() {
             _debugInfo =
                 'App Store subscription management opened successfully';
@@ -246,7 +247,7 @@ class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Product: ${purchase.productId ?? 'Unknown'}',
+                                'Product: ${purchase.productId}',
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
@@ -256,7 +257,7 @@ class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
                               Text(
                                   'Token: ${purchase.purchaseToken?.substring(0, 20)}...'),
                               Text(
-                                  'Purchase State: ${purchase.purchaseStateAndroid ?? 'N/A'}'),
+                                  'Purchase State: ${purchase.purchaseState?.toString().split('.').last ?? 'N/A'}'),
                               Text(
                                   'Transaction Date: ${purchase.transactionDate}'),
                               Text(

@@ -10,7 +10,8 @@ void main() {
     late MethodChannel channel;
 
     setUpAll(() {
-      channel = FlutterInappPurchase.instance.channel;
+      final iap = FlutterInappPurchase();
+      channel = iap.channel;
     });
     // Platform detection tests removed as getCurrentPlatform() uses Platform directly
     // and cannot be properly mocked in tests
@@ -18,9 +19,10 @@ void main() {
     group('showInAppMessageAndroid', () {
       group('for Android', () {
         final List<MethodCall> log = <MethodCall>[];
+        late FlutterInappPurchase testIap;
         setUp(() {
-          FlutterInappPurchase(FlutterInappPurchase.private(
-              FakePlatform(operatingSystem: 'android')));
+          testIap = FlutterInappPurchase.private(
+              FakePlatform(operatingSystem: 'android'));
 
           TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
               .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
@@ -29,7 +31,7 @@ void main() {
           });
         });
         test('invokes correct method', () async {
-          await FlutterInappPurchase.instance.showInAppMessageAndroid();
+          await testIap.showInAppMessageAndroid();
           expect(log, <Matcher>[
             isMethodCall('showInAppMessages', arguments: null),
           ]);
@@ -40,57 +42,8 @@ void main() {
         });
 
         test('returns correct result', () async {
-          final result =
-              await FlutterInappPurchase.instance.showInAppMessageAndroid();
+          final result = await testIap.showInAppMessageAndroid();
           expect(result, 'ready');
-        });
-      });
-    });
-
-    group('consumeAll', () {
-      group('for Android', () {
-        final List<MethodCall> log = <MethodCall>[];
-        setUp(() {
-          FlutterInappPurchase(FlutterInappPurchase.private(
-              FakePlatform(operatingSystem: 'android')));
-
-          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-              .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-            log.add(methodCall);
-            return 'All items have been consumed';
-          });
-        });
-
-        tearDown(() {
-          channel.setMethodCallHandler(null);
-        });
-
-        test('invokes correct method', () async {
-          await FlutterInappPurchase.instance.consumeAll();
-          expect(log, <Matcher>[
-            isMethodCall('consumeAllItems', arguments: null),
-          ]);
-        });
-
-        test('returns correct result', () async {
-          expect(await FlutterInappPurchase.instance.consumeAll(),
-              'All items have been consumed');
-        });
-      });
-
-      group('for iOS', () {
-        setUp(() {
-          FlutterInappPurchase(FlutterInappPurchase.private(
-              FakePlatform(operatingSystem: 'ios')));
-        });
-
-        tearDown(() {
-          channel.setMethodCallHandler(null);
-        });
-
-        test('returns correct result', () async {
-          expect(await FlutterInappPurchase.instance.consumeAll(),
-              'no-ops in ios');
         });
       });
     });
@@ -98,9 +51,10 @@ void main() {
     group('initConnection', () {
       group('for Android', () {
         final List<MethodCall> log = <MethodCall>[];
+        late FlutterInappPurchase testIap;
         setUp(() {
-          FlutterInappPurchase(FlutterInappPurchase.private(
-              FakePlatform(operatingSystem: 'android')));
+          testIap = FlutterInappPurchase.private(
+              FakePlatform(operatingSystem: 'android'));
 
           TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
               .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
@@ -114,15 +68,14 @@ void main() {
         });
 
         test('invokes correct method', () async {
-          await FlutterInappPurchase.instance.initialize();
+          await testIap.initialize();
           expect(log, <Matcher>[
             isMethodCall('initConnection', arguments: null),
           ]);
         });
 
         test('returns correct result', () async {
-          expect(await FlutterInappPurchase.instance.initialize(),
-              'Billing service is ready');
+          expect(await testIap.initialize(), 'Billing service is ready');
         });
       });
     });
@@ -130,9 +83,10 @@ void main() {
     group('getProducts', () {
       group('for Android', () {
         final List<MethodCall> log = <MethodCall>[];
+        late FlutterInappPurchase testIap;
         setUp(() {
-          FlutterInappPurchase(FlutterInappPurchase.private(
-              FakePlatform(operatingSystem: 'android')));
+          testIap = FlutterInappPurchase.private(
+              FakePlatform(operatingSystem: 'android'));
 
           TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
               .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
@@ -164,7 +118,7 @@ void main() {
         });
 
         test('invokes correct method', () async {
-          await FlutterInappPurchase.instance
+          await testIap
               .getProducts(['com.example.product1', 'com.example.product2']);
           expect(log, <Matcher>[
             isMethodCall('getProducts', arguments: <String, dynamic>{
@@ -174,7 +128,7 @@ void main() {
         });
 
         test('returns correct products', () async {
-          final products = await FlutterInappPurchase.instance
+          final products = await testIap
               .getProducts(['com.example.product1', 'com.example.product2']);
           expect(products.length, 2);
           expect(products[0].productId, 'com.example.product1');
@@ -188,9 +142,10 @@ void main() {
     group('getSubscriptions', () {
       group('for iOS', () {
         final List<MethodCall> log = <MethodCall>[];
+        late FlutterInappPurchase testIap;
         setUp(() {
-          FlutterInappPurchase(FlutterInappPurchase.private(
-              FakePlatform(operatingSystem: 'ios')));
+          testIap = FlutterInappPurchase.private(
+              FakePlatform(operatingSystem: 'ios'));
 
           TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
               .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
@@ -215,8 +170,7 @@ void main() {
         });
 
         test('invokes correct method', () async {
-          await FlutterInappPurchase.instance
-              .getSubscriptions(['com.example.subscription1']);
+          await testIap.getSubscriptions(['com.example.subscription1']);
           expect(log, <Matcher>[
             isMethodCall('getItems', arguments: <String, dynamic>{
               'skus': ['com.example.subscription1'],
@@ -225,8 +179,8 @@ void main() {
         });
 
         test('returns correct subscriptions', () async {
-          final subscriptions = await FlutterInappPurchase.instance
-              .getSubscriptions(['com.example.subscription1']);
+          final subscriptions =
+              await testIap.getSubscriptions(['com.example.subscription1']);
           expect(subscriptions.length, 1);
           expect(subscriptions[0].productId, 'com.example.subscription1');
           expect(subscriptions[0].subscriptionPeriodUnitIOS, 'MONTH');

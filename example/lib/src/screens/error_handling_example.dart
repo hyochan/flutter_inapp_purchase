@@ -1,6 +1,125 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 
+// Extension methods for PurchaseError
+extension PurchaseErrorExtensions on PurchaseError {
+  bool get isUserCancelled => code == ErrorCode.eUserCancelled;
+  
+  bool get isNetworkRelated => 
+      code == ErrorCode.eNetworkError || 
+      code == ErrorCode.eRemoteError;
+  
+  bool get isRecoverable =>
+      code == ErrorCode.eNetworkError ||
+      code == ErrorCode.eServiceError ||
+      code == ErrorCode.eRemoteError;
+      
+  String get userFriendlyMessage {
+    switch (code) {
+      case ErrorCode.eUserCancelled:
+        return 'Purchase was cancelled';
+      case ErrorCode.eNetworkError:
+        return 'Network connection failed. Please check your internet connection.';
+      case ErrorCode.eItemUnavailable:
+        return 'This item is not available for purchase';
+      case ErrorCode.eServiceError:
+        return 'Store service is temporarily unavailable. Please try again later.';
+      case ErrorCode.eAlreadyOwned:
+        return 'You already own this item';
+      case ErrorCode.ePurchaseNotAllowed:
+        return 'Purchases are not allowed on this device';
+      case ErrorCode.eDeveloperError:
+        return 'Configuration error. Please contact support.';
+      default:
+        return message;
+    }
+  }
+}
+
+// Extension methods for ErrorCode
+extension ErrorCodeExtensions on ErrorCode {
+  bool get isUserCancelled => this == ErrorCode.eUserCancelled;
+  
+  bool get isNetworkRelated => 
+      this == ErrorCode.eNetworkError || 
+      this == ErrorCode.eRemoteError;
+  
+  bool get isRecoverable =>
+      this == ErrorCode.eNetworkError ||
+      this == ErrorCode.eServiceError ||
+      this == ErrorCode.eRemoteError;
+      
+  String get userFriendlyMessage {
+    switch (this) {
+      case ErrorCode.eUserCancelled:
+        return 'Purchase was cancelled';
+      case ErrorCode.eNetworkError:
+        return 'Network connection failed';
+      case ErrorCode.eItemUnavailable:
+        return 'Item not available';
+      case ErrorCode.eServiceError:
+        return 'Service temporarily unavailable';
+      case ErrorCode.eAlreadyOwned:
+        return 'Already owned';
+      case ErrorCode.ePurchaseNotAllowed:
+        return 'Purchase not allowed';
+      case ErrorCode.eDeveloperError:
+        return 'Configuration error';
+      default:
+        return 'Unknown error';
+    }
+  }
+}
+
+// Global utility functions for error handling
+bool isUserCancelledError(dynamic error) {
+  if (error is PurchaseError) {
+    return error.code == ErrorCode.eUserCancelled;
+  }
+  return false;
+}
+
+bool isNetworkError(dynamic error) {
+  if (error is PurchaseError) {
+    return error.code == ErrorCode.eNetworkError;
+  }
+  return false;
+}
+
+bool isRecoverableError(dynamic error) {
+  if (error is PurchaseError) {
+    // Network errors and service errors are often recoverable
+    return error.code == ErrorCode.eNetworkError ||
+           error.code == ErrorCode.eServiceError ||
+           error.code == ErrorCode.eRemoteError;
+  }
+  return false;
+}
+
+String getUserFriendlyErrorMessage(dynamic error) {
+  if (error is PurchaseError) {
+    switch (error.code) {
+      case ErrorCode.eUserCancelled:
+        return 'Purchase was cancelled';
+      case ErrorCode.eNetworkError:
+        return 'Network connection failed. Please check your internet connection.';
+      case ErrorCode.eItemUnavailable:
+        return 'This item is not available for purchase';
+      case ErrorCode.eServiceError:
+        return 'Store service is temporarily unavailable. Please try again later.';
+      case ErrorCode.eAlreadyOwned:
+        return 'You already own this item';
+      case ErrorCode.ePurchaseNotAllowed:
+        return 'Purchases are not allowed on this device';
+      case ErrorCode.eDeveloperError:
+        return 'Configuration error. Please contact support.';
+      default:
+        return error.message;
+    }
+  }
+  return 'An unexpected error occurred';
+}
+
 /// Example demonstrating error handling utilities
 class ErrorHandlingExample extends StatelessWidget {
   const ErrorHandlingExample({Key? key}) : super(key: key);

@@ -63,10 +63,6 @@ class AmazonInappPurchasePlugin : MethodCallHandler {
             "showInAppMessages" -> {
                 safeResult!!.success("in app messages not supported for amazon")
             }
-            "consumeAllItems" -> {
-                // consumable is a separate type in amazon
-                safeResult!!.success("no-ops in amazon")
-            }
             "getProducts",
             "getSubscriptions" -> {
                 Log.d(TAG, call.method)

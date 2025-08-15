@@ -54,19 +54,22 @@ class _SimpleStoreState extends State<SimpleStore> {
 
   // Initialize the plugin
   Future<void> initIAP() async {
+    // Create IAP instance (or use FlutterInappPurchase.instance for singleton)
+    final iap = FlutterInappPurchase();
+    
     // Initialize connection
-    await FlutterInappPurchase.instance.initConnection();
+    await iap.initConnection();
     print('IAP connection initialized');
     
     // Set up purchase listeners
     _purchaseUpdatedSubscription = 
-        FlutterInappPurchase.purchaseUpdated.listen((productItem) {
+        iap.purchaseUpdated.listen((productItem) {
       print('Purchase updated: ${productItem?.productId}');
       _handlePurchaseUpdate(productItem!);
     });
     
     _purchaseErrorSubscription = 
-        FlutterInappPurchase.purchaseError.listen((purchaseError) {
+        iap.purchaseError.listen((purchaseError) {
       print('Purchase error: $purchaseError');
       _showError('Purchase failed: ${purchaseError.message}');
     });

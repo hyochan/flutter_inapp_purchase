@@ -34,9 +34,11 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
     }
     fun setActivity(activity: Activity?) {
         this.activity = activity
+        Log.d(TAG, "Activity set: ${if (activity != null) "not null" else "null"}")
     }
     fun setChannel(channel: MethodChannel?) {
         this.channel = channel
+        Log.d(TAG, "Channel set: ${if (channel != null) "not null" else "null"}")
     }
     fun onDetachedFromActivity() {
         endBillingClientConnection()
@@ -79,6 +81,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                 return
             }
             
+            Log.d(TAG, "Creating BillingClient with PurchasesUpdatedListener")
             billingClient = BillingClient.newBuilder(context ?: return)
                 .setListener(purchasesUpdatedListener)
                 .enablePendingPurchases(
@@ -87,6 +90,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                         .build()
                 )
                 .build()
+            Log.d(TAG, "BillingClient created successfully")
             
             billingClient?.startConnection(object : BillingClientStateListener {
                 private var alreadyFinished = false
@@ -162,7 +166,6 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
 
         when(call.method){
             "showInAppMessages" -> showInAppMessages(safeChannel)
-            "consumeAllItems" -> consumeAllItems(safeChannel, call)
             "getProducts" -> getProductsByType(BillingClient.ProductType.INAPP, call, safeChannel)
             "getSubscriptions" -> getProductsByType(BillingClient.ProductType.SUBS, call, safeChannel)
             "getAvailableItemsByType" -> getAvailableItemsByType(call, safeChannel)
@@ -212,53 +215,6 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
         safeChannel.success("show in app messages ready")
     }
 
-    private fun consumeAllItems(
-        safeChannel: MethodResultWrapper,
-        call: MethodCall
-    ) {
-        try {
-            val array = ArrayList<String>()
-            val params = QueryPurchasesParams.newBuilder().apply { setProductType(BillingClient.ProductType.INAPP) }.build()
-            billingClient!!.queryPurchasesAsync(params)
-            { billingResult, productDetailsList ->
-                if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                    if (productDetailsList.size == 0) {
-                        safeChannel.error(
-                            call.method,
-                            "refreshItem",
-                            "No purchases found"
-                        )
-                        return@queryPurchasesAsync
-                    }
-
-                    for (purchase in productDetailsList) {
-                        val consumeParams = ConsumeParams.newBuilder()
-                            .setPurchaseToken(purchase.purchaseToken)
-                            .build()
-                        billingClient!!.consumeAsync(consumeParams) { _, outToken ->
-                            array.add(outToken)
-                            if (productDetailsList.size == array.size) {
-                                try {
-                                    safeChannel.success(array.toString())
-                                    return@consumeAsync
-                                } catch (e: FlutterException) {
-                                    Log.e(TAG, e.message!!)
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    safeChannel.error(
-                        call.method, "refreshItem",
-                        "No results for query"
-                    )
-                }
-            }
-
-        } catch (err: Error) {
-            safeChannel.error(call.method, err.message, "")
-        }
-    }
 
     private fun getAvailableItemsByType(
         call: MethodCall,
@@ -618,7 +574,9 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                     val errorData = BillingError.getErrorFromResponseData(responseCode.responseCode)
                     safeChannel.error(TAG, errorData.code, "Failed to launch billing flow: ${errorData.message}")
                 } else {
+                    // Return success immediately - purchase result will come via purchasesUpdatedListener
                     safeChannel.success("Billing flow launched successfully")
+                    Log.d(TAG, "Billing flow launched, purchase result will be sent via purchase-updated event")
                 }
             } else {
                 Log.e(TAG, "Activity is null, cannot launch billing flow")
@@ -631,19 +589,33 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
     }
 
     private val purchasesUpdatedListener = PurchasesUpdatedListener { billingResult, purchases ->
+        Log.d(TAG, "PurchasesUpdatedListener triggered!")
+        Log.d(TAG, "BillingResult responseCode: ${billingResult.responseCode}")
+        Log.d(TAG, "Purchases: ${purchases?.size ?: 0} items")
+        
         try {
             if (billingResult.responseCode != BillingClient.BillingResponseCode.OK) {
+                Log.d(TAG, "Purchase failed with response code: ${billingResult.responseCode}")
                 val json = JSONObject()
                 json.put("responseCode", billingResult.responseCode)
                 json.put("debugMessage", billingResult.debugMessage)
                 val errorData = BillingError.getErrorFromResponseData(billingResult.responseCode)
                 json.put("code", errorData.code)
                 json.put("message", errorData.message)
-                safeResult!!.invokeMethod("purchase-error", json.toString())
+                Log.d(TAG, "Sending purchase-error event to Flutter, channel is ${if (channel != null) "not null" else "null"}")
+                Log.d(TAG, "Error data: ${json.toString()}")
+                if (channel != null) {
+                    channel!!.invokeMethod("purchase-error", json.toString())
+                    Log.d(TAG, "Successfully sent purchase-error event")
+                } else {
+                    Log.e(TAG, "Cannot send purchase-error event: channel is null!")
+                }
                 return@PurchasesUpdatedListener
             }
             if (purchases != null) {
+                Log.d(TAG, "Processing ${purchases.size} successful purchases")
                 for (purchase in purchases) {
+                    Log.d(TAG, "Processing purchase: productId=${purchase.products[0]}, orderId=${purchase.orderId}")
                     val item = JSONObject()
                     item.put("productId", purchase.products[0])
                     item.put("transactionId", purchase.orderId)
@@ -662,7 +634,14 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                         item.put("obfuscatedAccountIdAndroid", accountIdentifiers.obfuscatedAccountId)
                         item.put("obfuscatedProfileIdAndroid", accountIdentifiers.obfuscatedProfileId)
                     }
-                    safeResult!!.invokeMethod("purchase-updated", item.toString())
+                    Log.d(TAG, "Sending purchase-updated event to Flutter, channel is ${if (channel != null) "not null" else "null"}")
+                    Log.d(TAG, "Purchase data: ${item.toString()}")
+                    if (channel != null) {
+                        channel!!.invokeMethod("purchase-updated", item.toString())
+                        Log.d(TAG, "Successfully sent purchase-updated event")
+                    } else {
+                        Log.e(TAG, "Cannot send purchase-updated event: channel is null!")
+                    }
                     return@PurchasesUpdatedListener
                 }
             } else {
@@ -672,11 +651,18 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                 val errorData = BillingError.getErrorFromResponseData(billingResult.responseCode)
                 json.put("code", errorData.code)
                 json.put("message", "purchases returns null.")
-                safeResult!!.invokeMethod("purchase-error", json.toString())
+                Log.d(TAG, "Sending purchase-error event to Flutter, channel is ${if (channel != null) "not null" else "null"}")
+                Log.d(TAG, "Error data: ${json.toString()}")
+                if (channel != null) {
+                    channel!!.invokeMethod("purchase-error", json.toString())
+                    Log.d(TAG, "Successfully sent purchase-error event")
+                } else {
+                    Log.e(TAG, "Cannot send purchase-error event: channel is null!")
+                }
                 return@PurchasesUpdatedListener
             }
         } catch (je: JSONException) {
-            safeResult!!.invokeMethod("purchase-error", je.message)
+            channel?.invokeMethod("purchase-error", je.message)
             return@PurchasesUpdatedListener
         }
     }

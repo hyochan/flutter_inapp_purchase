@@ -36,7 +36,7 @@ const sidebars: SidebarsConfig = {
         'api/types',
         'api/core-methods',
         'api/listeners',
-        'api/use-iap',
+        'api/iap-provider',
         'api/error-codes',
       ],
     },
