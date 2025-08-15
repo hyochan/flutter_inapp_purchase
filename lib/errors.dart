@@ -18,8 +18,8 @@ class ErrorCodeMapping {
   static const Map<ErrorCode, int> ios = {
     // OpenIAP standard error codes
     ErrorCode.eUnknown: 0,
-    ErrorCode.eUserCancelled: 2,  // SKErrorPaymentCancelled
-    ErrorCode.eNetworkError: 1,   // SKErrorClientInvalid
+    ErrorCode.eUserCancelled: 2, // SKErrorPaymentCancelled
+    ErrorCode.eNetworkError: 1, // SKErrorClientInvalid
     ErrorCode.eItemUnavailable: 3,
     ErrorCode.eServiceError: 4,
     ErrorCode.eReceiptFailed: 5,

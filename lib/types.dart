@@ -1414,7 +1414,7 @@ class PurchasedItem {
         signatureAndroid = json['signatureAndroid'] as String?,
         originalJsonAndroid = json['originalJsonAndroid'] as String?,
         developerPayloadAndroid = json['developerPayloadAndroid'] as String?,
-        originalTransactionDateIOS = json['originalTransactionDateIOS'] != null 
+        originalTransactionDateIOS = json['originalTransactionDateIOS'] != null
             ? json['originalTransactionDateIOS'].toString()
             : null,
         originalTransactionIdentifierIOS =
@@ -1446,7 +1446,8 @@ class PurchasedItem {
           if (Platform.isAndroid || Platform.isIOS) {
             // In actual runtime
             if (Platform.isIOS) {
-              return DateTime.fromMillisecondsSinceEpoch((value * 1000).toInt());
+              return DateTime.fromMillisecondsSinceEpoch(
+                  (value * 1000).toInt());
             } else {
               return DateTime.fromMillisecondsSinceEpoch(value);
             }
