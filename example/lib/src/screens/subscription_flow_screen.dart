@@ -26,8 +26,6 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
   bool _isConnecting = true;
   bool _isLoadingProducts = false;
   String? _purchaseResult;
-  String? _initError;
-  Purchase? _currentPurchase;
   StreamSubscription<Purchase>? _purchaseUpdatedSubscription;
   StreamSubscription<PurchaseError>? _purchaseErrorSubscription;
 
@@ -58,9 +56,7 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
       });
 
       if (!_connected) {
-        setState(() {
-          _initError = 'Failed to connect to store';
-        });
+        debugPrint('Failed to connect to store');
         return;
       }
 
@@ -102,7 +98,7 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
         debugPrint('TransactionId: ${purchase.transactionId}');
         _handlePurchaseUpdate(purchase);
       },
-      onError: (error) {
+      onError: (Object error) {
         debugPrint('❌ Subscription stream error: $error');
       },
     );
@@ -125,7 +121,6 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
 
     setState(() {
       _isProcessing = false;
-      _currentPurchase = purchase;
 
       // Format subscription result like KMP-IAP
       _purchaseResult = '''
@@ -195,7 +190,7 @@ Platform: ${error.platform}
 
   Future<void> _loadActiveSubscriptions() async {
     try {
-      final purchases = await _iap.getAvailablePurchases();
+      final purchases = await _iap.getActivePurchases();
       setState(() {
         _activeSubscriptions = purchases
             .where((p) => subscriptionIds.contains(p.productId))
@@ -503,8 +498,7 @@ Platform: ${error.platform}
                           onPressed: () {
                             setState(() {
                               _purchaseResult = null;
-                              _currentPurchase = null;
-                            });
+                                            });
                           },
                         ),
                       ],

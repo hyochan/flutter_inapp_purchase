@@ -36,7 +36,7 @@ class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
       await Future<void>.delayed(const Duration(seconds: 1));
 
       // Get all available purchases
-      final purchases = await _iap.getAvailablePurchases();
+      final purchases = await _iap.getActivePurchases();
 
       setState(() {
         _purchases = purchases;

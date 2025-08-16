@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
@@ -16,7 +15,7 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
   final FlutterInappPurchase _iap = FlutterInappPurchase.instance;
 
   List<Purchase> _availablePurchases = [];
-  List<PurchasedItem> _purchaseHistory = [];
+  List<Purchase> _purchaseHistory = [];
   bool _loading = false;
   bool _connected = false;
   String? _error;
@@ -67,14 +66,14 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
 
     try {
       // Load available purchases (non-consumed)
-      final availablePurchases = await _iap.getAvailablePurchases();
+      final availablePurchases = await _iap.getActivePurchases();
 
       // Load purchase history
-      final purchaseHistory = await _iap.getPurchaseHistory();
+      final purchaseHistory = await _iap.getPurchaseHistories();
 
       setState(() {
         _availablePurchases = availablePurchases;
-        _purchaseHistory = purchaseHistory ?? [];
+        _purchaseHistory = purchaseHistory;
       });
     } catch (e) {
       setState(() {
@@ -95,7 +94,7 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
     });
 
     try {
-      final restored = await _iap.getAvailablePurchases();
+      final restored = await _iap.getActivePurchases();
       setState(() {
         _availablePurchases = restored;
       });
@@ -208,7 +207,7 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
     );
   }
 
-  Widget _buildPurchaseHistoryItem(PurchasedItem item) {
+  Widget _buildPurchaseHistoryItem(Purchase item) {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: Padding(
@@ -221,7 +220,7 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
               children: [
                 Expanded(
                   child: Text(
-                    item.productId ?? 'Unknown Product',
+                    item.productId.isEmpty ? 'Unknown Product' : item.productId,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
