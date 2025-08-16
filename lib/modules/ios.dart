@@ -73,10 +73,9 @@ mixin FlutterInappPurchaseIOS {
     }
 
     try {
-      return await channel.invokeMethod<String>(
-        'getSubscriptionGroup',
-        {'sku': sku},
-      );
+      return await channel.invokeMethod<String>('getSubscriptionGroup', {
+        'sku': sku,
+      });
     } catch (error) {
       debugPrint('Error getting subscription group: $error');
       return null;
@@ -85,7 +84,8 @@ mixin FlutterInappPurchaseIOS {
 
   /// Requests a purchase with offer (iOS 12.2+)
   @Deprecated(
-      'Use requestPurchase() with RequestPurchase object. Will be removed in 6.0.0')
+    'Use requestPurchase() with RequestPurchase object. Will be removed in 6.0.0',
+  )
   Future<void> requestProductWithOfferIOS(
     String sku,
     String appAccountToken,
@@ -107,7 +107,8 @@ mixin FlutterInappPurchaseIOS {
 
   /// Requests a purchase with quantity (iOS)
   @Deprecated(
-      'Use requestPurchase() with RequestPurchase object. Will be removed in 6.0.0')
+    'Use requestPurchase() with RequestPurchase object. Will be removed in 6.0.0',
+  )
   Future<void> requestPurchaseWithQuantityIOS(String sku, int quantity) async {
     if (!_isIOS) {
       throw PlatformException(
@@ -116,11 +117,10 @@ mixin FlutterInappPurchaseIOS {
       );
     }
 
-    await channel
-        .invokeMethod('requestPurchaseWithQuantityIOS', <String, dynamic>{
-      'sku': sku,
-      'quantity': quantity,
-    });
+    await channel.invokeMethod(
+      'requestPurchaseWithQuantityIOS',
+      <String, dynamic>{'sku': sku, 'quantity': quantity},
+    );
   }
 
   /// Gets the iOS app store country code
@@ -185,8 +185,9 @@ mixin FlutterInappPurchaseIOS {
     }
 
     try {
-      final result = await channel
-          .invokeMethod<Map<dynamic, dynamic>>('getAppTransaction');
+      final result = await channel.invokeMethod<Map<dynamic, dynamic>>(
+        'getAppTransaction',
+      );
       return result?.cast<String, dynamic>();
     } catch (error) {
       debugPrint('Error getting app transaction: $error');

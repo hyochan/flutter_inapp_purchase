@@ -88,13 +88,13 @@ class FlutterInappPurchase
   http.Client get _client => _httpClient;
 
   FlutterInappPurchase({Platform? platform, http.Client? client})
-    : _pf = platform ?? const LocalPlatform(),
-      _httpClient = client ?? http.Client();
+      : _pf = platform ?? const LocalPlatform(),
+        _httpClient = client ?? http.Client();
 
   @visibleForTesting
   FlutterInappPurchase.private(Platform platform, {http.Client? client})
-    : _pf = platform,
-      _httpClient = client ?? http.Client();
+      : _pf = platform,
+        _httpClient = client ?? http.Client();
 
   // Implement the missing method from iOS mixin
   @override
@@ -282,9 +282,8 @@ class FlutterInappPurchase
           );
         }
 
-        final sku = androidRequest.skus.isNotEmpty
-            ? androidRequest.skus.first
-            : '';
+        final sku =
+            androidRequest.skus.isNotEmpty ? androidRequest.skus.first : '';
         if (type == iap_types.PurchaseType.subs) {
           await requestSubscription(
             sku,
@@ -349,21 +348,21 @@ class FlutterInappPurchase
           : null,
       android: _platform.isAndroid
           ? (type == iap_types.PurchaseType.subs
-                ? iap_types.RequestSubscriptionAndroid(
-                    skus: [sku],
-                    obfuscatedAccountIdAndroid: obfuscatedAccountIdAndroid,
-                    obfuscatedProfileIdAndroid: obfuscatedProfileIdAndroid,
-                    isOfferPersonalized: isOfferPersonalized,
-                    purchaseTokenAndroid: purchaseToken,
-                    replacementModeAndroid: replacementModeAndroid,
-                    subscriptionOffers: subscriptionOffers ?? [],
-                  )
-                : iap_types.RequestPurchaseAndroid(
-                    skus: [sku],
-                    obfuscatedAccountIdAndroid: obfuscatedAccountIdAndroid,
-                    obfuscatedProfileIdAndroid: obfuscatedProfileIdAndroid,
-                    isOfferPersonalized: isOfferPersonalized,
-                  ))
+              ? iap_types.RequestSubscriptionAndroid(
+                  skus: [sku],
+                  obfuscatedAccountIdAndroid: obfuscatedAccountIdAndroid,
+                  obfuscatedProfileIdAndroid: obfuscatedProfileIdAndroid,
+                  isOfferPersonalized: isOfferPersonalized,
+                  purchaseTokenAndroid: purchaseToken,
+                  replacementModeAndroid: replacementModeAndroid,
+                  subscriptionOffers: subscriptionOffers ?? [],
+                )
+              : iap_types.RequestPurchaseAndroid(
+                  skus: [sku],
+                  obfuscatedAccountIdAndroid: obfuscatedAccountIdAndroid,
+                  obfuscatedProfileIdAndroid: obfuscatedProfileIdAndroid,
+                  isOfferPersonalized: isOfferPersonalized,
+                ))
           : null,
     );
 
@@ -1215,8 +1214,7 @@ class FlutterInappPurchase
           purchase.transactionDate!,
         );
         if (difference.inMinutes <= (duration + grace).inMinutes &&
-            purchase.productId == sku)
-          return true;
+            purchase.productId == sku) return true;
       }
 
       return false;
@@ -1285,12 +1283,12 @@ class FlutterInappPurchase
     try {
       final result = await channel
           .invokeMethod<Map<dynamic, dynamic>>('validateReceiptAndroid', {
-            'packageName': packageName,
-            'productId': productId,
-            'productToken': productToken,
-            'accessToken': accessToken,
-            'isSub': isSub,
-          });
+        'packageName': packageName,
+        'productId': productId,
+        'productToken': productToken,
+        'accessToken': accessToken,
+        'isSub': isSub,
+      });
       return result?.cast<String, dynamic>();
     } catch (error) {
       debugPrint('Error validating receipt: $error');

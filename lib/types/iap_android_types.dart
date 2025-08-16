@@ -55,8 +55,10 @@ class ProductAndroid {
       originalJson: (json['originalJson'] as String?) ?? '',
       subscriptionOffersAndroid: (json['subscriptionOffersAndroid']
                   as List<dynamic>?)
-              ?.map((e) =>
-                  SubscriptionOfferDetail.fromJson(e as Map<String, dynamic>))
+              ?.map(
+                (e) =>
+                    SubscriptionOfferDetail.fromJson(e as Map<String, dynamic>),
+              )
               .toList() ??
           [],
     );
@@ -324,21 +326,14 @@ class BillingResponseCodeAndroid {
 }
 
 /// Android purchase states
-enum PurchaseStateAndroid {
-  pending,
-  purchased,
-  unspecified,
-}
+enum PurchaseStateAndroid { pending, purchased, unspecified }
 
 /// Android account identifiers
 class AccountIdentifiers {
   final String? obfuscatedAccountId;
   final String? obfuscatedProfileId;
 
-  AccountIdentifiers({
-    this.obfuscatedAccountId,
-    this.obfuscatedProfileId,
-  });
+  AccountIdentifiers({this.obfuscatedAccountId, this.obfuscatedProfileId});
 
   factory AccountIdentifiers.fromJson(Map<String, dynamic> json) {
     return AccountIdentifiers(

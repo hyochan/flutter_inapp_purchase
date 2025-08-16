@@ -49,16 +49,14 @@ mixin FlutterInappPurchaseAndroid {
     }
 
     try {
-      final result = await channel.invokeMethod<Map<dynamic, dynamic>>(
-        'validateReceiptAndroid',
-        {
-          'packageName': packageName,
-          'productId': productId,
-          'productToken': productToken,
-          'accessToken': accessToken,
-          'isSub': isSub,
-        },
-      );
+      final result = await channel
+          .invokeMethod<Map<dynamic, dynamic>>('validateReceiptAndroid', {
+        'packageName': packageName,
+        'productId': productId,
+        'productToken': productToken,
+        'accessToken': accessToken,
+        'isSub': isSub,
+      });
       return result?.cast<String, dynamic>();
     } catch (error) {
       debugPrint('Error validating receipt: $error');
@@ -77,10 +75,9 @@ mixin FlutterInappPurchaseAndroid {
     }
 
     try {
-      final result = await channel.invokeMethod<bool>(
-        'acknowledgePurchase',
-        {'purchaseToken': purchaseToken},
-      );
+      final result = await channel.invokeMethod<bool>('acknowledgePurchase', {
+        'purchaseToken': purchaseToken,
+      });
       return result ?? false;
     } catch (error) {
       debugPrint('Error acknowledging purchase: $error');
@@ -90,18 +87,15 @@ mixin FlutterInappPurchaseAndroid {
 
   /// Consumes a purchase on Android (for consumable products)
   /// @param purchaseToken - The purchase token to consume
-  Future<bool> consumePurchaseAndroid({
-    required String purchaseToken,
-  }) async {
+  Future<bool> consumePurchaseAndroid({required String purchaseToken}) async {
     if (!_isAndroid) {
       return false;
     }
 
     try {
-      final result = await channel.invokeMethod<bool>(
-        'consumePurchase',
-        {'purchaseToken': purchaseToken},
-      );
+      final result = await channel.invokeMethod<bool>('consumePurchase', {
+        'purchaseToken': purchaseToken,
+      });
       return result ?? false;
     } catch (error) {
       debugPrint('Error consuming purchase: $error');
@@ -121,8 +115,9 @@ mixin FlutterInappPurchaseAndroid {
 
       final List<dynamic> messages = json.decode(result) as List<dynamic>;
       return messages
-          .map((message) =>
-              InAppMessage.fromMap(message as Map<String, dynamic>))
+          .map(
+            (message) => InAppMessage.fromMap(message as Map<String, dynamic>),
+          )
           .toList();
     } catch (error) {
       debugPrint('Error getting in-app messages: $error');
@@ -140,10 +135,9 @@ mixin FlutterInappPurchaseAndroid {
     }
 
     try {
-      final result = await channel.invokeMethod<bool>(
-        'showInAppMessages',
-        {'messageType': messageType.index},
-      );
+      final result = await channel.invokeMethod<bool>('showInAppMessages', {
+        'messageType': messageType.index,
+      });
       return result ?? false;
     } catch (error) {
       debugPrint('Error showing in-app messages: $error');

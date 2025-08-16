@@ -144,7 +144,8 @@ class Product extends BaseProduct {
           : null,
       subscription: json['subscription'] != null
           ? SubscriptionInfo.fromJson(
-              json['subscription'] as Map<String, dynamic>)
+              json['subscription'] as Map<String, dynamic>,
+            )
           : null,
       introductoryPriceNumberOfPeriodsIOS:
           json['introductoryPriceNumberOfPeriodsIOS'] as String?,
@@ -292,7 +293,8 @@ class Subscription extends BaseProduct {
           : null,
       subscription: json['subscription'] != null
           ? SubscriptionInfo.fromJson(
-              json['subscription'] as Map<String, dynamic>)
+              json['subscription'] as Map<String, dynamic>,
+            )
           : null,
       introductoryPriceNumberOfPeriodsIOS:
           json['introductoryPriceNumberOfPeriodsIOS'] as String?,
@@ -313,11 +315,7 @@ class Subscription extends BaseProduct {
 }
 
 /// Recurrence mode enum (OpenIAP compliant)
-enum RecurrenceMode {
-  infiniteRecurring,
-  finiteRecurring,
-  nonRecurring,
-}
+enum RecurrenceMode { infiniteRecurring, finiteRecurring, nonRecurring }
 
 /// Subscription info for iOS (OpenIAP compliant)
 class SubscriptionInfo {
@@ -656,10 +654,7 @@ class PlatformRequestPurchaseProps {
   final IosRequestPurchaseProps? ios;
   final AndroidRequestPurchaseProps? android;
 
-  PlatformRequestPurchaseProps({
-    this.ios,
-    this.android,
-  });
+  PlatformRequestPurchaseProps({this.ios, this.android});
 }
 
 /// Modern platform-specific subscription request structure (v2.7.0+)
@@ -667,10 +662,7 @@ class PlatformRequestSubscriptionProps {
   final IosRequestPurchaseProps? ios;
   final AndroidRequestSubscriptionProps? android;
 
-  PlatformRequestSubscriptionProps({
-    this.ios,
-    this.android,
-  });
+  PlatformRequestSubscriptionProps({this.ios, this.android});
 }
 
 /// Request purchase parameters
@@ -678,10 +670,7 @@ class RequestPurchase {
   final RequestPurchaseIOS? ios;
   final RequestPurchaseAndroid? android;
 
-  RequestPurchase({
-    this.ios,
-    this.android,
-  });
+  RequestPurchase({this.ios, this.android});
 }
 
 /// Unified request properties for inapp purchases
@@ -879,10 +868,7 @@ class SubscriptionOfferAndroid {
   final String sku;
   final String offerToken;
 
-  SubscriptionOfferAndroid({
-    required this.sku,
-    required this.offerToken,
-  });
+  SubscriptionOfferAndroid({required this.sku, required this.offerToken});
 
   SubscriptionOfferAndroid.fromJSON(Map<String, dynamic> json)
       : sku = json['sku'] as String,
@@ -892,10 +878,7 @@ class SubscriptionOfferAndroid {
       : sku = json['sku'] as String? ?? '',
         offerToken = json['offerToken'] as String? ?? '';
 
-  Map<String, dynamic> toJson() => {
-        'sku': sku,
-        'offerToken': offerToken,
-      };
+  Map<String, dynamic> toJson() => {'sku': sku, 'offerToken': offerToken};
 
   @override
   String toString() {
@@ -1025,8 +1008,10 @@ class RequestProductsParams {
     List<String>? skus, // Support legacy parameter name
     this.type = PurchaseType.inapp,
   })  : productIds = productIds ?? skus ?? [],
-        assert(productIds != null || skus != null,
-            'Either productIds or skus must be provided');
+        assert(
+          productIds != null || skus != null,
+          'Either productIds or skus must be provided',
+        );
 }
 
 /// Unified purchase request (OpenIAP compliant)
@@ -1062,10 +1047,7 @@ class PlatformPurchaseRequest {
   final String productId;
   final Map<String, dynamic> options;
 
-  PlatformPurchaseRequest({
-    required this.productId,
-    required this.options,
-  });
+  PlatformPurchaseRequest({required this.productId, required this.options});
 }
 
 /// iOS purchase options (OpenIAP compliant)
@@ -1163,10 +1145,7 @@ class IOSReceiptBody {
   final String? password;
   final bool? excludeOldTransactions;
 
-  IOSReceiptBody({
-    this.password,
-    this.excludeOldTransactions,
-  });
+  IOSReceiptBody({this.password, this.excludeOldTransactions});
 
   Map<String, dynamic> toMap() {
     return {
@@ -1236,11 +1215,7 @@ class DeepLinkOptions {
   final String? host;
   final String? path;
 
-  DeepLinkOptions({
-    this.scheme,
-    this.host,
-    this.path,
-  });
+  DeepLinkOptions({this.scheme, this.host, this.path});
 
   Map<String, dynamic> toMap() {
     return {
@@ -1310,7 +1285,8 @@ class IAPItem {
         discountsIOS = _extractDiscountIOS(json['discountsIOS']),
         signatureAndroid = json['signatureAndroid'] as String?,
         subscriptionOffersAndroid = _extractSubscriptionOffersAndroid(
-            json['subscriptionOffersAndroid']),
+          json['subscriptionOffersAndroid'],
+        ),
         iconUrl = json['iconUrl'] as String?,
         originalJson = json['originalJson'] as String?,
         originalPrice = json['originalPrice'] as String?,
@@ -1334,7 +1310,8 @@ class IAPItem {
   }
 
   static List<SubscriptionOfferAndroid>? _extractSubscriptionOffersAndroid(
-      dynamic json) {
+    dynamic json,
+  ) {
     if (json == null) return null;
 
     if (json is List) {
@@ -1447,7 +1424,8 @@ class PurchasedItem {
             // In actual runtime
             if (Platform.isIOS) {
               return DateTime.fromMillisecondsSinceEpoch(
-                  (value * 1000).toInt());
+                (value * 1000).toInt(),
+              );
             } else {
               return DateTime.fromMillisecondsSinceEpoch(value);
             }
@@ -1662,10 +1640,7 @@ class PurchaseUpdate {
   final List<Purchase> purchases;
   final PurchaseError? error;
 
-  PurchaseUpdate({
-    required this.purchases,
-    this.error,
-  });
+  PurchaseUpdate({required this.purchases, this.error});
 }
 
 /// Receipt validation result
@@ -1733,10 +1708,7 @@ class PromotedProduct {
   final String productId;
   final String? promotionId;
 
-  PromotedProduct({
-    required this.productId,
-    this.promotionId,
-  });
+  PromotedProduct({required this.productId, this.promotionId});
 }
 
 /// Transaction info
@@ -1774,10 +1746,7 @@ class SkuDetailsParams {
   final List<String> skuList;
   final String skuType;
 
-  SkuDetailsParams({
-    required this.skuList,
-    required this.skuType,
-  });
+  SkuDetailsParams({required this.skuList, required this.skuType});
 }
 
 /// Purchase history record
@@ -1797,16 +1766,12 @@ class PurchaseHistoryRecord {
 class AcknowledgementParams {
   final String purchaseToken;
 
-  AcknowledgementParams({
-    required this.purchaseToken,
-  });
+  AcknowledgementParams({required this.purchaseToken});
 }
 
 /// Consumption params
 class ConsumptionParams {
   final String purchaseToken;
 
-  ConsumptionParams({
-    required this.purchaseToken,
-  });
+  ConsumptionParams({required this.purchaseToken});
 }

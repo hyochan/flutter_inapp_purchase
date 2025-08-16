@@ -87,22 +87,10 @@ class ProductIos {
 }
 
 /// Period units for subscriptions
-enum PeriodUnit {
-  day,
-  week,
-  month,
-  year,
-  unknown,
-}
+enum PeriodUnit { day, week, month, year, unknown }
 
 /// iOS-specific period units
-enum PeriodUnitIOS {
-  day,
-  week,
-  month,
-  year,
-  none,
-}
+enum PeriodUnitIOS { day, week, month, year, none }
 
 /// iOS subscription information
 class SubscriptionInfo {
@@ -120,7 +108,8 @@ class SubscriptionInfo {
     return SubscriptionInfo(
       subscriptionOffers: (json['subscriptionOffers'] as List<dynamic>?)
               ?.map(
-                  (e) => SubscriptionOffer.fromJson(e as Map<String, dynamic>))
+                (e) => SubscriptionOffer.fromJson(e as Map<String, dynamic>),
+              )
               .toList() ??
           [],
       groupIdentifier: json['groupIdentifier'] as String?,
@@ -142,10 +131,7 @@ class SubscriptionOffer {
   final String? sku;
   final PaymentDiscount? offer;
 
-  SubscriptionOffer({
-    this.sku,
-    this.offer,
-  });
+  SubscriptionOffer({this.sku, this.offer});
 
   factory SubscriptionOffer.fromJson(Map<String, dynamic> json) {
     return SubscriptionOffer(
@@ -351,13 +337,7 @@ class AppTransactionIOS {
 }
 
 /// iOS transaction states
-enum TransactionStateIOS {
-  purchasing,
-  purchased,
-  failed,
-  restored,
-  deferred,
-}
+enum TransactionStateIOS { purchasing, purchased, failed, restored, deferred }
 
 /// iOS promotional offer
 class PromotionalOffer {
@@ -417,7 +397,8 @@ class ReceiptValidationResponseIOS {
       latestReceiptInfo: json['latest_receipt_info'] as Map<String, dynamic>?,
       latestReceipts: json['latest_receipts'] != null
           ? List<Map<String, dynamic>>.from(
-              json['latest_receipts'] as List<dynamic>)
+              json['latest_receipts'] as List<dynamic>,
+            )
           : null,
     );
   }

@@ -22,7 +22,8 @@ void main() {
         late FlutterInappPurchase testIap;
         setUp(() {
           testIap = FlutterInappPurchase.private(
-              FakePlatform(operatingSystem: 'android'));
+            FakePlatform(operatingSystem: 'android'),
+          );
 
           TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
               .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
@@ -54,7 +55,8 @@ void main() {
         late FlutterInappPurchase testIap;
         setUp(() {
           testIap = FlutterInappPurchase.private(
-              FakePlatform(operatingSystem: 'android'));
+            FakePlatform(operatingSystem: 'android'),
+          );
 
           TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
               .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
@@ -86,7 +88,8 @@ void main() {
         late FlutterInappPurchase testIap;
         setUp(() {
           testIap = FlutterInappPurchase.private(
-              FakePlatform(operatingSystem: 'android'));
+            FakePlatform(operatingSystem: 'android'),
+          );
 
           TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
               .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
@@ -118,18 +121,25 @@ void main() {
         });
 
         test('invokes correct method', () async {
-          await testIap
-              .getProducts(['com.example.product1', 'com.example.product2']);
+          await testIap.getProducts([
+            'com.example.product1',
+            'com.example.product2',
+          ]);
           expect(log, <Matcher>[
-            isMethodCall('getProducts', arguments: <String, dynamic>{
-              'productIds': ['com.example.product1', 'com.example.product2'],
-            }),
+            isMethodCall(
+              'getProducts',
+              arguments: <String, dynamic>{
+                'productIds': ['com.example.product1', 'com.example.product2'],
+              },
+            ),
           ]);
         });
 
         test('returns correct products', () async {
-          final products = await testIap
-              .getProducts(['com.example.product1', 'com.example.product2']);
+          final products = await testIap.getProducts([
+            'com.example.product1',
+            'com.example.product2',
+          ]);
           expect(products.length, 2);
           expect(products[0].productId, 'com.example.product1');
           expect(products[0].price, '0.99');
@@ -145,7 +155,8 @@ void main() {
         late FlutterInappPurchase testIap;
         setUp(() {
           testIap = FlutterInappPurchase.private(
-              FakePlatform(operatingSystem: 'ios'));
+            FakePlatform(operatingSystem: 'ios'),
+          );
 
           TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
               .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
@@ -172,15 +183,19 @@ void main() {
         test('invokes correct method', () async {
           await testIap.getSubscriptions(['com.example.subscription1']);
           expect(log, <Matcher>[
-            isMethodCall('getItems', arguments: <String, dynamic>{
-              'skus': ['com.example.subscription1'],
-            }),
+            isMethodCall(
+              'getItems',
+              arguments: <String, dynamic>{
+                'skus': ['com.example.subscription1'],
+              },
+            ),
           ]);
         });
 
         test('returns correct subscriptions', () async {
-          final subscriptions =
-              await testIap.getSubscriptions(['com.example.subscription1']);
+          final subscriptions = await testIap.getSubscriptions([
+            'com.example.subscription1',
+          ]);
           expect(subscriptions.length, 1);
           expect(subscriptions[0].productId, 'com.example.subscription1');
           expect(subscriptions[0].subscriptionPeriodUnitIOS, 'MONTH');
@@ -190,16 +205,13 @@ void main() {
 
     group('Error Handling', () {
       test('PurchaseError creation from platform error', () {
-        final error = PurchaseError.fromPlatformError(
-          {
-            'code': 'E_USER_CANCELLED',
-            'message': 'User cancelled the purchase',
-            'responseCode': 1,
-            'debugMessage': 'Debug info',
-            'productId': 'com.example.product',
-          },
-          IAPPlatform.android,
-        );
+        final error = PurchaseError.fromPlatformError({
+          'code': 'E_USER_CANCELLED',
+          'message': 'User cancelled the purchase',
+          'responseCode': 1,
+          'debugMessage': 'Debug info',
+          'productId': 'com.example.product',
+        }, IAPPlatform.android);
 
         expect(error.code, ErrorCode.eUserCancelled);
         expect(error.message, 'User cancelled the purchase');
@@ -211,28 +223,39 @@ void main() {
 
       test('ErrorCodeUtils maps platform codes correctly', () {
         // Test iOS mapping
-        expect(ErrorCodeUtils.fromPlatformCode(2, IAPPlatform.ios),
-            ErrorCode.eUserCancelled);
         expect(
-            ErrorCodeUtils.toPlatformCode(
-                ErrorCode.eUserCancelled, IAPPlatform.ios),
-            2);
+          ErrorCodeUtils.fromPlatformCode(2, IAPPlatform.ios),
+          ErrorCode.eUserCancelled,
+        );
+        expect(
+          ErrorCodeUtils.toPlatformCode(
+            ErrorCode.eUserCancelled,
+            IAPPlatform.ios,
+          ),
+          2,
+        );
 
         // Test Android mapping
         expect(
-            ErrorCodeUtils.fromPlatformCode(
-                'E_USER_CANCELLED', IAPPlatform.android),
-            ErrorCode.eUserCancelled);
+          ErrorCodeUtils.fromPlatformCode(
+            'E_USER_CANCELLED',
+            IAPPlatform.android,
+          ),
+          ErrorCode.eUserCancelled,
+        );
         expect(
-            ErrorCodeUtils.toPlatformCode(
-                ErrorCode.eUserCancelled, IAPPlatform.android),
-            'E_USER_CANCELLED');
+          ErrorCodeUtils.toPlatformCode(
+            ErrorCode.eUserCancelled,
+            IAPPlatform.android,
+          ),
+          'E_USER_CANCELLED',
+        );
 
         // Test unknown code
         expect(
-            ErrorCodeUtils.fromPlatformCode(
-                'UNKNOWN_ERROR', IAPPlatform.android),
-            ErrorCode.eUnknown);
+          ErrorCodeUtils.fromPlatformCode('UNKNOWN_ERROR', IAPPlatform.android),
+          ErrorCode.eUnknown,
+        );
       });
     });
 
@@ -282,8 +305,10 @@ void main() {
         final item = PurchasedItem.fromJSON(jsonData);
         expect(item.productId, 'test.product');
         expect(item.transactionId, 'trans123');
-        expect(item.transactionDate,
-            DateTime.fromMillisecondsSinceEpoch(1234567890));
+        expect(
+          item.transactionDate,
+          DateTime.fromMillisecondsSinceEpoch(1234567890),
+        );
         expect(item.transactionReceipt, 'receipt_data');
         expect(item.purchaseToken, 'token123');
         // orderId field was removed in refactoring
@@ -310,26 +335,42 @@ void main() {
         expect(SubscriptionState.values.length, 5);
         expect(SubscriptionState.active.toString(), 'SubscriptionState.active');
         expect(
-            SubscriptionState.expired.toString(), 'SubscriptionState.expired');
-        expect(SubscriptionState.inBillingRetry.toString(),
-            'SubscriptionState.inBillingRetry');
-        expect(SubscriptionState.inGracePeriod.toString(),
-            'SubscriptionState.inGracePeriod');
+          SubscriptionState.expired.toString(),
+          'SubscriptionState.expired',
+        );
         expect(
-            SubscriptionState.revoked.toString(), 'SubscriptionState.revoked');
+          SubscriptionState.inBillingRetry.toString(),
+          'SubscriptionState.inBillingRetry',
+        );
+        expect(
+          SubscriptionState.inGracePeriod.toString(),
+          'SubscriptionState.inGracePeriod',
+        );
+        expect(
+          SubscriptionState.revoked.toString(),
+          'SubscriptionState.revoked',
+        );
       });
 
       test('ProrationMode enum has correct values', () {
         expect(ProrationMode.values.length, 5);
-        expect(ProrationMode.immediateWithTimeProration.toString(),
-            'ProrationMode.immediateWithTimeProration');
-        expect(ProrationMode.immediateAndChargeProratedPrice.toString(),
-            'ProrationMode.immediateAndChargeProratedPrice');
-        expect(ProrationMode.immediateWithoutProration.toString(),
-            'ProrationMode.immediateWithoutProration');
+        expect(
+          ProrationMode.immediateWithTimeProration.toString(),
+          'ProrationMode.immediateWithTimeProration',
+        );
+        expect(
+          ProrationMode.immediateAndChargeProratedPrice.toString(),
+          'ProrationMode.immediateAndChargeProratedPrice',
+        );
+        expect(
+          ProrationMode.immediateWithoutProration.toString(),
+          'ProrationMode.immediateWithoutProration',
+        );
         expect(ProrationMode.deferred.toString(), 'ProrationMode.deferred');
-        expect(ProrationMode.immediateAndChargeFullPrice.toString(),
-            'ProrationMode.immediateAndChargeFullPrice');
+        expect(
+          ProrationMode.immediateAndChargeFullPrice.toString(),
+          'ProrationMode.immediateAndChargeFullPrice',
+        );
       });
     });
   });

@@ -41,10 +41,7 @@ class ConnectionStateEvent {
   final bool isConnected;
   final String? message;
 
-  ConnectionStateEvent({
-    required this.isConnected,
-    this.message,
-  });
+  ConnectionStateEvent({required this.isConnected, this.message});
 }
 
 /// Event listener subscription

@@ -74,13 +74,7 @@ enum SubscriptionState {
 }
 
 /// Transaction states
-enum TransactionState {
-  purchasing,
-  purchased,
-  failed,
-  restored,
-  deferred,
-}
+enum TransactionState { purchasing, purchased, failed, restored, deferred }
 
 /// Platform availability types
 enum ProductAvailability {
@@ -91,35 +85,16 @@ enum ProductAvailability {
 }
 
 /// In-app message types
-enum InAppMessageType {
-  purchase,
-  billing,
-  price,
-  generic,
-}
+enum InAppMessageType { purchase, billing, price, generic }
 
 /// Refund types
-enum RefundType {
-  issue,
-  priceChange,
-  preference,
-}
+enum RefundType { issue, priceChange, preference }
 
 /// Offer types
-enum OfferType {
-  introductory,
-  promotional,
-  code,
-  winBack,
-}
+enum OfferType { introductory, promotional, code, winBack }
 
 /// Billing client state
-enum BillingClientState {
-  disconnected,
-  connecting,
-  connected,
-  closed,
-}
+enum BillingClientState { disconnected, connecting, connected, closed }
 
 /// Proration mode (Android)
 enum ProrationMode {
@@ -157,11 +132,7 @@ enum ResponseCodeAndroid {
 }
 
 /// See also https://developer.android.com/reference/com/android/billingclient/api/Purchase.PurchaseState
-enum PurchaseState {
-  pending,
-  purchased,
-  unspecified,
-}
+enum PurchaseState { pending, purchased, unspecified }
 
 /// Android Proration Mode
 enum AndroidProrationMode {

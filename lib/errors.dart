@@ -196,10 +196,7 @@ class ErrorCodeUtils {
   }
 
   /// Maps an ErrorCode enum to platform-specific code
-  static dynamic toPlatformCode(
-    ErrorCode errorCode,
-    IAPPlatform platform,
-  ) {
+  static dynamic toPlatformCode(ErrorCode errorCode, IAPPlatform platform) {
     if (platform == IAPPlatform.ios) {
       return ErrorCodeMapping.ios[errorCode] ?? 0;
     } else {
@@ -208,10 +205,7 @@ class ErrorCodeUtils {
   }
 
   /// Checks if an error code is valid for the specified platform
-  static bool isValidForPlatform(
-    ErrorCode errorCode,
-    IAPPlatform platform,
-  ) {
+  static bool isValidForPlatform(ErrorCode errorCode, IAPPlatform platform) {
     if (platform == IAPPlatform.ios) {
       return ErrorCodeMapping.ios.containsKey(errorCode);
     } else {
@@ -229,9 +223,7 @@ class ConnectionResult {
   ConnectionResult.fromJSON(Map<String, dynamic> json)
       : msg = json['msg'] as String?;
 
-  Map<String, dynamic> toJson() => {
-        'msg': msg ?? '',
-      };
+  Map<String, dynamic> toJson() => {'msg': msg ?? ''};
 
   @override
   String toString() {
