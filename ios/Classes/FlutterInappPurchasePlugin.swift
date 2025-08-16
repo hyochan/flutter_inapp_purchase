@@ -333,12 +333,12 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                     // Add subscription info if available
                     if let subscription = product.subscription {
                         productInfo["subscriptionPeriodUnitIOS"] = unitToString(subscription.subscriptionPeriod.unit)
-                        productInfo["subscriptionPeriodNumberIOS"] = subscription.subscriptionPeriod.value
+                        productInfo["subscriptionPeriodNumberIOS"] = "\(subscription.subscriptionPeriod.value)"
                         
                         if let introOffer = subscription.introductoryOffer {
                             productInfo["introductoryPrice"] = introOffer.displayPrice
-                            productInfo["introductoryPriceNumberOfPeriodsIOS"] = introOffer.period.value
-                            productInfo["introductoryPriceSubscriptionPeriod"] = unitToString(introOffer.period.unit)
+                            productInfo["introductoryPriceNumberOfPeriodsIOS"] = "\(introOffer.period.value)"
+                            productInfo["introductoryPriceSubscriptionPeriodIOS"] = unitToString(introOffer.period.unit)
                         }
                     }
                     
@@ -346,6 +346,16 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 }
                 
                 print("\(FlutterInappPurchasePlugin.TAG) Returning \(productList.count) products to Flutter")
+                
+                // Debug: Print the actual data being sent
+                for (index, product) in productList.enumerated() {
+                    print("\(FlutterInappPurchasePlugin.TAG) Product \(index): \(product)")
+                    if let periodNumber = product["subscriptionPeriodNumberIOS"] {
+                        print("\(FlutterInappPurchasePlugin.TAG) subscriptionPeriodNumberIOS type: \(type(of: periodNumber))")
+                        print("\(FlutterInappPurchasePlugin.TAG) subscriptionPeriodNumberIOS value: \(periodNumber)")
+                    }
+                }
+                
                 await MainActor.run {
                     result(productList)
                 }

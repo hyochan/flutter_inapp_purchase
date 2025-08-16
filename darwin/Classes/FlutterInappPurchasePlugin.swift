@@ -333,12 +333,12 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                     // Add subscription info if available
                     if let subscription = product.subscription {
                         productInfo["subscriptionPeriodUnitIOS"] = unitToString(subscription.subscriptionPeriod.unit)
-                        productInfo["subscriptionPeriodNumberIOS"] = subscription.subscriptionPeriod.value
+                        productInfo["subscriptionPeriodNumberIOS"] = "\(subscription.subscriptionPeriod.value)"
                         
                         if let introOffer = subscription.introductoryOffer {
                             productInfo["introductoryPrice"] = introOffer.displayPrice
-                            productInfo["introductoryPriceNumberOfPeriodsIOS"] = introOffer.period.value
-                            productInfo["introductoryPriceSubscriptionPeriod"] = unitToString(introOffer.period.unit)
+                            productInfo["introductoryPriceNumberOfPeriodsIOS"] = "\(introOffer.period.value)"
+                            productInfo["introductoryPriceSubscriptionPeriodIOS"] = unitToString(introOffer.period.unit)
                         }
                     }
                     
