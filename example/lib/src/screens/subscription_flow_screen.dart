@@ -498,7 +498,7 @@ Platform: ${error.platform}
                           onPressed: () {
                             setState(() {
                               _purchaseResult = null;
-                                            });
+                            });
                           },
                         ),
                       ],

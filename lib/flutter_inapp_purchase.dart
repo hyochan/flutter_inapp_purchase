@@ -566,8 +566,6 @@ class FlutterInappPurchase
     }
   }
 
-
-
   // Helper methods
   iap_types.BaseProduct _parseProductFromNative(
     Map<String, dynamic> json,
@@ -758,7 +756,6 @@ class FlutterInappPurchase
 
   // Original API methods (with deprecation annotations where needed)
 
-
   Future<bool> isReady() async {
     if (_platform.isAndroid) {
       return (await _channel.invokeMethod<bool?>('isReady')) ?? false;
@@ -771,8 +768,6 @@ class FlutterInappPurchase
       message: 'platform not supported',
     );
   }
-
-
 
   Future<Store> getStore() async {
     if (_platform.isIOS) {
@@ -872,7 +867,6 @@ class FlutterInappPurchase
     return items.map((item) => _convertToPurchase(item)).toList();
   }
 
-
   /// Request a subscription
   Future<dynamic> requestSubscription(
     String productId, {
@@ -903,10 +897,6 @@ class FlutterInappPurchase
     );
   }
 
-
-
-
-
   Future<List<iap_types.PurchasedItem>?> getPendingTransactionsIOS() async {
     if (_platform.isIOS) {
       dynamic result = await _channel.invokeMethod('getPendingTransactions');
@@ -915,7 +905,6 @@ class FlutterInappPurchase
     }
     return [];
   }
-
 
   @override
   Future<bool> consumePurchaseAndroid({required String purchaseToken}) async {
@@ -1003,7 +992,6 @@ class FlutterInappPurchase
     );
   }
 
-
   Future<List<iap_types.IAPItem>> getAppStoreInitiatedProducts() async {
     if (_platform.isAndroid) {
       return <iap_types.IAPItem>[];
@@ -1037,7 +1025,6 @@ class FlutterInappPurchase
       body: json.encode(receiptBody),
     );
   }
-
 
   @override
   Future<Map<String, dynamic>?> validateReceiptAndroid({
@@ -1157,7 +1144,6 @@ class FlutterInappPurchase
       ..close();
     _purchaseErrorController = null;
   }
-
 
   // flutter IAP compatible methods
 

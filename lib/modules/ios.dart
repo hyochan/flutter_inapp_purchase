@@ -82,8 +82,6 @@ mixin FlutterInappPurchaseIOS {
     }
   }
 
-
-
   /// Gets the iOS app store country code
   Future<String?> getAppStoreCountryIOS() async {
     if (!_isIOS) {

@@ -63,7 +63,6 @@ mixin FlutterInappPurchaseAndroid {
     }
   }
 
-
   /// Consumes a purchase on Android (for consumable products)
   /// @param purchaseToken - The purchase token to consume
   Future<bool> consumePurchaseAndroid({required String purchaseToken}) async {
@@ -188,8 +187,6 @@ mixin FlutterInappPurchaseAndroid {
       return BillingClientState.disconnected;
     }
   }
-
-
 }
 
 /// In-app message model for Android
