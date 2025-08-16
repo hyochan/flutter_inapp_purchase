@@ -16,39 +16,6 @@ void main() {
     // Platform detection tests removed as getCurrentPlatform() uses Platform directly
     // and cannot be properly mocked in tests
 
-    group('showInAppMessageAndroid', () {
-      group('for Android', () {
-        final List<MethodCall> log = <MethodCall>[];
-        late FlutterInappPurchase testIap;
-        setUp(() {
-          testIap = FlutterInappPurchase.private(
-            FakePlatform(operatingSystem: 'android'),
-          );
-
-          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-              .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-            log.add(methodCall);
-            return 'ready';
-          });
-        });
-        test('invokes correct method', () async {
-          await testIap.showInAppMessageAndroid();
-          expect(log, <Matcher>[
-            isMethodCall('showInAppMessages', arguments: null),
-          ]);
-        });
-
-        tearDown(() {
-          channel.setMethodCallHandler(null);
-        });
-
-        test('returns correct result', () async {
-          final result = await testIap.showInAppMessageAndroid();
-          expect(result, 'ready');
-        });
-      });
-    });
-
     group('initConnection', () {
       group('for Android', () {
         final List<MethodCall> log = <MethodCall>[];
@@ -70,14 +37,15 @@ void main() {
         });
 
         test('invokes correct method', () async {
-          await testIap.initialize();
+          await testIap.initConnection();
           expect(log, <Matcher>[
             isMethodCall('initConnection', arguments: null),
           ]);
         });
 
         test('returns correct result', () async {
-          expect(await testIap.initialize(), 'Billing service is ready');
+          final result = await testIap.initConnection();
+          expect(result, true);
         });
       });
     });
