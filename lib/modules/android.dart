@@ -11,7 +11,6 @@ import '../types.dart';
 mixin FlutterInappPurchaseAndroid {
   MethodChannel get channel;
   bool get _isAndroid;
-  String get _operatingSystem;
 
   /// Deep links to subscriptions screen on Android devices
   /// @param sku - The SKU of the subscription to deep link to
@@ -64,26 +63,6 @@ mixin FlutterInappPurchaseAndroid {
     }
   }
 
-  /// Acknowledges a purchase on Android (required within 3 days)
-  /// @param purchaseToken - The purchase token to acknowledge
-  @Deprecated('Use finishTransaction() instead. Will be removed in 6.0.0')
-  Future<bool> acknowledgePurchaseAndroid({
-    required String purchaseToken,
-  }) async {
-    if (!_isAndroid) {
-      return false;
-    }
-
-    try {
-      final result = await channel.invokeMethod<bool>('acknowledgePurchase', {
-        'purchaseToken': purchaseToken,
-      });
-      return result ?? false;
-    } catch (error) {
-      debugPrint('Error acknowledging purchase: $error');
-      return false;
-    }
-  }
 
   /// Consumes a purchase on Android (for consumable products)
   /// @param purchaseToken - The purchase token to consume
@@ -210,36 +189,7 @@ mixin FlutterInappPurchaseAndroid {
     }
   }
 
-  /// Manages a subscription on Android
-  @Deprecated('Not available in flutter IAP. Will be removed in 6.0.0')
-  Future<void> manageSubscriptionAndroid(String sku, String packageName) async {
-    if (!_isAndroid) {
-      throw PlatformException(
-        code: _operatingSystem,
-        message: 'manageSubscriptionAndroid is only supported on Android',
-      );
-    }
 
-    await channel.invokeMethod('manageSubscription', <String, dynamic>{
-      'sku': sku,
-      'packageName': packageName,
-    });
-  }
-
-  /// Acknowledges a purchase on Android (private method)
-  @Deprecated('Use finishTransaction() instead. Will be removed in 6.0.0')
-  Future<void> acknowledgePurchaseAndroidInternal(String purchaseToken) async {
-    if (!_isAndroid) {
-      throw PlatformException(
-        code: _operatingSystem,
-        message: '_acknowledgePurchaseAndroid is only supported on Android',
-      );
-    }
-
-    await channel.invokeMethod('acknowledgePurchase', <String, dynamic>{
-      'purchaseToken': purchaseToken,
-    });
-  }
 }
 
 /// In-app message model for Android

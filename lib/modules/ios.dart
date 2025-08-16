@@ -82,46 +82,7 @@ mixin FlutterInappPurchaseIOS {
     }
   }
 
-  /// Requests a purchase with offer (iOS 12.2+)
-  @Deprecated(
-    'Use requestPurchase() with RequestPurchase object. Will be removed in 6.0.0',
-  )
-  Future<void> requestProductWithOfferIOS(
-    String sku,
-    String appAccountToken,
-    Map<String, dynamic> withOffer,
-  ) async {
-    if (!_isIOS) {
-      throw PlatformException(
-        code: _operatingSystem,
-        message: 'requestProductWithOfferIOS is only supported on iOS',
-      );
-    }
 
-    await channel.invokeMethod('requestProductWithOfferIOS', <String, dynamic>{
-      'sku': sku,
-      'appAccountToken': appAccountToken,
-      'withOffer': withOffer,
-    });
-  }
-
-  /// Requests a purchase with quantity (iOS)
-  @Deprecated(
-    'Use requestPurchase() with RequestPurchase object. Will be removed in 6.0.0',
-  )
-  Future<void> requestPurchaseWithQuantityIOS(String sku, int quantity) async {
-    if (!_isIOS) {
-      throw PlatformException(
-        code: _operatingSystem,
-        message: 'requestPurchaseWithQuantityIOS is only supported on iOS',
-      );
-    }
-
-    await channel.invokeMethod(
-      'requestPurchaseWithQuantityIOS',
-      <String, dynamic>{'sku': sku, 'quantity': quantity},
-    );
-  }
 
   /// Gets the iOS app store country code
   Future<String?> getAppStoreCountryIOS() async {
