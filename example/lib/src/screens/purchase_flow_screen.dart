@@ -28,7 +28,8 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
   Purchase? _currentPurchase;
   StreamSubscription<Purchase>? _purchaseUpdatedSubscription;
   StreamSubscription<PurchaseError>? _purchaseErrorSubscription;
-  final Set<String> _processedTransactionIds = {}; // Track processed transactions
+  final Set<String> _processedTransactionIds =
+      {}; // Track processed transactions
 
   @override
   void initState() {
@@ -106,12 +107,14 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
 
   Future<void> _handlePurchaseUpdate(Purchase purchase) async {
     // Check if we've already processed this transaction
-    final transactionId = purchase.id.isNotEmpty ? purchase.id : purchase.transactionId;
-    if (transactionId != null && _processedTransactionIds.contains(transactionId)) {
+    final transactionId =
+        purchase.id.isNotEmpty ? purchase.id : purchase.transactionId;
+    if (transactionId != null &&
+        _processedTransactionIds.contains(transactionId)) {
       debugPrint('⚠️ Transaction already processed: $transactionId');
       return;
     }
-    
+
     debugPrint('Purchase successful: ${purchase.productId}');
     debugPrint('Purchase token: ${purchase.purchaseToken}');
     debugPrint('ID: ${purchase.id}'); // OpenIAP standard
