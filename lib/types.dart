@@ -58,7 +58,7 @@ abstract class BaseProduct {
   final String? localizedPrice;
   final String? title;
   final String? description;
-  final IAPPlatform platform;
+  final IapPlatform platform;
 
   BaseProduct({
     required this.productId,
@@ -96,7 +96,7 @@ class Product extends BaseProduct {
     String? localizedPrice,
     String? title,
     String? description,
-    required IAPPlatform platform,
+    required IapPlatform platform,
     String? type,
     // iOS fields
     this.displayName,
@@ -245,7 +245,7 @@ class Subscription extends BaseProduct {
     String? localizedPrice,
     String? title,
     String? description,
-    required IAPPlatform platform,
+    required IapPlatform platform,
     String? type,
     // iOS fields
     this.displayName,
@@ -483,7 +483,7 @@ class Purchase {
   final String? originalOrderId;
   final int? purchaseTime;
   final int? quantity;
-  final IAPPlatform platform;
+  final IapPlatform platform;
   // iOS specific fields
   final String? originalTransactionDateIOS;
   final String? originalTransactionIdentifierIOS;
@@ -1680,6 +1680,59 @@ class StoreInfo {
     required this.countryCode,
     required this.currency,
   });
+}
+
+/// Active subscription info (OpenIAP compliant)
+class ActiveSubscription {
+  final String productId;
+  final bool isActive;
+  // iOS-specific fields
+  final DateTime? expirationDateIOS;
+  final String? environmentIOS; // "Sandbox" | "Production"
+  final int? daysUntilExpirationIOS;
+  // Android-specific fields
+  final bool? autoRenewingAndroid;
+  // Cross-platform field
+  final bool? willExpireSoon; // True if expiring within 7 days
+
+  ActiveSubscription({
+    required this.productId,
+    required this.isActive,
+    this.expirationDateIOS,
+    this.environmentIOS,
+    this.daysUntilExpirationIOS,
+    this.autoRenewingAndroid,
+    this.willExpireSoon,
+  });
+
+  factory ActiveSubscription.fromJson(Map<String, dynamic> json) {
+    return ActiveSubscription(
+      productId: json['productId'] as String? ?? '',
+      isActive: json['isActive'] as bool? ?? false,
+      expirationDateIOS: json['expirationDateIOS'] != null
+          ? DateTime.tryParse(json['expirationDateIOS'] as String)
+          : null,
+      environmentIOS: json['environmentIOS'] as String?,
+      daysUntilExpirationIOS: json['daysUntilExpirationIOS'] as int?,
+      autoRenewingAndroid: json['autoRenewingAndroid'] as bool?,
+      willExpireSoon: json['willExpireSoon'] as bool?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'productId': productId,
+      'isActive': isActive,
+      if (expirationDateIOS != null)
+        'expirationDateIOS': expirationDateIOS!.toIso8601String(),
+      if (environmentIOS != null) 'environmentIOS': environmentIOS,
+      if (daysUntilExpirationIOS != null)
+        'daysUntilExpirationIOS': daysUntilExpirationIOS,
+      if (autoRenewingAndroid != null)
+        'autoRenewingAndroid': autoRenewingAndroid,
+      if (willExpireSoon != null) 'willExpireSoon': willExpireSoon,
+    };
+  }
 }
 
 /// IAP configuration

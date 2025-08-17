@@ -4,7 +4,7 @@
 enum Store { none, playStore, amazon, appStore }
 
 /// Platform detection enum
-enum IAPPlatform { ios, android }
+enum IapPlatform { ios, android }
 
 /// Purchase type enum
 enum PurchaseType { inapp, subs }

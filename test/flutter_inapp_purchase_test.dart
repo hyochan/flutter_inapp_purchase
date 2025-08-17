@@ -179,26 +179,26 @@ void main() {
           'responseCode': 1,
           'debugMessage': 'Debug info',
           'productId': 'com.example.product',
-        }, IAPPlatform.android);
+        }, IapPlatform.android);
 
         expect(error.code, ErrorCode.eUserCancelled);
         expect(error.message, 'User cancelled the purchase');
         expect(error.responseCode, 1);
         expect(error.debugMessage, 'Debug info');
         expect(error.productId, 'com.example.product');
-        expect(error.platform, IAPPlatform.android);
+        expect(error.platform, IapPlatform.android);
       });
 
       test('ErrorCodeUtils maps platform codes correctly', () {
         // Test iOS mapping
         expect(
-          ErrorCodeUtils.fromPlatformCode(2, IAPPlatform.ios),
+          ErrorCodeUtils.fromPlatformCode(2, IapPlatform.ios),
           ErrorCode.eUserCancelled,
         );
         expect(
           ErrorCodeUtils.toPlatformCode(
             ErrorCode.eUserCancelled,
-            IAPPlatform.ios,
+            IapPlatform.ios,
           ),
           2,
         );
@@ -207,21 +207,21 @@ void main() {
         expect(
           ErrorCodeUtils.fromPlatformCode(
             'E_USER_CANCELLED',
-            IAPPlatform.android,
+            IapPlatform.android,
           ),
           ErrorCode.eUserCancelled,
         );
         expect(
           ErrorCodeUtils.toPlatformCode(
             ErrorCode.eUserCancelled,
-            IAPPlatform.android,
+            IapPlatform.android,
           ),
           'E_USER_CANCELLED',
         );
 
         // Test unknown code
         expect(
-          ErrorCodeUtils.fromPlatformCode('UNKNOWN_ERROR', IAPPlatform.android),
+          ErrorCodeUtils.fromPlatformCode('UNKNOWN_ERROR', IapPlatform.android),
           ErrorCode.eUnknown,
         );
       });
@@ -339,6 +339,181 @@ void main() {
           ProrationMode.immediateAndChargeFullPrice.toString(),
           'ProrationMode.immediateAndChargeFullPrice',
         );
+      });
+    });
+
+    group('getActiveSubscriptions', () {
+      group('for Android', () {
+        late FlutterInappPurchase testIap;
+
+        setUp(() {
+          testIap = FlutterInappPurchase.private(
+            FakePlatform(operatingSystem: 'android'),
+          );
+
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+              .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+            if (methodCall.method == 'initConnection') {
+              return 'Billing service is ready';
+            }
+            if (methodCall.method == 'getAvailableItemsByType') {
+              final arguments = methodCall.arguments;
+              if (arguments is Map && arguments['type'] == 'subs') {
+                // Return a mock subscription purchase
+                return '''[
+                  {
+                    "productId": "monthly_subscription",
+                    "transactionId": "GPA.1234-5678-9012-34567",
+                    "transactionDate": ${DateTime.now().millisecondsSinceEpoch},
+                    "transactionReceipt": "receipt_data",
+                    "purchaseToken": "token_123",
+                    "autoRenewingAndroid": true,
+                    "purchaseStateAndroid": 0,
+                    "isAcknowledgedAndroid": true
+                  }
+                ]''';
+              }
+              return '[]';
+            }
+            return '[]';
+          });
+        });
+
+        tearDown(() {
+          channel.setMethodCallHandler(null);
+        });
+
+        test('returns active subscriptions', () async {
+          await testIap.initConnection();
+          final subscriptions = await testIap.getActiveSubscriptions();
+
+          expect(subscriptions.length, 1);
+          expect(subscriptions.first.productId, 'monthly_subscription');
+          expect(subscriptions.first.isActive, true);
+          expect(subscriptions.first.autoRenewingAndroid, true);
+        });
+
+        test('filters by subscription IDs', () async {
+          await testIap.initConnection();
+          final subscriptions = await testIap.getActiveSubscriptions(
+            subscriptionIds: ['yearly_subscription'],
+          );
+
+          expect(subscriptions.length, 0);
+        });
+      });
+
+      group('for iOS', () {
+        late FlutterInappPurchase testIap;
+
+        setUp(() {
+          testIap = FlutterInappPurchase.private(
+            FakePlatform(operatingSystem: 'ios'),
+          );
+
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+              .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+            if (methodCall.method == 'initConnection') {
+              return 'Billing service is ready';
+            }
+            if (methodCall.method == 'getAvailableItems') {
+              // Return a mock iOS subscription purchase
+              return [
+                {
+                  'productId': 'monthly_subscription',
+                  'transactionId': '1000000123456789',
+                  'transactionDate': DateTime.now().millisecondsSinceEpoch,
+                  'transactionReceipt': 'receipt_data',
+                  'transactionStateIOS':
+                      '1', // TransactionState.purchased value
+                }
+              ];
+            }
+            return null;
+          });
+        });
+
+        tearDown(() {
+          channel.setMethodCallHandler(null);
+        });
+
+        test('returns active subscriptions with iOS-specific fields', () async {
+          await testIap.initConnection();
+          final subscriptions = await testIap.getActiveSubscriptions();
+
+          expect(subscriptions.length, 1);
+          expect(subscriptions.first.productId, 'monthly_subscription');
+          expect(subscriptions.first.isActive, true);
+          expect(subscriptions.first.environmentIOS, 'Production');
+          expect(subscriptions.first.expirationDateIOS, isNotNull);
+          expect(subscriptions.first.daysUntilExpirationIOS, isNotNull);
+        });
+      });
+    });
+
+    group('hasActiveSubscriptions', () {
+      late FlutterInappPurchase testIap;
+
+      setUp(() {
+        testIap = FlutterInappPurchase.private(
+          FakePlatform(operatingSystem: 'android'),
+        );
+
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+          if (methodCall.method == 'initConnection') {
+            return 'Billing service is ready';
+          }
+          if (methodCall.method == 'getAvailableItemsByType') {
+            final arguments = methodCall.arguments;
+            if (arguments is Map && arguments['type'] == 'subs') {
+              return '''[
+                {
+                  "productId": "monthly_subscription",
+                  "transactionId": "GPA.1234-5678-9012-34567",
+                  "transactionDate": ${DateTime.now().millisecondsSinceEpoch},
+                  "transactionReceipt": "receipt_data",
+                  "purchaseToken": "token_123",
+                  "autoRenewingAndroid": true,
+                  "purchaseStateAndroid": 0,
+                  "isAcknowledgedAndroid": true
+                }
+              ]''';
+            }
+            return '[]';
+          }
+          return '[]';
+        });
+      });
+
+      tearDown(() {
+        channel.setMethodCallHandler(null);
+      });
+
+      test('returns true when user has active subscriptions', () async {
+        await testIap.initConnection();
+        final hasSubscriptions = await testIap.hasActiveSubscriptions();
+
+        expect(hasSubscriptions, true);
+      });
+
+      test('returns false when filtering for non-existent subscription',
+          () async {
+        await testIap.initConnection();
+        final hasSubscriptions = await testIap.hasActiveSubscriptions(
+          subscriptionIds: ['non_existent_subscription'],
+        );
+
+        expect(hasSubscriptions, false);
+      });
+
+      test('returns true when filtering for existing subscription', () async {
+        await testIap.initConnection();
+        final hasSubscriptions = await testIap.hasActiveSubscriptions(
+          subscriptionIds: ['monthly_subscription'],
+        );
+
+        expect(hasSubscriptions, true);
       });
     });
   });

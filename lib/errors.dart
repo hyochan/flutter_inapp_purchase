@@ -4,11 +4,11 @@ import 'dart:io';
 import 'enums.dart';
 
 /// Get current platform
-IAPPlatform getCurrentPlatform() {
+IapPlatform getCurrentPlatform() {
   if (Platform.isIOS) {
-    return IAPPlatform.ios;
+    return IapPlatform.ios;
   } else if (Platform.isAndroid) {
-    return IAPPlatform.android;
+    return IapPlatform.android;
   }
   throw UnsupportedError('Platform not supported');
 }
@@ -89,7 +89,7 @@ class PurchaseError implements Exception {
   final String? debugMessage;
   final ErrorCode? code;
   final String? productId;
-  final IAPPlatform? platform;
+  final IapPlatform? platform;
 
   PurchaseError({
     String? name,
@@ -104,7 +104,7 @@ class PurchaseError implements Exception {
   /// Creates a PurchaseError from platform-specific error data
   factory PurchaseError.fromPlatformError(
     Map<String, dynamic> errorData,
-    IAPPlatform platform,
+    IapPlatform platform,
   ) {
     final errorCode = errorData['code'] != null
         ? ErrorCodeUtils.fromPlatformCode(errorData['code'], platform)
@@ -175,9 +175,9 @@ class ErrorCodeUtils {
   /// Maps a platform-specific error code back to the standardized ErrorCode enum
   static ErrorCode fromPlatformCode(
     dynamic platformCode,
-    IAPPlatform platform,
+    IapPlatform platform,
   ) {
-    if (platform == IAPPlatform.ios) {
+    if (platform == IapPlatform.ios) {
       final mapping = ErrorCodeMapping.ios;
       for (final entry in mapping.entries) {
         if (entry.value == platformCode) {
@@ -196,8 +196,8 @@ class ErrorCodeUtils {
   }
 
   /// Maps an ErrorCode enum to platform-specific code
-  static dynamic toPlatformCode(ErrorCode errorCode, IAPPlatform platform) {
-    if (platform == IAPPlatform.ios) {
+  static dynamic toPlatformCode(ErrorCode errorCode, IapPlatform platform) {
+    if (platform == IapPlatform.ios) {
       return ErrorCodeMapping.ios[errorCode] ?? 0;
     } else {
       return ErrorCodeMapping.android[errorCode] ?? 'E_UNKNOWN';
@@ -205,8 +205,8 @@ class ErrorCodeUtils {
   }
 
   /// Checks if an error code is valid for the specified platform
-  static bool isValidForPlatform(ErrorCode errorCode, IAPPlatform platform) {
-    if (platform == IAPPlatform.ios) {
+  static bool isValidForPlatform(ErrorCode errorCode, IapPlatform platform) {
+    if (platform == IapPlatform.ios) {
       return ErrorCodeMapping.ios.containsKey(errorCode);
     } else {
       return ErrorCodeMapping.android.containsKey(errorCode);
