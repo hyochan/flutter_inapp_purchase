@@ -335,17 +335,17 @@ void main() {
           'productId': 'test.product.millis',
           'transactionDate': 1234567890123, // Large number (milliseconds)
         };
-        
+
         final itemMillis = PurchasedItem.fromJSON(jsonWithMillis);
-        expect(itemMillis.transactionDate, 
-               DateTime.fromMillisecondsSinceEpoch(1234567890123));
+        expect(itemMillis.transactionDate,
+            DateTime.fromMillisecondsSinceEpoch(1234567890123));
 
         // Test smaller timestamp (seconds)
         final jsonWithSeconds = {
           'productId': 'test.product.seconds',
           'transactionDate': 1234567890, // Smaller number
         };
-        
+
         final itemSeconds = PurchasedItem.fromJSON(jsonWithSeconds);
         expect(itemSeconds.transactionDate, isNotNull);
 
@@ -354,7 +354,7 @@ void main() {
           'productId': 'test.product.string',
           'transactionDate': '2023-01-01T00:00:00Z',
         };
-        
+
         final itemString = PurchasedItem.fromJSON(jsonWithString);
         expect(itemString.transactionDate, isNotNull);
       });

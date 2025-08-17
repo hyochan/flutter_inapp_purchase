@@ -4,11 +4,17 @@
 
 ### Pre-Commit Checks
 
-Before committing any changes:
+Before committing any changes, run these commands in order and ensure ALL pass:
 
-1. Run `dart format .` to ensure consistent code formatting
-2. Run `flutter test` to verify all tests pass
-3. Only commit if both checks succeed
+1. **Format check**: `dart format --set-exit-if-changed .`
+   - This will fail if any files need formatting (exit code 1)
+   - If it fails, run `dart format .` to fix formatting, then retry
+2. **Test validation**: `flutter test`
+   - All tests must pass
+3. **Final verification**: Re-run `dart format --set-exit-if-changed .` to confirm no formatting issues
+4. Only commit if ALL checks succeed with exit code 0
+
+**Important**: Use `--set-exit-if-changed` flag to match CI behavior and catch formatting issues locally before they cause CI failures.
 
 ### Platform-Specific Naming Conventions
 
