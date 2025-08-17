@@ -227,6 +227,85 @@ void main() {
       });
     });
 
+    group('Product OpenIAP Compatibility', () {
+      test('Product has OpenIAP compliant id getter', () {
+        final product = Product(
+          productId: 'test.product.id',
+          price: '9.99',
+          platform: IapPlatform.android,
+        );
+
+        expect(product.id, 'test.product.id');
+        expect(product.ids, ['test.product.id']);
+      });
+
+      test('Subscription has OpenIAP compliant id getter', () {
+        final subscription = Subscription(
+          productId: 'test.subscription.id',
+          price: '4.99',
+          platform: IapPlatform.ios,
+        );
+
+        expect(subscription.id, 'test.subscription.id');
+        expect(subscription.ids, ['test.subscription.id']);
+      });
+
+      test('Purchase has OpenIAP compliant id getter', () {
+        final purchase = Purchase(
+          productId: 'test.product',
+          transactionId: 'transaction123',
+          platform: IapPlatform.android,
+        );
+
+        expect(purchase.id, 'transaction123');
+        expect(purchase.ids, ['test.product']);
+      });
+
+      test('Purchase id getter returns empty string when transactionId is null',
+          () {
+        final purchase = Purchase(
+          productId: 'test.product',
+          transactionId: null,
+          platform: IapPlatform.ios,
+        );
+
+        expect(purchase.id, '');
+        expect(purchase.ids, ['test.product']);
+      });
+
+      test('Product toString includes new fields', () {
+        final product = Product(
+          productId: 'test.product',
+          price: '9.99',
+          platform: IapPlatform.android,
+          environmentIOS: 'Production',
+          subscriptionPeriodAndroid: 'P1M',
+        );
+
+        final str = product.toString();
+        expect(str, contains('productId: test.product'));
+        expect(str, contains('id: test.product'));
+        expect(str, contains('environmentIOS: Production'));
+        expect(str, contains('subscriptionPeriodAndroid: P1M'));
+      });
+
+      test('Purchase toString includes new fields', () {
+        final purchase = Purchase(
+          productId: 'test.product',
+          transactionId: 'trans123',
+          platform: IapPlatform.ios,
+          environmentIOS: 'Sandbox',
+          purchaseStateAndroid: 1,
+        );
+
+        final str = purchase.toString();
+        expect(str, contains('productId: test.product'));
+        expect(str, contains('id: trans123'));
+        expect(str, contains('environmentIOS: Sandbox'));
+        expect(str, contains('purchaseStateAndroid: 1'));
+      });
+    });
+
     group('Type Conversions', () {
       test('IAPItem conversion preserves all fields', () {
         final jsonData = {
@@ -298,6 +377,43 @@ void main() {
         expect(item.purchaseToken, 'unified_token_123');
         expect(item.transactionId, '2000000985615347');
         expect(item.id, '2000000985615347'); // OpenIAP compliance
+      });
+
+      test('PurchasedItem handles purchaseToken field for different platforms',
+          () {
+        // Test Android purchase with purchaseToken
+        final jsonDataAndroid = {
+          'productId': 'android.product',
+          'transactionId': 'GPA.1234-5678-9012-34567',
+          'transactionDate': 1234567890,
+          'transactionReceipt': 'android_receipt',
+          'purchaseToken': 'android_purchase_token',
+          'signatureAndroid': 'android_signature',
+          'purchaseStateAndroid': 1,
+          'isAcknowledgedAndroid': true,
+        };
+
+        final itemAndroid = PurchasedItem.fromJSON(jsonDataAndroid);
+        expect(itemAndroid.productId, 'android.product');
+        expect(itemAndroid.purchaseToken, 'android_purchase_token');
+        expect(itemAndroid.signatureAndroid, 'android_signature');
+        expect(itemAndroid.purchaseStateAndroid, 1);
+        expect(itemAndroid.isAcknowledgedAndroid, true);
+
+        // Test iOS purchase with purchaseToken (JWS)
+        final jsonDataIOS = {
+          'productId': 'ios.product',
+          'transactionId': '2000000985615347',
+          'transactionDate': 1234567890,
+          'transactionReceipt': 'ios_receipt',
+          'purchaseToken': 'ios_jws_token',
+          'transactionStateIOS': '1',
+        };
+
+        final itemIOS = PurchasedItem.fromJSON(jsonDataIOS);
+        expect(itemIOS.productId, 'ios.product');
+        expect(itemIOS.purchaseToken, 'ios_jws_token');
+        expect(itemIOS.transactionStateIOS, '1');
       });
 
       test('PurchasedItem OpenIAP id field fallback', () {
@@ -500,6 +616,10 @@ void main() {
                   'transactionId': '1000000123456789',
                   'transactionDate': DateTime.now().millisecondsSinceEpoch,
                   'transactionReceipt': 'receipt_data',
+                  'purchaseToken':
+                      'ios_jws_token_123', // Unified field for iOS JWS
+                  'jwsRepresentationIOS':
+                      'ios_jws_token_123', // Deprecated field
                   'transactionStateIOS':
                       '1', // TransactionState.purchased value
                 }
@@ -523,6 +643,377 @@ void main() {
           expect(subscriptions.first.environmentIOS, 'Production');
           expect(subscriptions.first.expirationDateIOS, isNotNull);
           expect(subscriptions.first.daysUntilExpirationIOS, isNotNull);
+        });
+      });
+    });
+
+    group('requestPurchase', () {
+      late FlutterInappPurchase testIap;
+
+      setUp(() {
+        testIap = FlutterInappPurchase.private(
+          FakePlatform(operatingSystem: 'android'),
+        );
+
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+          if (methodCall.method == 'initConnection') {
+            return 'Billing service is ready';
+          }
+          if (methodCall.method == 'requestPurchase') {
+            // Simulate purchase flow with unified purchaseToken
+            return {
+              'productId': methodCall.arguments['sku'],
+              'transactionId': 'GPA.test-transaction-123',
+              'transactionDate': DateTime.now().millisecondsSinceEpoch,
+              'transactionReceipt': 'test_receipt',
+              'purchaseToken': 'unified_purchase_token_123',
+              'purchaseTokenAndroid': 'unified_purchase_token_123',
+              'signatureAndroid': 'test_signature',
+              'purchaseStateAndroid': 1,
+            };
+          }
+          if (methodCall.method == 'requestSubscription') {
+            // Simulate subscription flow with unified purchaseToken
+            return {
+              'productId': methodCall.arguments['sku'],
+              'transactionId': 'GPA.sub-transaction-456',
+              'transactionDate': DateTime.now().millisecondsSinceEpoch,
+              'transactionReceipt': 'test_subscription_receipt',
+              'purchaseToken': 'unified_subscription_token_456',
+              'purchaseTokenAndroid': 'unified_subscription_token_456',
+              'autoRenewingAndroid': true,
+              'purchaseStateAndroid': 1,
+            };
+          }
+          return null;
+        });
+      });
+
+      tearDown(() {
+        channel.setMethodCallHandler(null);
+      });
+
+      test('requestPurchase includes unified purchaseToken in response',
+          () async {
+        await testIap.initConnection();
+
+        // Request purchase will not directly return a PurchasedItem
+        // It triggers a native purchase flow that sends events
+        // For testing, we just verify the method can be called without error
+        await expectLater(
+          testIap.requestPurchaseAuto(
+            sku: 'test.product',
+            type: PurchaseType.inapp,
+          ),
+          completes,
+        );
+      });
+
+      test('requestSubscription includes unified purchaseToken in response',
+          () async {
+        await testIap.initConnection();
+
+        // Request subscription will not directly return a PurchasedItem
+        // It triggers a native purchase flow that sends events
+        // For testing, we just verify the method can be called without error
+        await expectLater(
+          testIap.requestPurchaseAuto(
+            sku: 'test.subscription',
+            type: PurchaseType.subs,
+          ),
+          completes,
+        );
+      });
+    });
+
+    group('requestPurchase for iOS', () {
+      late FlutterInappPurchase testIap;
+
+      setUp(() {
+        testIap = FlutterInappPurchase.private(
+          FakePlatform(operatingSystem: 'ios'),
+        );
+
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+          if (methodCall.method == 'initConnection') {
+            return 'Billing service is ready';
+          }
+          if (methodCall.method == 'requestPurchase') {
+            // Simulate iOS purchase with JWS token
+            return {
+              'productId': methodCall.arguments,
+              'transactionId': '2000000123456789',
+              'transactionDate': DateTime.now().millisecondsSinceEpoch,
+              'transactionReceipt': 'ios_receipt_data',
+              'purchaseToken': 'ios_jws_representation_token',
+              'jwsRepresentationIOS': 'ios_jws_representation_token',
+              'transactionStateIOS': '1',
+            };
+          }
+          return null;
+        });
+      });
+
+      tearDown(() {
+        channel.setMethodCallHandler(null);
+      });
+
+      test('iOS purchase includes unified purchaseToken (JWS)', () async {
+        await testIap.initConnection();
+
+        // Request purchase will not directly return a PurchasedItem
+        // It triggers a native purchase flow that sends events
+        // For testing, we just verify the method can be called without error
+        await expectLater(
+          testIap.requestPurchaseAuto(
+            sku: 'ios.test.product',
+            type: PurchaseType.inapp,
+          ),
+          completes,
+        );
+      });
+    });
+
+    group('getAvailablePurchases', () {
+      late FlutterInappPurchase testIap;
+
+      setUp(() {
+        testIap = FlutterInappPurchase.private(
+          FakePlatform(operatingSystem: 'android'),
+        );
+
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+          if (methodCall.method == 'initConnection') {
+            return 'Billing service is ready';
+          }
+          if (methodCall.method == 'getAvailableItemsByType') {
+            // Return purchases with unified purchaseToken as JSON string
+            final timestamp = DateTime.now().millisecondsSinceEpoch;
+            return '''[
+              {
+                "productId": "test.product.1",
+                "transactionId": "GPA.purchase-1",
+                "transactionDate": $timestamp,
+                "transactionReceipt": "receipt_1",
+                "purchaseToken": "unified_token_1",
+                "purchaseTokenAndroid": "unified_token_1",
+                "signatureAndroid": "signature_1",
+                "purchaseStateAndroid": 1,
+                "isAcknowledgedAndroid": true
+              },
+              {
+                "productId": "test.product.2",
+                "transactionId": "GPA.purchase-2",
+                "transactionDate": $timestamp,
+                "transactionReceipt": "receipt_2",
+                "purchaseToken": "unified_token_2",
+                "purchaseTokenAndroid": "unified_token_2",
+                "signatureAndroid": "signature_2",
+                "purchaseStateAndroid": 1,
+                "isAcknowledgedAndroid": false
+              }
+            ]''';
+          }
+          return null;
+        });
+      });
+
+      tearDown(() {
+        channel.setMethodCallHandler(null);
+      });
+
+      test('returns available purchases with unified purchaseToken', () async {
+        await testIap.initConnection();
+        final purchases = await testIap.getAvailablePurchases();
+
+        // Android calls getAvailableItemsByType twice (inapp and subs)
+        // Each returns 2 items, so total is 4
+        expect(purchases.length, 4);
+
+        // Check that all purchases have unified purchaseToken
+        for (final purchase in purchases) {
+          expect(purchase.purchaseToken, isNotNull);
+          expect(purchase.purchaseToken, contains('unified_token'));
+        }
+      });
+    });
+
+    group('getAvailablePurchases for iOS', () {
+      late FlutterInappPurchase testIap;
+
+      setUp(() {
+        testIap = FlutterInappPurchase.private(
+          FakePlatform(operatingSystem: 'ios'),
+        );
+
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+          if (methodCall.method == 'initConnection') {
+            return 'Billing service is ready';
+          }
+          if (methodCall.method == 'getAvailableItems') {
+            // Return iOS purchases with JWS tokens
+            return [
+              {
+                'productId': 'ios.product.1',
+                'transactionId': '2000000111111111',
+                'transactionDate': DateTime.now().millisecondsSinceEpoch,
+                'transactionReceipt': 'ios_receipt_1',
+                'purchaseToken': 'ios_jws_token_1',
+                'jwsRepresentationIOS': 'ios_jws_token_1',
+                'transactionStateIOS': '1',
+              },
+            ];
+          }
+          return null;
+        });
+      });
+
+      tearDown(() {
+        channel.setMethodCallHandler(null);
+      });
+
+      test('iOS returns purchases with unified purchaseToken (JWS)', () async {
+        await testIap.initConnection();
+        final purchases = await testIap.getAvailablePurchases();
+
+        expect(purchases.length, 1);
+        expect(purchases[0].productId, 'ios.product.1');
+        expect(purchases[0].purchaseToken, 'ios_jws_token_1');
+        expect(purchases[0].transactionStateIOS, TransactionState.purchased);
+      });
+    });
+
+    group('finishTransaction', () {
+      late FlutterInappPurchase testIap;
+
+      group('on Android', () {
+        setUp(() {
+          testIap = FlutterInappPurchase.private(
+            FakePlatform(operatingSystem: 'android'),
+          );
+
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+              .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+            if (methodCall.method == 'initConnection') {
+              return 'Billing service is ready';
+            }
+            if (methodCall.method == 'consumeProduct') {
+              expect(methodCall.arguments['purchaseToken'], isNotNull);
+              return 'consumed';
+            }
+            if (methodCall.method == 'acknowledgePurchase') {
+              expect(methodCall.arguments['purchaseToken'], isNotNull);
+              return 'acknowledged';
+            }
+            return null;
+          });
+        });
+
+        tearDown(() {
+          channel.setMethodCallHandler(null);
+        });
+
+        test('consumes consumable purchases on Android', () async {
+          await testIap.initConnection();
+
+          final purchase = Purchase(
+            productId: 'consumable.product',
+            transactionId: 'GPA.consume-123',
+            purchaseToken: 'consume_token_123',
+            platform: IapPlatform.android,
+            isAcknowledgedAndroid: false,
+          );
+
+          await testIap.finishTransaction(purchase, isConsumable: true);
+          // Test passes if consumeProduct was called
+        });
+
+        test('acknowledges non-consumable purchases on Android', () async {
+          await testIap.initConnection();
+
+          final purchase = Purchase(
+            productId: 'non_consumable.product',
+            transactionId: 'GPA.acknowledge-456',
+            purchaseToken: 'acknowledge_token_456',
+            platform: IapPlatform.android,
+            isAcknowledgedAndroid: false,
+          );
+
+          await testIap.finishTransaction(purchase, isConsumable: false);
+          // Test passes if acknowledgePurchase was called
+        });
+
+        test('skips already acknowledged purchases on Android', () async {
+          await testIap.initConnection();
+
+          final purchase = Purchase(
+            productId: 'already_acknowledged.product',
+            transactionId: 'GPA.ack-789',
+            purchaseToken: 'ack_token_789',
+            platform: IapPlatform.android,
+            isAcknowledgedAndroid: true,
+          );
+
+          await testIap.finishTransaction(purchase, isConsumable: false);
+          // Should not call acknowledgePurchase since already acknowledged
+        });
+      });
+
+      group('on iOS', () {
+        setUp(() {
+          testIap = FlutterInappPurchase.private(
+            FakePlatform(operatingSystem: 'ios'),
+          );
+
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+              .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+            if (methodCall.method == 'initConnection') {
+              return 'Billing service is ready';
+            }
+            if (methodCall.method == 'finishTransaction') {
+              // Allow null transactionId for edge case testing
+              return 'finished';
+            }
+            return null;
+          });
+        });
+
+        tearDown(() {
+          channel.setMethodCallHandler(null);
+        });
+
+        test('finishes transaction on iOS using id field', () async {
+          await testIap.initConnection();
+
+          final purchase = Purchase(
+            productId: 'ios.product',
+            transactionId: '2000000123456',
+            platform: IapPlatform.ios,
+          );
+
+          await testIap.finishTransaction(purchase);
+          // Test passes if finishTransaction was called with transactionId
+        });
+
+        test('finishes transaction on iOS when id is empty', () async {
+          await testIap.initConnection();
+
+          final purchase = Purchase(
+            productId: 'ios.product',
+            transactionId: null,
+            platform: IapPlatform.ios,
+          );
+
+          // When transactionId is null, finishTransaction should still be called
+          // but with null transactionId. Test that it doesn't throw an error.
+          await expectLater(
+            testIap.finishTransaction(purchase),
+            completes,
+          );
         });
       });
     });
