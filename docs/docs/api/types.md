@@ -185,7 +185,7 @@ class PurchasedItem {
   final String? transactionId;                    // Transaction ID
   final DateTime? transactionDate;                // Transaction date
   final String? transactionReceipt;               // Transaction receipt
-  final String? purchaseToken;                    // Purchase token
+  final String? purchaseToken;                    // Unified purchase token (iOS JWS or Android token)
 
   // Android-specific fields
   final String? dataAndroid;                      // Purchase data
@@ -193,11 +193,13 @@ class PurchasedItem {
   final bool? autoRenewingAndroid;               // Auto-renewing status
   final bool? isAcknowledgedAndroid;             // Acknowledgment status
   final PurchaseState? purchaseStateAndroid;     // Purchase state
+  final String? purchaseTokenAndroid;            // [DEPRECATED] Use purchaseToken instead
 
   // iOS-specific fields
   final DateTime? originalTransactionDateIOS;     // Original transaction date
   final String? originalTransactionIdentifierIOS; // Original transaction ID
   final TransactionState? transactionStateIOS;   // Transaction state
+  final String? jwsRepresentationIOS;            // [DEPRECATED] Use purchaseToken instead
 }
 ```
 
@@ -432,10 +434,11 @@ IAPPlatform getCurrentPlatform();
 | Feature | iOS | Android |
 |---------|-----|---------|
 | Product IDs | Single `sku` string | Array of `skus` |
-| Purchase Token | `transactionReceipt` | `purchaseToken` |
+| Purchase Token | **Unified `purchaseToken`** (JWS format) | **Unified `purchaseToken`** (Google Play format) |
 | Transaction State | `TransactionState` enum | `PurchaseState` enum |
 | Error Handling | Integer codes | String codes |
 | Discounts | `DiscountIOS` objects | `SubscriptionOfferAndroid` |
+| Transaction IDs | Large numbers (e.g., `2000000985615347`) | String format (e.g., `GPA.1234-5678-9012`) |
 
 ### Platform-Specific Fields
 
@@ -444,13 +447,17 @@ IAPPlatform getCurrentPlatform();
 - `transactionStateIOS`
 - `discountsIOS`
 - `subscriptionPeriodUnitIOS`
+- `jwsRepresentationIOS` ⚠️ **DEPRECATED** - Use `purchaseToken` instead
 
 **Android Only:**
-- `purchaseToken`
 - `dataAndroid`
 - `signatureAndroid`
 - `isAcknowledgedAndroid`
 - `purchaseStateAndroid`
+- `purchaseTokenAndroid` ⚠️ **DEPRECATED** - Use `purchaseToken` instead
+
+**Cross-Platform:**
+- `purchaseToken` - Unified field containing iOS JWS or Android purchase token
 
 ## Migration Notes
 
@@ -460,6 +467,21 @@ IAPPlatform getCurrentPlatform();
 2. **Error Types**: `PurchaseError` replaces legacy error handling
 3. **Type Safety**: All optional fields are properly nullable
 4. **Platform Separation**: Clear distinction between iOS and Android types
+
+✨ **New in v6.0.0:**
+
+1. **Unified Purchase Token**: `purchaseToken` field now works consistently across platforms:
+   - **iOS**: Contains JWS representation for server-side validation
+   - **Android**: Contains Google Play purchase token
+   - **Migration**: Replace `jwsRepresentationIOS` and `purchaseTokenAndroid` with `purchaseToken`
+
+2. **Improved Transaction IDs**: 
+   - **Development**: Uses sequential IDs (1, 2, 3) with StoreKit Configuration
+   - **Sandbox/Production**: Uses proper secure IDs (e.g., `2000000985615347`)
+
+3. **Enhanced Error Handling**: 
+   - Unified error events across platforms following expo-iap patterns
+   - Better duplicate event prevention
 
 ## See Also
 

@@ -131,8 +131,8 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                     let transactionId = String(transaction.id)
                     print("\(FlutterInappPurchasePlugin.TAG) Transaction verified - ID: '\(transactionId)' for product: '\(transaction.productID)'")
                     
-                    // Send purchase-updated event
-                    await self.processTransaction(transaction)
+                    // Send purchase-updated event with JWS
+                    await self.processTransaction(transaction, jwsRepresentation: update.jwsRepresentation)
                 } catch {
                     print("\(FlutterInappPurchasePlugin.TAG) Transaction verification failed: \(error)")
                 }
@@ -164,7 +164,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
         }
     }
     
-    private func processTransaction(_ transaction: Transaction) async {
+    private func processTransaction(_ transaction: Transaction, jwsRepresentation: String) async {
         print("\(FlutterInappPurchasePlugin.TAG) processTransaction - Raw transaction.id: \(transaction.id)")
         print("\(FlutterInappPurchasePlugin.TAG) processTransaction - transaction.originalID: \(transaction.originalID)")
         let transactionId = String(transaction.id)
@@ -183,6 +183,8 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
             "transactionId": transactionId,
             "transactionDate": transaction.purchaseDate.timeIntervalSince1970 * 1000,
             "transactionReceipt": transaction.jsonRepresentation.base64EncodedString(),
+            "purchaseToken": jwsRepresentation,  // Unified field for iOS JWS and Android purchaseToken
+            "jwsRepresentationIOS": jwsRepresentation,  // Deprecated - use purchaseToken
             "platform": "ios",
             "transactionState": getTransactionState(transaction),
             "isUpgraded": transaction.isUpgraded
@@ -299,6 +301,8 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                         "transactionId": transactionId,
                         "transactionDate": transaction.purchaseDate.timeIntervalSince1970 * 1000,
                         "transactionReceipt": transaction.jsonRepresentation.base64EncodedString(),
+                        "purchaseToken": verificationResult.jwsRepresentation,  // JWS for server validation (iOS 15+)
+                        "jwsRepresentationIOS": verificationResult.jwsRepresentation,  // Deprecated - use purchaseToken
                         "platform": "ios"
                     ]
                     purchases.append(purchase)
@@ -334,7 +338,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                     print("\(FlutterInappPurchasePlugin.TAG) Purchase successful with ID: '\(transactionId)' for product: '\(transaction.productID)'")
                     
                     // Send purchase-updated event immediately for Sandbox purchases
-                    await self.processTransaction(transaction)
+                    await self.processTransaction(transaction, jwsRepresentation: verification.jwsRepresentation)
                     print("\(FlutterInappPurchasePlugin.TAG) Purchase event sent - waiting for Flutter to call finishTransaction")
                     
                     await MainActor.run {

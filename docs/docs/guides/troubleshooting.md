@@ -7,6 +7,88 @@ title: Troubleshooting
 
 Common issues and solutions when working with flutter_inapp_purchase v6.0.0.
 
+## Transaction ID Issues
+
+### Simple Sequential IDs (1, 2, 3) in Testing
+
+**Problem**: Transaction IDs appear as simple numbers like 1, 2, 3 instead of proper secure IDs.
+
+**Cause**: You're using StoreKit Configuration file for local testing.
+
+**Solution**: Switch to Sandbox testing for realistic transaction IDs:
+
+1. **Remove StoreKit Configuration** from Xcode scheme:
+   ```xml
+   <!-- Remove this from Runner.xcscheme -->
+   <StoreKitConfigurationFileReference
+      identifier = "../Runner/StoreKit.storekit">
+   </StoreKitConfigurationFileReference>
+   ```
+
+2. **Use Sandbox Environment**:
+   - Create sandbox test account in App Store Connect
+   - Sign in with test account on device
+   - Transaction IDs will be realistic: `2000000985615347`
+
+### Transaction ID Formats by Environment
+
+| Environment | Transaction ID Format | Example |
+|-------------|----------------------|---------|
+| StoreKit Configuration | Sequential numbers | `1`, `2`, `3` |
+| Sandbox | Large secure numbers | `2000000985615347` |
+| Production | Large secure numbers | `2000000891234567` |
+
+### Duplicate finishTransaction Calls
+
+**Problem**: "finished transaction successfully" appears twice.
+
+**Cause**: Both purchase method and transaction listener send duplicate events.
+
+**Solution**: This is fixed in v6.0.0 with duplicate event prevention.
+
+```dart
+// v6.0.0 automatically prevents duplicate events
+final purchase = await FlutterInappPurchase.instance.requestPurchase(
+  RequestPurchase(ios: RequestPurchaseIOS(sku: 'product_id'))
+);
+// Only one completion event will fire
+```
+
+## Purchase Token Issues
+
+### iOS purchaseToken is null
+
+**Problem**: `purchaseToken` is null on iOS in older versions.
+
+**Solution**: Upgrade to v6.0.0 which includes JWS representation:
+
+```dart
+// v6.0.0+ - purchaseToken now available on iOS
+purchase.purchaseToken; // Contains JWS for server validation
+
+// DEPRECATED - use purchaseToken instead
+purchase.jwsRepresentationIOS; // Still available but deprecated
+```
+
+### Server Validation with Unified Token
+
+**New in v6.0.0**: Use the same `purchaseToken` field for both platforms:
+
+```dart
+// Cross-platform server validation
+void validatePurchase(PurchasedItem purchase) {
+  final token = purchase.purchaseToken; // Works on both iOS & Android
+  
+  if (purchase.platform == IapPlatform.ios) {
+    // token contains JWS (JWT format)
+    validateWithApple(token);
+  } else {
+    // token contains Google Play purchase token
+    validateWithGoogle(token);
+  }
+}
+```
+
 ## Prerequisites Checklist
 
 Before troubleshooting, ensure you have completed the basic setup:

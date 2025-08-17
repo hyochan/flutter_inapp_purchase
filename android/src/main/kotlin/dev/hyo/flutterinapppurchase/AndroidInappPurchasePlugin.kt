@@ -231,7 +231,8 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                     item.put("transactionId", purchase.orderId)
                     item.put("transactionDate", purchase.purchaseTime)
                     item.put("transactionReceipt", purchase.originalJson)
-                    item.put("purchaseToken", purchase.purchaseToken)
+                    item.put("purchaseToken", purchase.purchaseToken)  // Unified field
+                    item.put("purchaseTokenAndroid", purchase.purchaseToken)  // Deprecated - use purchaseToken
                     item.put("signatureAndroid", purchase.signature)
                     item.put("purchaseStateAndroid", purchase.purchaseState)
                     if (type == BillingClient.ProductType.INAPP) {
@@ -349,7 +350,8 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                     item.put("transactionId", purchase.orderId)
                     item.put("transactionDate", purchase.purchaseTime)
                     item.put("transactionReceipt", purchase.originalJson)
-                    item.put("purchaseToken", purchase.purchaseToken)
+                    item.put("purchaseToken", purchase.purchaseToken)  // Unified field
+                    item.put("purchaseTokenAndroid", purchase.purchaseToken)  // Deprecated - use purchaseToken
                     item.put("dataAndroid", purchase.originalJson)
                     item.put("signatureAndroid", purchase.signature)
                     items.put(item)
@@ -653,7 +655,8 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                     item.put("transactionId", purchase.orderId)
                     item.put("transactionDate", purchase.purchaseTime)
                     item.put("transactionReceipt", purchase.originalJson)
-                    item.put("purchaseToken", purchase.purchaseToken)
+                    item.put("purchaseToken", purchase.purchaseToken)  // Unified field for iOS JWS and Android purchaseToken
+                    item.put("purchaseTokenAndroid", purchase.purchaseToken)  // Deprecated - use purchaseToken
                     item.put("dataAndroid", purchase.originalJson)
                     item.put("signatureAndroid", purchase.signature)
                     item.put("purchaseStateAndroid", purchase.purchaseState)
