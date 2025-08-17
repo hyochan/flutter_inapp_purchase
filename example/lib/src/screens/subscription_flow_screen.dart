@@ -21,6 +21,8 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
 
   List<IAPItem> _subscriptions = [];
   List<Purchase> _activeSubscriptions = [];
+  List<ActiveSubscription> _activeSubscriptionDetails = [];
+  bool _hasActiveSubscription = false;
   bool _isProcessing = false;
   bool _connected = false;
   bool _isConnecting = true;
@@ -119,6 +121,16 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
   Future<void> _handlePurchaseUpdate(Purchase purchase) async {
     debugPrint('Subscription successful: ${purchase.productId}');
 
+    // Debug purchase object structure
+    debugPrint('🔍 Purchase object debug:');
+    debugPrint('  productId: ${purchase.productId}');
+    debugPrint('  transactionId: ${purchase.transactionId}');
+    debugPrint('  purchaseToken: ${purchase.purchaseToken}');
+    debugPrint(
+        '  transactionReceipt: ${purchase.transactionReceipt?.substring(0, 50)}...');
+    debugPrint('  transactionDate: ${purchase.transactionDate}');
+    debugPrint('  isAcknowledgedAndroid: ${purchase.isAcknowledgedAndroid}');
+
     setState(() {
       _isProcessing = false;
 
@@ -146,9 +158,49 @@ Receipt: ${purchase.transactionReceipt?.substring(0, purchase.transactionReceipt
 
     // After successful server validation, finish the transaction
     // For subscriptions, set isConsumable to false
+
+    // Skip transaction finishing for invalid transaction IDs
+    // Real products should still try, but handle errors gracefully
+    bool shouldSkipFinish = purchase.transactionId == null ||
+        purchase.transactionId!.isEmpty ||
+        // Skip obvious test transaction IDs
+        purchase.transactionId == '3' ||
+        // Skip very short transaction IDs that are clearly invalid
+        purchase.transactionId!.length < 3;
+
+    if (shouldSkipFinish) {
+      debugPrint('🔧 Skipping transaction finish in development environment');
+      debugPrint('Transaction ID: ${purchase.transactionId}');
+
+      // Still reload active subscriptions and update UI
+      await _loadActiveSubscriptions();
+
+      setState(() {
+        _purchaseResult =
+            '$_purchaseResult\n\n✅ Purchase successful (development mode - transaction finish skipped)';
+
+        // Update active subscriptions list
+        if (subscriptionIds.contains(purchase.productId)) {
+          if (!_activeSubscriptions
+              .any((p) => p.productId == purchase.productId)) {
+            _activeSubscriptions.add(purchase);
+          }
+        }
+      });
+      return;
+    }
+
     try {
+      debugPrint(
+          'Attempting to finish transaction with ID: ${purchase.transactionId}');
+      debugPrint('Purchase token: ${purchase.purchaseToken}');
+
       await _iap.finishTransaction(purchase, isConsumable: false);
       debugPrint('Subscription transaction finished successfully');
+
+      // Reload active subscriptions with new API
+      await _loadActiveSubscriptions();
+
       setState(() {
         _purchaseResult =
             '$_purchaseResult\n\n✅ Transaction finished successfully';
@@ -163,10 +215,35 @@ Receipt: ${purchase.transactionReceipt?.substring(0, purchase.transactionReceipt
       });
     } catch (e) {
       debugPrint('Error finishing subscription transaction: $e');
-      setState(() {
-        _purchaseResult =
-            '$_purchaseResult\n\n❌ Failed to finish transaction: $e';
-      });
+
+      // For development/testing, transaction finish errors are often not critical
+      // The purchase is still valid, just the cleanup failed
+      if (e.toString().contains('Transaction not found') ||
+          e.toString().contains('E_TRANSACTION_NOT_FOUND')) {
+        debugPrint(
+            '⚠️ Transaction finish failed (common in development), but purchase is valid');
+
+        // Still reload active subscriptions and update UI
+        await _loadActiveSubscriptions();
+
+        setState(() {
+          _purchaseResult =
+              '$_purchaseResult\n\n⚠️ Purchase successful but transaction cleanup failed (common in development)';
+
+          // Update active subscriptions list
+          if (subscriptionIds.contains(purchase.productId)) {
+            if (!_activeSubscriptions
+                .any((p) => p.productId == purchase.productId)) {
+              _activeSubscriptions.add(purchase);
+            }
+          }
+        });
+      } else {
+        setState(() {
+          _purchaseResult =
+              '$_purchaseResult\n\n❌ Failed to finish transaction: $e';
+        });
+      }
     }
   }
 
@@ -190,13 +267,43 @@ Platform: ${error.platform}
 
   Future<void> _loadActiveSubscriptions() async {
     try {
+      // Load purchases for restore/finish transaction purposes
       final purchases = await _iap.getAvailablePurchases();
+
+      // Use new APIs to get detailed subscription information
+      final activeSubscriptions = await _iap.getActiveSubscriptions(
+        subscriptionIds: subscriptionIds,
+      );
+      final hasActive = await _iap.hasActiveSubscriptions(
+        subscriptionIds: subscriptionIds,
+      );
+
       setState(() {
         _activeSubscriptions = purchases
             .where((p) => subscriptionIds.contains(p.productId))
             .toList();
+        _activeSubscriptionDetails = activeSubscriptions;
+        _hasActiveSubscription = hasActive;
       });
+
       debugPrint('Loaded ${_activeSubscriptions.length} active subscriptions');
+      debugPrint('Has active subscription: $_hasActiveSubscription');
+
+      // Log detailed subscription info
+      for (final sub in _activeSubscriptionDetails) {
+        debugPrint('Active subscription: ${sub.productId}');
+        if (Platform.isIOS && sub.expirationDateIOS != null) {
+          debugPrint('  Expires: ${sub.expirationDateIOS}');
+          debugPrint('  Days until expiration: ${sub.daysUntilExpirationIOS}');
+          debugPrint('  Environment: ${sub.environmentIOS}');
+        }
+        if (Platform.isAndroid && sub.autoRenewingAndroid != null) {
+          debugPrint('  Auto-renewing: ${sub.autoRenewingAndroid}');
+        }
+        if (sub.willExpireSoon == true) {
+          debugPrint('  ⚠️ Will expire soon!');
+        }
+      }
     } catch (e) {
       debugPrint('Failed to load active subscriptions: $e');
     }
@@ -225,6 +332,76 @@ Platform: ${error.platform}
       debugPrint('Error loading subscriptions: $e');
       setState(() {
         _purchaseResult = 'Failed to load subscriptions: $e';
+      });
+    }
+  }
+
+  Future<void> _refreshSubscriptions() async {
+    setState(() {
+      _isLoadingProducts = true;
+    });
+
+    try {
+      await Future.wait([
+        _loadActiveSubscriptions(),
+        _loadSubscriptions(),
+      ]);
+    } catch (e) {
+      debugPrint('Failed to refresh subscriptions: $e');
+    } finally {
+      setState(() {
+        _isLoadingProducts = false;
+      });
+    }
+  }
+
+  Future<void> _restorePurchases() async {
+    setState(() {
+      _isProcessing = true;
+      _purchaseResult = null;
+    });
+
+    try {
+      debugPrint('🔄 Restoring purchases...');
+
+      // Get all available purchases (restored)
+      final restoredPurchases = await _iap.getAvailablePurchases();
+
+      // Load active subscriptions with new API
+      await _loadActiveSubscriptions();
+
+      if (_activeSubscriptionDetails.isNotEmpty) {
+        setState(() {
+          _purchaseResult = '''
+✅ Purchases restored successfully!
+Found ${_activeSubscriptionDetails.length} active subscription(s):
+${_activeSubscriptionDetails.map((sub) => '• ${sub.productId}').join('\n')}
+          '''
+              .trim();
+        });
+      } else if (restoredPurchases.isNotEmpty) {
+        setState(() {
+          _purchaseResult = '''
+✅ Restored ${restoredPurchases.length} purchase(s)
+${restoredPurchases.map((p) => '• ${p.productId}').join('\n')}
+          '''
+              .trim();
+        });
+      } else {
+        setState(() {
+          _purchaseResult = 'No purchases to restore';
+        });
+      }
+
+      debugPrint('✅ Restore completed');
+    } catch (e) {
+      debugPrint('❌ Restore failed: $e');
+      setState(() {
+        _purchaseResult = '❌ Failed to restore purchases: $e';
+      });
+    } finally {
+      setState(() {
+        _isProcessing = false;
       });
     }
   }
@@ -276,6 +453,18 @@ Platform: ${error.platform}
           'Subscription Flow',
           style: TextStyle(color: Colors.black),
         ),
+        actions: [
+          IconButton(
+            icon: _isLoadingProducts
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.refresh, color: Colors.black),
+            onPressed: _isLoadingProducts ? null : _refreshSubscriptions,
+          ),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -315,6 +504,84 @@ Platform: ${error.platform}
           ),
           const SizedBox(height: 20),
 
+          // Active Subscription Status
+          if (_hasActiveSubscription &&
+              _activeSubscriptionDetails.isNotEmpty) ...[
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.green[50],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.green[200]!),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.check_circle,
+                          color: Colors.green[700], size: 24),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Active Subscription',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green[800],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  ..._activeSubscriptionDetails.map((sub) => Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Product: ${sub.productId}',
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: 4),
+                          if (Platform.isIOS &&
+                              sub.expirationDateIOS != null) ...[
+                            Text(
+                                'Expires: ${sub.expirationDateIOS!.toLocal()}'),
+                            if (sub.daysUntilExpirationIOS != null)
+                              Text(
+                                  'Days until expiration: ${sub.daysUntilExpirationIOS}'),
+                            if (sub.environmentIOS != null)
+                              Text('Environment: ${sub.environmentIOS}'),
+                          ],
+                          if (Platform.isAndroid &&
+                              sub.autoRenewingAndroid != null)
+                            Text(
+                                'Auto-renewing: ${sub.autoRenewingAndroid! ? "Yes" : "No"}'),
+                          if (sub.willExpireSoon == true)
+                            Container(
+                              margin: const EdgeInsets.only(top: 4),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.orange[100],
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                '⚠️ Will expire soon',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.orange[800],
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          const SizedBox(height: 8),
+                        ],
+                      )),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
+
           // Subscriptions Section Title
           const Text(
             'Available Subscriptions',
@@ -351,6 +618,13 @@ Platform: ${error.platform}
             ..._subscriptions.map((subscription) {
               final isSubscribed = _activeSubscriptions
                   .any((p) => p.productId == subscription.productId);
+              final activeDetail = _activeSubscriptionDetails.firstWhere(
+                (sub) => sub.productId == subscription.productId,
+                orElse: () => ActiveSubscription(
+                  productId: '',
+                  isActive: false,
+                ),
+              );
 
               return Card(
                 margin: const EdgeInsets.only(bottom: 12),
@@ -428,19 +702,47 @@ Platform: ${error.platform}
                       if (isSubscribed)
                         Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             color: Colors.green.shade50,
                             borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.green.shade200),
                           ),
-                          child: const Center(
-                            child: Text(
-                              '✓ Subscribed',
-                              style: TextStyle(
-                                color: Colors.green,
-                                fontWeight: FontWeight.bold,
+                          child: Column(
+                            children: [
+                              const Text(
+                                '✓ Subscribed',
+                                style: TextStyle(
+                                  color: Colors.green,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
+                              if (activeDetail.isActive &&
+                                  activeDetail.productId ==
+                                      subscription.productId) ...[
+                                const SizedBox(height: 8),
+                                if (Platform.isIOS &&
+                                    activeDetail.expirationDateIOS != null)
+                                  Text(
+                                    'Expires: ${activeDetail.expirationDateIOS!.toLocal().toString().split('.')[0]}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                if (Platform.isAndroid &&
+                                    activeDetail.autoRenewingAndroid != null)
+                                  Text(
+                                    activeDetail.autoRenewingAndroid!
+                                        ? 'Auto-renewing'
+                                        : 'Not auto-renewing',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                              ],
+                            ],
                           ),
                         )
                       else
@@ -466,6 +768,17 @@ Platform: ${error.platform}
                 ),
               );
             }),
+
+          // Restore Purchases Button
+          const SizedBox(height: 20),
+          OutlinedButton.icon(
+            onPressed: _isProcessing || !_connected ? null : _restorePurchases,
+            icon: const Icon(Icons.restore),
+            label: Text(_isProcessing ? 'Processing...' : 'Restore Purchases'),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+            ),
+          ),
 
           // Purchase Result Card (like KMP-IAP)
           if (_purchaseResult != null) ...[

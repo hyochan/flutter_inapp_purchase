@@ -344,7 +344,9 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
             try {
                 for (purchase in purchasesList) {
                     val item = JSONObject()
+                    item.put("id", purchase.orderId)
                     item.put("productId", purchase.products[0])
+                    item.put("transactionId", purchase.orderId)
                     item.put("transactionDate", purchase.purchaseTime)
                     item.put("transactionReceipt", purchase.originalJson)
                     item.put("purchaseToken", purchase.purchaseToken)
@@ -489,8 +491,22 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
             }
             if (selectedProductDetails == null) {
                 val debugMessage =
-                    "The selected product was not found. Please fetch setObfuscatedAccountIdproducts first by calling getItems"
-                safeChannel.error(TAG, "buyItemByType", debugMessage)
+                    "The selected product was not found. Please fetch products first by calling getItems"
+                
+                // Send purchase-error event like expo-iap
+                try {
+                    val errorJson = JSONObject()
+                    errorJson.put("code", "E_PRODUCT_NOT_FOUND")
+                    errorJson.put("message", debugMessage)
+                    errorJson.put("productId", productId)
+                    
+                    Log.d(TAG, "Sending purchase-error event for product not found")
+                    channel?.invokeMethod("purchase-error", errorJson.toString())
+                } catch (je: JSONException) {
+                    Log.e(TAG, "Failed to create error JSON: ${je.message}")
+                }
+                
+                safeChannel.error(TAG, "E_PRODUCT_NOT_FOUND", debugMessage)
                 return
             }
 
@@ -572,6 +588,22 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                 if (responseCode.responseCode != BillingClient.BillingResponseCode.OK) {
                     Log.e(TAG, "launchBillingFlow failed with code: ${responseCode.responseCode}, message: ${responseCode.debugMessage}")
                     val errorData = BillingError.getErrorFromResponseData(responseCode.responseCode)
+                    
+                    // Send purchase-error event like expo-iap
+                    try {
+                        val errorJson = JSONObject()
+                        errorJson.put("responseCode", responseCode.responseCode)
+                        errorJson.put("debugMessage", responseCode.debugMessage)
+                        errorJson.put("code", errorData.code)
+                        errorJson.put("message", errorData.message)
+                        errorJson.put("productId", productId)
+                        
+                        Log.d(TAG, "Sending purchase-error event for launchBillingFlow failure")
+                        channel?.invokeMethod("purchase-error", errorJson.toString())
+                    } catch (je: JSONException) {
+                        Log.e(TAG, "Failed to create error JSON: ${je.message}")
+                    }
+                    
                     safeChannel.error(TAG, errorData.code, "Failed to launch billing flow: ${errorData.message}")
                 } else {
                     // Return success immediately - purchase result will come via purchasesUpdatedListener

@@ -760,7 +760,8 @@ class FlutterInappPurchase
 
     return iap_types.Purchase(
       productId: item.productId ?? '',
-      transactionId: item.transactionId,
+      transactionId: item.id ??
+          item.transactionId, // Use OpenIAP compliant id field when available
       transactionReceipt: item.transactionReceipt,
       purchaseToken: item.purchaseToken,
       transactionDate: item.transactionDate?.toIso8601String(),
@@ -1014,49 +1015,47 @@ class FlutterInappPurchase
     );
   }
 
-  /// Finish a transaction (flutter IAP compatible)
+  /// Finish a transaction using Purchase object (OpenIAP compliant)
   Future<void> finishTransaction(
     iap_types.Purchase purchase, {
     bool isConsumable = false,
   }) async {
-    final purchasedItem = iap_types.PurchasedItem.fromJSON({
-      'productId': purchase.productId,
-      'transactionId': purchase.transactionId,
-      'transactionReceipt': purchase.transactionReceipt,
-      'purchaseToken': purchase.purchaseToken,
-      'transactionDate': purchase.transactionDate != null
-          ? DateTime.tryParse(purchase.transactionDate!)?.millisecondsSinceEpoch
-          : null,
-      'isAcknowledgedAndroid': purchase.isAcknowledgedAndroid,
-    });
+    // Use purchase.id (OpenIAP standard) if available, fallback to transactionId for backward compatibility
+    final transactionId =
+        purchase.id.isNotEmpty ? purchase.id : purchase.transactionId;
 
-    await finishTransactionIOS(purchasedItem, isConsumable: isConsumable);
-  }
+    print('[FlutterInappPurchase] finishTransaction called');
+    print('[FlutterInappPurchase] Purchase object: $purchase');
+    print('[FlutterInappPurchase] Final transactionId: $transactionId');
+    print('[FlutterInappPurchase] Platform: ${_platform.operatingSystem}');
 
-  /// Finish a transaction
-  Future<void> finishTransactionIOS(
-    iap_types.PurchasedItem purchasedItem, {
-    bool isConsumable = false,
-  }) async {
     if (_platform.isAndroid) {
       if (isConsumable) {
+        print(
+            '[FlutterInappPurchase] Android: Consuming product with token: ${purchase.purchaseToken}');
         await _channel.invokeMethod('consumeProduct', <String, dynamic>{
-          'purchaseToken': purchasedItem.purchaseToken,
+          'purchaseToken': purchase.purchaseToken,
         });
         return;
       } else {
-        if (purchasedItem.isAcknowledgedAndroid == true) {
+        if (purchase.isAcknowledgedAndroid == true) {
+          print(
+              '[FlutterInappPurchase] Android: Purchase already acknowledged');
           return;
         } else {
+          print(
+              '[FlutterInappPurchase] Android: Acknowledging purchase with token: ${purchase.purchaseToken}');
           await _channel.invokeMethod('acknowledgePurchase', <String, dynamic>{
-            'purchaseToken': purchasedItem.purchaseToken,
+            'purchaseToken': purchase.purchaseToken,
           });
           return;
         }
       }
     } else if (_platform.isIOS) {
+      print(
+          '[FlutterInappPurchase] iOS: Finishing transaction with ID: $transactionId');
       await _channel.invokeMethod('finishTransaction', <String, dynamic>{
-        'transactionIdentifier': purchasedItem.transactionId,
+        'transactionId': transactionId, // Use OpenIAP compliant id
       });
       return;
     }
@@ -1064,6 +1063,17 @@ class FlutterInappPurchase
       code: _platform.operatingSystem,
       message: 'platform not supported',
     );
+  }
+
+  /// Finish a transaction using PurchasedItem object (legacy compatibility)
+  /// @deprecated Use finishTransaction with Purchase object instead
+  Future<void> finishTransactionIOS(
+    iap_types.PurchasedItem purchasedItem, {
+    bool isConsumable = false,
+  }) async {
+    // Convert PurchasedItem to Purchase for modern API
+    final purchase = _convertToPurchase(purchasedItem);
+    await finishTransaction(purchase, isConsumable: isConsumable);
   }
 
   Future<List<iap_types.IAPItem>> getAppStoreInitiatedProducts() async {

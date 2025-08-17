@@ -67,9 +67,12 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
     try {
       // Load available purchases (non-consumed)
       final availablePurchases = await _iap.getAvailablePurchases();
+      debugPrint(
+          'Loaded ${availablePurchases.length} available purchases (non-consumed/non-acknowledged)');
 
       // Load purchase history
       final purchaseHistory = await _iap.getPurchaseHistories();
+      debugPrint('Loaded ${purchaseHistory.length} purchases from history');
 
       setState(() {
         _availablePurchases = availablePurchases;
@@ -84,6 +87,42 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
       setState(() {
         _loading = false;
       });
+    }
+  }
+
+  String _formatTransactionDate(dynamic transactionDate) {
+    if (transactionDate == null) return 'Unknown';
+
+    try {
+      DateTime? date;
+
+      if (transactionDate is String) {
+        // First try to parse as ISO 8601 date string
+        date = DateTime.tryParse(transactionDate);
+        if (date == null) {
+          // If that fails, try to parse as milliseconds string
+          final milliseconds = int.tryParse(transactionDate) ?? 0;
+          if (milliseconds > 0) {
+            date = DateTime.fromMillisecondsSinceEpoch(milliseconds);
+          }
+        }
+      } else if (transactionDate is num) {
+        // Direct numeric timestamp
+        date = DateTime.fromMillisecondsSinceEpoch(transactionDate.toInt());
+      } else if (transactionDate is DateTime) {
+        // Already a DateTime object
+        date = transactionDate;
+      }
+
+      if (date == null) {
+        return 'Unknown';
+      }
+
+      return date.toLocal().toString().split('.')[0];
+    } catch (e) {
+      debugPrint(
+          'Error formatting transaction date: $e, date value: $transactionDate');
+      return 'Unknown';
     }
   }
 
@@ -171,9 +210,7 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
                   Icon(Icons.calendar_today, size: 14, color: Colors.grey[600]),
                   const SizedBox(width: 4),
                   Text(
-                    'Purchased: ${DateTime.fromMillisecondsSinceEpoch(
-                      int.tryParse(purchase.transactionDate ?? '') ?? 0,
-                    ).toLocal().toString().split('.')[0]}',
+                    'Purchased: ${_formatTransactionDate(purchase.transactionDate)}',
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.grey[600],
@@ -252,9 +289,7 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
                   Icon(Icons.calendar_today, size: 14, color: Colors.grey[600]),
                   const SizedBox(width: 4),
                   Text(
-                    'Purchased: ${DateTime.fromMillisecondsSinceEpoch(
-                      int.tryParse(item.transactionDate.toString()) ?? 0,
-                    ).toLocal().toString().split('.')[0]}',
+                    'Purchased: ${_formatTransactionDate(item.transactionDate)}',
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.grey[600],
@@ -391,6 +426,13 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+                    const Text(
+                      'Non-consumed purchases and active subscriptions',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
                     const SizedBox(height: 8),
                     ..._availablePurchases
                         .map((purchase) => _buildAvailablePurchase(purchase)),
@@ -404,6 +446,13 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Text(
+                      'All purchases including consumed items',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
                       ),
                     ),
                     const SizedBox(height: 8),

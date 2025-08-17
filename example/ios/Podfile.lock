@@ -5,13 +5,13 @@ PODS:
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
-  - flutter_inapp_purchase (from `.symlinks/plugins/flutter_inapp_purchase/darwin`)
+  - flutter_inapp_purchase (from `.symlinks/plugins/flutter_inapp_purchase/ios`)
 
 EXTERNAL SOURCES:
   Flutter:
     :path: Flutter
   flutter_inapp_purchase:
-    :path: ".symlinks/plugins/flutter_inapp_purchase/darwin"
+    :path: ".symlinks/plugins/flutter_inapp_purchase/ios"
 
 SPEC CHECKSUMS:
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467

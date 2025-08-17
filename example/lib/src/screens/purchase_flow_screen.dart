@@ -28,6 +28,7 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
   Purchase? _currentPurchase;
   StreamSubscription<Purchase>? _purchaseUpdatedSubscription;
   StreamSubscription<PurchaseError>? _purchaseErrorSubscription;
+  final Set<String> _processedTransactionIds = {}; // Track processed transactions
 
   @override
   void initState() {
@@ -73,12 +74,13 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
       (purchase) {
         debugPrint('🎉 Purchase update received!');
         debugPrint('ProductId: ${purchase.productId}');
-        debugPrint('TransactionId: ${purchase.transactionId}');
+        debugPrint('ID: ${purchase.id}'); // OpenIAP standard
+        debugPrint('TransactionId: ${purchase.transactionId}'); // Legacy field
         debugPrint('PurchaseToken: ${purchase.purchaseToken}');
         debugPrint('Full purchase data: $purchase');
         _handlePurchaseUpdate(purchase);
       },
-      onError: (error) {
+      onError: (Object error) {
         debugPrint('❌ Purchase stream error: $error');
       },
       onDone: () {
@@ -94,7 +96,7 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
         debugPrint('Error message: ${purchaseError.message}');
         _handlePurchaseError(purchaseError);
       },
-      onError: (error) {
+      onError: (Object error) {
         debugPrint('❌ Error stream error: $error');
       },
     );
@@ -103,9 +105,22 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
   }
 
   Future<void> _handlePurchaseUpdate(Purchase purchase) async {
+    // Check if we've already processed this transaction
+    final transactionId = purchase.id.isNotEmpty ? purchase.id : purchase.transactionId;
+    if (transactionId != null && _processedTransactionIds.contains(transactionId)) {
+      debugPrint('⚠️ Transaction already processed: $transactionId');
+      return;
+    }
+    
     debugPrint('Purchase successful: ${purchase.productId}');
     debugPrint('Purchase token: ${purchase.purchaseToken}');
-    debugPrint('Transaction ID: ${purchase.transactionId}');
+    debugPrint('ID: ${purchase.id}'); // OpenIAP standard
+    debugPrint('Transaction ID: ${purchase.transactionId}'); // Legacy field
+
+    // Mark this transaction as processed
+    if (transactionId != null) {
+      _processedTransactionIds.add(transactionId);
+    }
 
     setState(() {
       _isProcessing = false;
@@ -115,6 +130,7 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
       _purchaseResult = '''
 ✅ Purchase successful (${Platform.operatingSystem})
 Product: ${purchase.productId}
+ID: ${purchase.id.isNotEmpty ? purchase.id : "N/A"}
 Transaction ID: ${purchase.transactionId ?? "N/A"}
 Date: ${purchase.transactionDate ?? "N/A"}
 Receipt: ${purchase.transactionReceipt?.substring(0, purchase.transactionReceipt!.length > 50 ? 50 : purchase.transactionReceipt!.length)}...
@@ -338,6 +354,7 @@ Platform: ${error.platform}
 Purchase Information:
 ====================
 Product ID: ${_currentPurchase!.productId}
+ID: ${_currentPurchase!.id}
 Transaction ID: ${_currentPurchase!.transactionId}
 Date: ${_currentPurchase!.transactionDate}
 Platform: ${_currentPurchase!.platform}

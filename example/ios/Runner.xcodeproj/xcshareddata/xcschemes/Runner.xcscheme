@@ -69,9 +69,6 @@
             isEnabled = "YES">
          </EnvironmentVariable>
       </EnvironmentVariables>
-      <StoreKitConfigurationFileReference
-         identifier = "../Runner/StoreKit.storekit">
-      </StoreKitConfigurationFileReference>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"

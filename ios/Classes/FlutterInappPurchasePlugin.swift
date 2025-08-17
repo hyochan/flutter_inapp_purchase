@@ -3,11 +3,13 @@ import Flutter
 import StoreKit
 
 @available(iOS 15.0, *)
+@MainActor
 public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
     private static let TAG = "[FlutterInappPurchase]"
     private var channel: FlutterMethodChannel?
     private var updateListenerTask: Task<Void, Never>?
     private var products: [String: Product] = [:]
+    private var processedTransactionIds: Set<String> = []
     
     public static func register(with registrar: FlutterPluginRegistrar) {
         print("\(TAG) Swift register called")
@@ -33,12 +35,6 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
             
         case "initConnection":
             initConnection(result: result)
-            
-        case "canMakePayments":
-            print("\(FlutterInappPurchasePlugin.TAG) canMakePayments called")
-            let canMake = AppStore.canMakePayments
-            print("\(FlutterInappPurchasePlugin.TAG) canMakePayments result: \(canMake)")
-            result(canMake)
             
         case "endConnection":
             endConnection(result: result)
@@ -74,16 +70,22 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
             // Support both old and new API
             var transactionId: String?
             
+            print("\(FlutterInappPurchasePlugin.TAG) finishTransaction called with arguments: \(String(describing: call.arguments))")
+            
             if let args = call.arguments as? [String: Any] {
                 transactionId = args["transactionId"] as? String ?? args["transactionIdentifier"] as? String
+                print("\(FlutterInappPurchasePlugin.TAG) Extracted transactionId from args: \(transactionId ?? "nil")")
             } else if let id = call.arguments as? String {
                 transactionId = id
+                print("\(FlutterInappPurchasePlugin.TAG) Using direct string as transactionId: \(id)")
             }
             
             guard let id = transactionId else {
+                print("\(FlutterInappPurchasePlugin.TAG) ERROR: No transactionId found in arguments")
                 result(FlutterError(code: "INVALID_ARGUMENTS", message: "transactionId required", details: nil))
                 return
             }
+            print("\(FlutterInappPurchasePlugin.TAG) Final transactionId to finish: \(id)")
             finishTransaction(transactionId: id, result: result)
             
         case "restorePurchases":
@@ -105,59 +107,8 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
         case "clearTransactionCache":
             clearTransactionCache(result: result)
             
-        case "testStoreKit":
-            testStoreKit(result: result)
-            
-        case "getAppTransaction":
-            getAppTransaction(result: result)
-            
         default:
             result(FlutterMethodNotImplemented)
-        }
-    }
-    
-    // MARK: - Test Method
-    
-    private func testStoreKit(result: @escaping FlutterResult) {
-        print("\(FlutterInappPurchasePlugin.TAG) testStoreKit called - starting diagnostics")
-        
-        var testResult: [String: Any] = [:]
-        
-        // Test 1: Can make payments
-        let canMakePayments = AppStore.canMakePayments
-        testResult["canMakePayments"] = canMakePayments
-        print("\(FlutterInappPurchasePlugin.TAG) Can make payments: \(canMakePayments)")
-        
-        // Test 2: Bundle identifier
-        let bundleId = Bundle.main.bundleIdentifier ?? "unknown"
-        testResult["bundleIdentifier"] = bundleId
-        print("\(FlutterInappPurchasePlugin.TAG) Bundle identifier: \(bundleId)")
-        
-        // Test 3: Return immediately with basic info
-        print("\(FlutterInappPurchasePlugin.TAG) Returning basic diagnostics immediately")
-        result(testResult)
-        
-        // Test 4: Try async operations separately
-        Task {
-            print("\(FlutterInappPurchasePlugin.TAG) Starting async StoreKit test...")
-            
-            do {
-                // Test with a very small timeout
-                let task = Task { () -> Bool in
-                    print("\(FlutterInappPurchasePlugin.TAG) Attempting to fetch a single product...")
-                    let products = try await Product.products(for: ["dev.hyo.martie.10bulbs"])
-                    print("\(FlutterInappPurchasePlugin.TAG) Products fetched: \(products.count)")
-                    return true
-                }
-                
-                // Wait for 2 seconds max
-                try await Task.sleep(nanoseconds: 2_000_000_000)
-                task.cancel()
-                print("\(FlutterInappPurchasePlugin.TAG) Async test timed out after 2 seconds")
-                
-            } catch {
-                print("\(FlutterInappPurchasePlugin.TAG) Async test error: \(error)")
-            }
         }
     }
     
@@ -166,12 +117,21 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
     private func initConnection(result: @escaping FlutterResult) {
         print("\(FlutterInappPurchasePlugin.TAG) initConnection called")
         
+        // Clear any existing state first
+        cleanupExistingState()
+        
         // Start listening for transaction updates
-        updateListenerTask?.cancel()
-        updateListenerTask = Task.detached {
+        updateListenerTask = Task {
+            print("\(FlutterInappPurchasePlugin.TAG) Started listening for transaction updates")
             for await update in Transaction.updates {
+                print("\(FlutterInappPurchasePlugin.TAG) Received transaction update")
                 do {
                     let transaction = try self.checkVerified(update)
+                    print("\(FlutterInappPurchasePlugin.TAG) Raw transaction.id: \(transaction.id)")
+                    let transactionId = String(transaction.id)
+                    print("\(FlutterInappPurchasePlugin.TAG) Transaction verified - ID: '\(transactionId)' for product: '\(transaction.productID)'")
+                    
+                    // Send purchase-updated event
                     await self.processTransaction(transaction)
                 } catch {
                     print("\(FlutterInappPurchasePlugin.TAG) Transaction verification failed: \(error)")
@@ -179,22 +139,20 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
             }
         }
         
-        // Give StoreKit time to initialize
-        Task {
-            // Small delay to ensure StoreKit is ready
-            try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
-            await MainActor.run {
-                result(nil)
-            }
-        }
+        result(nil)
     }
     
     private func endConnection(result: @escaping FlutterResult) {
         print("\(FlutterInappPurchasePlugin.TAG) endConnection called")
+        cleanupExistingState()
+        result(nil)
+    }
+    
+    private func cleanupExistingState() {
         updateListenerTask?.cancel()
         updateListenerTask = nil
         products.removeAll()
-        result(nil)
+        processedTransactionIds.removeAll()
     }
     
     private func checkVerified<T>(_ result: VerificationResult<T>) throws -> T {
@@ -206,11 +164,23 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
         }
     }
     
-    @MainActor
     private func processTransaction(_ transaction: Transaction) async {
+        print("\(FlutterInappPurchasePlugin.TAG) processTransaction - Raw transaction.id: \(transaction.id)")
+        print("\(FlutterInappPurchasePlugin.TAG) processTransaction - transaction.originalID: \(transaction.originalID)")
+        let transactionId = String(transaction.id)
+        print("\(FlutterInappPurchasePlugin.TAG) processTransaction: ID: '\(transactionId)' for product: '\(transaction.productID)'")
+        
+        // Check if we've already processed this transaction
+        if processedTransactionIds.contains(transactionId) {
+            print("\(FlutterInappPurchasePlugin.TAG) Transaction '\(transactionId)' already processed, skipping duplicate event")
+            return
+        }
+        processedTransactionIds.insert(transactionId)
+        
         var event: [String: Any] = [
+            "id": transactionId,  // Add this for OpenIAP compliance
             "productId": transaction.productID,
-            "transactionId": "\(transaction.id)",
+            "transactionId": transactionId,
             "transactionDate": transaction.purchaseDate.timeIntervalSince1970 * 1000,
             "transactionReceipt": transaction.jsonRepresentation.base64EncodedString(),
             "platform": "ios",
@@ -230,6 +200,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
         // Convert to JSON string as expected by Flutter side
         if let jsonData = try? JSONSerialization.data(withJSONObject: event),
            let jsonString = String(data: jsonData, encoding: .utf8) {
+            print("\(FlutterInappPurchasePlugin.TAG) Sending purchase-updated event to Flutter")
             channel?.invokeMethod("purchase-updated", arguments: jsonString)
         }
     }
@@ -257,59 +228,8 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
         
         Task {
             do {
-                print("\(FlutterInappPurchasePlugin.TAG) Fetching products from StoreKit 2...")
                 let productIdentifiers = Set(skus)
-                print("\(FlutterInappPurchasePlugin.TAG) Product identifiers: \(productIdentifiers)")
-                
-                // Check if we can make payments first
-                guard AppStore.canMakePayments else {
-                    print("\(FlutterInappPurchasePlugin.TAG) Cannot make payments on this device")
-                    await MainActor.run {
-                        result(FlutterError(code: "E_PAYMENTS_DISABLED", message: "Payments are disabled on this device", details: nil))
-                    }
-                    return
-                }
-                
-                print("\(FlutterInappPurchasePlugin.TAG) Before calling Product.products(for:)...")
-                print("\(FlutterInappPurchasePlugin.TAG) Running on: \(UIDevice.current.name) - \(UIDevice.current.systemName) \(UIDevice.current.systemVersion)")
-                
-                // Try to fetch products
-                let storeProducts: [Product]
-                
-                print("\(FlutterInappPurchasePlugin.TAG) Attempting to fetch products...")
-                print("\(FlutterInappPurchasePlugin.TAG) Bundle ID: \(Bundle.main.bundleIdentifier ?? "unknown")")
-                
-                do {
-                    storeProducts = try await Product.products(for: productIdentifiers)
-                    print("\(FlutterInappPurchasePlugin.TAG) Successfully fetched \(storeProducts.count) products")
-                    
-                    // Log each product ID that was found
-                    for product in storeProducts {
-                        print("\(FlutterInappPurchasePlugin.TAG) Found product: \(product.id) - \(product.displayName)")
-                    }
-                    
-                    // Also log which product IDs were NOT found
-                    let foundIds = Set(storeProducts.map { $0.id })
-                    let notFoundIds = productIdentifiers.subtracting(foundIds)
-                    if !notFoundIds.isEmpty {
-                        print("\(FlutterInappPurchasePlugin.TAG) Products NOT found: \(notFoundIds)")
-                    }
-                } catch StoreKitError.userCancelled {
-                    print("\(FlutterInappPurchasePlugin.TAG) User cancelled")
-                    storeProducts = []
-                } catch StoreKitError.notAvailableInStorefront {
-                    print("\(FlutterInappPurchasePlugin.TAG) Products not available in current storefront")
-                    storeProducts = []
-                } catch StoreKitError.notEntitled {
-                    print("\(FlutterInappPurchasePlugin.TAG) User not entitled to these products")
-                    storeProducts = []
-                } catch {
-                    print("\(FlutterInappPurchasePlugin.TAG) Failed to fetch products: \(error)")
-                    print("\(FlutterInappPurchasePlugin.TAG) Error type: \(type(of: error))")
-                    print("\(FlutterInappPurchasePlugin.TAG) Error description: \(error.localizedDescription)")
-                    storeProducts = []
-                }
-                
+                let storeProducts = try await Product.products(for: productIdentifiers)
                 print("\(FlutterInappPurchasePlugin.TAG) Received \(storeProducts.count) products from StoreKit 2")
                 
                 var productList: [[String: Any]] = []
@@ -346,16 +266,6 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 }
                 
                 print("\(FlutterInappPurchasePlugin.TAG) Returning \(productList.count) products to Flutter")
-                
-                // Debug: Print the actual data being sent
-                for (index, product) in productList.enumerated() {
-                    print("\(FlutterInappPurchasePlugin.TAG) Product \(index): \(product)")
-                    if let periodNumber = product["subscriptionPeriodNumberIOS"] {
-                        print("\(FlutterInappPurchasePlugin.TAG) subscriptionPeriodNumberIOS type: \(type(of: periodNumber))")
-                        print("\(FlutterInappPurchasePlugin.TAG) subscriptionPeriodNumberIOS value: \(periodNumber)")
-                    }
-                }
-                
                 await MainActor.run {
                     result(productList)
                 }
@@ -379,9 +289,14 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
             for await verificationResult in Transaction.currentEntitlements {
                 do {
                     let transaction = try checkVerified(verificationResult)
+                    print("\(FlutterInappPurchasePlugin.TAG) getAvailableItems - Raw transaction.id: \(transaction.id)")
+                    let transactionId = String(transaction.id)
+                    print("\(FlutterInappPurchasePlugin.TAG) getAvailableItems - String transactionId: '\(transactionId)'")
+                    
                     let purchase: [String: Any] = [
+                        "id": transactionId,
                         "productId": transaction.productID,
-                        "transactionId": "\(transaction.id)",
+                        "transactionId": transactionId,
                         "transactionDate": transaction.purchaseDate.timeIntervalSince1970 * 1000,
                         "transactionReceipt": transaction.jsonRepresentation.base64EncodedString(),
                         "platform": "ios"
@@ -415,41 +330,77 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 switch purchaseResult {
                 case .success(let verification):
                     let transaction = try checkVerified(verification)
+                    let transactionId = String(transaction.id)
+                    print("\(FlutterInappPurchasePlugin.TAG) Purchase successful with ID: '\(transactionId)' for product: '\(transaction.productID)'")
                     
-                    let purchase: [String: Any] = [
-                        "productId": transaction.productID,
-                        "transactionId": "\(transaction.id)",
-                        "transactionDate": transaction.purchaseDate.timeIntervalSince1970 * 1000,
-                        "transactionReceipt": transaction.jsonRepresentation.base64EncodedString(),
-                        "platform": "ios"
-                    ]
-                    
-                    // Trigger the purchase-updated event
-                    await processTransaction(transaction)
-                    
-                    await transaction.finish()
+                    // Send purchase-updated event immediately for Sandbox purchases
+                    await self.processTransaction(transaction)
+                    print("\(FlutterInappPurchasePlugin.TAG) Purchase event sent - waiting for Flutter to call finishTransaction")
                     
                     await MainActor.run {
-                        result([purchase])
+                        result(nil)
                     }
                     
                 case .userCancelled:
+                    print("\(FlutterInappPurchasePlugin.TAG) User cancelled the purchase")
+                    // Send purchase-error event like expo-iap
+                    let errorData: [String: Any] = [
+                        "code": "E_USER_CANCELLED",
+                        "message": "User cancelled the purchase",
+                        "productId": productId
+                    ]
+                    if let jsonData = try? JSONSerialization.data(withJSONObject: errorData),
+                       let jsonString = String(data: jsonData, encoding: .utf8) {
+                        channel?.invokeMethod("purchase-error", arguments: jsonString)
+                    }
                     await MainActor.run {
                         result(FlutterError(code: "E_USER_CANCELLED", message: "User cancelled the purchase", details: nil))
                     }
                     
                 case .pending:
+                    print("\(FlutterInappPurchasePlugin.TAG) Purchase is pending")
+                    // Send purchase-error event like expo-iap
+                    let errorData: [String: Any] = [
+                        "code": "E_DEFERRED_PAYMENT",
+                        "message": "Purchase is pending",
+                        "productId": productId
+                    ]
+                    if let jsonData = try? JSONSerialization.data(withJSONObject: errorData),
+                       let jsonString = String(data: jsonData, encoding: .utf8) {
+                        channel?.invokeMethod("purchase-error", arguments: jsonString)
+                    }
                     await MainActor.run {
                         result(FlutterError(code: "E_PENDING", message: "Purchase is pending", details: nil))
                     }
                     
                 @unknown default:
+                    print("\(FlutterInappPurchasePlugin.TAG) Unknown purchase result")
+                    // Send purchase-error event like expo-iap
+                    let errorData: [String: Any] = [
+                        "code": "E_UNKNOWN",
+                        "message": "Unknown purchase result",
+                        "productId": productId
+                    ]
+                    if let jsonData = try? JSONSerialization.data(withJSONObject: errorData),
+                       let jsonString = String(data: jsonData, encoding: .utf8) {
+                        channel?.invokeMethod("purchase-error", arguments: jsonString)
+                    }
                     await MainActor.run {
                         result(FlutterError(code: "E_UNKNOWN", message: "Unknown purchase result", details: nil))
                     }
                 }
             } catch {
                 print("\(FlutterInappPurchasePlugin.TAG) Purchase failed: \(error)")
+                // Send purchase-error event like expo-iap
+                let errorData: [String: Any] = [
+                    "code": "E_PURCHASE_FAILED",
+                    "message": error.localizedDescription,
+                    "productId": productId
+                ]
+                if let jsonData = try? JSONSerialization.data(withJSONObject: errorData),
+                   let jsonString = String(data: jsonData, encoding: .utf8) {
+                    channel?.invokeMethod("purchase-error", arguments: jsonString)
+                }
                 await MainActor.run {
                     result(FlutterError(code: "E_PURCHASE_FAILED", message: error.localizedDescription, details: nil))
                 }
@@ -460,30 +411,34 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
     // MARK: - Transaction Management
     
     private func finishTransaction(transactionId: String, result: @escaping FlutterResult) {
-        print("\(FlutterInappPurchasePlugin.TAG) finishTransaction called with transactionId: \(transactionId)")
+        print("\(FlutterInappPurchasePlugin.TAG) finishTransaction called with transactionId: '\(transactionId)'")
         
         Task {
-            var foundTransaction = false
-            
-            for await verificationResult in Transaction.all {
+            // Try to find and finish the transaction in unfinished transactions
+            for await verificationResult in Transaction.unfinished {
                 do {
                     let transaction = try checkVerified(verificationResult)
-                    if "\(transaction.id)" == transactionId {
+                    let currentTransactionId = String(transaction.id)
+                    
+                    if currentTransactionId == transactionId {
+                        print("\(FlutterInappPurchasePlugin.TAG) Found unfinished transaction! Finishing...")
                         await transaction.finish()
-                        foundTransaction = true
-                        break
+                        print("\(FlutterInappPurchasePlugin.TAG) Transaction finished successfully")
+                        
+                        await MainActor.run {
+                            result(nil)
+                        }
+                        return
                     }
                 } catch {
                     continue
                 }
             }
             
+            // Transaction not found or already finished - both are success cases
+            print("\(FlutterInappPurchasePlugin.TAG) Transaction '\(transactionId)' not found in unfinished - likely already finished")
             await MainActor.run {
-                if foundTransaction {
-                    result(nil)
-                } else {
-                    result(FlutterError(code: "E_TRANSACTION_NOT_FOUND", message: "Transaction not found", details: nil))
-                }
+                result(nil) // Always return success
             }
         }
     }
@@ -561,7 +516,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
     }
     
     private func clearTransactionCache(result: @escaping FlutterResult) {
-        products.removeAll()
+        // No cache to clear anymore
         result(nil)
     }
     
@@ -584,84 +539,6 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
         case .nonRenewable: return "nonRenewable"
         case .autoRenewable: return "autoRenewable"
         default: return "unknown"
-        }
-    }
-    
-    // MARK: - App Transaction
-    
-    private func getAppTransaction(result: @escaping FlutterResult) {
-        print("\(FlutterInappPurchasePlugin.TAG) getAppTransaction called")
-        
-        if #available(iOS 16.0, *) {
-            Task {
-                do {
-                    #if compiler(>=5.7)
-                    let verificationResult = try await AppTransaction.shared
-                    
-                    let appTransaction: AppTransaction
-                    switch verificationResult {
-                    case .verified(let verified):
-                        appTransaction = verified
-                    case .unverified(_, _):
-                        print("\(FlutterInappPurchasePlugin.TAG) App transaction could not be verified")
-                        await MainActor.run {
-                            result(nil)
-                        }
-                        return
-                    }
-                    
-                    var resultDict: [String: Any?] = [
-                        "bundleID": appTransaction.bundleID,
-                        "appVersion": appTransaction.appVersion,
-                        "originalAppVersion": appTransaction.originalAppVersion,
-                        "originalPurchaseDate": appTransaction.originalPurchaseDate.timeIntervalSince1970 * 1000,
-                        "deviceVerification": appTransaction.deviceVerification.base64EncodedString(),
-                        "deviceVerificationNonce": appTransaction.deviceVerificationNonce.uuidString,
-                        "environment": appTransaction.environment.rawValue,
-                        "signedDate": appTransaction.signedDate.timeIntervalSince1970 * 1000,
-                        "appID": appTransaction.appID,
-                        "appVersionID": appTransaction.appVersionID,
-                        "preorderDate": appTransaction.preorderDate.map { $0.timeIntervalSince1970 * 1000 }
-                    ]
-                    
-                    // iOS 18.4+ specific properties
-                    if #available(iOS 18.4, *) {
-                        resultDict["appTransactionID"] = appTransaction.appTransactionID
-                        resultDict["originalPlatform"] = appTransaction.originalPlatform.rawValue
-                    }
-                    
-                    print("\(FlutterInappPurchasePlugin.TAG) getAppTransaction success")
-                    await MainActor.run {
-                        result(resultDict)
-                    }
-                    #else
-                    print("\(FlutterInappPurchasePlugin.TAG) getAppTransaction requires Xcode 15.0+ with iOS 16.0 SDK for compilation")
-                    await MainActor.run {
-                        result(FlutterError(
-                            code: "E_COMPILER_VERSION",
-                            message: "getAppTransaction requires Xcode 15.0+ with iOS 16.0 SDK for compilation",
-                            details: nil
-                        ))
-                    }
-                    #endif
-                } catch {
-                    print("\(FlutterInappPurchasePlugin.TAG) getAppTransaction error: \(error)")
-                    await MainActor.run {
-                        result(FlutterError(
-                            code: "E_APP_TRANSACTION_ERROR",
-                            message: "Failed to get app transaction: \(error.localizedDescription)",
-                            details: nil
-                        ))
-                    }
-                }
-            }
-        } else {
-            print("\(FlutterInappPurchasePlugin.TAG) getAppTransaction requires iOS 16.0+")
-            result(FlutterError(
-                code: "E_IOS_VERSION",
-                message: "getAppTransaction requires iOS 16.0+",
-                details: nil
-            ))
         }
     }
 }
