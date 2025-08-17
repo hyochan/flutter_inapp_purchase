@@ -4,89 +4,28 @@
 
 ### Features
 
-- **OpenIAP Compliance**: Implemented changes from [expo-iap PR #158](https://github.com/hyochan/expo-iap/pull/158) for standardized transaction identification
-
-  - Added `id` field to `Purchase` class that maps to `transactionId` for OpenIAP compliance
-  - Updated native implementations to include `id` field in purchase responses
-  - Enhanced `finishTransaction` to accept `Purchase` objects directly
-
-- **Unified Purchase Token**: Cross-platform server validation support
-  - Added unified `purchaseToken` field for both iOS (JWS) and Android (purchase token)
-  - iOS now includes JWS representation for server-side validation
-  - Deprecated `jwsRepresentationIOS` and `purchaseTokenAndroid` in favor of `purchaseToken`
-  - Simplified cross-platform server validation workflow
+- **OpenIAP Compliance**: Added `id` field to `Purchase` class for standardized transaction identification
+- **Unified Purchase Token**: Added `purchaseToken` field for cross-platform server validation
+  - iOS: Contains JWS representation for App Store validation
+  - Android: Contains purchase token for Google Play validation
+  - Deprecated platform-specific token fields in favor of unified approach
 
 ### Improvements
 
-- **Transaction Management**: Simplified transaction finishing flow
-
-  - `finishTransaction` now accepts `Purchase` objects directly, preserving all purchase data
-  - Removed unnecessary `PurchasedItem` to `Purchase` conversions
-  - Improved transaction ID handling with proper fallback logic
-  - Fixed duplicate transaction events with processed transaction tracking
-
-- **iOS StoreKit 2**: Complete StoreKit 2 implementation
-
-  - Removed transaction caching in favor of direct StoreKit 2 API usage
-  - Improved transaction search using `Transaction.all`
-  - Added comprehensive debug logging for troubleshooting
-  - Enhanced date handling for purchase timestamps
-  - Fixed transaction ID issues by removing StoreKit Configuration dependency
-
-- **Date Handling**: Fixed date display issues
-
-  - Fixed "1970-01-01" date issue in Available Purchases
-  - Fixed "Unknown" date issue in Purchase History
-  - Improved date parsing to handle multiple formats (ISO 8601, milliseconds, DateTime objects)
-  - Consistent date handling across Android and iOS platforms
-
-- **Error Handling**: Enhanced error reporting
-  - Added comprehensive purchase-error events following expo-iap patterns
-  - Better error handling for both iOS and Android platforms
-  - Improved duplicate event prevention
+- **Transaction Management**: `finishTransaction` now accepts `Purchase` objects directly
+- **iOS StoreKit 2**: Complete implementation with improved transaction handling
+- **Date Handling**: Fixed date parsing issues across platforms
+- **Error Handling**: Enhanced error reporting and duplicate event prevention
 
 ### Bug Fixes
 
-- **Android**: Added missing `transactionId` field in `getPurchaseHistoryByType` response
-- **Android**: Added missing `id` field to purchase responses for OpenIAP compliance
-- **iOS**: Fixed transaction finishing with proper ID lookup
-- **Flutter**: Fixed date conversion in `Purchase.fromJson()` to properly handle numeric timestamps
-- **Example App**: Fixed date formatting to handle all possible date formats
-
-### Code Quality
-
-- Added `toString()` methods to `Purchase` and `Product` classes for better debugging
-- Enhanced debug logging throughout the plugin
-- Improved error messages for better troubleshooting
-- Cleaned up redundant code and improved type safety
+- Fixed missing `transactionId` and `id` fields in Android purchase responses
+- Fixed iOS transaction finishing with proper ID lookup
+- Fixed date conversion issues in `Purchase.fromJson()`
 
 ### Breaking Changes
 
-None - This version maintains backward compatibility while adding new features.
-
-### Migration Guide
-
-If you're upgrading from 6.1.x:
-
-1. **Transaction Finishing**: You can now pass `Purchase` objects directly to `finishTransaction()`:
-
-   ```dart
-   // Old way (still works)
-   await _iap.finishTransaction(purchasedItem, isConsumable: true);
-
-   // New way (recommended)
-   await _iap.finishTransaction(purchase, isConsumable: true);
-   ```
-
-2. **Transaction ID**: Use the `id` field for OpenIAP compliance:
-
-   ```dart
-   // OpenIAP compliant way
-   final transactionId = purchase.id;
-
-   // Legacy way (still works)
-   final transactionId = purchase.transactionId;
-   ```
+None - This version maintains backward compatibility.
 
 ## 6.1.0
 

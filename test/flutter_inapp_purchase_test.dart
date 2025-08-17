@@ -282,6 +282,82 @@ void main() {
         // orderId field was removed in refactoring
         expect(item.isAcknowledgedAndroid, true);
       });
+
+      test('PurchasedItem handles unified purchaseToken field', () {
+        // Test with purchaseToken field present
+        final jsonDataWithToken = {
+          'productId': 'test.product',
+          'transactionId': '2000000985615347',
+          'transactionDate': 1234567890,
+          'transactionReceipt': 'receipt_data',
+          'purchaseToken': 'unified_token_123',
+        };
+
+        final item = PurchasedItem.fromJSON(jsonDataWithToken);
+        expect(item.productId, 'test.product');
+        expect(item.purchaseToken, 'unified_token_123');
+        expect(item.transactionId, '2000000985615347');
+        expect(item.id, '2000000985615347'); // OpenIAP compliance
+      });
+
+      test('PurchasedItem OpenIAP id field fallback', () {
+        // Test id field fallback to transactionId for OpenIAP compliance
+        final jsonData = {
+          'productId': 'test.product',
+          'transactionId': 'fallback_transaction_id',
+          'transactionDate': 1234567890,
+          'transactionReceipt': 'receipt_data',
+        };
+
+        final item = PurchasedItem.fromJSON(jsonData);
+        expect(item.id, 'fallback_transaction_id');
+        expect(item.transactionId, 'fallback_transaction_id');
+      });
+
+      test('PurchasedItem handles missing token fields gracefully', () {
+        final jsonDataWithoutTokens = {
+          'productId': 'product.without.tokens',
+          'transactionId': 'trans_no_tokens',
+          'transactionDate': 1234567890,
+          'transactionReceipt': 'receipt_data',
+        };
+
+        final item = PurchasedItem.fromJSON(jsonDataWithoutTokens);
+        expect(item.productId, 'product.without.tokens');
+        expect(item.purchaseToken, isNull);
+        expect(item.transactionId, 'trans_no_tokens');
+        expect(item.id, 'trans_no_tokens');
+      });
+
+      test('PurchasedItem date parsing handles different formats', () {
+        // Test millisecond timestamp
+        final jsonWithMillis = {
+          'productId': 'test.product.millis',
+          'transactionDate': 1234567890123, // Large number (milliseconds)
+        };
+        
+        final itemMillis = PurchasedItem.fromJSON(jsonWithMillis);
+        expect(itemMillis.transactionDate, 
+               DateTime.fromMillisecondsSinceEpoch(1234567890123));
+
+        // Test smaller timestamp (seconds)
+        final jsonWithSeconds = {
+          'productId': 'test.product.seconds',
+          'transactionDate': 1234567890, // Smaller number
+        };
+        
+        final itemSeconds = PurchasedItem.fromJSON(jsonWithSeconds);
+        expect(itemSeconds.transactionDate, isNotNull);
+
+        // Test string date
+        final jsonWithString = {
+          'productId': 'test.product.string',
+          'transactionDate': '2023-01-01T00:00:00Z',
+        };
+        
+        final itemString = PurchasedItem.fromJSON(jsonWithString);
+        expect(itemString.transactionDate, isNotNull);
+      });
     });
 
     group('Enum Values', () {
