@@ -61,17 +61,6 @@ await iap.initConnection();
 final sameIap = FlutterInappPurchase.instance; // Same instance
 ```
 
-### With Flutter Hooks
-
-```dart
-// useIAP hook automatically uses singleton
-final iapState = useIAP();
-
-// Access products, purchases, etc.
-final products = iapState.products;
-final currentPurchase = iapState.currentPurchase;
-```
-
 ## Sponsors
 
 💼 **[View Our Sponsors](https://openiap.dev/sponsors)**
