@@ -187,16 +187,57 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
             "jwsRepresentationIOS": jwsRepresentation,  // Deprecated - use purchaseToken
             "platform": "ios",
             "transactionState": getTransactionState(transaction),
-            "isUpgraded": transaction.isUpgraded
+            "isUpgraded": transaction.isUpgraded,
+            "quantityIOS": transaction.purchasedQuantity,
+            "originalTransactionDateIOS": transaction.originalPurchaseDate.timeIntervalSince1970 * 1000,
+            "originalTransactionIdentifierIOS": String(transaction.originalID),
+            "appAccountTokenIOS": transaction.appAccountToken?.uuidString,
+            "appBundleIdIOS": transaction.appBundleID,
+            "productTypeIOS": transaction.productType.rawValue,
+            "subscriptionGroupIdIOS": transaction.subscriptionGroupID,
+            "isUpgradedIOS": transaction.isUpgraded,
+            "ownershipTypeIOS": transaction.ownershipType.rawValue,
+            "webOrderLineItemIdIOS": transaction.webOrderLineItemID
         ]
+        
+        // Add environment for iOS 16.0+
+        if #available(iOS 16.0, *) {
+            event["environmentIOS"] = transaction.environment?.rawValue
+        }
+        
+        // Add storefront info for iOS 17.0+
+        if #available(iOS 17.0, *) {
+            event["storefrontCountryCodeIOS"] = transaction.storefront?.countryCode
+            event["reasonIOS"] = transaction.reason.rawValue
+        }
+        
+        // Add offer info for iOS 17.2+
+        if #available(iOS 17.2, *) {
+            if let offer = transaction.offer {
+                event["offerIOS"] = [
+                    "id": offer.id ?? "",
+                    "type": offer.type.rawValue,
+                    "paymentMode": offer.paymentMode?.rawValue ?? ""
+                ]
+            }
+        }
+        
+        // Add price and currency if available from product
+        if let product = products[transaction.productID] {
+            event["priceIOS"] = product.price
+            event["currencyIOS"] = product.priceFormatStyle.currencyCode ?? "USD"
+        }
         
         if let expirationDate = transaction.expirationDate {
             event["expirationDate"] = expirationDate.timeIntervalSince1970 * 1000
+            event["expirationDateIOS"] = expirationDate.timeIntervalSince1970 * 1000
         }
         
         if let revocationDate = transaction.revocationDate {
             event["revocationDate"] = revocationDate.timeIntervalSince1970 * 1000
+            event["revocationDateIOS"] = revocationDate.timeIntervalSince1970 * 1000
             event["revocationReason"] = transaction.revocationReason?.rawValue
+            event["revocationReasonIOS"] = transaction.revocationReason?.rawValue
         }
         
         // Convert to JSON string as expected by Flutter side
@@ -295,7 +336,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                     let transactionId = String(transaction.id)
                     print("\(FlutterInappPurchasePlugin.TAG) getAvailableItems - String transactionId: '\(transactionId)'")
                     
-                    let purchase: [String: Any] = [
+                    var purchase: [String: Any] = [
                         "id": transactionId,
                         "productId": transaction.productID,
                         "transactionId": transactionId,
@@ -303,8 +344,53 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                         "transactionReceipt": transaction.jsonRepresentation.base64EncodedString(),
                         "purchaseToken": verificationResult.jwsRepresentation,  // JWS for server validation (iOS 15+)
                         "jwsRepresentationIOS": verificationResult.jwsRepresentation,  // Deprecated - use purchaseToken
-                        "platform": "ios"
+                        "platform": "ios",
+                        
+                        // Add iOS-specific fields
+                        "quantityIOS": transaction.purchasedQuantity,
+                        "originalTransactionDateIOS": transaction.originalPurchaseDate.timeIntervalSince1970 * 1000,
+                        "originalTransactionIdentifierIOS": String(transaction.originalID),
+                        "appAccountTokenIOS": transaction.appAccountToken?.uuidString,
+                        "appBundleIdIOS": transaction.appBundleID,
+                        "productTypeIOS": transaction.productType.rawValue,
+                        "subscriptionGroupIdIOS": transaction.subscriptionGroupID,
+                        "isUpgradedIOS": transaction.isUpgraded,
+                        "ownershipTypeIOS": transaction.ownershipType.rawValue,
+                        "webOrderLineItemIdIOS": transaction.webOrderLineItemID
                     ]
+                    
+                    // Add environment for iOS 16.0+
+                    if #available(iOS 16.0, *) {
+                        purchase["environmentIOS"] = transaction.environment?.rawValue
+                    }
+                    
+                    // Add storefront info for iOS 17.0+
+                    if #available(iOS 17.0, *) {
+                        purchase["storefrontCountryCodeIOS"] = transaction.storefront?.countryCode
+                        purchase["reasonIOS"] = transaction.reason.rawValue
+                    }
+                    
+                    // Add offer info for iOS 17.2+
+                    if #available(iOS 17.2, *) {
+                        if let offer = transaction.offer {
+                            purchase["offerIOS"] = [
+                                "id": offer.id ?? "",
+                                "type": offer.type.rawValue,
+                                "paymentMode": offer.paymentMode?.rawValue ?? ""
+                            ]
+                        }
+                    }
+                    
+                    // Add expiration date if available
+                    if let expirationDate = transaction.expirationDate {
+                        purchase["expirationDateIOS"] = expirationDate.timeIntervalSince1970 * 1000
+                    }
+                    
+                    // Add revocation info if available
+                    if let revocationDate = transaction.revocationDate {
+                        purchase["revocationDateIOS"] = revocationDate.timeIntervalSince1970 * 1000
+                        purchase["revocationReasonIOS"] = transaction.revocationReason?.rawValue
+                    }
                     purchases.append(purchase)
                 } catch {
                     print("\(FlutterInappPurchasePlugin.TAG) Failed to verify transaction: \(error)")

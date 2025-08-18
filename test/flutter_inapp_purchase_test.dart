@@ -560,7 +560,7 @@ void main() {
                     "transactionReceipt": "receipt_data",
                     "purchaseToken": "token_123",
                     "autoRenewingAndroid": true,
-                    "purchaseStateAndroid": 0,
+                    "purchaseStateAndroid": 1,
                     "isAcknowledgedAndroid": true
                   }
                 ]''';
@@ -1042,7 +1042,7 @@ void main() {
                   "transactionReceipt": "receipt_data",
                   "purchaseToken": "token_123",
                   "autoRenewingAndroid": true,
-                  "purchaseStateAndroid": 0,
+                  "purchaseStateAndroid": 1,
                   "isAcknowledgedAndroid": true
                 }
               ]''';

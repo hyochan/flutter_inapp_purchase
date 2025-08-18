@@ -198,7 +198,13 @@ class FlutterInappPurchase
 
       // Get raw data from native platform
       final dynamic rawResult;
-      if (params.type == iap_types.PurchaseType.inapp) {
+      if (_platform.isIOS) {
+        // iOS uses unified getItems method for both products and subscriptions
+        rawResult = await _channel.invokeMethod(
+          'getItems',
+          {'skus': params.productIds},
+        );
+      } else if (params.type == iap_types.PurchaseType.inapp) {
         rawResult = await _channel.invokeMethod(
           'getProducts',
           params.productIds,
@@ -642,14 +648,14 @@ class FlutterInappPurchase
         isFamilyShareable: json['isFamilyShareable'] as bool?,
         jsonRepresentation: json['jsonRepresentation'] as String?,
         discountsIOS: _parseDiscountsIOS(json['discounts']),
-        subscription: json['subscriptionGroupId'] != null
-            ? iap_types.SubscriptionInfo(
-                subscriptionGroupId: json['subscriptionGroupId'] as String,
-                subscriptionPeriod:
-                    json['subscriptionPeriodIOS'] as String? ?? '',
-                introductoryPrice: json['introductoryPrice'] as String?,
-              )
-            : null,
+        subscription: json['subscription'] != null
+            ? iap_types.SubscriptionInfo.fromJson(
+                json['subscription'] as Map<String, dynamic>)
+            : json['subscriptionGroupId'] != null
+                ? iap_types.SubscriptionInfo(
+                    subscriptionGroupId: json['subscriptionGroupId'] as String?,
+                  )
+                : null,
         introductoryPriceNumberOfPeriodsIOS:
             json['introductoryPriceNumberOfPeriodsIOS']?.toString(),
         introductoryPriceSubscriptionPeriodIOS:
@@ -730,16 +736,19 @@ class FlutterInappPurchase
   }
 
   iap_types.PurchaseState _mapAndroidPurchaseState(int state) {
-    // Android purchase states:
-    // 0 = PURCHASED
-    // 1 = PENDING
+    // Android purchase states from Google Play Billing:
+    // 0 = UNSPECIFIED_STATE
+    // 1 = PURCHASED
+    // 2 = PENDING
     switch (state) {
-      case 0:
-        return iap_types.PurchaseState.purchased;
       case 1:
-        return iap_types.PurchaseState.pending;
-      default:
         return iap_types.PurchaseState.purchased;
+      case 2:
+        return iap_types.PurchaseState.pending;
+      case 0:
+      default:
+        // For UNSPECIFIED_STATE (0) and any unknown states
+        return iap_types.PurchaseState.unspecified;
     }
   }
 
@@ -871,56 +880,82 @@ class FlutterInappPurchase
   }
 
   /// Retrieves a list of products from the store
+  /// @deprecated Use requestProducts with type: PurchaseType.inapp instead
+  @Deprecated(
+    'Use requestProducts with type: PurchaseType.inapp instead. '
+    'This method will be removed in the next major version.',
+  )
   Future<List<iap_types.IAPItem>> getProducts(List<String> productIds) async {
-    if (_platform.isAndroid) {
-      dynamic result = await _channel.invokeMethod(
-        'getProducts',
-        <String, dynamic>{'productIds': productIds.toList()},
-      );
-      return extractItems(result);
-    } else if (_platform.isIOS) {
-      print(
-        '[flutter_inapp_purchase] Calling native iOS getItems with skus: $productIds',
-      );
-      try {
-        dynamic result = await _channel.invokeMethod(
-          'getItems',
-          <String, dynamic>{'skus': productIds.toList()},
-        );
-        print('[flutter_inapp_purchase] Native iOS returned result: $result');
-        return extractItems(json.encode(result));
-      } catch (e) {
-        print('[flutter_inapp_purchase] Error calling native iOS getItems: $e');
-        rethrow;
-      }
-    }
-    throw PlatformException(
-      code: _platform.operatingSystem,
-      message: 'platform not supported',
+    // Redirect to requestProducts for backward compatibility
+    final products = await requestProducts(
+      iap_types.RequestProductsParams(
+        productIds: productIds,
+        type: iap_types.PurchaseType.inapp,
+      ),
     );
+    
+    // Convert BaseProduct to IAPItem for backward compatibility
+    return products.map((product) {
+      final Map<String, dynamic> json = {
+        'productId': product.productId,
+        'title': product.title,
+        'description': product.description,
+        'price': product.price,
+        'localizedPrice': product.localizedPrice,
+        'currency': product.currency,
+      };
+      
+      // Add platform-specific fields if available
+      if (product is iap_types.Product) {
+        json['originalPrice'] = product.originalPrice;
+        json['originalPriceAmount'] = product.originalPriceAmount;
+        json['signatureAndroid'] = product.signatureAndroid;
+      }
+      
+      return iap_types.IAPItem.fromJSON(json);
+    }).toList();
   }
 
   /// Retrieves subscriptions
+  /// @deprecated Use requestProducts with type: PurchaseType.subs instead
+  @Deprecated(
+    'Use requestProducts with type: PurchaseType.subs instead. '
+    'This method will be removed in the next major version.',
+  )
   Future<List<iap_types.IAPItem>> getSubscriptions(
     List<String> productIds,
   ) async {
-    if (_platform.isAndroid) {
-      dynamic result = await _channel.invokeMethod(
-        'getSubscriptions',
-        <String, dynamic>{'productIds': productIds.toList()},
-      );
-      return extractItems(result);
-    } else if (_platform.isIOS) {
-      dynamic result = await _channel.invokeMethod(
-        'getItems',
-        <String, dynamic>{'skus': productIds.toList()},
-      );
-      return extractItems(json.encode(result));
-    }
-    throw PlatformException(
-      code: _platform.operatingSystem,
-      message: 'platform not supported',
+    // Redirect to requestProducts for backward compatibility
+    final products = await requestProducts(
+      iap_types.RequestProductsParams(
+        productIds: productIds,
+        type: iap_types.PurchaseType.subs,
+      ),
     );
+    
+    // Convert BaseProduct to IAPItem for backward compatibility
+    return products.map((product) {
+      final Map<String, dynamic> json = {
+        'productId': product.productId,
+        'title': product.title,
+        'description': product.description,
+        'price': product.price,
+        'localizedPrice': product.localizedPrice,
+        'currency': product.currency,
+      };
+      
+      // Add platform-specific fields if available
+      if (product is iap_types.Subscription) {
+        json['discountsIOS'] = product.discountsIOS;
+        json['subscriptionGroupIdentifierIOS'] = product.subscriptionGroupIdIOS;
+        json['isFamilyShareableIOS'] = product.isFamilyShareable;
+        json['jsonRepresentationIOS'] = product.jsonRepresentation;
+        json['subscriptionOffersAndroid'] = product.subscriptionOffersAndroid;
+        json['subscriptionPeriodAndroid'] = product.subscriptionPeriodAndroid;
+      }
+      
+      return iap_types.IAPItem.fromJSON(json);
+    }).toList();
   }
 
   /// Internal method to get available items from native platforms
@@ -1245,24 +1280,20 @@ class FlutterInappPurchase
   // flutter IAP compatible methods
 
   /// flutter IAP compatible method to get products
+  @Deprecated(
+    'Use requestProducts with type: PurchaseType.inapp instead. '
+    'This method will be removed in the next major version.',
+  )
   Future<List<iap_types.Product>> getProductsAsync(
     List<String> productIds,
   ) async {
-    final items = await getProducts(productIds);
-    return items
-        .map(
-          (item) => iap_types.Product(
-            platform: _platform.isIOS
-                ? iap_types.IapPlatform.ios
-                : iap_types.IapPlatform.android,
-            productId: item.productId ?? '',
-            title: item.title ?? '',
-            description: item.description ?? '',
-            price: item.price ?? '0',
-            currency: item.currency ?? 'USD',
-          ),
-        )
-        .toList();
+    final products = await requestProducts(
+      iap_types.RequestProductsParams(
+        productIds: productIds,
+        type: iap_types.PurchaseType.inapp,
+      ),
+    );
+    return products.whereType<iap_types.Product>().toList();
   }
 
   /// flutter IAP compatible purchase method
@@ -1438,19 +1469,20 @@ class FlutterInappPurchase
           isSubscription = purchase.autoRenewingAndroid ?? false;
           isActive = isSubscription &&
               (purchase.purchaseState == iap_types.PurchaseState.purchased ||
-               purchase.purchaseState == null);  // Allow null for test data
+                  purchase.purchaseState == null); // Allow null for test data
           autoRenewing = purchase.autoRenewingAndroid;
         } else if (_platform.isIOS) {
           // On iOS, we need to check the transaction state and receipt
           // For StoreKit 2, subscriptions should have expiration dates in the receipt
           // For testing, also consider it a subscription if it has iOS in the productId
-          isSubscription = purchase.transactionReceipt != null || 
-                          purchase.productId.contains('sub');
+          isSubscription = purchase.transactionReceipt != null ||
+              purchase.productId.contains('sub');
           isActive = (purchase.transactionStateIOS ==
-                  iap_types.TransactionState.purchased ||
-              purchase.transactionStateIOS ==
-                  iap_types.TransactionState.restored ||
-              purchase.transactionStateIOS == null) && isSubscription;
+                      iap_types.TransactionState.purchased ||
+                  purchase.transactionStateIOS ==
+                      iap_types.TransactionState.restored ||
+                  purchase.transactionStateIOS == null) &&
+              isSubscription;
 
           // Try to parse expiration date from transaction date if available
           // In a real implementation, this would come from the receipt validation

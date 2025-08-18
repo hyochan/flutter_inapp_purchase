@@ -72,6 +72,19 @@ void main() {
                     .toList();
               }
               return <Map<String, dynamic>>[];
+            case 'getItems':
+              // iOS uses unified getItems method for both products and subscriptions
+              final args = methodCall.arguments as Map<dynamic, dynamic>?;
+              final productIds = args?['skus'] as List<dynamic>?;
+              final allSubs = _getMockSubscriptions();
+              final filteredSubs = productIds != null
+                  ? allSubs
+                      .where((sub) => productIds.contains(sub['productId']))
+                      .toList()
+                  : allSubs;
+              return filteredSubs
+                  .map((item) => Map<String, dynamic>.from(item))
+                  .toList();
             case 'getAvailableItems':
               // iOS uses this for getActiveSubscriptions
               return _getMockActiveSubscriptions(methodCall.arguments)
@@ -523,7 +536,7 @@ List<Map<String, dynamic>> _getMockActiveSubscriptions(dynamic arguments) {
       'purchaseToken': 'active_token_1',
       'transactionId': 'GPA.ACTIVE-001',
       'autoRenewingAndroid': true,
-      'purchaseStateAndroid': 0, // 0 = PURCHASED
+      'purchaseStateAndroid': 1, // 1 = PURCHASED
       'isAcknowledgedAndroid': true,
     },
     <String, dynamic>{
@@ -531,7 +544,7 @@ List<Map<String, dynamic>> _getMockActiveSubscriptions(dynamic arguments) {
       'purchaseToken': 'active_token_2',
       'transactionId': 'GPA.ACTIVE-002',
       'autoRenewingAndroid': false,
-      'purchaseStateAndroid': 0, // 0 = PURCHASED
+      'purchaseStateAndroid': 1, // 1 = PURCHASED
       'isAcknowledgedAndroid': true,
     },
     <String, dynamic>{

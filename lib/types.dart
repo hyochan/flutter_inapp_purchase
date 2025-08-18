@@ -813,6 +813,14 @@ class Purchase {
   final double? priceIOS;
   final String? jsonRepresentationIOS;
   final bool? isFinishedIOS;
+  final int? quantityIOS;
+  final String? appBundleIdIOS;
+  final String? productTypeIOS;
+  final String? ownershipTypeIOS;
+  final String? transactionReasonIOS;
+  final String? reasonIOS;
+  final Map<String, dynamic>? offerIOS;
+  final String? jwsRepresentationIOS;
   // Android specific fields per OpenIAP spec
   final String? signatureAndroid;
   final bool? autoRenewingAndroid;
@@ -884,6 +892,14 @@ class Purchase {
     this.priceIOS,
     this.jsonRepresentationIOS,
     this.isFinishedIOS,
+    this.quantityIOS,
+    this.appBundleIdIOS,
+    this.productTypeIOS,
+    this.ownershipTypeIOS,
+    this.transactionReasonIOS,
+    this.reasonIOS,
+    this.offerIOS,
+    this.jwsRepresentationIOS,
     // Android specific per OpenIAP spec
     this.signatureAndroid,
     this.autoRenewingAndroid,
@@ -969,6 +985,14 @@ class Purchase {
       priceIOS: json['priceIOS'] as double?,
       jsonRepresentationIOS: json['jsonRepresentationIOS'] as String?,
       isFinishedIOS: json['isFinishedIOS'] as bool?,
+      quantityIOS: json['quantityIOS'] as int?,
+      appBundleIdIOS: json['appBundleIdIOS'] as String?,
+      productTypeIOS: json['productTypeIOS'] as String?,
+      ownershipTypeIOS: json['ownershipTypeIOS'] as String?,
+      transactionReasonIOS: json['transactionReasonIOS'] as String?,
+      reasonIOS: json['reasonIOS'] as String?,
+      offerIOS: json['offerIOS'] as Map<String, dynamic>?,
+      jwsRepresentationIOS: json['jwsRepresentationIOS'] as String?,
       // Android specific per OpenIAP spec
       signatureAndroid: json['signatureAndroid'] as String?,
       autoRenewingAndroid: json['autoRenewingAndroid'] as bool?,
