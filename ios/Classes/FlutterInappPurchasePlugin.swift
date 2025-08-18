@@ -187,14 +187,13 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
             "jwsRepresentationIOS": jwsRepresentation,  // Deprecated - use purchaseToken
             "platform": "ios",
             "transactionState": getTransactionState(transaction),
-            "isUpgraded": transaction.isUpgraded,
             "quantityIOS": transaction.purchasedQuantity,
             "originalTransactionDateIOS": transaction.originalPurchaseDate.timeIntervalSince1970 * 1000,
             "originalTransactionIdentifierIOS": String(transaction.originalID),
             "appAccountTokenIOS": transaction.appAccountToken?.uuidString,
             "appBundleIdIOS": transaction.appBundleID,
             "productTypeIOS": transaction.productType.rawValue,
-            "subscriptionGroupIdIOS": transaction.subscriptionGroupID,
+            "subscriptionGroupIdentifierIOS": transaction.subscriptionGroupID,
             "isUpgradedIOS": transaction.isUpgraded,
             "ownershipTypeIOS": transaction.ownershipType.rawValue,
             "webOrderLineItemIdIOS": transaction.webOrderLineItemID
@@ -202,12 +201,12 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
         
         // Add environment for iOS 16.0+
         if #available(iOS 16.0, *) {
-            event["environmentIOS"] = transaction.environment?.rawValue
+            event["environmentIOS"] = transaction.environment.rawValue
         }
         
         // Add storefront info for iOS 17.0+
         if #available(iOS 17.0, *) {
-            event["storefrontCountryCodeIOS"] = transaction.storefront?.countryCode
+            event["storefrontCountryCodeIOS"] = transaction.storefront.countryCode
             event["reasonIOS"] = transaction.reason.rawValue
         }
         
@@ -282,27 +281,79 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                     
                     var productInfo: [String: Any] = [
                         "productId": product.id,
+                        "id": product.id,  // OpenIAP compliance
                         "price": "\(product.price)",
                         "currency": product.priceFormatStyle.currencyCode ?? "USD",
                         "localizedPrice": product.displayPrice,
                         "title": product.displayName,
+                        "displayName": product.displayName,
                         "description": product.description,
+                        "displayPrice": product.displayPrice,
                         "type": typeToString(product.type),
                         "originalPrice": "\(product.price)",
                         "platform": "ios",
-                        "isFamilyShareable": product.isFamilyShareable
+                        "isFamilyShareable": product.isFamilyShareable,
+                        "jsonRepresentation": String(data: product.jsonRepresentation, encoding: .utf8) ?? ""
                     ]
                     
                     // Add subscription info if available
                     if let subscription = product.subscription {
                         productInfo["subscriptionPeriodUnitIOS"] = unitToString(subscription.subscriptionPeriod.unit)
                         productInfo["subscriptionPeriodNumberIOS"] = "\(subscription.subscriptionPeriod.value)"
+                        productInfo["subscriptionGroupIdIOS"] = subscription.subscriptionGroupID
                         
+                        // Add complete subscription info
+                        var subscriptionInfo: [String: Any] = [
+                            "subscriptionGroupId": subscription.subscriptionGroupID,
+                            "subscriptionPeriod": [
+                                "unit": unitToString(subscription.subscriptionPeriod.unit),
+                                "value": subscription.subscriptionPeriod.value
+                            ]
+                        ]
+                        
+                        // Add introductory offer if available
                         if let introOffer = subscription.introductoryOffer {
                             productInfo["introductoryPrice"] = introOffer.displayPrice
                             productInfo["introductoryPriceNumberOfPeriodsIOS"] = "\(introOffer.period.value)"
                             productInfo["introductoryPriceSubscriptionPeriodIOS"] = unitToString(introOffer.period.unit)
+                            productInfo["introductoryPricePaymentModeIOS"] = "\(introOffer.paymentMode)"
+                            
+                            subscriptionInfo["introductoryOffer"] = [
+                                "id": introOffer.id ?? "",
+                                "period": [
+                                    "unit": unitToString(introOffer.period.unit),
+                                    "value": introOffer.period.value
+                                ],
+                                "periodCount": introOffer.periodCount,
+                                "paymentMode": "\(introOffer.paymentMode)",
+                                "type": "\(introOffer.type)",
+                                "price": "\(introOffer.price)",
+                                "displayPrice": introOffer.displayPrice
+                            ]
                         }
+                        
+                        // Add promotional offers if available
+                        if !subscription.promotionalOffers.isEmpty {
+                            subscriptionInfo["promotionalOffers"] = subscription.promotionalOffers.map { offer in
+                                return [
+                                    "id": offer.id ?? "",
+                                    "period": [
+                                        "unit": unitToString(offer.period.unit),
+                                        "value": offer.period.value
+                                    ],
+                                    "periodCount": offer.periodCount,
+                                    "paymentMode": "\(offer.paymentMode)",
+                                    "type": "\(offer.type)",
+                                    "price": "\(offer.price)",
+                                    "displayPrice": offer.displayPrice
+                                ]
+                            }
+                            
+                            // Also add promotional offer IDs for compatibility
+                            productInfo["promotionalOfferIdsIOS"] = subscription.promotionalOffers.compactMap { $0.id }
+                        }
+                        
+                        productInfo["subscription"] = subscriptionInfo
                     }
                     
                     productList.append(productInfo)
@@ -361,12 +412,12 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                     
                     // Add environment for iOS 16.0+
                     if #available(iOS 16.0, *) {
-                        purchase["environmentIOS"] = transaction.environment?.rawValue
+                        purchase["environmentIOS"] = transaction.environment.rawValue
                     }
                     
                     // Add storefront info for iOS 17.0+
                     if #available(iOS 17.0, *) {
-                        purchase["storefrontCountryCodeIOS"] = transaction.storefront?.countryCode
+                        purchase["storefrontCountryCodeIOS"] = transaction.storefront.countryCode
                         purchase["reasonIOS"] = transaction.reason.rawValue
                     }
                     
@@ -383,12 +434,14 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                     
                     // Add expiration date if available
                     if let expirationDate = transaction.expirationDate {
-                        purchase["expirationDateIOS"] = expirationDate.timeIntervalSince1970 * 1000
+                        let f = ISO8601DateFormatter()
+                        purchase["expirationDateIOS"] = f.string(from: expirationDate)
                     }
                     
                     // Add revocation info if available
                     if let revocationDate = transaction.revocationDate {
-                        purchase["revocationDateIOS"] = revocationDate.timeIntervalSince1970 * 1000
+                        let f = ISO8601DateFormatter()
+                        purchase["revocationDateIOS"] = f.string(from: revocationDate)
                         purchase["revocationReasonIOS"] = transaction.revocationReason?.rawValue
                     }
                     purchases.append(purchase)

@@ -893,7 +893,7 @@ class FlutterInappPurchase
         type: iap_types.PurchaseType.inapp,
       ),
     );
-    
+
     // Convert BaseProduct to IAPItem for backward compatibility
     return products.map((product) {
       final Map<String, dynamic> json = {
@@ -904,14 +904,13 @@ class FlutterInappPurchase
         'localizedPrice': product.localizedPrice,
         'currency': product.currency,
       };
-      
+
       // Add platform-specific fields if available
       if (product is iap_types.Product) {
         json['originalPrice'] = product.originalPrice;
         json['originalPriceAmount'] = product.originalPriceAmount;
-        json['signatureAndroid'] = product.signatureAndroid;
       }
-      
+
       return iap_types.IAPItem.fromJSON(json);
     }).toList();
   }
@@ -932,7 +931,7 @@ class FlutterInappPurchase
         type: iap_types.PurchaseType.subs,
       ),
     );
-    
+
     // Convert BaseProduct to IAPItem for backward compatibility
     return products.map((product) {
       final Map<String, dynamic> json = {
@@ -943,7 +942,7 @@ class FlutterInappPurchase
         'localizedPrice': product.localizedPrice,
         'currency': product.currency,
       };
-      
+
       // Add platform-specific fields if available
       if (product is iap_types.Subscription) {
         json['discountsIOS'] = product.discountsIOS;
@@ -953,7 +952,7 @@ class FlutterInappPurchase
         json['subscriptionOffersAndroid'] = product.subscriptionOffersAndroid;
         json['subscriptionPeriodAndroid'] = product.subscriptionPeriodAndroid;
       }
-      
+
       return iap_types.IAPItem.fromJSON(json);
     }).toList();
   }

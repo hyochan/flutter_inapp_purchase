@@ -227,18 +227,29 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
             if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                 for (purchase in productDetailList) {
                     val item = JSONObject()
+                    item.put("id", purchase.orderId)
                     item.put("productId", purchase.products[0])
-                    item.put("transactionId", purchase.orderId)
+                    item.put("ids", JSONArray(purchase.products))
+                    item.put("transactionId", purchase.orderId)  // @deprecated - use id instead
                     item.put("transactionDate", purchase.purchaseTime)
                     item.put("transactionReceipt", purchase.originalJson)
                     item.put("purchaseToken", purchase.purchaseToken)  // Unified field
                     item.put("purchaseTokenAndroid", purchase.purchaseToken)  // Deprecated - use purchaseToken
+                    item.put("dataAndroid", purchase.originalJson)
                     item.put("signatureAndroid", purchase.signature)
                     item.put("purchaseStateAndroid", purchase.purchaseState)
+                    item.put("packageNameAndroid", purchase.packageName)
+                    item.put("developerPayloadAndroid", purchase.developerPayload)
+                    item.put("platform", "android")
                     if (type == BillingClient.ProductType.INAPP) {
                         item.put("isAcknowledgedAndroid", purchase.isAcknowledged)
                     } else if (type == BillingClient.ProductType.SUBS) {
                         item.put("autoRenewingAndroid", purchase.isAutoRenewing)
+                    }
+                    val accountIdentifiers = purchase.accountIdentifiers
+                    if (accountIdentifiers != null) {
+                        item.put("obfuscatedAccountIdAndroid", accountIdentifiers.obfuscatedAccountId)
+                        item.put("obfuscatedProfileIdAndroid", accountIdentifiers.obfuscatedProfileId)
                     }
                     items.put(item)
                 }
@@ -347,13 +358,25 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                     val item = JSONObject()
                     item.put("id", purchase.orderId)
                     item.put("productId", purchase.products[0])
-                    item.put("transactionId", purchase.orderId)
+                    item.put("ids", JSONArray(purchase.products))
+                    item.put("transactionId", purchase.orderId)  // @deprecated - use id instead
                     item.put("transactionDate", purchase.purchaseTime)
                     item.put("transactionReceipt", purchase.originalJson)
                     item.put("purchaseToken", purchase.purchaseToken)  // Unified field
                     item.put("purchaseTokenAndroid", purchase.purchaseToken)  // Deprecated - use purchaseToken
                     item.put("dataAndroid", purchase.originalJson)
                     item.put("signatureAndroid", purchase.signature)
+                    item.put("purchaseStateAndroid", purchase.purchaseState)
+                    item.put("autoRenewingAndroid", purchase.isAutoRenewing)
+                    item.put("isAcknowledgedAndroid", purchase.isAcknowledged)
+                    item.put("packageNameAndroid", purchase.packageName)
+                    item.put("developerPayloadAndroid", purchase.developerPayload)
+                    item.put("platform", "android")
+                    val accountIdentifiers = purchase.accountIdentifiers
+                    if (accountIdentifiers != null) {
+                        item.put("obfuscatedAccountIdAndroid", accountIdentifiers.obfuscatedAccountId)
+                        item.put("obfuscatedProfileIdAndroid", accountIdentifiers.obfuscatedProfileId)
+                    }
                     items.put(item)
                 }
                 safeChannel.success(items.toString())
@@ -397,10 +420,24 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
 
                     // Create flutter objects
                     val item = JSONObject()
+                    item.put("id", productDetails.productId)
                     item.put("productId", productDetails.productId)
                     item.put("type", productDetails.productType)
                     item.put("title", productDetails.title)
+                    item.put("displayName", productDetails.name)
                     item.put("description", productDetails.description)
+                    item.put("platform", "android")
+                    
+                    // Set currency and displayPrice based on product type
+                    val currency = productDetails.oneTimePurchaseOfferDetails?.priceCurrencyCode
+                        ?: productDetails.subscriptionOfferDetails?.firstOrNull()?.pricingPhases?.pricingPhaseList?.firstOrNull()?.priceCurrencyCode
+                        ?: "Unknown"
+                    val displayPrice = productDetails.oneTimePurchaseOfferDetails?.formattedPrice
+                        ?: productDetails.subscriptionOfferDetails?.firstOrNull()?.pricingPhases?.pricingPhaseList?.firstOrNull()?.formattedPrice
+                        ?: "N/A"
+                    
+                    item.put("currency", currency)
+                    item.put("displayPrice", displayPrice)
 
                     // One-time offer details have changed in 5.0
                     if (productDetails.oneTimePurchaseOfferDetails != null) {
@@ -412,8 +449,14 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
 
                         if (oneTimePurchaseOfferDetails != null) {
                             item.put("price", (oneTimePurchaseOfferDetails.priceAmountMicros / 1000000f).toString())
-                            item.put("currency", oneTimePurchaseOfferDetails.priceCurrencyCode)
                             item.put("localizedPrice", oneTimePurchaseOfferDetails.formattedPrice)
+                            
+                            // Add structured oneTimePurchaseOfferDetails
+                            val offerDetails = JSONObject()
+                            offerDetails.put("priceCurrencyCode", oneTimePurchaseOfferDetails.priceCurrencyCode)
+                            offerDetails.put("formattedPrice", oneTimePurchaseOfferDetails.formattedPrice)
+                            offerDetails.put("priceAmountMicros", oneTimePurchaseOfferDetails.priceAmountMicros.toString())
+                            item.put("oneTimePurchaseOfferDetails", offerDetails)
                         }
                     } else if (productDetails.productType == BillingClient.ProductType.SUBS) {
                         // These generalized values are derived from the first pricing object, mainly for backwards compatibility
@@ -424,11 +467,41 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                         if (firstOffer != null && firstOffer.pricingPhases.pricingPhaseList.isNotEmpty()) {
                             val defaultPricingPhase = firstOffer.pricingPhases.pricingPhaseList[0]
                             item.put("price", (defaultPricingPhase.priceAmountMicros / 1000000f).toString())
-                            item.put("currency", defaultPricingPhase.priceCurrencyCode)
                             item.put("localizedPrice", defaultPricingPhase.formattedPrice)
                             item.put("subscriptionPeriodAndroid", defaultPricingPhase.billingPeriod)
                         }
     
+                        // Add structured subscriptionOfferDetails
+                        val subsOffers = JSONArray()
+                        if (productDetails.subscriptionOfferDetails != null) {
+                            for (offer in productDetails.subscriptionOfferDetails!!) {
+                                val offerItem = JSONObject()
+                                offerItem.put("basePlanId", offer.basePlanId)
+                                offerItem.put("offerId", offer.offerId)
+                                offerItem.put("offerToken", offer.offerToken)
+                                offerItem.put("offerTags", JSONArray(offer.offerTags))
+                                
+                                // Add pricingPhases
+                                val pricingPhasesObj = JSONObject()
+                                val pricingPhasesList = JSONArray()
+                                for (pricing in offer.pricingPhases.pricingPhaseList) {
+                                    val pricingPhase = JSONObject()
+                                    pricingPhase.put("formattedPrice", pricing.formattedPrice)
+                                    pricingPhase.put("priceCurrencyCode", pricing.priceCurrencyCode)
+                                    pricingPhase.put("billingPeriod", pricing.billingPeriod)
+                                    pricingPhase.put("billingCycleCount", pricing.billingCycleCount)
+                                    pricingPhase.put("priceAmountMicros", pricing.priceAmountMicros.toString())
+                                    pricingPhase.put("recurrenceMode", pricing.recurrenceMode)
+                                    pricingPhasesList.put(pricingPhase)
+                                }
+                                pricingPhasesObj.put("pricingPhaseList", pricingPhasesList)
+                                offerItem.put("pricingPhases", pricingPhasesObj)
+                                subsOffers.put(offerItem)
+                            }
+                        }
+                        item.put("subscriptionOfferDetails", subsOffers)
+                        
+                        // Keep backward compatibility with subscriptionOffers
                         val subs = JSONArray()
                         if (productDetails.subscriptionOfferDetails != null ) {
                             for (offer in productDetails.subscriptionOfferDetails!!) {
@@ -651,8 +724,10 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                 for (purchase in purchases) {
                     Log.d(TAG, "Processing purchase: productId=${purchase.products[0]}, orderId=${purchase.orderId}")
                     val item = JSONObject()
+                    item.put("id", purchase.orderId)
                     item.put("productId", purchase.products[0])
-                    item.put("transactionId", purchase.orderId)
+                    item.put("ids", JSONArray(purchase.products))
+                    item.put("transactionId", purchase.orderId)  // @deprecated - use id instead
                     item.put("transactionDate", purchase.purchaseTime)
                     item.put("transactionReceipt", purchase.originalJson)
                     item.put("purchaseToken", purchase.purchaseToken)  // Unified field for iOS JWS and Android purchaseToken
@@ -664,6 +739,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                     item.put("isAcknowledgedAndroid", purchase.isAcknowledged)
                     item.put("packageNameAndroid", purchase.packageName)
                     item.put("developerPayloadAndroid", purchase.developerPayload)
+                    item.put("platform", "android")
                     val accountIdentifiers = purchase.accountIdentifiers
                     if (accountIdentifiers != null) {
                         item.put("obfuscatedAccountIdAndroid", accountIdentifiers.obfuscatedAccountId)

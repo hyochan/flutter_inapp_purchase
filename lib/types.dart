@@ -83,13 +83,14 @@ class Product extends BaseProduct {
 
   // iOS-specific fields per OpenIAP spec
   final String? displayName;
+  final String? displayPrice;
   final bool? isFamilyShareable;
   final String? jsonRepresentation;
   final List<DiscountIOS>? discountsIOS;
   final SubscriptionInfo? subscription;
   final String? introductoryPriceNumberOfPeriodsIOS;
   final String? introductoryPriceSubscriptionPeriodIOS;
-  final String? subscriptionGroupIdentifierIOS;
+  final String? subscriptionGroupIdIOS;
   final String? subscriptionPeriodUnitIOS;
   final String? subscriptionPeriodNumberIOS;
   final String? introductoryPricePaymentModeIOS;
@@ -120,13 +121,14 @@ class Product extends BaseProduct {
     String? type,
     // iOS fields per OpenIAP spec
     this.displayName,
+    this.displayPrice,
     this.isFamilyShareable,
     this.jsonRepresentation,
     this.discountsIOS,
     this.subscription,
     this.introductoryPriceNumberOfPeriodsIOS,
     this.introductoryPriceSubscriptionPeriodIOS,
-    this.subscriptionGroupIdentifierIOS,
+    this.subscriptionGroupIdIOS,
     this.subscriptionPeriodUnitIOS,
     this.subscriptionPeriodNumberIOS,
     this.introductoryPricePaymentModeIOS,
@@ -167,6 +169,7 @@ class Product extends BaseProduct {
       type: json['type'] as String?,
       // iOS fields per OpenIAP spec
       displayName: json['displayName'] as String?,
+      displayPrice: json['displayPrice'] as String?,
       isFamilyShareable: json['isFamilyShareable'] as bool?,
       jsonRepresentation: json['jsonRepresentation'] as String?,
       discountsIOS: json['discountsIOS'] != null
@@ -183,8 +186,7 @@ class Product extends BaseProduct {
           json['introductoryPriceNumberOfPeriodsIOS'] as String?,
       introductoryPriceSubscriptionPeriodIOS:
           json['introductoryPriceSubscriptionPeriodIOS'] as String?,
-      subscriptionGroupIdentifierIOS:
-          json['subscriptionGroupIdentifierIOS'] as String?,
+      subscriptionGroupIdIOS: json['subscriptionGroupIdIOS'] as String?,
       subscriptionPeriodUnitIOS: json['subscriptionPeriodUnitIOS'] as String?,
       subscriptionPeriodNumberIOS:
           json['subscriptionPeriodNumberIOS'] as String?,
@@ -313,13 +315,14 @@ class Subscription extends BaseProduct {
 
   // iOS fields per OpenIAP spec
   final String? displayName;
+  final String? displayPrice;
   final bool? isFamilyShareable;
   final String? jsonRepresentation;
   final List<DiscountIOS>? discountsIOS;
   final SubscriptionInfo? subscription;
   final String? introductoryPriceNumberOfPeriodsIOS;
   final String? introductoryPriceSubscriptionPeriodIOS;
-  final String? subscriptionGroupIdentifierIOS;
+  final String? subscriptionGroupIdIOS;
   final String? subscriptionPeriodUnitIOS;
   final String? subscriptionPeriodNumberIOS;
   final String? introductoryPricePaymentModeIOS;
@@ -350,13 +353,14 @@ class Subscription extends BaseProduct {
     String? type,
     // iOS fields per OpenIAP spec
     this.displayName,
+    this.displayPrice,
     this.isFamilyShareable,
     this.jsonRepresentation,
     this.discountsIOS,
     this.subscription,
     this.introductoryPriceNumberOfPeriodsIOS,
     this.introductoryPriceSubscriptionPeriodIOS,
-    this.subscriptionGroupIdentifierIOS,
+    this.subscriptionGroupIdIOS,
     this.subscriptionPeriodUnitIOS,
     this.subscriptionPeriodNumberIOS,
     this.introductoryPricePaymentModeIOS,
@@ -397,6 +401,7 @@ class Subscription extends BaseProduct {
       type: json['type'] as String?,
       // iOS fields per OpenIAP spec
       displayName: json['displayName'] as String?,
+      displayPrice: json['displayPrice'] as String?,
       isFamilyShareable: json['isFamilyShareable'] as bool?,
       jsonRepresentation: json['jsonRepresentation'] as String?,
       discountsIOS: json['discountsIOS'] != null
@@ -413,8 +418,7 @@ class Subscription extends BaseProduct {
           json['introductoryPriceNumberOfPeriodsIOS'] as String?,
       introductoryPriceSubscriptionPeriodIOS:
           json['introductoryPriceSubscriptionPeriodIOS'] as String?,
-      subscriptionGroupIdentifierIOS:
-          json['subscriptionGroupIdentifierIOS'] as String?,
+      subscriptionGroupIdIOS: json['subscriptionGroupIdIOS'] as String?,
       subscriptionPeriodUnitIOS: json['subscriptionPeriodUnitIOS'] as String?,
       subscriptionPeriodNumberIOS:
           json['subscriptionPeriodNumberIOS'] as String?,
@@ -499,7 +503,7 @@ class ProductIOS extends Product {
               introductoryPriceNumberOfPeriodsIOS,
           introductoryPriceSubscriptionPeriodIOS:
               introductoryPriceSubscriptionPeriodIOS,
-          subscriptionGroupIdentifierIOS: subscriptionGroupIdentifier,
+          subscriptionGroupIdIOS: subscriptionGroupIdentifier,
           subscriptionPeriodUnitIOS: subscriptionPeriodUnit,
           subscriptionPeriodNumberIOS: subscriptionPeriodNumber,
           introductoryPricePaymentModeIOS: introductoryPricePaymentMode,
@@ -624,23 +628,26 @@ enum RecurrenceMode { infiniteRecurring, finiteRecurring, nonRecurring }
 
 /// Subscription info for iOS (OpenIAP compliant)
 class SubscriptionInfo {
-  final String subscriptionGroupId;
-  final String subscriptionPeriod;
-  final String? promotionalOffers;
+  final String? subscriptionGroupId;
+  final Map<String, dynamic>? subscriptionPeriod;
+  final Map<String, dynamic>? introductoryOffer;
+  final List<dynamic>? promotionalOffers;
   final String? introductoryPrice;
 
   SubscriptionInfo({
-    required this.subscriptionGroupId,
-    required this.subscriptionPeriod,
+    this.subscriptionGroupId,
+    this.subscriptionPeriod,
+    this.introductoryOffer,
     this.promotionalOffers,
     this.introductoryPrice,
   });
 
   factory SubscriptionInfo.fromJson(Map<String, dynamic> json) {
     return SubscriptionInfo(
-      subscriptionGroupId: json['subscriptionGroupId'] as String? ?? '',
-      subscriptionPeriod: json['subscriptionPeriod'] as String? ?? '',
-      promotionalOffers: json['promotionalOffers'] as String?,
+      subscriptionGroupId: json['subscriptionGroupId'] as String?,
+      subscriptionPeriod: json['subscriptionPeriod'] as Map<String, dynamic>?,
+      introductoryOffer: json['introductoryOffer'] as Map<String, dynamic>?,
+      promotionalOffers: json['promotionalOffers'] as List<dynamic>?,
       introductoryPrice: json['introductoryPrice'] as String?,
     );
   }
@@ -801,7 +808,7 @@ class Purchase {
   final String? revocationReasonIOS;
   final String? appAccountTokenIOS;
   final String? webOrderLineItemIdIOS;
-  final String? subscriptionGroupIdentifierIOS;
+  final String? subscriptionGroupIdIOS;
   final bool? isUpgradedIOS;
   final String? offerCodeRefNameIOS;
   final String? offerIdentifierIOS;
@@ -880,7 +887,7 @@ class Purchase {
     this.revocationReasonIOS,
     this.appAccountTokenIOS,
     this.webOrderLineItemIdIOS,
-    this.subscriptionGroupIdentifierIOS,
+    this.subscriptionGroupIdIOS,
     this.isUpgradedIOS,
     this.offerCodeRefNameIOS,
     this.offerIdentifierIOS,
@@ -972,8 +979,7 @@ class Purchase {
       revocationReasonIOS: json['revocationReasonIOS'] as String?,
       appAccountTokenIOS: json['appAccountTokenIOS'] as String?,
       webOrderLineItemIdIOS: json['webOrderLineItemIdIOS'] as String?,
-      subscriptionGroupIdentifierIOS:
-          json['subscriptionGroupIdentifierIOS'] as String?,
+      subscriptionGroupIdIOS: json['subscriptionGroupIdIOS'] as String?,
       isUpgradedIOS: json['isUpgradedIOS'] as bool?,
       offerCodeRefNameIOS: json['offerCodeRefNameIOS'] as String?,
       offerIdentifierIOS: json['offerIdentifierIOS'] as String?,

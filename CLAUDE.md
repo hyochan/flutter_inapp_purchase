@@ -20,8 +20,13 @@ Before committing any changes, run these commands in order and ensure ALL pass:
 
 - **iOS-related code**: Use `IOS` suffix (e.g., `PurchaseIOS`, `SubscriptionOfferIOS`)
   - When iOS is not the final suffix, use `Ios` (e.g., `IosManager`, `IosHelper`)
+  - For field names with iOS in the middle: use `Id` before `IOS` (e.g., `subscriptionGroupIdIOS`, `webOrderLineItemIdIOS`)
 - **Android-related code**: Use `Android` suffix (e.g., `PurchaseAndroid`, `SubscriptionOfferAndroid`)
 - **IAP-related code**: When IAP is not the final suffix, use `Iap` (e.g., `IapPurchase`, not `IAPPurchase`)
+- **ID vs Id convention**: 
+  - Use `Id` consistently across all platforms (e.g., `productId`, `transactionId`, `offerId`)
+  - When combined with platform suffixes: use `Id` before the suffix (e.g., `subscriptionGroupIdIOS`, `webOrderLineItemIdIOS`, `obfuscatedAccountIdAndroid`)
+  - Exception: Standalone iOS fields that end with ID use `ID` (e.g., `transactionID`, `webOrderLineItemID` in iOS-only contexts)
 - This applies to both functions and types
 
 ### API Method Naming
