@@ -50,7 +50,8 @@ void main() {
       });
     });
 
-    group('getProducts', skip: 'Deprecated method - uses requestProducts internally', () {
+    group('getProducts',
+        skip: 'Deprecated method - uses requestProducts internally', () {
       group('for Android', () {
         final List<MethodCall> log = <MethodCall>[];
         late FlutterInappPurchase testIap;
@@ -66,7 +67,8 @@ void main() {
               return true;
             }
             // For requestProducts, Android expects parsed JSON list
-            if (methodCall.method == 'getProducts' || methodCall.method == 'getSubscriptions') {
+            if (methodCall.method == 'getProducts' ||
+                methodCall.method == 'getSubscriptions') {
               return '''[
                 {
                   "productId": "com.example.product1",
@@ -98,7 +100,7 @@ void main() {
           // Initialize connection first
           await testIap.initConnection();
           log.clear(); // Clear init log
-          
+
           await testIap.getProducts([
             'com.example.product1',
             'com.example.product2',
@@ -116,7 +118,7 @@ void main() {
         test('returns correct products', () async {
           // Initialize connection first
           await testIap.initConnection();
-          
+
           final products = await testIap.getProducts([
             'com.example.product1',
             'com.example.product2',
@@ -130,7 +132,8 @@ void main() {
       });
     });
 
-    group('getSubscriptions', skip: 'Deprecated method - uses requestProducts internally', () {
+    group('getSubscriptions',
+        skip: 'Deprecated method - uses requestProducts internally', () {
       group('for iOS', () {
         final List<MethodCall> log = <MethodCall>[];
         late FlutterInappPurchase testIap;
@@ -168,7 +171,7 @@ void main() {
           // Initialize connection first
           await testIap.initConnection();
           log.clear(); // Clear init log
-          
+
           await testIap.getSubscriptions(['com.example.subscription1']);
           expect(log, <Matcher>[
             isMethodCall(
@@ -183,7 +186,7 @@ void main() {
         test('returns correct subscriptions', () async {
           // Initialize connection first
           await testIap.initConnection();
-          
+
           final subscriptions = await testIap.getSubscriptions([
             'com.example.subscription1',
           ]);

@@ -142,7 +142,7 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
     debugPrint('  isAcknowledgedAndroid: ${purchase.isAcknowledgedAndroid}');
 
     if (!mounted) return;
-    
+
     setState(() {
       _isProcessing = false;
 
@@ -269,7 +269,7 @@ Receipt: ${purchase.transactionReceipt?.substring(0, purchase.transactionReceipt
 
   void _handlePurchaseError(PurchaseError error) {
     if (!mounted) return;
-    
+
     setState(() {
       _isProcessing = false;
 
@@ -346,7 +346,7 @@ Platform: ${error.platform}
           type: PurchaseType.subs,
         ),
       );
-      
+
       // Convert BaseProduct to IAPItem for compatibility
       final subscriptions = products.map((product) {
         // Cast to Product or Subscription to access extended fields
@@ -379,7 +379,7 @@ Platform: ${error.platform}
           });
         }
       }).toList();
-      
+
       if (mounted) {
         setState(() {
           _subscriptions = subscriptions;
