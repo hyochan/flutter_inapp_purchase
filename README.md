@@ -19,8 +19,14 @@
 
 ```yaml
 dependencies:
-  flutter_inapp_purchase: ^6.2.0
+  flutter_inapp_purchase: ^6.3.0
 ```
+
+## 🔄 What's New in 6.3.0
+
+**📝 [Read the full release blog post](docs/blog/2025-08-19-6.3.0.release.md)**
+
+Version 6.3.0 brings critical bug fixes, enhanced OpenIAP compliance, and improved test coverage while maintaining full backward compatibility.
 
 ## 🔧 Quick Start
 
@@ -35,16 +41,21 @@ final iap = FlutterInappPurchase();
 // Initialize connection
 await iap.initConnection();
 
-// Get products
-final products = await iap.getProducts(['product_id']);
+// Get products (using the new unified API)
+final products = await iap.requestProducts(
+  RequestProductsParams(
+    productIds: ['product_id'],
+    type: PurchaseType.inapp,
+  ),
+);
 
 // Request purchase
 await iap.requestPurchase(
-  RequestPurchase(
-    ios: RequestPurchaseIosProps(sku: 'product_id'),
-    android: RequestPurchaseAndroidProps(skus: ['product_id']),
+  request: RequestPurchase(
+    ios: RequestPurchaseIOS(sku: 'product_id'),
+    android: RequestPurchaseAndroid(skus: ['product_id']),
   ),
-  PurchaseType.inapp,
+  type: PurchaseType.inapp,
 );
 ```
 
