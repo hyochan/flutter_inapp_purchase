@@ -46,16 +46,20 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
   }
 
   Future<void> _initConnection() async {
-    setState(() {
-      _isConnecting = true;
-    });
+    if (mounted) {
+      setState(() {
+        _isConnecting = true;
+      });
+    }
 
     try {
       // Step 1: Initialize connection
       final connectionResult = await _iap.initConnection();
-      setState(() {
-        _connected = connectionResult == true;
-      });
+      if (mounted) {
+        setState(() {
+          _connected = connectionResult == true;
+        });
+      }
 
       if (!_connected) {
         debugPrint('Failed to connect to store');
@@ -65,10 +69,12 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
       // Step 2: Connection successful, setup listeners and load products
       _setupPurchaseListeners();
 
-      setState(() {
-        _isConnecting = false;
-        _isLoadingProducts = true;
-      });
+      if (mounted) {
+        setState(() {
+          _isConnecting = false;
+          _isLoadingProducts = true;
+        });
+      }
 
       // Load active purchases and subscription products in parallel
       await Future.wait([
@@ -77,15 +83,19 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
       ]);
     } catch (e) {
       debugPrint('Failed to initialize IAP connection: $e');
-      setState(() {
-        _purchaseResult = 'Initialization error: $e';
-        _connected = false;
-      });
+      if (mounted) {
+        setState(() {
+          _purchaseResult = 'Initialization error: $e';
+          _connected = false;
+        });
+      }
     } finally {
-      setState(() {
-        _isConnecting = false;
-        _isLoadingProducts = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isConnecting = false;
+          _isLoadingProducts = false;
+        });
+      }
     }
   }
 
@@ -131,6 +141,8 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
     debugPrint('  transactionDate: ${purchase.transactionDate}');
     debugPrint('  isAcknowledgedAndroid: ${purchase.isAcknowledgedAndroid}');
 
+    if (!mounted) return;
+    
     setState(() {
       _isProcessing = false;
 
@@ -175,18 +187,20 @@ Receipt: ${purchase.transactionReceipt?.substring(0, purchase.transactionReceipt
       // Still reload active subscriptions and update UI
       await _loadActiveSubscriptions();
 
-      setState(() {
-        _purchaseResult =
-            '$_purchaseResult\n\n✅ Purchase successful (development mode - transaction finish skipped)';
+      if (mounted) {
+        setState(() {
+          _purchaseResult =
+              '$_purchaseResult\n\n✅ Purchase successful (development mode - transaction finish skipped)';
 
-        // Update active subscriptions list
-        if (subscriptionIds.contains(purchase.productId)) {
-          if (!_activeSubscriptions
-              .any((p) => p.productId == purchase.productId)) {
-            _activeSubscriptions.add(purchase);
+          // Update active subscriptions list
+          if (subscriptionIds.contains(purchase.productId)) {
+            if (!_activeSubscriptions
+                .any((p) => p.productId == purchase.productId)) {
+              _activeSubscriptions.add(purchase);
+            }
           }
-        }
-      });
+        });
+      }
       return;
     }
 
@@ -201,18 +215,20 @@ Receipt: ${purchase.transactionReceipt?.substring(0, purchase.transactionReceipt
       // Reload active subscriptions with new API
       await _loadActiveSubscriptions();
 
-      setState(() {
-        _purchaseResult =
-            '$_purchaseResult\n\n✅ Transaction finished successfully';
+      if (mounted) {
+        setState(() {
+          _purchaseResult =
+              '$_purchaseResult\n\n✅ Transaction finished successfully';
 
-        // Update active subscriptions list
-        if (subscriptionIds.contains(purchase.productId)) {
-          if (!_activeSubscriptions
-              .any((p) => p.productId == purchase.productId)) {
-            _activeSubscriptions.add(purchase);
+          // Update active subscriptions list
+          if (subscriptionIds.contains(purchase.productId)) {
+            if (!_activeSubscriptions
+                .any((p) => p.productId == purchase.productId)) {
+              _activeSubscriptions.add(purchase);
+            }
           }
-        }
-      });
+        });
+      }
     } catch (e) {
       debugPrint('Error finishing subscription transaction: $e');
 
@@ -226,28 +242,34 @@ Receipt: ${purchase.transactionReceipt?.substring(0, purchase.transactionReceipt
         // Still reload active subscriptions and update UI
         await _loadActiveSubscriptions();
 
-        setState(() {
-          _purchaseResult =
-              '$_purchaseResult\n\n⚠️ Purchase successful but transaction cleanup failed (common in development)';
+        if (mounted) {
+          setState(() {
+            _purchaseResult =
+                '$_purchaseResult\n\n⚠️ Purchase successful but transaction cleanup failed (common in development)';
 
-          // Update active subscriptions list
-          if (subscriptionIds.contains(purchase.productId)) {
-            if (!_activeSubscriptions
-                .any((p) => p.productId == purchase.productId)) {
-              _activeSubscriptions.add(purchase);
+            // Update active subscriptions list
+            if (subscriptionIds.contains(purchase.productId)) {
+              if (!_activeSubscriptions
+                  .any((p) => p.productId == purchase.productId)) {
+                _activeSubscriptions.add(purchase);
+              }
             }
-          }
-        });
+          });
+        }
       } else {
-        setState(() {
-          _purchaseResult =
-              '$_purchaseResult\n\n❌ Failed to finish transaction: $e';
-        });
+        if (mounted) {
+          setState(() {
+            _purchaseResult =
+                '$_purchaseResult\n\n❌ Failed to finish transaction: $e';
+          });
+        }
       }
     }
   }
 
   void _handlePurchaseError(PurchaseError error) {
+    if (!mounted) return;
+    
     setState(() {
       _isProcessing = false;
 
@@ -278,13 +300,15 @@ Platform: ${error.platform}
         subscriptionIds: subscriptionIds,
       );
 
-      setState(() {
-        _activeSubscriptions = purchases
-            .where((p) => subscriptionIds.contains(p.productId))
-            .toList();
-        _activeSubscriptionDetails = activeSubscriptions;
-        _hasActiveSubscription = hasActive;
-      });
+      if (mounted) {
+        setState(() {
+          _activeSubscriptions = purchases
+              .where((p) => subscriptionIds.contains(p.productId))
+              .toList();
+          _activeSubscriptionDetails = activeSubscriptions;
+          _hasActiveSubscription = hasActive;
+        });
+      }
 
       debugPrint('Loaded ${_activeSubscriptions.length} active subscriptions');
       debugPrint('Has active subscription: $_hasActiveSubscription');
@@ -315,31 +339,79 @@ Platform: ${error.platform}
     try {
       debugPrint(
           'Loading subscriptions for IDs: ${subscriptionIds.join(", ")}');
-      final subscriptions = await _iap.getSubscriptions(subscriptionIds);
-      setState(() {
-        _subscriptions = subscriptions;
-      });
+      // Use requestProducts instead of deprecated getSubscriptions
+      final products = await _iap.requestProducts(
+        RequestProductsParams(
+          productIds: subscriptionIds,
+          type: PurchaseType.subs,
+        ),
+      );
+      
+      // Convert BaseProduct to IAPItem for compatibility
+      final subscriptions = products.map((product) {
+        // Cast to Product or Subscription to access extended fields
+        if (product is Subscription) {
+          return IAPItem.fromJSON({
+            'productId': product.productId,
+            'title': product.title,
+            'description': product.description,
+            'price': product.price,
+            'localizedPrice': product.localizedPrice,
+            'currency': product.currency,
+            // iOS specific
+            'discountsIOS': product.discountsIOS,
+            'subscriptionGroupIdentifierIOS': product.subscriptionGroupIdIOS,
+            'isFamilyShareableIOS': product.isFamilyShareable,
+            'jsonRepresentationIOS': product.jsonRepresentation,
+            // Android specific
+            'subscriptionOffersAndroid': product.subscriptionOffersAndroid,
+            'subscriptionPeriodAndroid': product.subscriptionPeriodAndroid,
+          });
+        } else {
+          // Fallback for basic product
+          return IAPItem.fromJSON({
+            'productId': product.productId,
+            'title': product.title,
+            'description': product.description,
+            'price': product.price,
+            'localizedPrice': product.localizedPrice,
+            'currency': product.currency,
+          });
+        }
+      }).toList();
+      
+      if (mounted) {
+        setState(() {
+          _subscriptions = subscriptions;
+        });
+      }
 
       if (_subscriptions.isEmpty) {
-        setState(() {
-          _purchaseResult =
-              'No subscriptions found for IDs: ${subscriptionIds.join(", ")}';
-        });
+        if (mounted) {
+          setState(() {
+            _purchaseResult =
+                'No subscriptions found for IDs: ${subscriptionIds.join(", ")}';
+          });
+        }
       } else {
         debugPrint('Loaded ${_subscriptions.length} subscription products');
       }
     } catch (e) {
       debugPrint('Error loading subscriptions: $e');
-      setState(() {
-        _purchaseResult = 'Failed to load subscriptions: $e';
-      });
+      if (mounted) {
+        setState(() {
+          _purchaseResult = 'Failed to load subscriptions: $e';
+        });
+      }
     }
   }
 
   Future<void> _refreshSubscriptions() async {
-    setState(() {
-      _isLoadingProducts = true;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoadingProducts = true;
+      });
+    }
 
     try {
       await Future.wait([
@@ -349,17 +421,21 @@ Platform: ${error.platform}
     } catch (e) {
       debugPrint('Failed to refresh subscriptions: $e');
     } finally {
-      setState(() {
-        _isLoadingProducts = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoadingProducts = false;
+        });
+      }
     }
   }
 
   Future<void> _restorePurchases() async {
-    setState(() {
-      _isProcessing = true;
-      _purchaseResult = null;
-    });
+    if (mounted) {
+      setState(() {
+        _isProcessing = true;
+        _purchaseResult = null;
+      });
+    }
 
     try {
       debugPrint('🔄 Restoring purchases...');
@@ -371,47 +447,59 @@ Platform: ${error.platform}
       await _loadActiveSubscriptions();
 
       if (_activeSubscriptionDetails.isNotEmpty) {
-        setState(() {
-          _purchaseResult = '''
+        if (mounted) {
+          setState(() {
+            _purchaseResult = '''
 ✅ Purchases restored successfully!
 Found ${_activeSubscriptionDetails.length} active subscription(s):
 ${_activeSubscriptionDetails.map((sub) => '• ${sub.productId}').join('\n')}
-          '''
-              .trim();
-        });
+            '''
+                .trim();
+          });
+        }
       } else if (restoredPurchases.isNotEmpty) {
-        setState(() {
-          _purchaseResult = '''
+        if (mounted) {
+          setState(() {
+            _purchaseResult = '''
 ✅ Restored ${restoredPurchases.length} purchase(s)
 ${restoredPurchases.map((p) => '• ${p.productId}').join('\n')}
-          '''
-              .trim();
-        });
+            '''
+                .trim();
+          });
+        }
       } else {
-        setState(() {
-          _purchaseResult = 'No purchases to restore';
-        });
+        if (mounted) {
+          setState(() {
+            _purchaseResult = 'No purchases to restore';
+          });
+        }
       }
 
       debugPrint('✅ Restore completed');
     } catch (e) {
       debugPrint('❌ Restore failed: $e');
-      setState(() {
-        _purchaseResult = '❌ Failed to restore purchases: $e';
-      });
+      if (mounted) {
+        setState(() {
+          _purchaseResult = '❌ Failed to restore purchases: $e';
+        });
+      }
     } finally {
-      setState(() {
-        _isProcessing = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+        });
+      }
     }
   }
 
   Future<void> _handleSubscribe(String productId) async {
     debugPrint('🛒 Starting subscription for: $productId');
-    setState(() {
-      _isProcessing = true;
-      _purchaseResult = null;
-    });
+    if (mounted) {
+      setState(() {
+        _isProcessing = true;
+        _purchaseResult = null;
+      });
+    }
 
     try {
       debugPrint('Requesting subscription purchase...');
@@ -430,10 +518,12 @@ ${restoredPurchases.map((p) => '• ${p.productId}').join('\n')}
       debugPrint('✅ Subscription request sent successfully');
       // Note: The actual subscription result will come through the purchaseUpdatedListener
     } catch (error) {
-      setState(() {
-        _isProcessing = false;
-        _purchaseResult = 'Subscription failed: $error';
-      });
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+          _purchaseResult = 'Subscription failed: $error';
+        });
+      }
       debugPrint('❌ Subscription request error: $error');
     }
   }
@@ -809,9 +899,11 @@ ${restoredPurchases.map((p) => '• ${p.productId}').join('\n')}
                         IconButton(
                           icon: const Icon(Icons.close, size: 20),
                           onPressed: () {
-                            setState(() {
-                              _purchaseResult = null;
-                            });
+                            if (mounted) {
+                              setState(() {
+                                _purchaseResult = null;
+                              });
+                            }
                           },
                         ),
                       ],
