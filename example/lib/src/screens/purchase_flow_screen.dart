@@ -109,6 +109,21 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
   }
 
   Future<void> _handlePurchaseUpdate(Purchase purchase) async {
+    print('🎯 Purchase update received: ${purchase.productId}');
+    print('  Platform: ${purchase.platform}');
+    print('  Purchase state: ${purchase.purchaseState}');
+    print('  Purchase state Android: ${purchase.purchaseStateAndroid}');
+    print('  Transaction state iOS: ${purchase.transactionStateIOS}');
+    print('  Is acknowledged: ${purchase.isAcknowledgedAndroid}');
+    print('  Transaction ID: ${purchase.transactionId}');
+    print('  Purchase token: ${purchase.purchaseToken}');
+    print('  ID: ${purchase.id}');
+
+    if (!mounted) {
+      print('  ⚠️ Widget not mounted, ignoring update');
+      return;
+    }
+
     // Check if we've already processed this transaction
     final transactionId =
         purchase.id.isNotEmpty ? purchase.id : purchase.transactionId;
@@ -118,7 +133,60 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
       return;
     }
 
-    debugPrint('Purchase successful: ${purchase.productId}');
+    // Determine if purchase is successful using same logic as subscription flow
+    bool isPurchased = false;
+
+    if (Platform.isAndroid) {
+      // For Android, check multiple conditions since fields can be null
+      bool condition1 = purchase.purchaseState == PurchaseState.purchased;
+      bool condition2 = (purchase.isAcknowledgedAndroid == false &&
+          purchase.purchaseToken != null &&
+          purchase.purchaseToken!.isNotEmpty);
+      bool condition3 = purchase.purchaseStateAndroid == 1;
+      
+      print('  Android condition checks:');
+      print('    purchaseState == purchased: $condition1');
+      print('    unacknowledged with token: $condition2');
+      print('    purchaseStateAndroid == 1: $condition3');
+      
+      isPurchased = condition1 || condition2 || condition3;
+      print('  Final isPurchased: $isPurchased');
+    } else {
+      // For iOS - same logic as subscription flow
+      bool condition1 =
+          purchase.transactionStateIOS == TransactionState.purchased;
+      bool condition2 = purchase.purchaseToken != null &&
+          purchase.purchaseToken!.isNotEmpty;
+      bool condition3 = purchase.transactionId != null &&
+          purchase.transactionId!.isNotEmpty;
+
+      print('  iOS condition checks:');
+      print('    transactionStateIOS == purchased: $condition1');
+      print('    has valid purchaseToken: $condition2');
+      print('    has valid transactionId: $condition3');
+
+      // For iOS, receiving a purchase update usually means success
+      isPurchased = condition1 || condition2 || condition3;
+      print('  Final isPurchased: $isPurchased');
+    }
+
+    if (!isPurchased) {
+      print('❓ Purchase not detected as successful');
+      setState(() {
+        _isProcessing = false;
+        _purchaseResult = '''
+⚠️ Purchase received but state unknown
+Platform: ${purchase.platform}
+Purchase state: ${purchase.purchaseState}
+iOS transaction state: ${purchase.transactionStateIOS}
+Android purchase state: ${purchase.purchaseStateAndroid}
+Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpty}
+        '''.trim();
+      });
+      return;
+    }
+
+    debugPrint('✅ Purchase detected as successful: ${purchase.productId}');
     debugPrint('Purchase token: ${purchase.purchaseToken}');
     debugPrint('ID: ${purchase.id}'); // OpenIAP standard
     debugPrint('Transaction ID: ${purchase.transactionId}'); // Legacy field
@@ -181,7 +249,27 @@ Purchase Token: ${purchase.purchaseToken?.substring(0, 30)}...
       // Format error result like KMP-IAP
       if (error.code == ErrorCode.eUserCancelled) {
         _purchaseResult = '⚠️ Purchase cancelled by user';
-      } else if (error.message?.contains('responseCode: 6') ?? false) {
+      } else if (error.message.contains('요청한 시간이 초과되었습니다') || 
+                 error.message.contains('timeout') ||
+                 error.message.contains('timed out')) {
+        // Apple/Google server timeout error
+        _purchaseResult = '''
+⏱️ Request Timeout
+Code: ${error.code}
+Message: ${error.message}
+
+🔄 Suggested Actions:
+1. Check your internet connection
+2. Wait a few minutes and try again
+3. Restart the app
+4. Try on a different network (WiFi/Cellular)
+5. Restart your device
+6. Check Apple/Google server status
+
+This is usually a temporary server issue.
+        '''
+            .trim();
+      } else if (error.message.contains('responseCode: 6')) {
         // Server error - responseCode: 6 is BILLING_RESPONSE_RESULT_ERROR
         _purchaseResult = '''
 ❌ Google Play Server Error
@@ -196,7 +284,7 @@ Message: ${error.message}
 5. Try testing with a different test account
         '''
             .trim();
-      } else if (error.message?.contains('responseCode: 3') ?? false) {
+      } else if (error.message.contains('responseCode: 3')) {
         // Service unavailable
         _purchaseResult = '''
 ❌ Service Unavailable
@@ -273,7 +361,7 @@ Platform: ${error.platform}
     debugPrint('🛒 Starting purchase for: $productId (retry: $retryCount)');
     debugPrint('📱 Platform: ${Platform.operatingSystem}');
     debugPrint('🔗 Connection status: $_connected');
-    
+
     setState(() {
       _isProcessing = true;
       _purchaseResult = null; // Clear previous results
@@ -282,7 +370,7 @@ Platform: ${error.platform}
     try {
       debugPrint('Requesting purchase...');
       debugPrint('Product ID: $productId');
-      
+
       // Log the actual request being sent
       final request = RequestPurchase(
         ios: RequestPurchaseIOS(
@@ -292,9 +380,10 @@ Platform: ${error.platform}
           skus: [productId],
         ),
       );
-      
-      debugPrint('Request details: Android SKUs: ${request.android?.skus}, iOS SKU: ${request.ios?.sku}');
-      
+
+      debugPrint(
+          'Request details: Android SKUs: ${request.android?.skus}, iOS SKU: ${request.ios?.sku}');
+
       await _iap.requestPurchase(
         request: request,
         type: PurchaseType.inapp,
@@ -334,7 +423,7 @@ Platform: ${error.platform}
 
           if (shouldRetry == true) {
             // Wait a bit before retrying
-            await Future.delayed(const Duration(seconds: 2));
+            await Future<void>.delayed(const Duration(seconds: 2));
             await _handlePurchase(productId, retryCount: retryCount + 1);
             return;
           }
@@ -460,18 +549,22 @@ Platform: ${error.platform}
                                         _purchaseResult = null;
                                       });
                                       try {
-                                        debugPrint('Checking available purchases...');
-                                        final purchases = await _iap.getAvailablePurchases();
+                                        debugPrint(
+                                            'Checking available purchases...');
+                                        final purchases =
+                                            await _iap.getAvailablePurchases();
                                         setState(() {
                                           _purchaseResult = '''
 📊 Available Purchases: ${purchases.length}
 ${purchases.map((p) => '- ${p.productId}: ${p.purchaseToken?.substring(0, 20)}...').join('\n')}
-                                          '''.trim();
+                                          '''
+                                              .trim();
                                           _isProcessing = false;
                                         });
                                       } catch (e) {
                                         setState(() {
-                                          _purchaseResult = '❌ Error checking purchases: $e';
+                                          _purchaseResult =
+                                              '❌ Error checking purchases: $e';
                                           _isProcessing = false;
                                         });
                                       }
@@ -505,10 +598,12 @@ ${purchases.map((p) => '- ${p.productId}: ${p.purchaseToken?.substring(0, 20)}..
                                       try {
                                         // Re-initialize connection
                                         await _iap.endConnection();
-                                        await Future.delayed(const Duration(seconds: 1));
+                                        await Future<void>.delayed(
+                                            const Duration(seconds: 1));
                                         await _initConnection();
                                         setState(() {
-                                          _purchaseResult = '✅ Connection reinitialized';
+                                          _purchaseResult =
+                                              '✅ Connection reinitialized';
                                           _isProcessing = false;
                                         });
                                       } catch (e) {
@@ -518,7 +613,8 @@ ${purchases.map((p) => '- ${p.productId}: ${p.purchaseToken?.substring(0, 20)}..
                                         });
                                       }
                                     },
-                              icon: const Icon(Icons.power_settings_new, size: 16),
+                              icon: const Icon(Icons.power_settings_new,
+                                  size: 16),
                               label: const Text('Reinit Connection'),
                             ),
                           ],
