@@ -1216,12 +1216,18 @@ class FlutterInappPurchase
         return;
       } else {
         if (purchase.isAcknowledgedAndroid == true) {
-          print(
-              '[FlutterInappPurchase] Android: Purchase already acknowledged');
+          if (kDebugMode) {
+            debugPrint(
+                '[FlutterInappPurchase] Android: Purchase already acknowledged');
+          }
           return;
         } else {
-          print(
-              '[FlutterInappPurchase] Android: Acknowledging purchase with token: ${purchase.purchaseToken}');
+          if (kDebugMode) {
+            final maskedToken = (purchase.purchaseToken ?? '')
+                .replaceAllMapped(RegExp(r'.(?=.{4})'), (m) => '*');
+            debugPrint(
+                '[FlutterInappPurchase] Android: Acknowledging purchase with token: $maskedToken');
+          }
           await _channel.invokeMethod('acknowledgePurchase', <String, dynamic>{
             'purchaseToken': purchase.purchaseToken,
           });

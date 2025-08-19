@@ -25,6 +25,7 @@ dependencies:
 ## 🔄 What's New in 6.3.1
 
 ### Bug Fixes
+
 - Fixed Android subscription loading type casting error
 - Removed deprecated test product IDs
 - Improved type safety for native platform data
