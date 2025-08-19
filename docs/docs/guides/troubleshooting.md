@@ -456,6 +456,80 @@ class ConnectionDiagnostics {
 }
 ```
 
+### iOS Purchase State Detection Issues
+
+**Problem**: iOS purchases succeed but UI remains stuck in "Processing..." state.
+
+**Symptoms:**
+- Purchase logs show valid `purchaseToken` and `transactionId`
+- `transactionStateIOS` returns `null`
+- UI doesn't update to success state
+- Transaction completes but user doesn't see confirmation
+
+**Root Cause**: iOS App Store sometimes returns `null` for `transactionStateIOS` even when purchases are successful.
+
+**Solution**: Use enhanced purchase state detection logic:
+
+```dart
+Future<void> _handlePurchaseUpdate(Purchase purchase) async {
+  bool isPurchased = false;
+
+  if (Platform.isIOS) {
+    // Enhanced iOS detection - check multiple conditions
+    bool condition1 = purchase.transactionStateIOS == TransactionState.purchased;
+    bool condition2 = purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpty;
+    bool condition3 = purchase.transactionId != null && purchase.transactionId!.isNotEmpty;
+
+    // For iOS, any valid token or transaction ID usually indicates success
+    isPurchased = condition1 || condition2 || condition3;
+    
+    print('iOS purchase state detection:');
+    print('  transactionStateIOS == purchased: $condition1');
+    print('  has valid purchaseToken: $condition2');
+    print('  has valid transactionId: $condition3');
+    print('  Final result: $isPurchased');
+  }
+
+  if (isPurchased) {
+    // Update UI immediately
+    setState(() {
+      _isProcessing = false;
+      _purchaseResult = '✅ Purchase successful';
+    });
+    
+    // Finish the transaction
+    await FlutterInappPurchase.instance.finishTransaction(purchase);
+  }
+}
+```
+
+**Timeout Error Handling**:
+
+```dart
+void _handlePurchaseError(PurchaseError error) {
+  if (error.message.contains('요청한 시간이 초과되었습니다') || 
+      error.message.contains('timeout')) {
+    // Apple server timeout - provide user guidance
+    setState(() {
+      _purchaseResult = '''
+⏱️ Request Timeout - Apple Server Issue
+
+Suggested actions:
+1. Check internet connection
+2. Wait 2-3 minutes and try again
+3. Restart the app
+4. Try on different network (WiFi/Cellular)
+5. Restart device if problem persists
+
+This is usually temporary.
+      ''';
+    });
+  }
+}
+```
+
+**See also**: [iOS Purchase State Detection Guide](./ios-purchase-state-detection.md)
+
 ### Platform-specific issues
 
 **iOS Specific:**
