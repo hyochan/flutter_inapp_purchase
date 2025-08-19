@@ -135,6 +135,32 @@ enum ResponseCodeAndroid {
 enum PurchaseState { pending, purchased, unspecified }
 
 /// Android Proration Mode
+///
+/// IMPORTANT: Proration modes are ONLY for upgrading/downgrading EXISTING subscriptions.
+/// For NEW subscriptions, do NOT use any proration mode.
+///
+/// To use proration mode:
+/// 1. User must have an active subscription
+/// 2. You must provide the purchaseToken from the existing subscription
+/// 3. Get the token using getAvailablePurchases()
+///
+/// Example:
+/// ```dart
+/// // First, check for existing subscription
+/// final purchases = await FlutterInappPurchase.instance.getAvailablePurchases();
+/// if (purchases.isEmpty) {
+///   // User has no subscription - purchase new one WITHOUT proration mode
+///   await FlutterInappPurchase.instance.requestSubscription('premium_monthly');
+/// } else {
+///   // User has subscription - can upgrade/downgrade WITH proration mode
+///   final existingSub = purchases.first;
+///   await FlutterInappPurchase.instance.requestSubscription(
+///     'premium_yearly',
+///     prorationModeAndroid: AndroidProrationMode.immediateWithTimeProration.value,
+///     purchaseTokenAndroid: existingSub.purchaseToken,
+///   );
+/// }
+/// ```
 enum AndroidProrationMode {
   unknownSubscriptionUpgradeDowngradePolicy(0),
   immediateWithTimeProration(1),

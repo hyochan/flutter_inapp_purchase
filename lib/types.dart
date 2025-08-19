@@ -1314,9 +1314,39 @@ class RequestPurchaseAndroid {
 }
 
 /// Android specific subscription request (OpenIAP compliant)
+///
+/// When upgrading/downgrading a subscription (using replacementModeAndroid),
+/// you MUST provide the purchaseTokenAndroid from the existing subscription.
+///
+/// Example:
+/// ```dart
+/// // Get existing subscription's purchase token
+/// final purchases = await FlutterInappPurchase.instance.getAvailablePurchases();
+/// final existingSubscription = purchases.firstWhere((p) => p.productId == 'current_subscription');
+///
+/// // Upgrade/downgrade with proration mode
+/// await FlutterInappPurchase.instance.requestPurchase(
+///   request: RequestPurchase(
+///     android: RequestSubscriptionAndroid(
+///       skus: ['new_subscription_id'],
+///       purchaseTokenAndroid: existingSubscription.purchaseToken, // Required!
+///       replacementModeAndroid: AndroidProrationMode.deferred.value,
+///       subscriptionOffers: [...],
+///     ),
+///   ),
+///   type: PurchaseType.subs,
+/// );
+/// ```
 class RequestSubscriptionAndroid extends RequestPurchaseAndroid {
+  /// The purchase token from the existing subscription that is being replaced.
+  /// REQUIRED when using replacementModeAndroid (proration mode).
   final String? purchaseTokenAndroid;
+
+  /// The proration mode for subscription replacement.
+  /// When set, purchaseTokenAndroid MUST be provided.
+  /// Use values from AndroidProrationMode class.
   final int? replacementModeAndroid;
+
   final List<SubscriptionOfferAndroid> subscriptionOffers;
 
   RequestSubscriptionAndroid({
@@ -1332,7 +1362,15 @@ class RequestSubscriptionAndroid extends RequestPurchaseAndroid {
           obfuscatedAccountIdAndroid: obfuscatedAccountIdAndroid,
           obfuscatedProfileIdAndroid: obfuscatedProfileIdAndroid,
           isOfferPersonalized: isOfferPersonalized,
-        );
+        ) {
+    // Add assertion for development time validation
+    assert(
+      replacementModeAndroid == null ||
+          replacementModeAndroid == -1 ||
+          (purchaseTokenAndroid != null && purchaseTokenAndroid!.isNotEmpty),
+      'purchaseTokenAndroid is required when using replacementModeAndroid (proration mode)',
+    );
+  }
 }
 
 /// Subscription offer for Android

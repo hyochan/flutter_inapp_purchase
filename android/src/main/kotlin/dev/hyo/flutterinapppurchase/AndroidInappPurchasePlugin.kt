@@ -590,9 +590,18 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
             }
 
             when (prorationMode) {
-                -1 -> {} //ignore
+                -1 -> {} //ignore - no proration mode specified
                 BillingFlowParams.SubscriptionUpdateParams.ReplacementMode.CHARGE_PRORATED_PRICE -> {
-                    params.setOldPurchaseToken(purchaseToken ?: "")
+                    // For subscription replacement, purchaseToken is required
+                    if (purchaseToken.isNullOrEmpty()) {
+                        safeChannel.error(
+                            TAG,
+                            "buyItemByType",
+                            "Old SKU purchase information(token/id) or original external transaction id must be provided for subscription replacement."
+                        )
+                        return
+                    }
+                    params.setOldPurchaseToken(purchaseToken)
                         .setSubscriptionReplacementMode(BillingFlowParams.SubscriptionUpdateParams.ReplacementMode.CHARGE_PRORATED_PRICE)
                     builder.setSubscriptionUpdateParams(params.build())
                     if (type != BillingClient.ProductType.SUBS) {
@@ -605,29 +614,64 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                     }
                 }
                 1 -> { // IMMEDIATE_WITHOUT_PRORATION
-                    params.setOldPurchaseToken(purchaseToken ?: "")
+                    if (purchaseToken.isNullOrEmpty()) {
+                        safeChannel.error(
+                            TAG,
+                            "buyItemByType",
+                            "Old SKU purchase information(token/id) or original external transaction id must be provided for subscription replacement."
+                        )
+                        return
+                    }
+                    params.setOldPurchaseToken(purchaseToken)
                         .setSubscriptionReplacementMode(BillingFlowParams.SubscriptionUpdateParams.ReplacementMode.WITHOUT_PRORATION)
                     builder.setSubscriptionUpdateParams(params.build())
                 }
                 4 -> { // DEFERRED
-                    params.setOldPurchaseToken(purchaseToken ?: "")
+                    if (purchaseToken.isNullOrEmpty()) {
+                        safeChannel.error(
+                            TAG,
+                            "buyItemByType",
+                            "Old SKU purchase information(token/id) or original external transaction id must be provided for deferred subscription replacement."
+                        )
+                        return
+                    }
+                    params.setOldPurchaseToken(purchaseToken)
                         .setSubscriptionReplacementMode(BillingFlowParams.SubscriptionUpdateParams.ReplacementMode.DEFERRED)
                     builder.setSubscriptionUpdateParams(params.build())
                 }
                 2 -> { // IMMEDIATE_WITH_TIME_PRORATION
-                    params.setOldPurchaseToken(purchaseToken ?: "")
+                    if (purchaseToken.isNullOrEmpty()) {
+                        safeChannel.error(
+                            TAG,
+                            "buyItemByType",
+                            "Old SKU purchase information(token/id) or original external transaction id must be provided for subscription replacement."
+                        )
+                        return
+                    }
+                    params.setOldPurchaseToken(purchaseToken)
                         .setSubscriptionReplacementMode(BillingFlowParams.SubscriptionUpdateParams.ReplacementMode.WITH_TIME_PRORATION)
                     builder.setSubscriptionUpdateParams(params.build())
                 }
                 5 -> { // IMMEDIATE_AND_CHARGE_FULL_PRICE
-                    params.setOldPurchaseToken(purchaseToken ?: "")
+                    if (purchaseToken.isNullOrEmpty()) {
+                        safeChannel.error(
+                            TAG,
+                            "buyItemByType",
+                            "Old SKU purchase information(token/id) or original external transaction id must be provided for subscription replacement."
+                        )
+                        return
+                    }
+                    params.setOldPurchaseToken(purchaseToken)
                         .setSubscriptionReplacementMode(BillingFlowParams.SubscriptionUpdateParams.ReplacementMode.CHARGE_FULL_PRICE)
                     builder.setSubscriptionUpdateParams(params.build())
                 }
                 else -> {
-                    params.setOldPurchaseToken(purchaseToken ?: "")
-                        .setSubscriptionReplacementMode(BillingFlowParams.SubscriptionUpdateParams.ReplacementMode.UNKNOWN_REPLACEMENT_MODE)
-                    builder.setSubscriptionUpdateParams(params.build())
+                    // For any other proration mode, also require purchase token
+                    if (!purchaseToken.isNullOrEmpty()) {
+                        params.setOldPurchaseToken(purchaseToken)
+                            .setSubscriptionReplacementMode(BillingFlowParams.SubscriptionUpdateParams.ReplacementMode.UNKNOWN_REPLACEMENT_MODE)
+                        builder.setSubscriptionUpdateParams(params.build())
+                    }
                 }
             }
             if (activity != null) {

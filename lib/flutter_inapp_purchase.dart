@@ -329,6 +329,20 @@ class FlutterInappPurchase
         if (type == iap_types.PurchaseType.subs) {
           // Check if this is a RequestSubscriptionAndroid
           if (androidRequest is iap_types.RequestSubscriptionAndroid) {
+            // Validate proration mode requirements before calling requestSubscription
+            if (androidRequest.replacementModeAndroid != null &&
+                androidRequest.replacementModeAndroid != -1 &&
+                (androidRequest.purchaseTokenAndroid == null ||
+                    androidRequest.purchaseTokenAndroid!.isEmpty)) {
+              throw iap_types.PurchaseError(
+                code: iap_types.ErrorCode.eDeveloperError,
+                message:
+                    'purchaseTokenAndroid is required when using replacementModeAndroid (proration mode). '
+                    'You need the purchase token from the existing subscription to upgrade/downgrade.',
+                platform: iap_types.IapPlatform.android,
+              );
+            }
+
             await requestSubscription(
               sku,
               obfuscatedAccountIdAndroid:
@@ -769,14 +783,32 @@ class FlutterInappPurchase
 
     return list.map(
       (e) {
-        // Handle priceAmountMicros as either String or num
+        // Handle priceAmountMicros as either String or num and scale to currency units
         final priceAmountMicros = e['priceAmountMicros'];
         double priceAmount = 0.0;
         if (priceAmountMicros != null) {
-          if (priceAmountMicros is String) {
-            priceAmount = double.tryParse(priceAmountMicros) ?? 0.0;
-          } else if (priceAmountMicros is num) {
-            priceAmount = priceAmountMicros.toDouble();
+          final double micros = priceAmountMicros is num
+              ? priceAmountMicros.toDouble()
+              : (priceAmountMicros is String
+                  ? double.tryParse(priceAmountMicros) ?? 0.0
+                  : 0.0);
+          priceAmount = micros / 1000000.0; // Convert micros to currency units
+        }
+
+        // Map recurrenceMode if present (BillingClient: 1=infinite, 2=finite, 3=non-recurring)
+        iap_types.RecurrenceMode? recurrenceMode;
+        final rm = e['recurrenceMode'];
+        if (rm is int) {
+          switch (rm) {
+            case 1:
+              recurrenceMode = iap_types.RecurrenceMode.infiniteRecurring;
+              break;
+            case 2:
+              recurrenceMode = iap_types.RecurrenceMode.finiteRecurring;
+              break;
+            case 3:
+              recurrenceMode = iap_types.RecurrenceMode.nonRecurring;
+              break;
           }
         }
 
@@ -786,6 +818,7 @@ class FlutterInappPurchase
           currency: e['priceCurrencyCode'] as String? ?? 'USD',
           billingPeriod: e['billingPeriod'] as String?,
           billingCycleCount: e['billingCycleCount'] as int?,
+          recurrenceMode: recurrenceMode,
         );
       },
     ).toList();
@@ -1046,6 +1079,31 @@ class FlutterInappPurchase
   }
 
   /// Request a subscription
+  ///
+  /// For NEW subscriptions:
+  /// - Simply call with productId
+  /// - Do NOT set prorationModeAndroid (or set it to -1)
+  ///
+  /// For UPGRADING/DOWNGRADING existing subscriptions (Android only):
+  /// - Set prorationModeAndroid to desired mode (1-5)
+  /// - MUST provide purchaseTokenAndroid from the existing subscription
+  /// - Get the token using getAvailablePurchases()
+  ///
+  /// Example for new subscription:
+  /// ```dart
+  /// await requestSubscription('premium_monthly');
+  /// ```
+  ///
+  /// Example for upgrade with proration:
+  /// ```dart
+  /// final purchases = await getAvailablePurchases();
+  /// final existingSub = purchases.firstWhere((p) => p.productId == 'basic_monthly');
+  /// await requestSubscription(
+  ///   'premium_monthly',
+  ///   prorationModeAndroid: AndroidProrationMode.immediateWithTimeProration.value,
+  ///   purchaseTokenAndroid: existingSub.purchaseToken,
+  /// );
+  /// ```
   Future<dynamic> requestSubscription(
     String productId, {
     int? prorationModeAndroid,
@@ -1055,6 +1113,22 @@ class FlutterInappPurchase
     int? offerTokenIndex,
   }) async {
     if (_platform.isAndroid) {
+      // Validate that purchaseToken is provided when using proration mode
+      // Proration mode -1 means no proration (new subscription)
+      if (prorationModeAndroid != null &&
+          prorationModeAndroid != -1 &&
+          (purchaseTokenAndroid == null || purchaseTokenAndroid.isEmpty)) {
+        throw iap_types.PurchaseError(
+          code: iap_types.ErrorCode.eDeveloperError,
+          message:
+              'purchaseTokenAndroid is required when using proration mode (prorationModeAndroid: $prorationModeAndroid). '
+              'Proration modes are only for upgrading/downgrading EXISTING subscriptions. '
+              'For NEW subscriptions, do not set prorationModeAndroid or set it to -1. '
+              'To upgrade/downgrade, provide the purchaseToken from getAvailablePurchases().',
+          platform: iap_types.IapPlatform.android,
+        );
+      }
+
       return await _channel.invokeMethod('buyItemByType', <String, dynamic>{
         'type': TypeInApp.subs.name,
         'productId': productId,

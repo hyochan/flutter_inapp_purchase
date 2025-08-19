@@ -25,10 +25,10 @@ void main() {
             case 'getProducts':
             case 'getSubscriptions':
               final args = methodCall.arguments;
-              final productIds = args is Map 
+              final productIds = args is Map
                   ? (args['productIds'] as List?)?.cast<String>()
-                  : args is List 
-                      ? args.cast<String>() 
+                  : args is List
+                      ? args.cast<String>()
                       : null;
               final allProducts = _getMockProducts();
               final filteredProducts = productIds != null
