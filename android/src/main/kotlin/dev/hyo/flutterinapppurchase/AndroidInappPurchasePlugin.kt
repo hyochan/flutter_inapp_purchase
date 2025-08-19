@@ -500,31 +500,6 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                             }
                         }
                         item.put("subscriptionOfferDetails", subsOffers)
-                        
-                        // Keep backward compatibility with subscriptionOffers
-                        val subs = JSONArray()
-                        if (productDetails.subscriptionOfferDetails != null ) {
-                            for (offer in productDetails.subscriptionOfferDetails!!) {
-                                val offerItem = JSONObject()
-                                offerItem.put("offerId", offer.offerId)
-                                offerItem.put("basePlanId", offer.basePlanId)
-                                offerItem.put("offerToken", offer.offerToken)
-                                val pricingPhasesArray = JSONArray()
-                                for (pricing in offer.pricingPhases.pricingPhaseList) {
-                                    val pricingPhase = JSONObject()
-                                    pricingPhase.put("price", (pricing.priceAmountMicros / 1000000f).toString())
-                                    pricingPhase.put("formattedPrice", pricing.formattedPrice)
-                                    pricingPhase.put("billingPeriod", pricing.billingPeriod)
-                                    pricingPhase.put("currencyCode", pricing.priceCurrencyCode)
-                                    pricingPhase.put("recurrenceMode", pricing.recurrenceMode)
-                                    pricingPhase.put("billingCycleCount", pricing.billingCycleCount)
-                                    pricingPhasesArray.put(pricingPhase)
-                                }
-                                offerItem.put("pricingPhases", pricingPhasesArray)
-                                subs.put(offerItem)
-                            }
-                        }
-                        item.put("subscriptionOffers", subs)
                     }
 
                     items.put(item)
