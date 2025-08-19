@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## 6.3.1
+
+### Bug Fixes
+
+- **Android Subscription Loading**: Fixed type casting error when loading subscriptions
+  - Fixed `_Map<String, dynamic>` type casting issue that prevented subscriptions from loading
+  - Improved handling of pricing phases data structure from Android
+  - Fixed parsing of subscription offer details from nested JSON structure
+- **Test Product Cleanup**: Removed deprecated `android.test.purchased` test product ID
+  - This test ID is no longer valid in Google Play Billing Library 6+
+- **Type Safety**: Improved type handling for Map conversions from native platforms
+  - Better handling of different Map implementations from iOS and Android
+
 ## 6.3.0
 
 ### Bug Fixes

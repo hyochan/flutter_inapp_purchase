@@ -19,8 +19,15 @@
 
 ```yaml
 dependencies:
-  flutter_inapp_purchase: ^6.3.0
+  flutter_inapp_purchase: ^6.3.1
 ```
+
+## 🔄 What's New in 6.3.1
+
+### Bug Fixes
+- Fixed Android subscription loading type casting error
+- Removed deprecated test product IDs
+- Improved type safety for native platform data
 
 ## 🔄 What's New in 6.3.0
 
