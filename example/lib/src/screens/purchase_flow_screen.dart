@@ -143,22 +143,22 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
           purchase.purchaseToken != null &&
           purchase.purchaseToken!.isNotEmpty);
       bool condition3 = purchase.purchaseStateAndroid == 1;
-      
+
       print('  Android condition checks:');
       print('    purchaseState == purchased: $condition1');
       print('    unacknowledged with token: $condition2');
       print('    purchaseStateAndroid == 1: $condition3');
-      
+
       isPurchased = condition1 || condition2 || condition3;
       print('  Final isPurchased: $isPurchased');
     } else {
       // For iOS - same logic as subscription flow
       bool condition1 =
           purchase.transactionStateIOS == TransactionState.purchased;
-      bool condition2 = purchase.purchaseToken != null &&
-          purchase.purchaseToken!.isNotEmpty;
-      bool condition3 = purchase.transactionId != null &&
-          purchase.transactionId!.isNotEmpty;
+      bool condition2 =
+          purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpty;
+      bool condition3 =
+          purchase.transactionId != null && purchase.transactionId!.isNotEmpty;
 
       print('  iOS condition checks:');
       print('    transactionStateIOS == purchased: $condition1');
@@ -181,7 +181,8 @@ Purchase state: ${purchase.purchaseState}
 iOS transaction state: ${purchase.transactionStateIOS}
 Android purchase state: ${purchase.purchaseStateAndroid}
 Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpty}
-        '''.trim();
+        '''
+            .trim();
       });
       return;
     }
@@ -249,9 +250,9 @@ Purchase Token: ${purchase.purchaseToken?.substring(0, 30)}...
       // Format error result like KMP-IAP
       if (error.code == ErrorCode.eUserCancelled) {
         _purchaseResult = '⚠️ Purchase cancelled by user';
-      } else if (error.message.contains('요청한 시간이 초과되었습니다') || 
-                 error.message.contains('timeout') ||
-                 error.message.contains('timed out')) {
+      } else if (error.message.contains('요청한 시간이 초과되었습니다') ||
+          error.message.contains('timeout') ||
+          error.message.contains('timed out')) {
         // Apple/Google server timeout error
         _purchaseResult = '''
 ⏱️ Request Timeout
