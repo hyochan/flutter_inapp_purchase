@@ -308,12 +308,9 @@ class ProductDetailModal extends StatelessWidget {
                           width: double.infinity,
                           child: ElevatedButton.icon(
                             onPressed: () {
-                              // ignore: avoid_print
                               debugPrint(
                                   '=== Raw JSON Data for ${item.productId} ===');
-                              // ignore: avoid_print
                               debugPrint(jsonString);
-                              // ignore: avoid_print
                               debugPrint('=== End of Raw JSON Data ===');
 
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -362,12 +359,9 @@ class ProductDetailModal extends StatelessWidget {
                             width: double.infinity,
                             child: ElevatedButton.icon(
                               onPressed: () {
-                                // ignore: avoid_print
                                 debugPrint(
                                     '=== Original Product Object for ${item.productId} ===');
-                                // ignore: avoid_print
                                 debugPrint('Type: ${product.runtimeType}');
-                                // ignore: avoid_print
                                 debugPrint(product.toString());
 
                                 // Print additional details based on product type
@@ -375,36 +369,28 @@ class ProductDetailModal extends StatelessWidget {
                                     product!; // We know it's not null in this context
                                 if (prod is Product) {
                                   final product = prod;
-                                  // ignore: avoid_print
                                   debugPrint(
                                       'Product Type: Product (consumable/non-consumable)');
-                                  // ignore: avoid_print
                                   debugPrint('Platform: ${product.platform}');
                                   if (product.discountsIOS != null) {
-                                    // ignore: avoid_print
                                     debugPrint(
                                         'iOS Discounts: ${product.discountsIOS}');
                                   }
                                 } else if (prod is Subscription) {
                                   final subscription = prod;
-                                  // ignore: avoid_print
                                   debugPrint('Product Type: Subscription');
-                                  // ignore: avoid_print
                                   debugPrint(
                                       'Platform: ${subscription.platform}');
                                   if (subscription.subscription != null) {
-                                    // ignore: avoid_print
                                     debugPrint(
                                         'Subscription Info: ${subscription.subscription}');
                                   }
                                   if (subscription.subscriptionOfferDetails !=
                                       null) {
-                                    // ignore: avoid_print
                                     debugPrint(
                                         'Offer Details: ${subscription.subscriptionOfferDetails}');
                                   }
                                 }
-                                // ignore: avoid_print
                                 debugPrint(
                                     '=== End of Original Product Object ===');
 

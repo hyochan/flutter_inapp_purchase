@@ -472,21 +472,15 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                             
                             Log.d("InappPurchase", "Added oneTimePurchaseOfferDetailsAndroid: $offerDetails")
                         } else {
-                            // Even if oneTimePurchaseOfferDetails is null, set price from displayPrice
-                            item.put("price", item.getString("displayPrice"))
-                            Log.d("InappPurchase", "oneTimePurchaseOfferDetails is null for INAPP product")
-                            
-                            // Create a basic offer details from available data
+                            Log.d(TAG, "oneTimePurchaseOfferDetails is null for INAPP product")
+                            // Still expose display-only details without mutating numeric price
                             if (currency != null && displayPrice != null) {
                                 val basicOfferDetails = JSONObject()
                                 basicOfferDetails.put("priceCurrencyCode", currency)
                                 basicOfferDetails.put("formattedPrice", displayPrice)
-                                // Try to extract price amount from the price field if available
-                                val priceString = item.optString("price", "0")
-                                val priceValue = priceString.toDoubleOrNull() ?: 0.0
-                                basicOfferDetails.put("priceAmountMicros", (priceValue * 1000000).toLong().toString())
+                                basicOfferDetails.put("priceAmountMicros", JSONObject.NULL) // unknown
                                 item.put("oneTimePurchaseOfferDetailsAndroid", basicOfferDetails)
-                                Log.d("InappPurchase", "Created basic oneTimePurchaseOfferDetailsAndroid: $basicOfferDetails")
+                                Log.d(TAG, "Created basic oneTimePurchaseOfferDetailsAndroid: $basicOfferDetails")
                             }
                         }
                     } else if (productDetails.productType == BillingClient.ProductType.SUBS) {

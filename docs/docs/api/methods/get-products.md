@@ -16,7 +16,7 @@ The `requestProducts()` method fetches product information for the specified pro
 ```dart
 Future<List<IapItem>> requestProducts({
   required List<String> skus,
-  String type = 'inapp',
+  PurchaseType type = PurchaseType.inapp,
 })
 ```
 
@@ -25,7 +25,7 @@ Future<List<IapItem>> requestProducts({
 | Parameter | Type           | Required | Default   | Description                                                                |
 | --------- | -------------- | -------- | --------- | -------------------------------------------------------------------------- |
 | `skus`    | `List<String>` | Yes      | -         | List of product identifiers to fetch                                       |
-| `type`    | `String`       | No       | `'inapp'` | Product type: `'inapp'` for regular products or `'subs'` for subscriptions |
+| `type`    | `PurchaseType` | No       | `PurchaseType.inapp` | Product type: `PurchaseType.inapp` (regular) or `PurchaseType.subs` (subscriptions) |
 
 ## Returns
 
@@ -40,7 +40,7 @@ Future<List<IapItem>> requestProducts({
 try {
   List<IapItem> products = await FlutterInappPurchase.instance.requestProducts(
     skus: ['coins_100', 'coins_500', 'remove_ads'],
-    type: 'inapp',
+    type: PurchaseType.inapp,
   );
 
   for (var product in products) {
@@ -59,7 +59,7 @@ try {
 try {
   List<IapItem> subscriptions = await FlutterInappPurchase.instance.requestProducts(
     skus: ['premium_monthly', 'premium_yearly'],
-    type: 'subs',
+    type: PurchaseType.subs,
   );
 
   for (var subscription in subscriptions) {
@@ -118,7 +118,7 @@ class ProductService {
 try {
   final products = await FlutterInappPurchase.instance.requestProducts(
     skus: productIds,
-    type: 'inapp',
+    type: PurchaseType.inapp,
   );
 
   if (products.isEmpty) {
@@ -171,7 +171,7 @@ final products = await FlutterInappPurchase.instance.requestProducts(
 
 final subscriptions = await FlutterInappPurchase.instance.requestProducts(
   skus: subscriptionIds,
-  type: 'subs',
+  type: PurchaseType.subs,
 );
 ```
 

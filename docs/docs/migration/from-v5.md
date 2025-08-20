@@ -50,7 +50,7 @@ ErrorCode.eDeveloperError
 **Before (v5.x):**
 
 ```dart
-Future<List<IapItem>> getProducts(List<String> skus) async
+Future<List<IAPItem>> getProducts(List<String> skus) async
 Future<String> requestPurchase(String sku) async
 ```
 
@@ -253,7 +253,7 @@ Here's a complete before/after example:
 class _MyAppState extends State<MyApp> {
   StreamSubscription _purchaseUpdatedSubscription;
   StreamSubscription _purchaseErrorSubscription;
-  List<IapItem> _items = [];
+  List<IAPItem> _items = [];
   List<PurchasedItem> _purchases = [];
 
   @override
@@ -279,12 +279,12 @@ class _MyAppState extends State<MyApp> {
     _getProduct();
   }
 
-  void _requestPurchase(IapItem item) {
+  void _requestPurchase(IAPItem item) {
     FlutterInappPurchase.instance.requestPurchase(item.productId);
   }
 
   Future _getProduct() async {
-    List<IapItem> items = await FlutterInappPurchase.instance.requestProducts(skus: _kProductIds, type: 'inapp');
+    List<IAPItem> items = await FlutterInappPurchase.instance.requestProducts(skus: _kProductIds, type: 'inapp');
     setState(() {
       _items = items;
     });
