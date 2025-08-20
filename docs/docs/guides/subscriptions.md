@@ -22,10 +22,10 @@ class SubscriptionService {
   // Using constructor for subscription management
   final _iap = FlutterInappPurchase();
   bool _isInitialized = false;
-  
+
   Future<void> initialize() async {
     if (_isInitialized) return;
-    
+
     try {
       await _iap.initConnection();
       _isInitialized = true;
@@ -34,7 +34,7 @@ class SubscriptionService {
       print('Failed to initialize IAP: $e');
     }
   }
-  
+
   void _setupListeners() {
     _iap.purchaseUpdated.listen(_handlePurchase);
     _iap.purchaseError.listen(_handleError);
@@ -48,15 +48,15 @@ class SubscriptionService {
 class SubscriptionManager {
   // Create instance for subscription manager
   final _iap = FlutterInappPurchase();
-  
+
   final _subscriptionIds = [
     'com.example.monthly_premium',
     'com.example.yearly_premium',
     'com.example.basic_monthly',
   ];
-  
-  List<IAPItem> _subscriptions = [];
-  
+
+  List<IapItem> _subscriptions = [];
+
   Future<void> loadSubscriptions() async {
     try {
       _subscriptions = await _iap.requestProducts(
@@ -65,17 +65,17 @@ class SubscriptionManager {
           type: PurchaseType.subs,
         ),
       );
-      
+
       // Sort by price or preference
-      _subscriptions.sort((a, b) => 
+      _subscriptions.sort((a, b) =>
           _extractPrice(a).compareTo(_extractPrice(b)));
-          
+
     } catch (e) {
       print('Error loading subscriptions: $e');
     }
   }
-  
-  double _extractPrice(IAPItem item) {
+
+  double _extractPrice(IapItem item) {
     // Extract numeric price from localizedPrice
     final priceStr = item.price ?? '0';
     return double.tryParse(priceStr) ?? 0.0;
@@ -91,7 +91,7 @@ class SubscriptionManager {
 Future<void> purchaseSubscription(String subscriptionId) async {
   // Using instance created in the class
   final iap = FlutterInappPurchase();
-  
+
   try {
     await iap.requestPurchase(
       request: RequestPurchase(
@@ -103,9 +103,9 @@ Future<void> purchaseSubscription(String subscriptionId) async {
       ),
       type: PurchaseType.subs,
     );
-    
+
     // Result will be delivered via purchaseUpdated stream
-    
+
   } catch (e) {
     print('Subscription purchase failed: $e');
     _handlePurchaseError(e);
@@ -123,19 +123,19 @@ Future<void> purchaseSubscriptionAdvanced({
 }) async {
   // Create a new instance for this subscription flow
   final iap = FlutterInappPurchase();
-  
+
   try {
     if (Platform.isAndroid && upgradeFromId != null) {
       // Android subscription upgrade/downgrade
       final currentToken = await _getCurrentSubscriptionToken(upgradeFromId);
-      
+
       await iap.requestPurchase(
         request: RequestPurchase(
           ios: RequestPurchaseIOS(sku: subscriptionId),
           android: RequestPurchaseAndroid(
             skus: [subscriptionId],
             purchaseTokenAndroid: currentToken,
-            replacementModeAndroid: prorationMode ?? 
+            replacementModeAndroid: prorationMode ??
                 AndroidProrationMode.IMMEDIATE_AND_CHARGE_PRORATED_PRICE,
             obfuscatedAccountIdAndroid: await _getUserId(),
           ),
@@ -170,36 +170,36 @@ class SubscriptionChecker {
   Future<SubscriptionStatus> checkSubscriptionStatus() async {
     try {
       final purchases = await FlutterInappPurchase.instance.getAvailablePurchases();
-      
+
       final activeSubscriptions = purchases.where((purchase) =>
           _isSubscription(purchase.productId) &&
           _isActive(purchase)
       ).toList();
-      
+
       if (activeSubscriptions.isEmpty) {
         return SubscriptionStatus(isActive: false);
       }
-      
+
       // Get highest tier subscription
       final activeSub = _getHighestTierSubscription(activeSubscriptions);
-      
+
       return SubscriptionStatus(
         isActive: true,
         productId: activeSub.productId,
         expirationDate: _calculateExpirationDate(activeSub),
         isInGracePeriod: _isInGracePeriod(activeSub),
       );
-      
+
     } catch (e) {
       print('Error checking subscription status: $e');
       return SubscriptionStatus(isActive: false);
     }
   }
-  
+
   bool _isSubscription(String? productId) {
     return productId?.contains('subscription') ?? false;
   }
-  
+
   bool _isActive(Purchase purchase) {
     // Check platform-specific active status
     if (Platform.isAndroid) {
@@ -222,7 +222,7 @@ class SubscriptionChangeHandler {
       if (Platform.isAndroid) {
         // Get current subscription token
         final currentToken = await _getCurrentSubscriptionToken(fromProductId);
-        
+
         if (currentToken != null) {
           await FlutterInappPurchase.instance.requestPurchase(
             request: RequestPurchase(
@@ -252,7 +252,7 @@ class SubscriptionChangeHandler {
       print('Subscription upgrade failed: $e');
     }
   }
-  
+
   Future<void> cancelSubscription(String productId) async {
     if (Platform.isIOS) {
       // Redirect to App Store subscription management
@@ -274,17 +274,17 @@ class SubscriptionChangeHandler {
 
 ```dart
 class SubscriptionCard extends StatelessWidget {
-  final IAPItem subscription;
+  final IapItem subscription;
   final bool isCurrentPlan;
   final VoidCallback onTap;
-  
+
   const SubscriptionCard({
     Key? key,
     required this.subscription,
     required this.isCurrentPlan,
     required this.onTap,
   }) : super(key: key);
-  
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -329,7 +329,7 @@ class SubscriptionCard extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildPriceInfo(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -350,7 +350,7 @@ class SubscriptionCard extends StatelessWidget {
       ],
     );
   }
-  
+
   String _getBillingPeriod() {
     if (Platform.isIOS) {
       final unit = subscription.subscriptionPeriodUnitIOS?.toLowerCase() ?? '';
@@ -361,7 +361,7 @@ class SubscriptionCard extends StatelessWidget {
       return _formatAndroidPeriod(period);
     }
   }
-  
+
   String _formatAndroidPeriod(String period) {
     switch (period) {
       case 'P1M': return 'monthly';
@@ -370,12 +370,12 @@ class SubscriptionCard extends StatelessWidget {
       default: return period;
     }
   }
-  
+
   bool _hasFreeTrial() {
     return subscription.introductoryPrice == '0' ||
            subscription.introductoryPrice == '0.00';
   }
-  
+
   String _getTrialPeriod() {
     // Extract trial period from introductory price details
     return '7 days'; // Simplified
@@ -394,16 +394,16 @@ class SubscriptionStatusWidget extends StatefulWidget {
 class _SubscriptionStatusWidgetState extends State<SubscriptionStatusWidget> {
   SubscriptionStatus? _status;
   bool _loading = true;
-  
+
   @override
   void initState() {
     super.initState();
     _checkStatus();
   }
-  
+
   Future<void> _checkStatus() async {
     setState(() => _loading = true);
-    
+
     try {
       final status = await SubscriptionChecker().checkSubscriptionStatus();
       setState(() {
@@ -415,20 +415,20 @@ class _SubscriptionStatusWidgetState extends State<SubscriptionStatusWidget> {
       print('Error checking subscription status: $e');
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     if (_loading) {
       return CircularProgressIndicator();
     }
-    
+
     if (_status?.isActive != true) {
       return _buildInactiveStatus();
     }
-    
+
     return _buildActiveStatus();
   }
-  
+
   Widget _buildActiveStatus() {
     return Card(
       color: Colors.green.shade50,
@@ -473,7 +473,7 @@ class _SubscriptionStatusWidgetState extends State<SubscriptionStatusWidget> {
       ),
     );
   }
-  
+
   Widget _buildInactiveStatus() {
     return Card(
       color: Colors.grey.shade50,
@@ -498,7 +498,7 @@ class _SubscriptionStatusWidgetState extends State<SubscriptionStatusWidget> {
       ),
     );
   }
-  
+
   void _manageSubscription() async {
     if (Platform.isIOS) {
       await FlutterInappPurchase.instance.showManageSubscriptionsIOS();
@@ -507,11 +507,11 @@ class _SubscriptionStatusWidgetState extends State<SubscriptionStatusWidget> {
       _showAndroidManagementOptions();
     }
   }
-  
+
   void _showSubscriptionOptions() {
     // Navigate to subscription selection screen
   }
-  
+
   String _formatDate(DateTime date) {
     return '${date.day}/${date.month}/${date.year}';
   }
@@ -536,7 +536,7 @@ class IOSSubscriptionHandler {
       type: PurchaseType.subs,
     );
   }
-  
+
   // Handle promotional offers
   Future<void> purchaseWithPromoOffer({
     required String subscriptionId,
@@ -585,7 +585,7 @@ class AndroidSubscriptionHandler {
       type: PurchaseType.subs,
     );
   }
-  
+
   // Handle subscription upgrades/downgrades
   Future<void> changeSubscription({
     required String oldSubscriptionId,
@@ -593,7 +593,7 @@ class AndroidSubscriptionHandler {
     required int prorationMode,
   }) async {
     final oldToken = await _getCurrentSubscriptionToken(oldSubscriptionId);
-    
+
     if (oldToken != null) {
       await FlutterInappPurchase.instance.requestPurchase(
         request: RequestPurchase(
@@ -621,21 +621,21 @@ class SubscriptionValidator {
     try {
       // Always validate subscriptions server-side
       final response = await _validateWithServer(purchase);
-      
+
       if (response.isValid) {
         // Check expiration
         if (response.expirationDate?.isAfter(DateTime.now()) == true) {
           return true;
         }
       }
-      
+
       return false;
     } catch (e) {
       print('Subscription validation error: $e');
       return false;
     }
   }
-  
+
   Future<ValidationResponse> _validateWithServer(Purchase purchase) async {
     // Implement server validation
     // Return validation result including expiration date
@@ -676,11 +676,11 @@ class SubscriptionTesting {
     'android.test.canceled',
     'android.test.item_unavailable',
   ];
-  
+
   static bool get isTestMode {
     return kDebugMode || _isTestFlavor;
   }
-  
+
   static Future<void> simulateSubscriptionRenewal() async {
     // Simulate renewal for testing
     if (isTestMode) {

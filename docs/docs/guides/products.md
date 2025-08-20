@@ -11,6 +11,7 @@ This guide covers how to implement and manage one-time purchase products (consum
 ### Consumable Products
 
 Products that can be purchased multiple times:
+
 - Virtual currency (coins, gems)
 - Power-ups or boosters
 - Extra lives or hints
@@ -18,6 +19,7 @@ Products that can be purchased multiple times:
 ### Non-Consumable Products
 
 Products purchased once and owned forever:
+
 - Remove ads
 - Unlock premium features
 - Expansion packs
@@ -37,9 +39,9 @@ final List<String> productIds = [
 // Load products
 Future<void> loadProducts() async {
   try {
-    List<IAPItem> products = await FlutterInappPurchase.instance
+    List<IapItem> products = await FlutterInappPurchase.instance
         .requestProducts(skus: productIds, type: 'inapp');
-    
+
     for (var product in products) {
       print('Product: ${product.productId}');
       print('Title: ${product.title}');
@@ -53,21 +55,21 @@ Future<void> loadProducts() async {
 
 ### Product Information
 
-The `IAPItem` class contains:
+The `IapItem` class contains:
 
 ```dart
-class IAPItem {
+class IapItem {
   String? productId;          // Unique identifier
   String? price;              // Raw price value
   String? currency;           // Currency code
   String? localizedPrice;     // Formatted price string
   String? title;              // Product name
   String? description;        // Product description
-  
+
   // iOS specific
   String? introductoryPrice;
   String? subscriptionPeriodNumberIOS;
-  
+
   // Android specific
   String? signatureAndroid;
   String? originalJsonAndroid;
@@ -81,7 +83,7 @@ class IAPItem {
 ```dart
 class ProductStore {
   StreamSubscription? _purchaseUpdatedSubscription;
-  
+
   void initializePurchaseListener() {
     _purchaseUpdatedSubscription = FlutterInappPurchase
         .purchaseUpdated.listen((productItem) {
@@ -90,7 +92,7 @@ class ProductStore {
       }
     });
   }
-  
+
   Future<void> purchaseProduct(String productId) async {
     try {
       await FlutterInappPurchase.instance.requestPurchase(productId);
@@ -99,15 +101,15 @@ class ProductStore {
       handlePurchaseError(e);
     }
   }
-  
+
   void handlePurchaseUpdate(PurchasedItem item) async {
     // 1. Verify the purchase
     bool isValid = await verifyPurchase(item);
-    
+
     if (isValid) {
       // 2. Deliver the product
       await deliverProduct(item);
-      
+
       // 3. Complete the transaction
       await completePurchase(item);
     }
@@ -153,7 +155,7 @@ bool validatePurchaseLocally(PurchasedItem item) {
   if (item.productId == null || item.transactionId == null) {
     return false;
   }
-  
+
   // Check purchase state (Android)
   if (Platform.isAndroid) {
     // 0 = Purchased, 1 = Pending
@@ -161,14 +163,14 @@ bool validatePurchaseLocally(PurchasedItem item) {
       return false;
     }
   }
-  
+
   // Check transaction date is reasonable
   int now = DateTime.now().millisecondsSinceEpoch;
   int purchaseTime = item.transactionDate ?? 0;
   if (purchaseTime > now || purchaseTime < now - 86400000) { // 24 hours
     return false;
   }
-  
+
   return true;
 }
 ```
@@ -186,7 +188,7 @@ Future<bool> verifyPurchase(PurchasedItem item) async {
   } else {
     receipt = item.purchaseTokenAndroid;
   }
-  
+
   // Send to your server
   final response = await http.post(
     Uri.parse('https://api.example.com/verify-purchase'),
@@ -197,7 +199,7 @@ Future<bool> verifyPurchase(PurchasedItem item) async {
       'transactionId': item.transactionId,
     },
   );
-  
+
   return response.statusCode == 200;
 }
 ```
@@ -210,29 +212,29 @@ Future<bool> verifyPurchase(PurchasedItem item) async {
 class ConsumableManager {
   // Track consumable inventory
   Map<String, int> inventory = {};
-  
+
   Future<void> handleConsumablePurchase(PurchasedItem item) async {
     // Add to inventory
     String productId = item.productId!;
     int amount = getProductAmount(productId);
     inventory[productId] = (inventory[productId] ?? 0) + amount;
-    
+
     // Save to persistent storage
     await saveInventory();
-    
+
     // Consume the purchase (Android)
     if (Platform.isAndroid) {
       await FlutterInappPurchase.instance.consumePurchase(
         purchaseToken: item.purchaseTokenAndroid!,
       );
     }
-    
+
     // Finish transaction (iOS)
     if (Platform.isIOS) {
       await FlutterInappPurchase.instance.finishTransaction(item);
     }
   }
-  
+
   int getProductAmount(String productId) {
     // Define your product amounts
     switch (productId) {
@@ -249,27 +251,27 @@ class ConsumableManager {
 ```dart
 class NonConsumableManager {
   Set<String> unlockedFeatures = {};
-  
+
   Future<void> handleNonConsumablePurchase(PurchasedItem item) async {
     // Unlock the feature
     unlockedFeatures.add(item.productId!);
-    
+
     // Save to persistent storage
     await saveUnlockedFeatures();
-    
+
     // Acknowledge purchase (Android)
     if (Platform.isAndroid && item.isAcknowledgedAndroid == false) {
       await FlutterInappPurchase.instance.acknowledgePurchase(
         purchaseToken: item.purchaseTokenAndroid!,
       );
     }
-    
+
     // Finish transaction (iOS)
     if (Platform.isIOS) {
       await FlutterInappPurchase.instance.finishTransaction(item);
     }
   }
-  
+
   bool isFeatureUnlocked(String productId) {
     return unlockedFeatures.contains(productId);
   }
@@ -285,7 +287,7 @@ Future<void> restorePurchases() async {
   try {
     List<PurchasedItem>? purchases = await FlutterInappPurchase
         .instance.getAvailablePurchases();
-    
+
     if (purchases != null) {
       for (var purchase in purchases) {
         // Re-deliver non-consumable products
@@ -294,7 +296,7 @@ Future<void> restorePurchases() async {
         }
       }
     }
-    
+
     showMessage('Purchases restored successfully');
   } catch (e) {
     showError('Failed to restore purchases: $e');
@@ -324,7 +326,7 @@ void handlePurchaseError(dynamic error) {
     // User cancelled - no need to show error
     return;
   }
-  
+
   String message = 'Purchase failed';
   switch (error.code) {
     case 'E_NETWORK':
@@ -339,7 +341,7 @@ void handlePurchaseError(dynamic error) {
     default:
       message = 'Purchase failed: ${error.message}';
   }
-  
+
   showError(message);
 }
 ```

@@ -16,7 +16,7 @@ Complete guide to implementing in-app purchases with flutter_inapp_purchase v6.0
 The in-app purchase flow follows this standardized pattern:
 
 1. **Initialize Connection** - Establish connection with the store
-2. **Setup Purchase Listeners** - Listen for purchase updates and errors  
+2. **Setup Purchase Listeners** - Listen for purchase updates and errors
 3. **Load Products** - Fetch product information from the store
 4. **Request Purchase** - Initiate purchase flow
 5. **Handle Updates** - Process purchase results via streams
@@ -26,11 +26,13 @@ The in-app purchase flow follows this standardized pattern:
 ## Key Concepts
 
 ### Purchase Types
+
 - **Consumable**: Can be purchased multiple times (coins, gems, lives)
-- **Non-Consumable**: Purchased once, owned forever (premium features, ad removal)  
+- **Non-Consumable**: Purchased once, owned forever (premium features, ad removal)
 - **Subscriptions**: Recurring purchases with auto-renewal
 
 ### Platform Differences
+
 - **iOS**: Uses StoreKit 2 (iOS 15.0+) with fallback to StoreKit 1
 - **Android**: Uses Google Play Billing Client v8
 - Both platforms use the same API surface in flutter_inapp_purchase
@@ -49,10 +51,10 @@ import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 class PurchaseHandler {
   // Using singleton instance for in-app purchases
   final _iap = FlutterInappPurchase.instance;
-  
+
   StreamSubscription<PurchasedItem?>? _purchaseUpdatedSubscription;
   StreamSubscription<PurchaseResult?>? _purchaseErrorSubscription;
-  
+
   void setupPurchaseListeners() {
     // Listen to successful purchases
     _purchaseUpdatedSubscription = _iap.purchaseUpdated.listen(
@@ -74,7 +76,7 @@ class PurchaseHandler {
       },
     );
   }
-  
+
   void dispose() {
     _purchaseUpdatedSubscription?.cancel();
     _purchaseErrorSubscription?.cancel();
@@ -107,7 +109,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
   void initState() {
     super.initState();
     _setupPurchaseListeners();
-    
+
     // Load products after initialization
     Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) {
@@ -122,7 +124,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
     _purchaseErrorSubscription?.cancel();
     super.dispose();
   }
-  
+
   // Purchase listener setup...
 }
 ```
@@ -135,7 +137,7 @@ Use the new `requestPurchase` API for initiating purchases:
 Future<void> _handlePurchase(String productId) async {
   // Using singleton instance for in-app purchases
   final iap = FlutterInappPurchase.instance;
-  
+
   try {
     setState(() {
       _isProcessing = true;
@@ -174,11 +176,11 @@ Future<void> _loadProducts() async {
     // Use requestProducts (new API)
     await FlutterInappPurchase.instance.requestProducts(
       RequestProductsParams(
-        skus: productIds, 
+        skus: productIds,
         type: PurchaseType.inapp
       ),
     );
-    
+
     // Get products from provider or state management
     final products = await FlutterInappPurchase.instance.getProducts(productIds);
     debugPrint('Loaded ${products.length} products');
@@ -270,16 +272,16 @@ Future<void> _handlePurchaseUpdate(PurchasedItem purchasedItem) async {
 
 ```dart
 class ProductInfo {
-  static Future<List<IAPItem>> loadProductInformation(List<String> productIds) async {
+  static Future<List<IapItem>> loadProductInformation(List<String> productIds) async {
     try {
       // Request products from store
       await FlutterInappPurchase.instance.requestProducts(
         RequestProductsParams(skus: productIds, type: PurchaseType.inapp),
       );
-      
+
       // Get product details
       final products = await FlutterInappPurchase.instance.getProducts(productIds);
-      
+
       for (final product in products) {
         debugPrint('Product: ${product.productId}');
         debugPrint('Title: ${product.title}');
@@ -287,7 +289,7 @@ class ProductInfo {
         debugPrint('Price: ${product.localizedPrice}');
         debugPrint('Currency: ${product.currency}');
       }
-      
+
       return products;
     } catch (e) {
       debugPrint('Error loading product information: $e');
@@ -333,7 +335,7 @@ void checkPlatformFeatures() {
     // - showManageSubscriptions()
     // - isEligibleForIntroOfferIOS()
   } else if (Platform.isAndroid) {
-    // Android-specific features  
+    // Android-specific features
     debugPrint('Android platform detected');
     // Can use Android-specific methods like:
     // - consumePurchaseAndroid()
@@ -353,14 +355,14 @@ Products that can be purchased multiple times:
 Future<void> handleConsumableProduct(PurchasedItem purchase) async {
   // Deliver the consumable content (coins, lives, etc.)
   await deliverConsumableProduct(purchase.productId);
-  
+
   // For Android - consume the purchase so it can be bought again
   if (Platform.isAndroid && purchase.purchaseToken != null) {
     await FlutterInappPurchase.instance.consumePurchaseAndroid(
       purchaseToken: purchase.purchaseToken!,
     );
   }
-  
+
   // For iOS - finish transaction
   if (Platform.isIOS) {
     await FlutterInappPurchase.instance.finishTransactionIOS(
@@ -379,15 +381,15 @@ Products purchased once and owned permanently:
 Future<void> handleNonConsumableProduct(PurchasedItem purchase) async {
   // Deliver the permanent content (premium features, ad removal)
   await deliverPermanentProduct(purchase.productId);
-  
+
   // For Android - acknowledge the purchase (don't consume)
   if (Platform.isAndroid && purchase.purchaseToken != null) {
     await FlutterInappPurchase.instance.acknowledgePurchaseAndroid(
       purchaseToken: purchase.purchaseToken!,
     );
   }
-  
-  // For iOS - finish transaction  
+
+  // For iOS - finish transaction
   if (Platform.isIOS) {
     await FlutterInappPurchase.instance.finishTransactionIOS(
       purchase,
@@ -405,14 +407,14 @@ Recurring purchases with auto-renewal:
 Future<void> handleSubscriptionProduct(PurchasedItem purchase) async {
   // Activate subscription for user
   await activateSubscription(purchase.productId);
-  
+
   // For Android - acknowledge the subscription
   if (Platform.isAndroid && purchase.purchaseToken != null) {
     await FlutterInappPurchase.instance.acknowledgePurchaseAndroid(
       purchaseToken: purchase.purchaseToken!,
     );
   }
-  
+
   // For iOS - finish transaction
   if (Platform.isIOS) {
     await FlutterInappPurchase.instance.finishTransactionIOS(
@@ -434,17 +436,17 @@ Future<void> restorePurchases() async {
   try {
     // Restore completed transactions
     await FlutterInappPurchase.instance.restorePurchases();
-    
+
     // Get available purchases
     final purchases = await FlutterInappPurchase.instance.getAvailablePurchases();
-    
+
     debugPrint('Restored ${purchases.length} purchases');
-    
+
     // Process each restored purchase
     for (final purchase in purchases) {
       await _deliverProduct(purchase.productId);
     }
-    
+
   } catch (e) {
     debugPrint('Error restoring purchases: $e');
   }
@@ -473,10 +475,10 @@ Future<void> _consumeExistingPurchase() async {
   try {
     // Restore purchases to get all owned items
     await FlutterInappPurchase.instance.restorePurchases();
-    
+
     // Get available purchases
     final purchases = await FlutterInappPurchase.instance.getAvailablePurchases();
-    
+
     // Find and consume purchases for our product IDs
     for (final purchase in purchases) {
       if (productIds.contains(purchase.productId)) {
@@ -528,9 +530,9 @@ Future<bool> validatePurchaseReceipt(PurchasedItem purchase) async {
         },
         isTest: true, // Set to false for production
       );
-      
+
       return result != null && result['status'] == 0;
-      
+
     } else if (Platform.isAndroid) {
       // Validate Android purchase
       final result = await FlutterInappPurchase.instance.validateReceiptAndroid(
@@ -540,10 +542,10 @@ Future<bool> validatePurchaseReceipt(PurchasedItem purchase) async {
         accessToken: 'your-access-token', // From Google Play Console
         isSubscription: false,
       );
-      
+
       return result != null;
     }
-    
+
     return false;
   } catch (e) {
     debugPrint('Receipt validation failed: $e');
@@ -600,7 +602,7 @@ Set up iOS testing environment:
 // For iOS testing in sandbox environment
 void setupIOSTesting() {
   debugPrint('Testing on iOS Sandbox');
-  
+
   // Use test Apple ID for sandbox testing
   // Products must be configured in App Store Connect
   // Test with different sandbox user accounts
@@ -615,13 +617,13 @@ Set up Android testing environment:
 // For Android testing with test purchases
 void setupAndroidTesting() {
   debugPrint('Testing on Android');
-  
+
   // Use test product IDs like:
   // - android.test.purchased
-  // - android.test.canceled  
+  // - android.test.canceled
   // - android.test.refunded
   // - android.test.item_unavailable
-  
+
   final testProductIds = [
     'android.test.purchased', // Always succeeds
     'android.test.canceled',  // Always cancelled
@@ -636,14 +638,14 @@ Here's a complete working example based on the project's `products_screen.dart`:
 ```dart
 class PurchaseService {
   final _iap = FlutterInappPurchase.instance;
-  
+
   StreamSubscription<PurchasedItem?>? _purchaseUpdatedSubscription;
   StreamSubscription<PurchaseResult?>? _purchaseErrorSubscription;
-  
+
   void init() {
     _setupPurchaseListeners();
   }
-  
+
   void _setupPurchaseListeners() {
     _purchaseUpdatedSubscription = FlutterInappPurchase.purchaseUpdated.listen(
       (purchasedItem) {
@@ -661,11 +663,11 @@ class PurchaseService {
       },
     );
   }
-  
+
   Future<void> _handlePurchaseSuccess(PurchasedItem purchase) async {
     // 1. Deliver product
     await _deliverProduct(purchase.productId);
-    
+
     // 2. Finish transaction
     if (Platform.isAndroid && purchase.purchaseToken != null) {
       await _iap.consumePurchaseAndroid(
@@ -675,14 +677,14 @@ class PurchaseService {
       await _iap.finishTransactionIOS(purchase, isConsumable: true);
     }
   }
-  
+
   void _handlePurchaseError(PurchaseResult error) {
     if (error.responseCode == 7) {
       // Handle "already owned" error
       _consumeExistingPurchases();
     }
   }
-  
+
   Future<void> purchaseProduct(String productId) async {
     await _iap.requestPurchase(
       request: RequestPurchase(
@@ -692,7 +694,7 @@ class PurchaseService {
       type: PurchaseType.inapp,
     );
   }
-  
+
   void dispose() {
     _purchaseUpdatedSubscription?.cancel();
     _purchaseErrorSubscription?.cancel();

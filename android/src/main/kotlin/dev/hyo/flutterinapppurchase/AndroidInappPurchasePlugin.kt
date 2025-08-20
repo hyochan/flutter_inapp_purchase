@@ -425,6 +425,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                     item.put("type", productDetails.productType)
                     item.put("title", productDetails.title)
                     item.put("displayName", productDetails.name)
+                    item.put("nameAndroid", productDetails.name)
                     item.put("description", productDetails.description)
                     item.put("platform", "android")
                     
@@ -457,6 +458,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                             offerDetails.put("formattedPrice", oneTimePurchaseOfferDetails.formattedPrice)
                             offerDetails.put("priceAmountMicros", oneTimePurchaseOfferDetails.priceAmountMicros.toString())
                             item.put("oneTimePurchaseOfferDetails", offerDetails)
+                            item.put("oneTimePurchaseOfferDetailsAndroid", offerDetails)
                         }
                     } else if (productDetails.productType == BillingClient.ProductType.SUBS) {
                         // These generalized values are derived from the first pricing object, mainly for backwards compatibility
@@ -526,7 +528,9 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
             val obfuscatedAccountId = call.argument<String>("obfuscatedAccountId")
             val obfuscatedProfileId = call.argument<String>("obfuscatedProfileId")
             val productId = call.argument<String>("productId")
-            val prorationMode = call.argument<Int>("prorationMode")!!
+            // TODO(v6.4.0): Remove prorationMode parameter support
+            // Support both old and new parameter names for backward compatibility
+            val replacementMode = call.argument<Int>("replacementMode") ?: call.argument<Int>("prorationMode") ?: -1
             val purchaseToken = call.argument<String>("purchaseToken")
             val offerTokenIndex = call.argument<Int>("offerTokenIndex")
             
@@ -589,8 +593,8 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                 builder.setObfuscatedProfileId(obfuscatedProfileId)
             }
 
-            when (prorationMode) {
-                -1 -> {} //ignore - no proration mode specified
+            when (replacementMode) {
+                -1 -> {} //ignore - no replacement mode specified
                 BillingFlowParams.SubscriptionUpdateParams.ReplacementMode.CHARGE_PRORATED_PRICE -> {
                     // For subscription replacement, purchaseToken is required
                     if (purchaseToken.isNullOrEmpty()) {

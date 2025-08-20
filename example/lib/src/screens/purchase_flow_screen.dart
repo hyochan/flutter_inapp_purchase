@@ -21,8 +21,8 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
     'dev.hyo.martie.30bulbs',
   ];
 
-  List<IAPItem> _products = [];
-  final Map<String, BaseProduct> _originalProducts =
+  List<IapItem> _products = [];
+  final Map<String, ProductCommon> _originalProducts =
       {}; // Store original products for detail view
   bool _isProcessing = false;
   bool _connected = false;
@@ -109,18 +109,24 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
   }
 
   Future<void> _handlePurchaseUpdate(Purchase purchase) async {
-    print('🎯 Purchase update received: ${purchase.productId}');
-    print('  Platform: ${purchase.platform}');
-    print('  Purchase state: ${purchase.purchaseState}');
-    print('  Purchase state Android: ${purchase.purchaseStateAndroid}');
-    print('  Transaction state iOS: ${purchase.transactionStateIOS}');
-    print('  Is acknowledged: ${purchase.isAcknowledgedAndroid}');
-    print('  Transaction ID: ${purchase.transactionId}');
-    print('  Purchase token: ${purchase.purchaseToken}');
-    print('  ID: ${purchase.id}');
+    debugPrint('🎯 Purchase update received: ${purchase.productId}');
+    debugPrint('  Platform: ${purchase.platform}');
+    debugPrint('  Purchase state: ${purchase.purchaseState}');
+    debugPrint('  Purchase state Android: ${purchase.purchaseStateAndroid}');
+    debugPrint('  Transaction state iOS: ${purchase.transactionStateIOS}');
+    debugPrint('  Is acknowledged: ${purchase.isAcknowledgedAndroid}');
+    debugPrint('  Transaction ID: ${purchase.transactionId}');
+    debugPrint('  Purchase token: ${purchase.purchaseToken}');
+    debugPrint('  ID: ${purchase.id} (${purchase.id.runtimeType})');
+    debugPrint('  IDs array: ${purchase.ids}');
+    if (purchase.platform == IapPlatform.ios) {
+      debugPrint('  quantityIOS: ${purchase.quantityIOS}');
+      debugPrint(
+          '  originalTransactionIdentifierIOS: ${purchase.originalTransactionIdentifierIOS} (${purchase.originalTransactionIdentifierIOS?.runtimeType})');
+    }
 
     if (!mounted) {
-      print('  ⚠️ Widget not mounted, ignoring update');
+      debugPrint('  ⚠️ Widget not mounted, ignoring update');
       return;
     }
 
@@ -144,13 +150,13 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
           purchase.purchaseToken!.isNotEmpty);
       bool condition3 = purchase.purchaseStateAndroid == 1;
 
-      print('  Android condition checks:');
-      print('    purchaseState == purchased: $condition1');
-      print('    unacknowledged with token: $condition2');
-      print('    purchaseStateAndroid == 1: $condition3');
+      debugPrint('  Android condition checks:');
+      debugPrint('    purchaseState == purchased: $condition1');
+      debugPrint('    unacknowledged with token: $condition2');
+      debugPrint('    purchaseStateAndroid == 1: $condition3');
 
       isPurchased = condition1 || condition2 || condition3;
-      print('  Final isPurchased: $isPurchased');
+      debugPrint('  Final isPurchased: $isPurchased');
     } else {
       // For iOS - same logic as subscription flow
       bool condition1 =
@@ -160,18 +166,18 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
       bool condition3 =
           purchase.transactionId != null && purchase.transactionId!.isNotEmpty;
 
-      print('  iOS condition checks:');
-      print('    transactionStateIOS == purchased: $condition1');
-      print('    has valid purchaseToken: $condition2');
-      print('    has valid transactionId: $condition3');
+      debugPrint('  iOS condition checks:');
+      debugPrint('    transactionStateIOS == purchased: $condition1');
+      debugPrint('    has valid purchaseToken: $condition2');
+      debugPrint('    has valid transactionId: $condition3');
 
       // For iOS, receiving a purchase update usually means success
       isPurchased = condition1 || condition2 || condition3;
-      print('  Final isPurchased: $isPurchased');
+      debugPrint('  Final isPurchased: $isPurchased');
     }
 
     if (!isPurchased) {
-      print('❓ Purchase not detected as successful');
+      debugPrint('❓ Purchase not detected as successful');
       setState(() {
         _isProcessing = false;
         _purchaseResult = '''
@@ -326,27 +332,28 @@ Platform: ${error.platform}
       // Clear and store original products
       _originalProducts.clear();
 
-      // Convert BaseProduct to IAPItem for compatibility
+      // Convert ProductCommon to IapItem for compatibility
       final items = products.map((product) {
-        // Store original product
-        _originalProducts[product.productId] = product;
+        // Store original product - use id as key with null safety
+        final productKey = product.productId ?? product.id;
+        _originalProducts[productKey] = product;
 
         // Cast to Product for more detailed info if available
         if (product is Product) {
-          debugPrint('Product: ${product.productId} - ${product.title}');
-          debugPrint('  Price: ${product.price}');
-          debugPrint('  Currency: ${product.currency}');
-          debugPrint('  Localized Price: ${product.localizedPrice}');
-          debugPrint('  Description: ${product.description}');
+          debugPrint('Product: ${product.id} - ${product.title ?? 'No title'}');
+          debugPrint('  Price: ${product.price ?? 'No price'}');
+          debugPrint('  Currency: ${product.currency ?? 'No currency'}');
+          debugPrint(
+              '  Description: ${product.description ?? 'No description'}');
         }
 
-        return IAPItem.fromJSON({
-          'productId': product.productId,
-          'title': product.title,
-          'description': product.description,
-          'price': product.price,
-          'localizedPrice': product.localizedPrice,
-          'currency': product.currency,
+        return IapItem.fromJSON({
+          'productId': product.productId ?? product.id,
+          'title': product.title ?? '',
+          'description': product.description ?? '',
+          'price': product.price?.toString() ?? '0',
+          'localizedPrice': product.localizedPrice ?? product.displayPrice,
+          'currency': product.currency ?? '',
         });
       }).toList();
 

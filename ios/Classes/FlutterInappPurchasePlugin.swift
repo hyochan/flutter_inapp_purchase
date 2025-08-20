@@ -178,13 +178,14 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
         processedTransactionIds.insert(transactionId)
         
         var event: [String: Any] = [
-            "id": transactionId,  // Add this for OpenIAP compliance
+            "id": transactionId as String,  // Ensure String type for OpenIAP compliance
             "productId": transaction.productID,
-            "transactionId": transactionId,
+            "transactionId": transactionId as String,  // Ensure String type
             "transactionDate": transaction.purchaseDate.timeIntervalSince1970 * 1000,
             "transactionReceipt": transaction.jsonRepresentation.base64EncodedString(),
             "purchaseToken": jwsRepresentation,  // Unified field for iOS JWS and Android purchaseToken
-            "jwsRepresentationIOS": jwsRepresentation,  // Deprecated - use purchaseToken
+            // TODO(v6.4.0): Remove deprecated jwsRepresentationIOS
+            "jwsRepresentationIOS": jwsRepresentation,  // Deprecated - use purchaseToken - will be removed in v6.4.0
             "platform": "ios",
             "transactionState": getTransactionState(transaction),
             "quantityIOS": transaction.purchasedQuantity,
@@ -193,7 +194,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
             "appAccountTokenIOS": transaction.appAccountToken?.uuidString,
             "appBundleIdIOS": transaction.appBundleID,
             "productTypeIOS": transaction.productType.rawValue,
-            "subscriptionGroupIdentifierIOS": transaction.subscriptionGroupID,
+            "subscriptionGroupIdIOS": transaction.subscriptionGroupID,
             "isUpgradedIOS": transaction.isUpgraded,
             "ownershipTypeIOS": transaction.ownershipType.rawValue,
             "webOrderLineItemIdIOS": transaction.webOrderLineItemID
@@ -388,13 +389,14 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                     print("\(FlutterInappPurchasePlugin.TAG) getAvailableItems - String transactionId: '\(transactionId)'")
                     
                     var purchase: [String: Any] = [
-                        "id": transactionId,
+                        "id": transactionId as String,  // Ensure String type
                         "productId": transaction.productID,
-                        "transactionId": transactionId,
+                        "transactionId": transactionId as String,  // Ensure String type
                         "transactionDate": transaction.purchaseDate.timeIntervalSince1970 * 1000,
                         "transactionReceipt": transaction.jsonRepresentation.base64EncodedString(),
                         "purchaseToken": verificationResult.jwsRepresentation,  // JWS for server validation (iOS 15+)
-                        "jwsRepresentationIOS": verificationResult.jwsRepresentation,  // Deprecated - use purchaseToken
+                        // TODO(v6.4.0): Remove deprecated jwsRepresentationIOS
+                        "jwsRepresentationIOS": verificationResult.jwsRepresentation,  // Deprecated - use purchaseToken - will be removed in v6.4.0
                         "platform": "ios",
                         
                         // Add iOS-specific fields
@@ -404,7 +406,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                         "appAccountTokenIOS": transaction.appAccountToken?.uuidString,
                         "appBundleIdIOS": transaction.appBundleID,
                         "productTypeIOS": transaction.productType.rawValue,
-                        "subscriptionGroupIdIOS": transaction.subscriptionGroupID,
+                        "subscriptionGroupIdIOS": transaction.subscriptionGroupID ?? "",
                         "isUpgradedIOS": transaction.isUpgraded,
                         "ownershipTypeIOS": transaction.ownershipType.rawValue,
                         "webOrderLineItemIdIOS": transaction.webOrderLineItemID
@@ -677,11 +679,11 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
     
     private func typeToString(_ type: Product.ProductType) -> String {
         switch type {
-        case .consumable: return "consumable"
-        case .nonConsumable: return "nonConsumable"
-        case .nonRenewable: return "nonRenewable"
-        case .autoRenewable: return "autoRenewable"
-        default: return "unknown"
+        case .consumable: return "inapp"
+        case .nonConsumable: return "inapp"
+        case .nonRenewable: return "inapp"
+        case .autoRenewable: return "subs"
+        default: return "inapp"
         }
     }
 }

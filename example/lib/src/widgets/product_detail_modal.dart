@@ -4,19 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 
 class ProductDetailModal extends StatelessWidget {
-  final IAPItem item;
-  final BaseProduct? product;
+  final IapItem item;
+  final ProductCommon? product;
 
   const ProductDetailModal({
-    Key? key,
     required this.item,
     this.product,
+    Key? key,
   }) : super(key: key);
 
   static void show({
     required BuildContext context,
-    required IAPItem item,
-    BaseProduct? product,
+    required IapItem item,
+    ProductCommon? product,
   }) {
     showModalBottomSheet<void>(
       context: context,
@@ -29,7 +29,7 @@ class ProductDetailModal extends StatelessWidget {
     );
   }
 
-  Map<String, dynamic> _itemToMap(IAPItem item) {
+  Map<String, dynamic> _itemToMap(IapItem item) {
     final map = <String, dynamic>{
       'productId': item.productId,
       'price': item.price,
@@ -125,8 +125,13 @@ class ProductDetailModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final jsonString =
-        const JsonEncoder.withIndent('  ').convert(_itemToMap(item));
+    // Use product.toJson() if available, otherwise fall back to _itemToMap
+    final jsonData = product != null && product is Product
+        ? (product as Product).toJson()
+        : product != null && product is Subscription
+            ? (product as Subscription).toJson()
+            : _itemToMap(item);
+    final jsonString = const JsonEncoder.withIndent('  ').convert(jsonData);
 
     return DraggableScrollableSheet(
       initialChildSize: 0.7,
@@ -278,23 +283,56 @@ class ProductDetailModal extends StatelessWidget {
                   // Raw JSON Data
                   _buildSection(
                     'Raw Data (JSON)',
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[100],
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey[300]!),
-                      ),
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: SelectableText(
-                          jsonString,
-                          style: const TextStyle(
-                            fontFamily: 'monospace',
-                            fontSize: 12,
+                    Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.grey[300]!),
+                          ),
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: SelectableText(
+                              jsonString,
+                              style: const TextStyle(
+                                fontFamily: 'monospace',
+                                fontSize: 12,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              // ignore: avoid_print
+                              debugPrint(
+                                  '=== Raw JSON Data for ${item.productId} ===');
+                              // ignore: avoid_print
+                              debugPrint(jsonString);
+                              // ignore: avoid_print
+                              debugPrint('=== End of Raw JSON Data ===');
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content:
+                                      Text('Raw JSON data printed to console'),
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.print, size: 18),
+                            label: const Text('Print to Console'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.grey[700],
+                              foregroundColor: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
 
@@ -302,17 +340,91 @@ class ProductDetailModal extends StatelessWidget {
                   if (product != null)
                     _buildSection(
                       'Original Product Object',
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.blue[50],
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.blue[200]!),
-                        ),
-                        child: Text(
-                          product.toString(),
-                          style: const TextStyle(fontSize: 12),
-                        ),
+                      Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.blue[50],
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.blue[200]!),
+                            ),
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: SelectableText(
+                                product.toString(),
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                // ignore: avoid_print
+                                debugPrint(
+                                    '=== Original Product Object for ${item.productId} ===');
+                                // ignore: avoid_print
+                                debugPrint('Type: ${product.runtimeType}');
+                                // ignore: avoid_print
+                                debugPrint(product.toString());
+
+                                // Print additional details based on product type
+                                final prod =
+                                    product!; // We know it's not null in this context
+                                if (prod is Product) {
+                                  final product = prod;
+                                  // ignore: avoid_print
+                                  debugPrint(
+                                      'Product Type: Product (consumable/non-consumable)');
+                                  // ignore: avoid_print
+                                  debugPrint('Platform: ${product.platform}');
+                                  if (product.discountsIOS != null) {
+                                    // ignore: avoid_print
+                                    debugPrint(
+                                        'iOS Discounts: ${product.discountsIOS}');
+                                  }
+                                } else if (prod is Subscription) {
+                                  final subscription = prod;
+                                  // ignore: avoid_print
+                                  debugPrint('Product Type: Subscription');
+                                  // ignore: avoid_print
+                                  debugPrint(
+                                      'Platform: ${subscription.platform}');
+                                  if (subscription.subscription != null) {
+                                    // ignore: avoid_print
+                                    debugPrint(
+                                        'Subscription Info: ${subscription.subscription}');
+                                  }
+                                  if (subscription.subscriptionOfferDetails !=
+                                      null) {
+                                    // ignore: avoid_print
+                                    debugPrint(
+                                        'Offer Details: ${subscription.subscriptionOfferDetails}');
+                                  }
+                                }
+                                // ignore: avoid_print
+                                debugPrint(
+                                    '=== End of Original Product Object ===');
+
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                        'Product object printed to console'),
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.print, size: 18),
+                              label: const Text('Print to Console'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue[700],
+                                foregroundColor: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                 ],

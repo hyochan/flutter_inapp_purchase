@@ -178,7 +178,7 @@ class FlutterInappPurchase
   }
 
   /// Request products (flutter IAP compatible)
-  Future<List<iap_types.BaseProduct>> requestProducts(
+  Future<List<iap_types.ProductCommon>> requestProducts(
     iap_types.RequestProductsParams params,
   ) async {
     if (!_isInitialized) {
@@ -192,7 +192,7 @@ class FlutterInappPurchase
     }
 
     try {
-      print(
+      debugPrint(
         '[flutter_inapp_purchase] requestProducts called with productIds: ${params.productIds}',
       );
 
@@ -225,11 +225,11 @@ class FlutterInappPurchase
         result = rawResult as List<dynamic>? ?? [];
       }
 
-      print(
+      debugPrint(
         '[flutter_inapp_purchase] Received ${result.length} items from native',
       );
 
-      // Convert directly to Product/Subscription without intermediate IAPItem
+      // Convert directly to Product/Subscription without intermediate IapItem
       return result.map(
         (item) {
           // Handle different Map types from iOS and Android
@@ -350,7 +350,7 @@ class FlutterInappPurchase
               obfuscatedProfileIdAndroid:
                   androidRequest.obfuscatedProfileIdAndroid,
               purchaseTokenAndroid: androidRequest.purchaseTokenAndroid,
-              prorationModeAndroid: androidRequest.replacementModeAndroid,
+              replacementModeAndroid: androidRequest.replacementModeAndroid,
             );
           } else {
             await requestSubscription(
@@ -365,7 +365,7 @@ class FlutterInappPurchase
           await _channel.invokeMethod('buyItemByType', <String, dynamic>{
             'type': TypeInApp.inapp.name,
             'productId': sku,
-            'prorationMode': -1,
+            'replacementMode': -1,
             'obfuscatedAccountId': androidRequest.obfuscatedAccountIdAndroid,
             'obfuscatedProfileId': androidRequest.obfuscatedProfileIdAndroid,
           });
@@ -402,7 +402,8 @@ class FlutterInappPurchase
     bool? isOfferPersonalized,
     String? purchaseToken,
     int? offerTokenIndex,
-    int? prorationMode,
+    @Deprecated('Use replacementMode instead') int? prorationMode,
+    int? replacementMode,
     // Android subscription-specific
     int? replacementModeAndroid,
     List<iap_types.SubscriptionOfferAndroid>? subscriptionOffers,
@@ -654,13 +655,18 @@ class FlutterInappPurchase
   }
 
   // Helper methods
-  iap_types.BaseProduct _parseProductFromNative(
+  iap_types.ProductCommon _parseProductFromNative(
     Map<String, dynamic> json,
     iap_types.PurchaseType type,
   ) {
-    final platform = _platform.isIOS
-        ? iap_types.IapPlatform.ios
-        : iap_types.IapPlatform.android;
+    // Determine platform from JSON data if available, otherwise use current device
+    final platform = json.containsKey('platform')
+        ? (json['platform'] == 'android'
+            ? iap_types.IapPlatform.android
+            : iap_types.IapPlatform.ios)
+        : (_platform.isIOS
+            ? iap_types.IapPlatform.ios
+            : iap_types.IapPlatform.android);
 
     if (type == iap_types.PurchaseType.subs) {
       return iap_types.Subscription(
@@ -670,25 +676,47 @@ class FlutterInappPurchase
         localizedPrice: json['localizedPrice'] as String?,
         title: json['title'] as String?,
         description: json['description'] as String?,
+        type: json['type'] as String? ?? iap_types.ProductType.subs,
         platform: platform,
         // iOS fields
         displayName: json['displayName'] as String?,
-        isFamilyShareable: json['isFamilyShareable'] as bool?,
-        jsonRepresentation: json['jsonRepresentation'] as String?,
+        displayPrice: json['displayPrice'] as String?,
         discountsIOS: _parseDiscountsIOS(json['discounts']),
         subscription: json['subscription'] != null
             ? iap_types.SubscriptionInfo.fromJson(
                 Map<String, dynamic>.from(json['subscription'] as Map))
-            : json['subscriptionGroupId'] != null
+            : json['subscriptionGroupIdIOS'] != null
                 ? iap_types.SubscriptionInfo(
-                    subscriptionGroupId: json['subscriptionGroupId'] as String?,
+                    subscriptionGroupId:
+                        json['subscriptionGroupIdIOS'] as String?,
                   )
                 : null,
+        subscriptionGroupIdIOS: json['subscriptionGroupIdIOS'] as String?,
+        subscriptionPeriodUnitIOS: json['subscriptionPeriodUnitIOS'] as String?,
+        subscriptionPeriodNumberIOS:
+            json['subscriptionPeriodNumberIOS'] as String?,
+        introductoryPricePaymentModeIOS:
+            json['introductoryPricePaymentModeIOS'] as String?,
         introductoryPriceNumberOfPeriodsIOS:
             json['introductoryPriceNumberOfPeriodsIOS']?.toString(),
         introductoryPriceSubscriptionPeriodIOS:
             json['introductoryPriceSubscriptionPeriodIOS'] as String?,
+        environmentIOS: json['environmentIOS'] as String?,
+        promotionalOfferIdsIOS: json['promotionalOfferIdsIOS'] != null
+            ? (json['promotionalOfferIdsIOS'] as List).cast<String>()
+            : null,
+        // OpenIAP compliant iOS fields
+        isFamilyShareableIOS: json['isFamilyShareableIOS'] as bool? ??
+            json['isFamilyShareable'] as bool?,
+        jsonRepresentationIOS: json['jsonRepresentationIOS'] as String? ??
+            json['jsonRepresentation'] as String?,
         // Android fields
+        nameAndroid: json['nameAndroid'] as String?,
+        oneTimePurchaseOfferDetailsAndroid:
+            json['oneTimePurchaseOfferDetailsAndroid'] != null
+                ? Map<String, dynamic>.from(
+                    json['oneTimePurchaseOfferDetailsAndroid'] as Map)
+                : null,
         originalPrice: json['originalPrice'] as String?,
         originalPriceAmount: json['originalPriceAmount'] as double?,
         freeTrialPeriod: json['freeTrialPeriod'] as String?,
@@ -698,28 +726,69 @@ class FlutterInappPurchase
         ),
       );
     } else {
-      return iap_types.Product(
-        productId: json['productId'] as String? ?? '',
-        price: json['price'] as String? ?? '0',
-        currency: json['currency'] as String?,
-        localizedPrice: json['localizedPrice'] as String?,
-        title: json['title'] as String?,
-        description: json['description'] as String?,
-        platform: platform,
-        // iOS specific
-        displayName: json['displayName'] as String?,
-        isFamilyShareable: json['isFamilyShareable'] as bool?,
-        jsonRepresentation: json['jsonRepresentation'] as String?,
-        discountsIOS: _parseDiscountsIOS(json['discounts']),
-        // Android specific
-        originalPrice: json['originalPrice'] as String?,
-        originalPriceAmount: json['originalPriceAmount'] as double?,
-        freeTrialPeriod: json['freeTrialPeriod'] as String?,
-        iconUrl: json['iconUrl'] as String?,
-        subscriptionOfferDetails: _parseOfferDetails(
-          json['subscriptionOfferDetails'],
-        ),
-      );
+      // For iOS platform, create ProductIOS instance to capture iOS-specific fields
+      if (platform == iap_types.IapPlatform.ios) {
+        return iap_types.ProductIOS(
+          productId: json['productId'] as String? ?? '',
+          price: json['price'] as String? ?? '0',
+          currency: json['currency'] as String?,
+          localizedPrice: json['localizedPrice'] as String?,
+          title: json['title'] as String?,
+          description: json['description'] as String?,
+          type: json['type'] as String? ?? iap_types.ProductType.inapp,
+          displayName: json['displayName'] as String?,
+          // OpenIAP compliant iOS fields
+          isFamilyShareableIOS: json['isFamilyShareableIOS'] as bool? ??
+              json['isFamilyShareable'] as bool?,
+          jsonRepresentationIOS: json['jsonRepresentationIOS'] as String? ??
+              json['jsonRepresentation'] as String?,
+          // Other iOS fields
+          discounts: _parseDiscountsIOS(json['discounts']),
+          subscriptionGroupIdentifier:
+              json['subscriptionGroupIdIOS'] as String?,
+          subscriptionPeriodUnit: json['subscriptionPeriodUnitIOS'] as String?,
+          subscriptionPeriodNumber:
+              json['subscriptionPeriodNumberIOS'] as String?,
+          introductoryPricePaymentMode:
+              json['introductoryPricePaymentModeIOS'] as String?,
+          introductoryPriceNumberOfPeriodsIOS:
+              json['introductoryPriceNumberOfPeriodsIOS'] as String?,
+          introductoryPriceSubscriptionPeriodIOS:
+              json['introductoryPriceSubscriptionPeriodIOS'] as String?,
+          environment: json['environmentIOS'] as String?,
+          promotionalOfferIds: json['promotionalOfferIdsIOS'] != null
+              ? (json['promotionalOfferIdsIOS'] as List).cast<String>()
+              : null,
+        );
+      } else {
+        // For Android platform, create regular Product
+        return iap_types.Product(
+          productId: json['productId'] as String? ?? '',
+          priceString: json['price'] as String? ?? '0',
+          currency: json['currency'] as String?,
+          localizedPrice: json['localizedPrice'] as String?,
+          title: json['title'] as String?,
+          description: json['description'] as String?,
+          type: json['type'] as String? ?? iap_types.ProductType.inapp,
+          platformEnum: platform,
+          // Android fields
+          displayName: json['displayName'] as String?,
+          displayPrice: json['displayPrice'] as String?,
+          nameAndroid: json['nameAndroid'] as String?,
+          oneTimePurchaseOfferDetailsAndroid:
+              json['oneTimePurchaseOfferDetailsAndroid'] != null
+                  ? Map<String, dynamic>.from(
+                      json['oneTimePurchaseOfferDetailsAndroid'] as Map)
+                  : null,
+          originalPrice: json['originalPrice'] as String?,
+          originalPriceAmount: json['originalPriceAmount'] as double?,
+          freeTrialPeriod: json['freeTrialPeriod'] as String?,
+          iconUrl: json['iconUrl'] as String?,
+          subscriptionOfferDetails: _parseOfferDetails(
+            json['subscriptionOfferDetails'],
+          ),
+        );
+      }
     }
   }
 
@@ -841,7 +910,8 @@ class FlutterInappPurchase
     }
   }
 
-  iap_types.Purchase _convertToPurchase(iap_types.PurchasedItem item) {
+  iap_types.Purchase _convertToPurchase(iap_types.PurchasedItem item,
+      [Map<String, dynamic>? originalJson]) {
     // Map iOS transaction state string to enum
     iap_types.TransactionState? transactionStateIOS;
     if (item.transactionStateIOS != null) {
@@ -869,22 +939,86 @@ class FlutterInappPurchase
       }
     }
 
+    // Convert transactionDate to timestamp (milliseconds)
+    final int? transactionDateTimestamp =
+        item.transactionDate?.millisecondsSinceEpoch;
+
+    // Parse original transaction date for iOS to integer timestamp
+    int? originalTransactionDateIOS;
+    if (item.originalTransactionDateIOS != null) {
+      try {
+        // Try parsing as ISO string first
+        final date = DateTime.tryParse(item.originalTransactionDateIOS!);
+        if (date != null) {
+          originalTransactionDateIOS = date.millisecondsSinceEpoch;
+        } else {
+          // Try parsing as number string
+          originalTransactionDateIOS =
+              int.tryParse(item.originalTransactionDateIOS!);
+        }
+      } catch (e) {
+        // Try parsing as number string
+        originalTransactionDateIOS =
+            int.tryParse(item.originalTransactionDateIOS!);
+      }
+    }
+
+    // Debug: Log the conversion
+    final convertedTransactionId =
+        item.id?.toString() ?? item.transactionId?.toString();
+    debugPrint(
+        '[flutter_inapp_purchase] _convertToPurchase - transactionId conversion: ${item.id} -> $convertedTransactionId (${convertedTransactionId.runtimeType})');
+
     return iap_types.Purchase(
       productId: item.productId ?? '',
-      transactionId: item.id ??
-          item.transactionId, // Use OpenIAP compliant id field when available
+      // Convert transactionId to string for OpenIAP compliance
+      // The id getter will return transactionId (OpenIAP compliant)
+      transactionId: convertedTransactionId,
       transactionReceipt: item.transactionReceipt,
       purchaseToken: item.purchaseToken,
-      transactionDate: item.transactionDate?.toIso8601String(),
+      // Use timestamp integer for OpenIAP compliance
+      transactionDate: transactionDateTimestamp,
       platform: _platform.isIOS
           ? iap_types.IapPlatform.ios
           : iap_types.IapPlatform.android,
+      // iOS specific fields
+      transactionStateIOS: transactionStateIOS,
+      originalTransactionIdentifierIOS:
+          item.originalTransactionIdentifierIOS?.toString(),
+      originalTransactionDateIOS: originalTransactionDateIOS?.toString(),
+      quantityIOS: originalJson?['quantityIOS'] as int? ?? 1,
+      // Additional iOS subscription fields from originalJson
+      environmentIOS: originalJson?['environmentIOS'] as String?,
+      expirationDateIOS: originalJson?['expirationDateIOS'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(
+              originalJson!['expirationDateIOS'] as int)
+          : null,
+      subscriptionGroupIdIOS:
+          originalJson?['subscriptionGroupIdIOS'] as String?,
+      productTypeIOS: originalJson?['productTypeIOS'] as String?,
+      transactionReasonIOS: originalJson?['reasonIOS'] as String?,
+      currencyCodeIOS: originalJson?['currencyIOS'] as String?,
+      storeFrontCountryCodeIOS:
+          originalJson?['storefrontCountryCodeIOS'] as String?,
+      appBundleIdIOS: originalJson?['appBundleIdIOS'] as String?,
+      isUpgradedIOS: originalJson?['isUpgradedIOS'] as bool?,
+      ownershipTypeIOS: originalJson?['ownershipTypeIOS'] as String?,
+      reasonIOS: originalJson?['reasonIOS'] as String?,
+      webOrderLineItemIdIOS: originalJson?['webOrderLineItemIdIOS'] as String?,
+      offerIOS: originalJson?['offerIOS'] as Map<String, dynamic>?,
+      priceIOS: originalJson?['priceIOS'] != null
+          ? (originalJson!['priceIOS'] as num).toDouble()
+          : null,
+      revocationDateIOS: originalJson?['revocationDateIOS'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(
+              originalJson!['revocationDateIOS'] as int)
+          : null,
+      revocationReasonIOS: originalJson?['revocationReasonIOS'] as String?,
+      // Android specific fields
       isAcknowledgedAndroid: item.isAcknowledgedAndroid,
       purchaseState: item.purchaseStateAndroid != null
           ? _mapAndroidPurchaseState(item.purchaseStateAndroid!)
           : null,
-      transactionStateIOS: transactionStateIOS,
-      originalTransactionIdentifierIOS: item.originalTransactionIdentifierIOS,
       originalJson: item.originalJsonAndroid,
       signatureAndroid: item.signatureAndroid,
       packageNameAndroid: item.packageNameAndroid,
@@ -974,7 +1108,7 @@ class FlutterInappPurchase
     'Use requestProducts with type: PurchaseType.inapp instead. '
     'This method will be removed in the next major version.',
   )
-  Future<List<iap_types.IAPItem>> getProducts(List<String> productIds) async {
+  Future<List<iap_types.IapItem>> getProducts(List<String> productIds) async {
     // Redirect to requestProducts for backward compatibility
     final products = await requestProducts(
       iap_types.RequestProductsParams(
@@ -983,7 +1117,7 @@ class FlutterInappPurchase
       ),
     );
 
-    // Convert BaseProduct to IAPItem for backward compatibility
+    // Convert ProductCommon to IapItem for backward compatibility
     return products.map((product) {
       final Map<String, dynamic> json = {
         'productId': product.productId,
@@ -996,11 +1130,12 @@ class FlutterInappPurchase
 
       // Add platform-specific fields if available
       if (product is iap_types.Product) {
-        json['originalPrice'] = product.originalPrice;
-        json['originalPriceAmount'] = product.originalPriceAmount;
+        final prod = product;
+        json['originalPrice'] = prod.originalPrice;
+        json['originalPriceAmount'] = prod.originalPriceAmount;
       }
 
-      return iap_types.IAPItem.fromJSON(json);
+      return iap_types.IapItem.fromJSON(json);
     }).toList();
   }
 
@@ -1010,7 +1145,7 @@ class FlutterInappPurchase
     'Use requestProducts with type: PurchaseType.subs instead. '
     'This method will be removed in the next major version.',
   )
-  Future<List<iap_types.IAPItem>> getSubscriptions(
+  Future<List<iap_types.IapItem>> getSubscriptions(
     List<String> productIds,
   ) async {
     // Redirect to requestProducts for backward compatibility
@@ -1021,7 +1156,7 @@ class FlutterInappPurchase
       ),
     );
 
-    // Convert BaseProduct to IAPItem for backward compatibility
+    // Convert ProductCommon to IapItem for backward compatibility
     return products.map((product) {
       final Map<String, dynamic> json = {
         'productId': product.productId,
@@ -1034,15 +1169,14 @@ class FlutterInappPurchase
 
       // Add platform-specific fields if available
       if (product is iap_types.Subscription) {
-        json['discountsIOS'] = product.discountsIOS;
-        json['subscriptionGroupIdentifierIOS'] = product.subscriptionGroupIdIOS;
-        json['isFamilyShareableIOS'] = product.isFamilyShareable;
-        json['jsonRepresentationIOS'] = product.jsonRepresentation;
-        json['subscriptionOffersAndroid'] = product.subscriptionOffersAndroid;
-        json['subscriptionPeriodAndroid'] = product.subscriptionPeriodAndroid;
+        final sub = product;
+        json['discountsIOS'] = sub.discountsIOS;
+        json['subscriptionGroupIdentifierIOS'] = sub.subscriptionGroupIdIOS;
+        json['subscriptionOffersAndroid'] = sub.subscriptionOffersAndroid;
+        json['subscriptionPeriodAndroid'] = sub.subscriptionPeriodAndroid;
       }
 
-      return iap_types.IAPItem.fromJSON(json);
+      return iap_types.IapItem.fromJSON(json);
     }).toList();
   }
 
@@ -1082,10 +1216,10 @@ class FlutterInappPurchase
   ///
   /// For NEW subscriptions:
   /// - Simply call with productId
-  /// - Do NOT set prorationModeAndroid (or set it to -1)
+  /// - Do NOT set replacementModeAndroid (or set it to -1)
   ///
   /// For UPGRADING/DOWNGRADING existing subscriptions (Android only):
-  /// - Set prorationModeAndroid to desired mode (1-5)
+  /// - Set replacementModeAndroid to desired mode (1-5)
   /// - MUST provide purchaseTokenAndroid from the existing subscription
   /// - Get the token using getAvailablePurchases()
   ///
@@ -1100,30 +1234,39 @@ class FlutterInappPurchase
   /// final existingSub = purchases.firstWhere((p) => p.productId == 'basic_monthly');
   /// await requestSubscription(
   ///   'premium_monthly',
-  ///   prorationModeAndroid: AndroidProrationMode.immediateWithTimeProration.value,
+  ///   replacementModeAndroid: AndroidReplacementMode.withTimeProration.value,
   ///   purchaseTokenAndroid: existingSub.purchaseToken,
   /// );
   /// ```
   Future<dynamic> requestSubscription(
     String productId, {
+    // TODO(v6.4.0): Remove deprecated prorationModeAndroid parameter
+    @Deprecated(
+        'Use replacementModeAndroid instead - will be removed in v6.4.0')
     int? prorationModeAndroid,
+    int? replacementModeAndroid,
     String? obfuscatedAccountIdAndroid,
     String? obfuscatedProfileIdAndroid,
     String? purchaseTokenAndroid,
     int? offerTokenIndex,
   }) async {
     if (_platform.isAndroid) {
-      // Validate that purchaseToken is provided when using proration mode
-      // Proration mode -1 means no proration (new subscription)
-      if (prorationModeAndroid != null &&
-          prorationModeAndroid != -1 &&
+      // TODO(v6.4.0): Remove prorationModeAndroid backward compatibility
+      // Handle backward compatibility: use prorationModeAndroid if replacementModeAndroid is not set
+      final int? effectiveReplacementMode =
+          replacementModeAndroid ?? prorationModeAndroid;
+
+      // Validate that purchaseToken is provided when using replacement mode
+      // Replacement mode -1 means no replacement (new subscription)
+      if (effectiveReplacementMode != null &&
+          effectiveReplacementMode != -1 &&
           (purchaseTokenAndroid == null || purchaseTokenAndroid.isEmpty)) {
         throw iap_types.PurchaseError(
           code: iap_types.ErrorCode.eDeveloperError,
           message:
-              'purchaseTokenAndroid is required when using proration mode (prorationModeAndroid: $prorationModeAndroid). '
-              'Proration modes are only for upgrading/downgrading EXISTING subscriptions. '
-              'For NEW subscriptions, do not set prorationModeAndroid or set it to -1. '
+              'purchaseTokenAndroid is required when using replacement mode (replacementModeAndroid: $effectiveReplacementMode). '
+              'Replacement modes are only for upgrading/downgrading EXISTING subscriptions. '
+              'For NEW subscriptions, do not set replacementModeAndroid or set it to -1. '
               'To upgrade/downgrade, provide the purchaseToken from getAvailablePurchases().',
           platform: iap_types.IapPlatform.android,
         );
@@ -1132,7 +1275,7 @@ class FlutterInappPurchase
       return await _channel.invokeMethod('buyItemByType', <String, dynamic>{
         'type': TypeInApp.subs.name,
         'productId': productId,
-        'prorationMode': prorationModeAndroid ?? -1,
+        'replacementMode': effectiveReplacementMode ?? -1,
         'obfuscatedAccountId': obfuscatedAccountIdAndroid,
         'obfuscatedProfileId': obfuscatedProfileIdAndroid,
         'purchaseToken': purchaseTokenAndroid,
@@ -1201,14 +1344,14 @@ class FlutterInappPurchase
     final transactionId =
         purchase.id.isNotEmpty ? purchase.id : purchase.transactionId;
 
-    print('[FlutterInappPurchase] finishTransaction called');
-    print('[FlutterInappPurchase] Purchase object: $purchase');
-    print('[FlutterInappPurchase] Final transactionId: $transactionId');
-    print('[FlutterInappPurchase] Platform: ${_platform.operatingSystem}');
+    debugPrint('[FlutterInappPurchase] finishTransaction called');
+    debugPrint('[FlutterInappPurchase] Purchase object: $purchase');
+    debugPrint('[FlutterInappPurchase] Final transactionId: $transactionId');
+    debugPrint('[FlutterInappPurchase] Platform: ${_platform.operatingSystem}');
 
     if (_platform.isAndroid) {
       if (isConsumable) {
-        print(
+        debugPrint(
             '[FlutterInappPurchase] Android: Consuming product with token: ${purchase.purchaseToken}');
         await _channel.invokeMethod('consumeProduct', <String, dynamic>{
           'purchaseToken': purchase.purchaseToken,
@@ -1235,7 +1378,7 @@ class FlutterInappPurchase
         }
       }
     } else if (_platform.isIOS) {
-      print(
+      debugPrint(
           '[FlutterInappPurchase] iOS: Finishing transaction with ID: $transactionId');
       await _channel.invokeMethod('finishTransaction', <String, dynamic>{
         'transactionId': transactionId, // Use OpenIAP compliant id
@@ -1259,9 +1402,9 @@ class FlutterInappPurchase
     await finishTransaction(purchase, isConsumable: isConsumable);
   }
 
-  Future<List<iap_types.IAPItem>> getAppStoreInitiatedProducts() async {
+  Future<List<iap_types.IapItem>> getAppStoreInitiatedProducts() async {
     if (_platform.isAndroid) {
-      return <iap_types.IAPItem>[];
+      return <iap_types.IapItem>[];
     } else if (_platform.isIOS) {
       dynamic result = await _channel.invokeMethod(
         'getAppStoreInitiatedProducts',
@@ -1327,45 +1470,68 @@ class FlutterInappPurchase
     _connectionController ??= StreamController.broadcast();
     _purchasePromotedController ??= StreamController.broadcast();
 
-    print('[flutter_inapp_purchase] Setting up method call handler');
+    debugPrint('[flutter_inapp_purchase] Setting up method call handler');
     _channel.setMethodCallHandler((MethodCall call) async {
-      print('[flutter_inapp_purchase] Received method call: ${call.method}');
-      print('[flutter_inapp_purchase] Arguments: ${call.arguments}');
+      debugPrint(
+          '[flutter_inapp_purchase] Received method call: ${call.method}');
+      debugPrint('[flutter_inapp_purchase] Arguments: ${call.arguments}');
 
       switch (call.method) {
         case 'purchase-updated':
-          print('[flutter_inapp_purchase] Processing purchase-updated event');
+          debugPrint(
+              '[flutter_inapp_purchase] Processing purchase-updated event');
           try {
             Map<String, dynamic> result =
                 jsonDecode(call.arguments as String) as Map<String, dynamic>;
-            print('[flutter_inapp_purchase] Decoded result: $result');
+            debugPrint('[flutter_inapp_purchase] Decoded result: $result');
+
+            // Debug: Check the actual types of ID fields
+            if (result['transactionId'] != null) {
+              debugPrint(
+                  '[flutter_inapp_purchase] transactionId type: ${result['transactionId'].runtimeType}, value: ${result['transactionId']}');
+            }
+            if (result['id'] != null) {
+              debugPrint(
+                  '[flutter_inapp_purchase] id type: ${result['id'].runtimeType}, value: ${result['id']}');
+            }
+            if (result['originalTransactionIdentifierIOS'] != null) {
+              debugPrint(
+                  '[flutter_inapp_purchase] originalTransactionIdentifierIOS type: ${result['originalTransactionIdentifierIOS'].runtimeType}, value: ${result['originalTransactionIdentifierIOS']}');
+            }
 
             iap_types.PurchasedItem item = iap_types.PurchasedItem.fromJSON(
               result,
             );
-            print('[flutter_inapp_purchase] Created PurchasedItem: $item');
+            debugPrint('[flutter_inapp_purchase] Created PurchasedItem: $item');
+            debugPrint(
+                '[flutter_inapp_purchase] PurchasedItem.id: ${item.id} (${item.id.runtimeType})');
+            debugPrint(
+                '[flutter_inapp_purchase] PurchasedItem.transactionId: ${item.transactionId} (${item.transactionId.runtimeType})');
 
             _purchaseController!.add(item);
-            print('[flutter_inapp_purchase] Added to purchaseController');
+            debugPrint('[flutter_inapp_purchase] Added to purchaseController');
 
-            // Also emit to flutter IAP compatible stream
-            final purchase = _convertToPurchase(item);
-            print('[flutter_inapp_purchase] Converted to Purchase: $purchase');
-            print(
+            // Also emit to flutter IAP compatible stream with original JSON for iOS subscription fields
+            final purchase = _convertToPurchase(item, result);
+            debugPrint(
+                '[flutter_inapp_purchase] Converted to Purchase: $purchase');
+            debugPrint(
               '[flutter_inapp_purchase] Emitting purchase to purchaseUpdatedController: $purchase',
             );
 
             _purchaseUpdatedListener.add(purchase);
-            print(
+            debugPrint(
               '[flutter_inapp_purchase] Successfully emitted to purchaseUpdatedListener',
             );
           } catch (e, stackTrace) {
-            print('[flutter_inapp_purchase] ERROR in purchase-updated: $e');
-            print('[flutter_inapp_purchase] Stack trace: $stackTrace');
+            debugPrint(
+                '[flutter_inapp_purchase] ERROR in purchase-updated: $e');
+            debugPrint('[flutter_inapp_purchase] Stack trace: $stackTrace');
           }
           break;
         case 'purchase-error':
-          print('[flutter_inapp_purchase] Processing purchase-error event');
+          debugPrint(
+              '[flutter_inapp_purchase] Processing purchase-error event');
           Map<String, dynamic> result =
               jsonDecode(call.arguments as String) as Map<String, dynamic>;
           iap_types.PurchaseResult purchaseResult =
@@ -1373,7 +1539,7 @@ class FlutterInappPurchase
           _purchaseErrorController!.add(purchaseResult);
           // Also emit to Open IAP compatible stream
           final error = _convertToPurchaseError(purchaseResult);
-          print(
+          debugPrint(
             '[flutter_inapp_purchase] Emitting error to purchaseErrorListener: $error',
           );
           _purchaseErrorListener.add(error);
@@ -1440,7 +1606,7 @@ class FlutterInappPurchase
         await _channel.invokeMethod('buyItemByType', <String, dynamic>{
           'type': TypeInApp.inapp.name,
           'productId': productId,
-          'prorationMode': -1,
+          'replacementMode': -1,
         });
       }
     } catch (e) {
@@ -1622,15 +1788,14 @@ class FlutterInappPurchase
           // Try to parse expiration date from transaction date if available
           // In a real implementation, this would come from the receipt validation
           if (purchase.transactionDate != null) {
-            final transDate = DateTime.tryParse(purchase.transactionDate!);
-            if (transDate != null) {
-              // Assume 30-day subscription for demo purposes
-              // In production, this should come from receipt validation
-              expirationDate = transDate.add(const Duration(days: 30));
-              daysUntilExpiration =
-                  expirationDate.difference(DateTime.now()).inDays;
-              willExpireSoon = daysUntilExpiration <= 7;
-            }
+            final transDate =
+                DateTime.fromMillisecondsSinceEpoch(purchase.transactionDate!);
+            // Assume 30-day subscription for demo purposes
+            // In production, this should come from receipt validation
+            expirationDate = transDate.add(const Duration(days: 30));
+            daysUntilExpiration =
+                expirationDate.difference(DateTime.now()).inDays;
+            willExpireSoon = daysUntilExpiration <= 7;
           }
 
           // Detect environment based on receipt or other indicators
@@ -1688,7 +1853,7 @@ class FlutterInappPurchase
 }
 
 // Utility functions
-List<iap_types.IAPItem> extractItems(dynamic result) {
+List<iap_types.IapItem> extractItems(dynamic result) {
   // Handle both JSON string and already decoded List
   List<dynamic> list;
   if (result is String) {
@@ -1699,9 +1864,9 @@ List<iap_types.IAPItem> extractItems(dynamic result) {
     list = json.decode(result.toString()) as List<dynamic>;
   }
 
-  List<iap_types.IAPItem> products = list
-      .map<iap_types.IAPItem>(
-        (dynamic product) => iap_types.IAPItem.fromJSON(
+  List<iap_types.IapItem> products = list
+      .map<iap_types.IapItem>(
+        (dynamic product) => iap_types.IapItem.fromJSON(
             Map<String, dynamic>.from(product as Map)),
       )
       .toList();

@@ -19,7 +19,7 @@ class _StoreKit2DemoState extends State<StoreKit2Demo> {
   bool _connected = false;
   bool _loading = false;
   String? _error;
-  List<IAPItem> _products = [];
+  List<IapItem> _products = [];
   List<PurchasedItem> _purchases = [];
 
   // Test product IDs
@@ -228,7 +228,7 @@ class _StoreKit2DemoState extends State<StoreKit2Demo> {
     }
   }
 
-  Widget _buildProductCard(IAPItem product) {
+  Widget _buildProductCard(IapItem product) {
     final isSubscription = product.productId?.contains('subscription') ?? false;
 
     return Card(

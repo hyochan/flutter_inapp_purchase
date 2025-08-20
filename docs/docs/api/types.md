@@ -91,12 +91,12 @@ class RequestProductsParams {
 
 ## Product Types
 
-### IAPItem
+### IapItem
 
 Represents a product available for purchase.
 
 ```dart
-class IAPItem {
+class IapItem {
   final String? productId;                              // Product identifier
   final String? price;                                  // Price as string
   final String? currency;                               // Currency code
@@ -258,7 +258,7 @@ class PurchaseResult {
 Product purchase types.
 
 ```dart
-enum PurchaseType { 
+enum PurchaseType {
   inapp,    // One-time purchases
   subs      // Subscriptions
 }
@@ -303,7 +303,7 @@ enum ErrorCode {
 Platform enumeration.
 
 ```dart
-enum IAPPlatform { 
+enum IAPPlatform {
   ios,      // iOS platform
   android   // Android platform
 }
@@ -431,18 +431,19 @@ IAPPlatform getCurrentPlatform();
 
 ### Key Type Differences
 
-| Feature | iOS | Android |
-|---------|-----|---------|
-| Product IDs | Single `sku` string | Array of `skus` |
-| Purchase Token | **Unified `purchaseToken`** (JWS format) | **Unified `purchaseToken`** (Google Play format) |
-| Transaction State | `TransactionState` enum | `PurchaseState` enum |
-| Error Handling | Integer codes | String codes |
-| Discounts | `DiscountIOS` objects | `SubscriptionOfferAndroid` |
-| Transaction IDs | Large numbers (e.g., `2000000985615347`) | String format (e.g., `GPA.1234-5678-9012`) |
+| Feature           | iOS                                      | Android                                          |
+| ----------------- | ---------------------------------------- | ------------------------------------------------ |
+| Product IDs       | Single `sku` string                      | Array of `skus`                                  |
+| Purchase Token    | **Unified `purchaseToken`** (JWS format) | **Unified `purchaseToken`** (Google Play format) |
+| Transaction State | `TransactionState` enum                  | `PurchaseState` enum                             |
+| Error Handling    | Integer codes                            | String codes                                     |
+| Discounts         | `DiscountIOS` objects                    | `SubscriptionOfferAndroid`                       |
+| Transaction IDs   | Large numbers (e.g., `2000000985615347`) | String format (e.g., `GPA.1234-5678-9012`)       |
 
 ### Platform-Specific Fields
 
 **iOS Only:**
+
 - `originalTransactionIdentifierIOS`
 - `transactionStateIOS`
 - `discountsIOS`
@@ -450,6 +451,7 @@ IAPPlatform getCurrentPlatform();
 - `jwsRepresentationIOS` ⚠️ **DEPRECATED** - Use `purchaseToken` instead
 
 **Android Only:**
+
 - `dataAndroid`
 - `signatureAndroid`
 - `isAcknowledgedAndroid`
@@ -457,6 +459,7 @@ IAPPlatform getCurrentPlatform();
 - `purchaseTokenAndroid` ⚠️ **DEPRECATED** - Use `purchaseToken` instead
 
 **Cross-Platform:**
+
 - `purchaseToken` - Unified field containing iOS JWS or Android purchase token
 
 ## Migration Notes
@@ -471,15 +474,17 @@ IAPPlatform getCurrentPlatform();
 ✨ **New in v6.0.0:**
 
 1. **Unified Purchase Token**: `purchaseToken` field now works consistently across platforms:
+
    - **iOS**: Contains JWS representation for server-side validation
    - **Android**: Contains Google Play purchase token
    - **Migration**: Replace `jwsRepresentationIOS` and `purchaseTokenAndroid` with `purchaseToken`
 
-2. **Improved Transaction IDs**: 
+2. **Improved Transaction IDs**:
+
    - **Development**: Uses sequential IDs (1, 2, 3) with StoreKit Configuration
    - **Sandbox/Production**: Uses proper secure IDs (e.g., `2000000985615347`)
 
-3. **Enhanced Error Handling**: 
+3. **Enhanced Error Handling**:
    - Unified error events across platforms following expo-iap patterns
    - Better duplicate event prevention
 

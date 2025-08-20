@@ -10,6 +10,7 @@ A comprehensive, production-ready implementation with all best practices for a r
 ## Architecture Overview
 
 This implementation includes:
+
 - State management with provider
 - Server-side receipt validation
 - Offline support with local caching
@@ -36,22 +37,22 @@ class IAPService {
 
   StreamSubscription? _purchaseUpdatedSubscription;
   StreamSubscription? _purchaseErrorSubscription;
-  
+
   final StreamController<PurchaseUpdate> _purchaseController =
       StreamController.broadcast();
-  
+
   Stream<PurchaseUpdate> get purchaseStream => _purchaseController.stream;
 
   Future<bool> initialize() async {
     try {
       final result = await FlutterInappPurchase.instance.initialize();
-      
+
       _purchaseUpdatedSubscription = FlutterInappPurchase
           .purchaseUpdated.listen(_handlePurchaseUpdate);
-      
+
       _purchaseErrorSubscription = FlutterInappPurchase
           .purchaseError.listen(_handlePurchaseError);
-      
+
       return result != null;
     } catch (e) {
       print('IAP initialization failed: $e');
@@ -61,18 +62,18 @@ class IAPService {
 
   void _handlePurchaseUpdate(PurchasedItem? item) async {
     if (item == null) return;
-    
+
     try {
       // Validate receipt server-side
       final validationResult = await _validatePurchase(item);
-      
+
       if (validationResult.isValid) {
         // Deliver content
         await _deliverPurchase(item, validationResult);
-        
+
         // Complete transaction
         await _completeTransaction(item);
-        
+
         _purchaseController.add(PurchaseUpdate(
           item: item,
           status: PurchaseStatus.success,
@@ -102,7 +103,7 @@ class IAPService {
     ));
   }
 
-  Future<List<IAPItem>> getProducts(List<String> productIds) async {
+  Future<List<IapItem>> getProducts(List<String> productIds) async {
     try {
       return await FlutterInappPurchase.instance.requestProducts(skus: productIds, type: 'inapp');
     } catch (e) {
@@ -111,7 +112,7 @@ class IAPService {
     }
   }
 
-  Future<List<IAPItem>> getSubscriptions(List<String> subscriptionIds) async {
+  Future<List<IapItem>> getSubscriptions(List<String> subscriptionIds) async {
     try {
       return await FlutterInappPurchase.instance.requestProducts(skus: subscriptionIds, type: 'subs');
     } catch (e) {
@@ -142,7 +143,7 @@ class IAPService {
   Future<ValidationResult> _validatePurchase(PurchasedItem item) async {
     try {
       String? receipt;
-      
+
       if (Platform.isIOS) {
         receipt = await FlutterInappPurchase.instance.getReceiptData();
       } else {
@@ -176,18 +177,18 @@ class IAPService {
   }
 
   Future<void> _deliverPurchase(
-    PurchasedItem item, 
+    PurchasedItem item,
     ValidationResult validationResult
   ) async {
     // Update local storage
     await LocalStorage().savePurchase(item);
-    
+
     // Track analytics
     AnalyticsService().trackPurchase(item);
-    
+
     // Grant content/features
     await ContentService().grantAccess(
-      item.productId!, 
+      item.productId!,
       validationResult.purchaseData
     );
   }
@@ -197,7 +198,7 @@ class IAPService {
       await FlutterInappPurchase.instance.finishTransaction(item);
     } else if (Platform.isAndroid) {
       final isConsumable = ProductConfig.isConsumable(item.productId!);
-      
+
       if (isConsumable) {
         await FlutterInappPurchase.instance.consumePurchase(
           purchaseToken: item.purchaseTokenAndroid!,
@@ -244,10 +245,10 @@ class ValidationResult {
   final String? error;
   final Map<String, dynamic>? purchaseData;
 
-  ValidationResult.valid(this.purchaseData) 
+  ValidationResult.valid(this.purchaseData)
     : isValid = true, error = null;
-  
-  ValidationResult.invalid(this.error) 
+
+  ValidationResult.invalid(this.error)
     : isValid = false, purchaseData = null;
 
   factory ValidationResult.fromJson(Map<String, dynamic> json) {
@@ -265,18 +266,18 @@ import '../services/iap_service.dart';
 
 class StoreProvider extends ChangeNotifier {
   final IAPService _iapService = IAPService();
-  
-  List<IAPItem> _products = [];
-  List<IAPItem> _subscriptions = [];
+
+  List<IapItem> _products = [];
+  List<IapItem> _subscriptions = [];
   List<PurchasedItem> _purchases = [];
-  
+
   bool _isInitialized = false;
   bool _isLoading = false;
   String? _error;
-  
+
   // Getters
-  List<IAPItem> get products => _products;
-  List<IAPItem> get subscriptions => _subscriptions;
+  List<IapItem> get products => _products;
+  List<IapItem> get subscriptions => _subscriptions;
   List<PurchasedItem> get purchases => _purchases;
   bool get isInitialized => _isInitialized;
   bool get isLoading => _isLoading;
@@ -284,19 +285,19 @@ class StoreProvider extends ChangeNotifier {
 
   Future<void> initialize() async {
     _setLoading(true);
-    
+
     try {
       _isInitialized = await _iapService.initialize();
-      
+
       if (_isInitialized) {
         // Listen to purchase updates
         _iapService.purchaseStream.listen(_handlePurchaseUpdate);
-        
+
         // Load initial data
         await loadProducts();
         await loadPurchases();
       }
-      
+
       _error = null;
     } catch (e) {
       _error = e.toString();
@@ -309,15 +310,15 @@ class StoreProvider extends ChangeNotifier {
     try {
       final productIds = ProductConfig.getAllProductIds();
       final subscriptionIds = ProductConfig.getAllSubscriptionIds();
-      
+
       final results = await Future.wait([
         _iapService.getProducts(productIds),
         _iapService.getSubscriptions(subscriptionIds),
       ]);
-      
+
       _products = results[0];
       _subscriptions = results[1];
-      
+
       notifyListeners();
     } catch (e) {
       _error = e.toString();
@@ -364,7 +365,7 @@ class StoreProvider extends ChangeNotifier {
       (p) => p.productId == productId,
       orElse: () => PurchasedItem(),
     );
-    
+
     // Check if subscription is still valid
     // You'd implement expiration checking here
     return purchase.productId != null;
@@ -412,16 +413,16 @@ class StoreScreen extends StatefulWidget {
   _StoreScreenState createState() => _StoreScreenState();
 }
 
-class _StoreScreenState extends State<StoreScreen> 
+class _StoreScreenState extends State<StoreScreen>
     with SingleTickerProviderStateMixin {
-  
+
   late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    
+
     // Initialize store if not already done
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final store = Provider.of<StoreProvider>(context, listen: false);
@@ -461,15 +462,15 @@ class _StoreScreenState extends State<StoreScreen>
           if (!store.isInitialized) {
             return _buildInitializingView();
           }
-          
+
           if (store.isLoading) {
             return _buildLoadingView();
           }
-          
+
           if (store.error != null) {
             return _buildErrorView(store.error!, store);
           }
-          
+
           return TabBarView(
             controller: _tabController,
             children: [
@@ -537,7 +538,7 @@ class _StoreScreenState extends State<StoreScreen>
       itemBuilder: (context, index) {
         final product = store.products[index];
         final isPurchased = store.isPurchased(product.productId!);
-        
+
         return Card(
           child: ListTile(
             title: Text(product.title ?? product.productId!),
@@ -569,7 +570,7 @@ class _StoreScreenState extends State<StoreScreen>
       itemBuilder: (context, index) {
         final subscription = store.subscriptions[index];
         final isActive = store.isSubscriptionActive(subscription.productId!);
-        
+
         return Card(
           child: ListTile(
             title: Text(subscription.title ?? subscription.productId!),
@@ -595,7 +596,7 @@ class _StoreScreenState extends State<StoreScreen>
   void _restorePurchases() async {
     final store = Provider.of<StoreProvider>(context, listen: false);
     await store.loadPurchases();
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Purchases restored')),
     );

@@ -12,13 +12,15 @@ This guide helps you migrate from expo-iap to flutter_inapp_purchase, highlighti
 ### Architecture
 
 **expo-iap (React Native/Expo):**
+
 - Hook-based architecture (`useIAP`)
 - Built for Expo/React Native ecosystem
 - JavaScript/TypeScript
 
 **flutter_inapp_purchase (Flutter):**
+
 - Stream-based architecture
-- Built for Flutter ecosystem  
+- Built for Flutter ecosystem
 - Dart language
 
 ## API Comparison
@@ -26,12 +28,13 @@ This guide helps you migrate from expo-iap to flutter_inapp_purchase, highlighti
 ### Initialization
 
 **expo-iap:**
+
 ```typescript
-import { useIAP } from 'expo-iap';
+import { useIAP } from "expo-iap";
 
 function MyStore() {
   const { connected, products, getProducts } = useIAP();
-  
+
   useEffect(() => {
     if (connected) {
       getProducts(productIds);
@@ -41,6 +44,7 @@ function MyStore() {
 ```
 
 **flutter_inapp_purchase:**
+
 ```dart
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 
@@ -50,14 +54,14 @@ class MyStore extends StatefulWidget {
 }
 
 class _MyStoreState extends State<MyStore> {
-  List<IAPItem> products = [];
-  
+  List<IapItem> products = [];
+
   @override
   void initState() {
     super.initState();
     _initializeStore();
   }
-  
+
   Future<void> _initializeStore() async {
     await FlutterInappPurchase.instance.initialize();
     products = await FlutterInappPurchase.instance.getProducts(productIds);
@@ -69,21 +73,23 @@ class _MyStoreState extends State<MyStore> {
 ### Product Fetching
 
 **expo-iap:**
+
 ```typescript
 // Fetch products by type
 const products = await getProducts({
-  skus: ['product1', 'product2'],
-  type: 'inapp'
+  skus: ["product1", "product2"],
+  type: "inapp",
 });
 
 // Fetch subscriptions
 const subscriptions = await getProducts({
-  skus: ['sub1', 'sub2'],
-  type: 'subs'
+  skus: ["sub1", "sub2"],
+  type: "subs",
 });
 ```
 
 **flutter_inapp_purchase:**
+
 ```dart
 // Fetch products
 final products = await FlutterInappPurchase.instance
@@ -97,15 +103,16 @@ final subscriptions = await FlutterInappPurchase.instance
 ### Purchase Flow
 
 **expo-iap:**
+
 ```typescript
 const { requestPurchase, currentPurchase, finishTransaction } = useIAP();
 
 // Request purchase
 await requestPurchase({
   request: {
-    sku: 'product1',
+    sku: "product1",
   },
-  type: 'inapp',
+  type: "inapp",
 });
 
 // Handle purchase completion
@@ -114,27 +121,28 @@ useEffect(() => {
     const completePurchase = async () => {
       // Deliver content
       await deliverProduct(currentPurchase);
-      
+
       // Finish transaction
       await finishTransaction({
         purchase: currentPurchase,
         isConsumable: true,
       });
     };
-    
+
     completePurchase();
   }
 }, [currentPurchase]);
 ```
 
 **flutter_inapp_purchase:**
+
 ```dart
 StreamSubscription? _purchaseSubscription;
 
 @override
 void initState() {
   super.initState();
-  
+
   // Listen to purchase updates
   _purchaseSubscription = FlutterInappPurchase
       .purchaseUpdated.listen((productItem) {
@@ -153,7 +161,7 @@ Future<void> _requestPurchase(String productId) async {
 void _handlePurchaseUpdate(PurchasedItem item) async {
   // Deliver content
   await _deliverProduct(item);
-  
+
   // Finish transaction
   if (Platform.isIOS) {
     await FlutterInappPurchase.instance.finishTransaction(item);
@@ -171,6 +179,7 @@ void _handlePurchaseUpdate(PurchasedItem item) async {
 ### Product Information
 
 **expo-iap Product:**
+
 ```typescript
 interface Product {
   id: string;
@@ -178,13 +187,14 @@ interface Product {
   description: string;
   displayPrice: string;
   currency: string;
-  type: 'inapp' | 'subs';
+  type: "inapp" | "subs";
 }
 ```
 
-**flutter_inapp_purchase IAPItem:**
+**flutter_inapp_purchase IapItem:**
+
 ```dart
-class IAPItem {
+class IapItem {
   String? productId;      // maps to id
   String? title;          // same
   String? description;    // same
@@ -197,17 +207,19 @@ class IAPItem {
 ### Purchase Information
 
 **expo-iap Purchase:**
+
 ```typescript
 interface Purchase {
   id: string;
   transactionId: string;
   transactionDate: number;
   transactionReceipt: string;
-  platform: 'ios' | 'android';
+  platform: "ios" | "android";
 }
 ```
 
 **flutter_inapp_purchase PurchasedItem:**
+
 ```dart
 class PurchasedItem {
   String? productId;           // maps to id
@@ -237,9 +249,10 @@ class PurchasedItem {
 Here's a step-by-step migration of a typical store component:
 
 **expo-iap Store Component:**
+
 ```typescript
-import React, { useEffect } from 'react';
-import { useIAP } from 'expo-iap';
+import React, { useEffect } from "react";
+import { useIAP } from "expo-iap";
 
 export default function Store() {
   const {
@@ -251,11 +264,11 @@ export default function Store() {
     finishTransaction,
   } = useIAP();
 
-  const productIds = ['coins_100', 'remove_ads'];
+  const productIds = ["coins_100", "remove_ads"];
 
   useEffect(() => {
     if (connected) {
-      getProducts({ skus: productIds, type: 'inapp' });
+      getProducts({ skus: productIds, type: "inapp" });
     }
   }, [connected]);
 
@@ -269,24 +282,21 @@ export default function Store() {
     // Verify and deliver
     await finishTransaction({
       purchase: currentPurchase,
-      isConsumable: currentPurchase.id === 'coins_100',
+      isConsumable: currentPurchase.id === "coins_100",
     });
   };
 
   const buyProduct = async (productId: string) => {
     await requestPurchase({
       request: { sku: productId },
-      type: 'inapp',
+      type: "inapp",
     });
   };
 
   return (
     <div>
-      {products.map(product => (
-        <button
-          key={product.id}
-          onClick={() => buyProduct(product.id)}
-        >
+      {products.map((product) => (
+        <button key={product.id} onClick={() => buyProduct(product.id)}>
           {product.title} - {product.displayPrice}
         </button>
       ))}
@@ -296,6 +306,7 @@ export default function Store() {
 ```
 
 **Equivalent Flutter Widget:**
+
 ```dart
 import 'package:flutter/material.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
@@ -307,7 +318,7 @@ class Store extends StatefulWidget {
 
 class _StoreState extends State<Store> {
   StreamSubscription? _purchaseSubscription;
-  List<IAPItem> products = [];
+  List<IapItem> products = [];
   bool connected = false;
 
   final List<String> productIds = ['coins_100', 'remove_ads'];
@@ -328,10 +339,10 @@ class _StoreState extends State<Store> {
     try {
       await FlutterInappPurchase.instance.initialize();
       connected = true;
-      
+
       _purchaseSubscription = FlutterInappPurchase
           .purchaseUpdated.listen(_handlePurchase);
-      
+
       await _getProducts();
     } catch (e) {
       print('Store initialization failed: $e');
@@ -354,17 +365,17 @@ class _StoreState extends State<Store> {
 
   void _handlePurchase(PurchasedItem? item) async {
     if (item == null) return;
-    
+
     try {
       // Verify and deliver content here
-      
+
       // Finish transaction
       if (Platform.isIOS) {
         await FlutterInappPurchase.instance.finishTransaction(item);
       } else {
         // Determine if consumable
         bool isConsumable = item.productId == 'coins_100';
-        
+
         if (isConsumable) {
           await FlutterInappPurchase.instance.consumePurchase(
             purchaseToken: item.purchaseTokenAndroid!,
@@ -413,20 +424,24 @@ class _StoreState extends State<Store> {
 ### iOS Differences
 
 **expo-iap:**
+
 - Handles StoreKit automatically
 - Receipt validation built-in
 
 **flutter_inapp_purchase:**
+
 - Must call `finishTransaction` for all purchases
 - Manual receipt validation setup
 
 ### Android Differences
 
 **expo-iap:**
+
 - Auto-acknowledgment handling
 - Simplified billing flow
 
 **flutter_inapp_purchase:**
+
 - Manual consume/acknowledge required
 - More granular control over billing
 

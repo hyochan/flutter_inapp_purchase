@@ -31,11 +31,11 @@ class SubscriptionStore extends StatefulWidget {
 class _SubscriptionStoreState extends State<SubscriptionStore> {
   StreamSubscription? _purchaseUpdatedSubscription;
   StreamSubscription? _purchaseErrorSubscription;
-  
-  List<IAPItem> _subscriptions = [];
+
+  List<IapItem> _subscriptions = [];
   List<PurchasedItem> _purchases = [];
   bool _isLoading = true;
-  
+
   // Your subscription IDs
   final List<String> _subscriptionIds = [
     'premium_monthly',
@@ -61,18 +61,18 @@ class _SubscriptionStoreState extends State<SubscriptionStore> {
     try {
       // Initialize connection
       await FlutterInappPurchase.instance.initialize();
-      
+
       // Set up listeners
-      _purchaseUpdatedSubscription = 
+      _purchaseUpdatedSubscription =
           FlutterInappPurchase.purchaseUpdated.listen(_handlePurchaseUpdate);
-      
-      _purchaseErrorSubscription = 
+
+      _purchaseErrorSubscription =
           FlutterInappPurchase.purchaseError.listen(_handlePurchaseError);
-      
+
       // Load subscriptions and purchases
       await _loadSubscriptions();
       await _loadPurchases();
-      
+
     } catch (e) {
       _showError('Failed to initialize store: $e');
     } finally {
@@ -84,7 +84,7 @@ class _SubscriptionStoreState extends State<SubscriptionStore> {
     try {
       final subscriptions = await FlutterInappPurchase.instance
           .requestProducts(skus: _subscriptionIds, type: 'subs');
-      
+
       setState(() {
         _subscriptions = subscriptions;
       });
@@ -97,7 +97,7 @@ class _SubscriptionStoreState extends State<SubscriptionStore> {
     try {
       final purchases = await FlutterInappPurchase.instance
           .getAvailablePurchases();
-      
+
       setState(() {
         _purchases = purchases ?? [];
       });
@@ -108,23 +108,23 @@ class _SubscriptionStoreState extends State<SubscriptionStore> {
 
   void _handlePurchaseUpdate(PurchasedItem? item) async {
     if (item == null) return;
-    
+
     print('Purchase update: ${item.productId}');
-    
+
     try {
       // Verify purchase on your server
       final isValid = await _verifyPurchase(item);
-      
+
       if (isValid) {
         // Deliver subscription access
         await _deliverSubscription(item);
-        
+
         // Complete transaction
         await _completeTransaction(item);
-        
+
         // Refresh purchases
         await _loadPurchases();
-        
+
         _showSuccess('Subscription activated!');
       } else {
         _showError('Purchase verification failed');
@@ -187,7 +187,7 @@ class _SubscriptionStoreState extends State<SubscriptionStore> {
   bool _isSubscriptionActive(String productId) {
     return _purchases.any((purchase) {
       if (purchase.productId != productId) return false;
-      
+
       // Check if subscription is still valid
       // You might want to check expiration date here
       return true;
@@ -245,7 +245,7 @@ class _SubscriptionStoreState extends State<SubscriptionStore> {
           ),
         ],
       ),
-      body: _isLoading 
+      body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : _buildSubscriptionPlans(),
     );
@@ -253,8 +253,8 @@ class _SubscriptionStoreState extends State<SubscriptionStore> {
 
   Widget _buildSubscriptionPlans() {
     // Group subscriptions by tier
-    final Map<String, List<IAPItem>> groupedSubs = {};
-    
+    final Map<String, List<IapItem>> groupedSubs = {};
+
     for (final sub in _subscriptions) {
       final tier = _getSubscriptionTier(sub.productId!);
       groupedSubs.putIfAbsent(tier, () => []).add(sub);
@@ -267,16 +267,16 @@ class _SubscriptionStoreState extends State<SubscriptionStore> {
         children: [
           // Current Status
           _buildCurrentStatus(),
-          
+
           SizedBox(height: 24),
-          
+
           // Subscription Plans
           Text(
             'Choose Your Plan',
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           SizedBox(height: 16),
-          
+
           ...groupedSubs.entries.map((entry) {
             return _buildTierSection(entry.key, entry.value);
           }),
@@ -286,9 +286,9 @@ class _SubscriptionStoreState extends State<SubscriptionStore> {
   }
 
   Widget _buildCurrentStatus() {
-    final activeSubscriptions = _purchases.where((p) => 
+    final activeSubscriptions = _purchases.where((p) =>
         _subscriptionIds.contains(p.productId)).toList();
-    
+
     if (activeSubscriptions.isEmpty) {
       return Card(
         child: Padding(
@@ -303,7 +303,7 @@ class _SubscriptionStoreState extends State<SubscriptionStore> {
         ),
       );
     }
-    
+
     return Card(
       color: Colors.green.shade50,
       child: Padding(
@@ -338,9 +338,9 @@ class _SubscriptionStoreState extends State<SubscriptionStore> {
     );
   }
 
-  Widget _buildTierSection(String tier, List<IAPItem> subscriptions) {
+  Widget _buildTierSection(String tier, List<IapItem> subscriptions) {
     final color = _getTierColor(tier);
-    
+
     return Card(
       margin: EdgeInsets.only(bottom: 16),
       child: Column(
@@ -370,14 +370,14 @@ class _SubscriptionStoreState extends State<SubscriptionStore> {
     );
   }
 
-  Widget _buildSubscriptionTile(IAPItem subscription, Color color) {
+  Widget _buildSubscriptionTile(IapItem subscription, Color color) {
     final isActive = _isSubscriptionActive(subscription.productId!);
     final period = _getSubscriptionPeriod(subscription.productId!);
-    
+
     return ListTile(
       title: Text(subscription.title ?? period),
       subtitle: Text(subscription.description ?? ''),
-      trailing: isActive 
+      trailing: isActive
           ? Container(
               padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
@@ -413,7 +413,7 @@ class _SubscriptionStoreState extends State<SubscriptionStore> {
 The store groups subscriptions by tier (Premium, Pro) for better organization:
 
 ```dart
-final Map<String, List<IAPItem>> groupedSubs = {};
+final Map<String, List<IapItem>> groupedSubs = {};
 
 for (final sub in _subscriptions) {
   final tier = _getSubscriptionTier(sub.productId!);
@@ -427,13 +427,13 @@ Shows current subscription status prominently:
 
 ```dart
 Widget _buildCurrentStatus() {
-  final activeSubscriptions = _purchases.where((p) => 
+  final activeSubscriptions = _purchases.where((p) =>
       _subscriptionIds.contains(p.productId)).toList();
-  
+
   if (activeSubscriptions.isEmpty) {
     return _buildNoSubscriptionCard();
   }
-  
+
   return _buildActiveSubscriptionCard(activeSubscriptions);
 }
 ```

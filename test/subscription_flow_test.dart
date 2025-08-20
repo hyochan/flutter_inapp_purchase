@@ -308,8 +308,7 @@ void main() {
             android: RequestSubscriptionAndroid(
               skus: ['upgraded_sub'],
               purchaseTokenAndroid: 'old_purchase_token',
-              replacementModeAndroid:
-                  ProrationMode.immediateWithTimeProration.index,
+              replacementModeAndroid: 1, // immediateWithTimeProration
               subscriptionOffers: [],
             ),
           ),
@@ -320,8 +319,7 @@ void main() {
         // Check that purchaseToken is passed (it's passed as 'purchaseToken' not 'oldPurchaseToken')
         expect(methodChannelLog.last.arguments['purchaseToken'],
             'old_purchase_token');
-        expect(methodChannelLog.last.arguments['prorationMode'],
-            ProrationMode.immediateWithTimeProration.index);
+        expect(methodChannelLog.last.arguments['prorationMode'], 1);
       });
 
       test('requestSubscription on iOS', () async {

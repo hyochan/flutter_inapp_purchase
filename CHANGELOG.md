@@ -382,7 +382,7 @@ Republishing since sourcode seems not merged correctly.
 
 ## 2.3.0
 
-- Bugfix IAPItem deserialization [#212](https://github.com/hyochan/flutter_inapp_purchase/pull/212)
+- Bugfix IapItem deserialization [#212](https://github.com/hyochan/flutter_inapp_purchase/pull/212)
 - Add introductoryPriceNumberIOS [#214](https://github.com/hyochan/flutter_inapp_purchase/pull/214)
 - Fix iOS promotional offers [#220](https://github.com/hyochan/flutter_inapp_purchase/pull/220)
 
@@ -544,7 +544,7 @@ Republishing since sourcode seems not merged correctly.
   - Handling of iOS method `paymentQueue:shouldAddStorePayment:forProduct:`
   - Has no effect on Android.
 - Fixed issue with method `buyProductWithoutFinishTransaction` for iOS, was not getting the productId.
-- Fixed issue with `toString` method of class `IAPItem`, was printing incorrect values.
+- Fixed issue with `toString` method of class `IapItem`, was printing incorrect values.
 - Fixes for #44. Unsafe getting `originalJson` when restoring item and `Android`.
 - Use dictionaryWithObjectsAndKeys in NSDictionary to fetch product values. This will prevent from NSInvalidArgumentException in ios which rarely occurs.
 - Fixed wrong npe in `android` when `getAvailablePurchases`.
@@ -617,7 +617,7 @@ Republishing since sourcode seems not merged correctly.
 
 ## 0.5.4
 
-- Fixed error parsing IAPItem.
+- Fixed error parsing IapItem.
 
 ## 0.5.3
 

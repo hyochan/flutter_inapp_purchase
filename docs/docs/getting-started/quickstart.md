@@ -23,17 +23,17 @@ class SimpleStore extends StatefulWidget {
 class _SimpleStoreState extends State<SimpleStore> {
   StreamSubscription? _purchaseUpdatedSubscription;
   StreamSubscription? _purchaseErrorSubscription;
-  
-  List<IAPItem> _products = [];
-  List<IAPItem> _subscriptions = [];
+
+  List<IapItem> _products = [];
+  List<IapItem> _subscriptions = [];
   List<PurchasedItem> _purchases = [];
-  
+
   // Your product IDs from App Store Connect / Google Play Console
   final List<String> _productIds = [
     'com.example.coins_100',
     'com.example.coins_500',
   ];
-  
+
   final List<String> _subscriptionIds = [
     'com.example.premium_monthly',
     'com.example.premium_yearly',
@@ -56,24 +56,24 @@ class _SimpleStoreState extends State<SimpleStore> {
   Future<void> initIAP() async {
     // Create IAP instance (or use FlutterInappPurchase.instance for singleton)
     final iap = FlutterInappPurchase();
-    
+
     // Initialize connection
     await iap.initConnection();
     print('IAP connection initialized');
-    
+
     // Set up purchase listeners
-    _purchaseUpdatedSubscription = 
+    _purchaseUpdatedSubscription =
         iap.purchaseUpdated.listen((productItem) {
       print('Purchase updated: ${productItem?.productId}');
       _handlePurchaseUpdate(productItem!);
     });
-    
-    _purchaseErrorSubscription = 
+
+    _purchaseErrorSubscription =
         iap.purchaseError.listen((purchaseError) {
       print('Purchase error: $purchaseError');
       _showError('Purchase failed: ${purchaseError.message}');
     });
-    
+
     // Load products and purchases
     await _getProducts();
     await _getPurchases();
@@ -83,19 +83,19 @@ class _SimpleStoreState extends State<SimpleStore> {
   Future<void> _getProducts() async {
     try {
       // Get consumable products
-      List<IAPItem> products = 
+      List<IapItem> products =
           await FlutterInappPurchase.instance.requestProducts(
             skus: _productIds,
             type: 'inapp',
           );
-      
+
       // Get subscriptions
-      List<IAPItem> subscriptions = 
+      List<IapItem> subscriptions =
           await FlutterInappPurchase.instance.requestProducts(
             skus: _subscriptionIds,
             type: 'subs',
           );
-      
+
       setState(() {
         _products = products;
         _subscriptions = subscriptions;
@@ -108,9 +108,9 @@ class _SimpleStoreState extends State<SimpleStore> {
   // Get previous purchases
   Future<void> _getPurchases() async {
     try {
-      List<PurchasedItem>? purchases = 
+      List<PurchasedItem>? purchases =
           await FlutterInappPurchase.instance.getAvailablePurchases();
-      
+
       setState(() {
         _purchases = purchases ?? [];
       });
@@ -123,11 +123,11 @@ class _SimpleStoreState extends State<SimpleStore> {
   void _handlePurchaseUpdate(PurchasedItem productItem) async {
     // Verify purchase on your server here
     bool isValid = await _verifyPurchase(productItem);
-    
+
     if (isValid) {
       // Deliver the product to user
       await _deliverProduct(productItem);
-      
+
       // Finish the transaction
       if (Platform.isIOS) {
         await FlutterInappPurchase.instance.finishTransaction(productItem);
@@ -140,7 +140,7 @@ class _SimpleStoreState extends State<SimpleStore> {
           purchaseToken: productItem.purchaseTokenAndroid!,
         );
       }
-      
+
       // Update UI
       await _getPurchases();
       _showSuccess('Purchase successful!');
@@ -244,9 +244,9 @@ class _SimpleStoreState extends State<SimpleStore> {
                 ),
               ),
             )),
-            
+
             SizedBox(height: 24),
-            
+
             // Subscriptions Section
             Text('Subscriptions', style: Theme.of(context).textTheme.headline6),
             SizedBox(height: 8),
@@ -258,14 +258,14 @@ class _SimpleStoreState extends State<SimpleStore> {
                   child: Text(subscription.localizedPrice ?? ''),
                   onPressed: () => _requestSubscription(subscription.productId!),
                 ),
-                leading: _isPurchased(subscription.productId!) 
+                leading: _isPurchased(subscription.productId!)
                     ? Icon(Icons.check_circle, color: Colors.green)
                     : null,
               ),
             )),
-            
+
             SizedBox(height: 24),
-            
+
             // Active Purchases Section
             Text('Active Purchases', style: Theme.of(context).textTheme.headline6),
             SizedBox(height: 8),
@@ -284,7 +284,7 @@ class _SimpleStoreState extends State<SimpleStore> {
       ),
     );
   }
-  
+
   bool _isPurchased(String productId) {
     return _purchases.any((purchase) => purchase.productId == productId);
   }
@@ -307,11 +307,11 @@ Fetch products using their IDs:
 
 ```dart
 // Regular products
-List<IAPItem> products = await FlutterInappPurchase.instance
+List<IapItem> products = await FlutterInappPurchase.instance
     .requestProducts(skus: ['product_id_1', 'product_id_2'], type: 'inapp');
 
 // Subscriptions
-List<IAPItem> subscriptions = await FlutterInappPurchase.instance
+List<IapItem> subscriptions = await FlutterInappPurchase.instance
     .requestProducts(skus: ['subscription_id_1', 'subscription_id_2'], type: 'subs');
 ```
 

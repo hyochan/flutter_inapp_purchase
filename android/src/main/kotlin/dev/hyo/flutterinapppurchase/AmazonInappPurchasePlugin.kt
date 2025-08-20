@@ -97,6 +97,7 @@ class AmazonInappPurchasePlugin : MethodCallHandler {
                 //val obfuscatedProfileId = call.argument<String>("obfuscatedProfileId")
                 val sku = call.argument<String>("sku")
                 val oldSku = call.argument<String>("oldSku")
+                // TODO(v6.4.0): Remove this commented prorationMode line
                 //val prorationMode = call.argument<Int>("prorationMode")!!
                 Log.d(TAG, "type=$type||sku=$sku||oldsku=$oldSku")
                 val requestId = PurchasingService.purchase(sku)

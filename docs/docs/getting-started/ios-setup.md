@@ -11,6 +11,7 @@ For complete iOS setup instructions including App Store Connect configuration, X
 👉 **[iOS Setup Guide - openiap.dev](https://openiap.dev/docs/ios-setup)**
 
 The guide covers:
+
 - App Store Connect configuration
 - Xcode project setup
 - Sandbox testing
@@ -37,7 +38,7 @@ class IOSStoreExample extends StatefulWidget {
 class _IOSStoreExampleState extends State<IOSStoreExample> {
   late StreamSubscription _purchaseUpdatedSubscription;
   late StreamSubscription _purchaseErrorSubscription;
-  List<IAPItem> _products = [];
+  List<IapItem> _products = [];
   bool _isAvailable = false;
 
   @override
@@ -130,17 +131,17 @@ class _IOSStoreExampleState extends State<IOSStoreExample> {
   Future<void> _verifyAndFinishPurchase(PurchaseResult purchase) async {
     // Verify purchase on your server
     final isValid = await _verifyPurchaseOnServer(purchase);
-    
+
     if (isValid) {
       // Grant access to content
       await _grantPurchaseContent(purchase);
-      
+
       // Finish the transaction
       await FlutterInappPurchase.instance.finishTransactionIOS(
         purchase,
         isConsumable: purchase.productId?.contains('consumable') ?? false,
       );
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Purchase successful!')),
       );
@@ -186,7 +187,7 @@ class _IOSStoreExampleState extends State<IOSStoreExample> {
     );
   }
 
-  Future<void> _purchaseProduct(IAPItem product) async {
+  Future<void> _purchaseProduct(IapItem product) async {
     try {
       await FlutterInappPurchase.instance.requestPurchase(
         RequestPurchase(
@@ -209,7 +210,7 @@ class _IOSStoreExampleState extends State<IOSStoreExample> {
 }
 
 class IOSProductTile extends StatelessWidget {
-  final IAPItem product;
+  final IapItem product;
   final VoidCallback onPurchase;
 
   const IOSProductTile({
@@ -284,7 +285,7 @@ Future<void> restorePurchases() async {
   try {
     final restoredPurchases = await FlutterInappPurchase.instance.restoreTransactions();
     print('Restored ${restoredPurchases.length} purchases');
-    
+
     for (var purchase in restoredPurchases) {
       await _verifyAndFinishPurchase(purchase);
     }
@@ -344,6 +345,7 @@ void showErrorDialog(String message) {
 
 **Problem**: `getProducts()` returns empty list or throws error
 **Solutions**:
+
 - Verify product IDs match exactly between code and App Store Connect
 - Ensure products are **Active** in App Store Connect
 - Check that all Apple Developer agreements are signed
@@ -353,6 +355,7 @@ void showErrorDialog(String message) {
 
 **Problem**: "Cannot connect to iTunes Store" error
 **Solutions**:
+
 - Test on real device, not simulator
 - Use proper sandbox tester account
 - Sign out of production Apple ID first
@@ -362,6 +365,7 @@ void showErrorDialog(String message) {
 
 **Problem**: Receipt validation failing
 **Solutions**:
+
 - Always validate receipts on your server, not client-side
 - Use Apple's receipt validation API
 - Handle both sandbox and production receipt endpoints

@@ -14,7 +14,7 @@ The `requestProducts()` method fetches product information for the specified pro
 ## Signature
 
 ```dart
-Future<List<IAPItem>> requestProducts({
+Future<List<IapItem>> requestProducts({
   required List<String> skus,
   String type = 'inapp',
 })
@@ -22,14 +22,14 @@ Future<List<IAPItem>> requestProducts({
 
 ## Parameters
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `skus` | `List<String>` | Yes | - | List of product identifiers to fetch |
-| `type` | `String` | No | `'inapp'` | Product type: `'inapp'` for regular products or `'subs'` for subscriptions |
+| Parameter | Type           | Required | Default   | Description                                                                |
+| --------- | -------------- | -------- | --------- | -------------------------------------------------------------------------- |
+| `skus`    | `List<String>` | Yes      | -         | List of product identifiers to fetch                                       |
+| `type`    | `String`       | No       | `'inapp'` | Product type: `'inapp'` for regular products or `'subs'` for subscriptions |
 
 ## Returns
 
-- **Type**: `Future<List<IAPItem>>`
+- **Type**: `Future<List<IapItem>>`
 - **Description**: A list of product items with pricing and metadata
 
 ## Usage Examples
@@ -38,11 +38,11 @@ Future<List<IAPItem>> requestProducts({
 
 ```dart
 try {
-  List<IAPItem> products = await FlutterInappPurchase.instance.requestProducts(
+  List<IapItem> products = await FlutterInappPurchase.instance.requestProducts(
     skus: ['coins_100', 'coins_500', 'remove_ads'],
     type: 'inapp',
   );
-  
+
   for (var product in products) {
     print('Product: ${product.title}');
     print('Price: ${product.localizedPrice}');
@@ -57,11 +57,11 @@ try {
 
 ```dart
 try {
-  List<IAPItem> subscriptions = await FlutterInappPurchase.instance.requestProducts(
+  List<IapItem> subscriptions = await FlutterInappPurchase.instance.requestProducts(
     skus: ['premium_monthly', 'premium_yearly'],
     type: 'subs',
   );
-  
+
   for (var subscription in subscriptions) {
     print('Subscription: ${subscription.title}');
     print('Price: ${subscription.localizedPrice}');
@@ -83,16 +83,16 @@ class ProductService {
         skus: ['coins_100', 'remove_ads'],
         type: 'inapp',
       );
-      
+
       // Load subscriptions
       final subscriptions = await FlutterInappPurchase.instance.requestProducts(
         skus: ['premium_monthly', 'premium_yearly'],
         type: 'subs',
       );
-      
+
       print('Loaded ${products.length} products');
       print('Loaded ${subscriptions.length} subscriptions');
-      
+
     } catch (e) {
       print('Error loading products: $e');
     }
@@ -103,10 +103,12 @@ class ProductService {
 ## Product Types
 
 ### 'inapp' Type
+
 - **Consumables**: Items that can be purchased multiple times (coins, gems)
 - **Non-consumables**: Items purchased once and owned forever (remove ads, premium features)
 
 ### 'subs' Type
+
 - **Auto-renewable subscriptions**: Recurring subscriptions with automatic renewal
 - **Non-renewing subscriptions**: Fixed-duration subscriptions without auto-renewal
 
@@ -118,11 +120,11 @@ try {
     skus: productIds,
     type: 'inapp',
   );
-  
+
   if (products.isEmpty) {
     print('No products found for the given SKUs');
   }
-  
+
 } catch (e) {
   if (e.toString().contains('E_NOT_PREPARED')) {
     print('Store not initialized');
@@ -137,11 +139,13 @@ try {
 ## Platform Differences
 
 ### iOS
+
 - Products must be configured in App Store Connect
 - Products must be in "Ready to Submit" or "Approved" status
 - Bundle ID must match exactly
 
 ### Android
+
 - Products must be active in Google Play Console
 - App must be uploaded to at least Internal Testing
 - Package name must match exactly
@@ -149,6 +153,7 @@ try {
 ## Migration from Old API
 
 ### Before (Deprecated)
+
 ```dart
 // Old separate methods
 final products = await FlutterInappPurchase.instance.getProducts(productIds);
@@ -156,6 +161,7 @@ final subscriptions = await FlutterInappPurchase.instance.getSubscriptions(subsc
 ```
 
 ### After (Recommended)
+
 ```dart
 // New unified method
 final products = await FlutterInappPurchase.instance.requestProducts(

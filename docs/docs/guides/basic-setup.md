@@ -69,10 +69,10 @@ class IAPService {
     try {
       // Initialize connection
       await FlutterInappPurchase.instance.initConnection();
-      
+
       // Set up purchase listeners
       _setupPurchaseListeners();
-      
+
       _isInitialized = true;
       print('✅ IAP Service initialized successfully');
       return true;
@@ -113,7 +113,7 @@ class IAPService {
     try {
       // 1. Verify the purchase (implement your server verification here)
       final isValid = await _verifyPurchase(purchase);
-      
+
       if (!isValid) {
         print('❌ Purchase verification failed');
         return;
@@ -137,7 +137,7 @@ class IAPService {
   /// Handle purchase errors
   void _handlePurchaseError(PurchaseResult error) {
     print('💥 Purchase error: ${error.message}');
-    
+
     // Handle specific error codes
     switch (error.code) {
       case ErrorCode.eUserCancelled:
@@ -163,7 +163,7 @@ class IAPService {
   Future<bool> _verifyPurchase(PurchasedItem purchase) async {
     // TODO: Implement server-side verification
     // This is crucial for security!
-    
+
     // For now, return true (implement proper verification)
     await Future.delayed(Duration(milliseconds: 500)); // Simulate API call
     return true;
@@ -172,7 +172,7 @@ class IAPService {
   /// Grant purchased content to the user
   Future<void> _grantPurchasedContent(PurchasedItem purchase) async {
     final productId = purchase.productId ?? '';
-    
+
     // Grant content based on product ID
     switch (productId) {
       case 'remove_ads':
@@ -200,7 +200,7 @@ class IAPService {
   }
 
   /// Get available products
-  Future<List<IAPItem>> getProducts() async {
+  Future<List<IapItem>> getProducts() async {
     if (!_isInitialized) {
       throw Exception('IAP Service not initialized');
     }
@@ -216,7 +216,7 @@ class IAPService {
   }
 
   /// Get available subscriptions
-  Future<List<IAPItem>> getSubscriptions() async {
+  Future<List<IapItem>> getSubscriptions() async {
     if (!_isInitialized) {
       throw Exception('IAP Service not initialized');
     }
@@ -239,11 +239,11 @@ class IAPService {
 
     try {
       print('🛒 Requesting purchase for: $productId');
-      
+
       await FlutterInappPurchase.instance.requestPurchaseSimple(
         productId: productId,
-        type: _subscriptionIds.contains(productId) 
-            ? PurchaseType.subs 
+        type: _subscriptionIds.contains(productId)
+            ? PurchaseType.subs
             : PurchaseType.inapp,
       );
     } catch (e) {
@@ -260,16 +260,16 @@ class IAPService {
 
     try {
       print('🔄 Restoring purchases...');
-      
+
       final purchases = await FlutterInappPurchase.instance.getAvailablePurchases();
-      
+
       if (purchases == null || purchases.isEmpty) {
         print('ℹ️ No purchases to restore');
         return;
       }
 
       print('🎉 Found ${purchases.length} purchases to restore');
-      
+
       for (final purchase in purchases) {
         await _grantPurchasedContent(purchase);
       }
@@ -283,12 +283,12 @@ class IAPService {
   Future<void> dispose() async {
     await _purchaseSubscription?.cancel();
     await _errorSubscription?.cancel();
-    
+
     if (_isInitialized) {
       await FlutterInappPurchase.instance.endConnection();
       _isInitialized = false;
     }
-    
+
     print('🧹 IAP Service disposed');
   }
 
@@ -331,9 +331,9 @@ class StoreScreen extends StatefulWidget {
 
 class _StoreScreenState extends State<StoreScreen> {
   final IAPService _iapService = IAPService();
-  
-  List<IAPItem> _products = [];
-  List<IAPItem> _subscriptions = [];
+
+  List<IapItem> _products = [];
+  List<IapItem> _subscriptions = [];
   bool _isLoading = true;
   String? _error;
 
@@ -502,7 +502,7 @@ class _StoreScreenState extends State<StoreScreen> {
     );
   }
 
-  Widget _buildProductCard(IAPItem product) {
+  Widget _buildProductCard(IapItem product) {
     return Card(
       margin: EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -636,7 +636,7 @@ The example above shows a placeholder `_verifyPurchase()` method. In production,
 1. Send the purchase receipt to your server
 2. Verify with Apple/Google servers
 3. Only grant content after successful verification
-:::
+   :::
 
 ## 🎯 Next Steps
 

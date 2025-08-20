@@ -11,6 +11,7 @@ For complete Android setup instructions including Google Play Console configurat
 👉 **[Android Setup Guide - openiap.dev](https://openiap.dev/docs/android-setup)**
 
 The guide covers:
+
 - Google Play Console configuration
 - App bundle setup and signing
 - Testing with internal testing tracks
@@ -37,8 +38,8 @@ class AndroidStoreExample extends StatefulWidget {
 class _AndroidStoreExampleState extends State<AndroidStoreExample> {
   late StreamSubscription _purchaseUpdatedSubscription;
   late StreamSubscription _purchaseErrorSubscription;
-  List<IAPItem> _products = [];
-  List<IAPItem> _subscriptions = [];
+  List<IapItem> _products = [];
+  List<IapItem> _subscriptions = [];
   bool _isAvailable = false;
 
   @override
@@ -151,17 +152,17 @@ class _AndroidStoreExampleState extends State<AndroidStoreExample> {
   Future<void> _verifyAndFinishPurchase(PurchaseResult purchase) async {
     // Verify purchase on your server
     final isValid = await _verifyPurchaseOnServer(purchase);
-    
+
     if (isValid) {
       // Grant access to content
       await _grantPurchaseContent(purchase);
-      
+
       // Finish the transaction
       await FlutterInappPurchase.instance.finishTransactionAndroid(
         purchase,
         isConsumable: purchase.productId?.contains('consumable') ?? false,
       );
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Purchase successful!')),
       );
@@ -221,7 +222,7 @@ class _AndroidStoreExampleState extends State<AndroidStoreExample> {
     );
   }
 
-  Future<void> _purchaseProduct(IAPItem product, PurchaseType type) async {
+  Future<void> _purchaseProduct(IapItem product, PurchaseType type) async {
     try {
       await FlutterInappPurchase.instance.requestPurchase(
         RequestPurchase(
@@ -244,7 +245,7 @@ class _AndroidStoreExampleState extends State<AndroidStoreExample> {
 }
 
 class AndroidProductTile extends StatelessWidget {
-  final IAPItem product;
+  final IapItem product;
   final VoidCallback onPurchase;
 
   const AndroidProductTile({
@@ -292,7 +293,7 @@ Future<void> checkSubscriptionStatus(String subscriptionId) async {
       (purchase) => purchase.productId == subscriptionId,
       orElse: () => throw Exception('Subscription not found'),
     );
-    
+
     print('Subscription status: ${subscription.purchaseStateAndroid}');
     print('Purchase token: ${subscription.purchaseToken}');
   } catch (error) {
@@ -329,12 +330,12 @@ Future<void> changeSubscription(
 // Handle purchases that require additional verification
 Future<void> handlePendingPurchases() async {
   final purchases = await FlutterInappPurchase.instance.getAvailablePurchases();
-  
+
   for (var purchase in purchases) {
     if (purchase.purchaseStateAndroid == PurchaseState.pending) {
       // Store purchase for later verification
       await _storePendingPurchase(purchase);
-      
+
       // Show user-friendly message
       _showPendingMessage();
     }
@@ -354,14 +355,14 @@ Future<void> _storePendingPurchase(PurchaseResult purchase) async {
 Future<void> getProductDetails() async {
   try {
     final products = await FlutterInappPurchase.instance.getProducts(androidProductIds);
-    
+
     for (var product in products) {
       print('Product ID: ${product.productId}');
       print('Title: ${product.title}');
       print('Description: ${product.description}');
       print('Price: ${product.localizedPrice}');
       print('Currency: ${product.currency}');
-      
+
       // Android-specific details
       if (product.productDetailsAndroid != null) {
         final details = product.productDetailsAndroid!;
@@ -440,12 +441,12 @@ Future<bool> validatePurchaseOnServer(PurchaseResult purchase) async {
         'packageName': 'your.app.package.name',
       }),
     );
-    
+
     if (response.statusCode == 200) {
       final result = jsonDecode(response.body);
       return result['valid'] == true;
     }
-    
+
     return false;
   } catch (error) {
     print('Validation failed: $error');
@@ -460,6 +461,7 @@ Future<bool> validatePurchaseOnServer(PurchaseResult purchase) async {
 
 **Problem**: Products return empty or show as unavailable
 **Solutions**:
+
 - Verify product IDs match exactly between code and Play Console
 - Ensure products are **Active** in Play Console
 - Check that app is uploaded to at least Internal testing track
@@ -469,6 +471,7 @@ Future<bool> validatePurchaseOnServer(PurchaseResult purchase) async {
 
 **Problem**: "Item not found" or "Authentication required" errors
 **Solutions**:
+
 - Use Gmail accounts added as test users
 - Install app from testing track, not directly via ADB
 - Ensure test user has a valid payment method
@@ -478,6 +481,7 @@ Future<bool> validatePurchaseOnServer(PurchaseResult purchase) async {
 
 **Problem**: Purchase dialog doesn't appear or fails immediately
 **Solutions**:
+
 - Verify Google Play services are updated
 - Check device has valid Google account
 - Ensure app is properly signed
@@ -487,6 +491,7 @@ Future<bool> validatePurchaseOnServer(PurchaseResult purchase) async {
 
 **Problem**: Subscription offers not showing or failing
 **Solutions**:
+
 - Verify base plans are properly configured
 - Check offer eligibility rules
 - Ensure proper offer token handling

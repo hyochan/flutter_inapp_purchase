@@ -32,6 +32,7 @@ Future<void> initConnection()
 ```
 
 **Example:**
+
 ```dart
 try {
   await FlutterInappPurchase.instance.initConnection();
@@ -42,6 +43,7 @@ try {
 ```
 
 **Platform Notes:**
+
 - **iOS**: Calls `canMakePayments` and registers transaction observers
 - **Android**: Connects to Google Play Billing service
 
@@ -56,6 +58,7 @@ Future<void> endConnection()
 ```
 
 **Example:**
+
 ```dart
 @override
 void dispose() {
@@ -73,7 +76,7 @@ void dispose() {
 Retrieve a list of consumable and non-consumable products.
 
 ```dart
-Future<List<IAPItem>> getProducts(List<String> productIds)
+Future<List<IapItem>> getProducts(List<String> productIds)
 ```
 
 **Parameters:**
@@ -81,9 +84,10 @@ Future<List<IAPItem>> getProducts(List<String> productIds)
 |-----------|------|-------------|
 | `productIds` | `List<String>` | List of product IDs to fetch |
 
-**Returns:** `Future<List<IAPItem>>` - List of available products
+**Returns:** `Future<List<IapItem>>` - List of available products
 
 **Example:**
+
 ```dart
 final products = await FlutterInappPurchase.instance.getProducts([
   'premium_upgrade',
@@ -103,7 +107,7 @@ for (var product in products) {
 Retrieve a list of subscription products.
 
 ```dart
-Future<List<IAPItem>> getSubscriptions(List<String> subscriptionIds)
+Future<List<IapItem>> getSubscriptions(List<String> subscriptionIds)
 ```
 
 **Parameters:**
@@ -111,9 +115,10 @@ Future<List<IAPItem>> getSubscriptions(List<String> subscriptionIds)
 |-----------|------|-------------|
 | `subscriptionIds` | `List<String>` | List of subscription IDs to fetch |
 
-**Returns:** `Future<List<IAPItem>>` - List of available subscriptions
+**Returns:** `Future<List<IapItem>>` - List of available subscriptions
 
 **Example:**
+
 ```dart
 final subscriptions = await FlutterInappPurchase.instance.getSubscriptions([
   'monthly_premium',
@@ -141,6 +146,7 @@ Future<void> requestPurchase({
 | `type` | `PurchaseType` | Type of purchase (`inapp` or `subs`) |
 
 **Example:**
+
 ```dart
 await FlutterInappPurchase.instance.requestPurchase(
   request: RequestPurchase(
@@ -177,6 +183,7 @@ Future<void> requestPurchaseSimple({
 | `obfuscatedProfileId` | `String?` | ❌ | Android: Obfuscated profile ID |
 
 **Example:**
+
 ```dart
 await FlutterInappPurchase.instance.requestPurchaseSimple(
   productId: 'premium_upgrade',
@@ -197,6 +204,7 @@ Future<List<PurchasedItem>?> getAvailablePurchases()
 **Returns:** `Future<List<PurchasedItem>?>` - List of available purchases
 
 **Example:**
+
 ```dart
 final purchases = await FlutterInappPurchase.instance.getAvailablePurchases();
 if (purchases != null) {
@@ -235,13 +243,14 @@ Future<String?> finishTransaction(PurchasedItem purchase, {bool? isConsumable})
 | `isConsumable` | `bool?` | ❌ | Whether the purchase is consumable (Android) |
 
 **Example:**
+
 ```dart
 // Listen for purchase updates
 FlutterInappPurchase.purchaseUpdated.listen((purchase) async {
   if (purchase != null) {
     // Verify the purchase on your server first
     await verifyPurchaseOnServer(purchase);
-    
+
     // Complete the transaction
     await FlutterInappPurchase.instance.finishTransaction(
       purchase,
@@ -308,6 +317,7 @@ Stream<PurchasedItem?> get purchaseUpdated
 ```
 
 **Example:**
+
 ```dart
 late StreamSubscription _purchaseSubscription;
 
@@ -342,11 +352,12 @@ Stream<PurchaseResult?> get purchaseError
 ```
 
 **Example:**
+
 ```dart
 FlutterInappPurchase.purchaseError.listen((error) {
   if (error != null) {
     print('Purchase error: ${error.message}');
-    
+
     // Handle specific error codes
     if (error.code == ErrorCode.eUserCancelled) {
       // User cancelled - no action needed
@@ -362,19 +373,20 @@ FlutterInappPurchase.purchaseError.listen((error) {
 
 Common error codes you should handle:
 
-| Error Code | Description | Action |
-|------------|-------------|--------|
-| `ErrorCode.eUserCancelled` | User cancelled purchase | No action needed |
-| `ErrorCode.eNetworkError` | Network error | Offer retry |
-| `ErrorCode.eItemUnavailable` | Product not available | Check product setup |
-| `ErrorCode.eAlreadyOwned` | User already owns product | Restore or acknowledge |
-| `ErrorCode.eDeveloperError` | Configuration error | Check setup |
+| Error Code                   | Description               | Action                 |
+| ---------------------------- | ------------------------- | ---------------------- |
+| `ErrorCode.eUserCancelled`   | User cancelled purchase   | No action needed       |
+| `ErrorCode.eNetworkError`    | Network error             | Offer retry            |
+| `ErrorCode.eItemUnavailable` | Product not available     | Check product setup    |
+| `ErrorCode.eAlreadyOwned`    | User already owns product | Restore or acknowledge |
+| `ErrorCode.eDeveloperError`  | Configuration error       | Check setup            |
 
 **Example Error Handling:**
+
 ```dart
 FlutterInappPurchase.purchaseError.listen((error) {
   if (error == null) return;
-  
+
   switch (error.code) {
     case ErrorCode.eUserCancelled:
       // User cancelled - no UI needed

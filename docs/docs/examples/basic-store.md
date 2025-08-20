@@ -60,23 +60,23 @@ class BasicStoreScreen extends StatefulWidget {
 class _BasicStoreScreenState extends State<BasicStoreScreen> {
   // IAP instance
   final FlutterInappPurchase _iap = FlutterInappPurchase.instance;
-  
+
   // State management
   bool _isConnected = false;
   bool _isLoading = false;
-  List<IAPItem> _products = [];
+  List<IapItem> _products = [];
   String? _errorMessage;
   PurchasedItem? _latestPurchase;
-  
+
   // Stream subscriptions
   StreamSubscription<PurchasedItem?>? _purchaseSubscription;
   StreamSubscription<PurchaseResult?>? _errorSubscription;
   StreamSubscription<ConnectionResult>? _connectionSubscription;
-  
+
   // Product IDs - Replace with your actual product IDs
   final List<String> _productIds = [
     'coins_100',
-    'coins_500', 
+    'coins_500',
     'remove_ads',
     'premium_upgrade',
   ];
@@ -106,7 +106,7 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
     try {
       // Initialize connection
       await _iap.initConnection();
-      
+
       // Set up purchase success listener
       _purchaseSubscription = FlutterInappPurchase.purchaseUpdated.listen(
         (purchase) {
@@ -118,7 +118,7 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
           _showError('Purchase stream error: $error');
         },
       );
-      
+
       // Set up purchase error listener
       _errorSubscription = FlutterInappPurchase.purchaseError.listen(
         (error) {
@@ -127,27 +127,27 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
           }
         },
       );
-      
+
       // Set up connection listener
       _connectionSubscription = FlutterInappPurchase.connectionUpdated.listen(
         (connectionResult) {
           setState(() {
             _isConnected = connectionResult.connected;
           });
-          
+
           if (connectionResult.connected) {
             _loadProducts();
           }
         },
       );
-      
+
       setState(() {
         _isConnected = true;
       });
-      
+
       // Load products
       await _loadProducts();
-      
+
     } catch (e) {
       _showError('Failed to initialize store: $e');
     } finally {
@@ -160,7 +160,7 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
   /// Load products from the store
   Future<void> _loadProducts() async {
     if (!_isConnected) return;
-    
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -168,16 +168,16 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
 
     try {
       final products = await _iap.getProducts(_productIds);
-      
+
       setState(() {
         _products = products;
       });
-      
+
       print('✅ Loaded ${products.length} products');
       for (final product in products) {
         print('Product: ${product.productId} - ${product.localizedPrice}');
       }
-      
+
     } catch (e) {
       _showError('Failed to load products: $e');
     } finally {
@@ -190,31 +190,31 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
   /// Handle successful purchase
   Future<void> _handlePurchaseSuccess(PurchasedItem purchase) async {
     print('✅ Purchase successful: ${purchase.productId}');
-    
+
     setState(() {
       _latestPurchase = purchase;
       _errorMessage = null;
     });
-    
+
     // Show success message
     _showSuccessSnackBar('Purchase successful: ${purchase.productId}');
-    
+
     try {
       // 1. Here you would typically verify the purchase with your server
       final isValid = await _verifyPurchase(purchase);
-      
+
       if (isValid) {
         // 2. Deliver the product to the user
         await _deliverProduct(purchase.productId);
-        
+
         // 3. Finish the transaction
         await _finishTransaction(purchase);
-        
+
         print('✅ Purchase completed and delivered');
       } else {
         _showError('Purchase verification failed');
       }
-      
+
     } catch (e) {
       _showError('Error processing purchase: $e');
     }
@@ -223,26 +223,26 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
   /// Handle purchase errors
   void _handlePurchaseError(PurchaseResult error) {
     print('❌ Purchase failed: ${error.message}');
-    
+
     setState(() {
       _latestPurchase = null;
     });
-    
+
     // Handle specific error codes
     switch (error.responseCode) {
       case 1: // User cancelled
         // Don't show error for user cancellation
         print('User cancelled purchase');
         break;
-        
+
       case 2: // Network error
         _showError('Network error. Please check your connection and try again.');
         break;
-        
+
       case 7: // Already owned
         _showError('You already own this item. Try restoring your purchases.');
         break;
-        
+
       default:
         _showError(error.message ?? 'Purchase failed. Please try again.');
     }
@@ -253,41 +253,41 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
     // In a real app, send the receipt to your server for verification
     // For this example, we'll just simulate a successful verification
     await Future.delayed(Duration(milliseconds: 500));
-    
+
     print('🔍 Verifying purchase: ${purchase.productId}');
     print('Receipt: ${purchase.transactionReceipt?.substring(0, 50)}...');
-    
+
     return true; // Assume verification successful
   }
 
   /// Deliver the purchased product to the user
   Future<void> _deliverProduct(String? productId) async {
     if (productId == null) return;
-    
+
     print('🎁 Delivering product: $productId');
-    
+
     // Implement your product delivery logic here
     switch (productId) {
       case 'coins_100':
         // Add 100 coins to user's account
         print('Added 100 coins to user account');
         break;
-        
+
       case 'coins_500':
         // Add 500 coins to user's account
         print('Added 500 coins to user account');
         break;
-        
+
       case 'remove_ads':
         // Remove ads for user
         print('Removed ads for user');
         break;
-        
+
       case 'premium_upgrade':
         // Upgrade user to premium
         print('Upgraded user to premium');
         break;
-        
+
       default:
         print('Unknown product: $productId');
     }
@@ -312,11 +312,11 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
         );
         print('✅ iOS transaction finished');
       }
-      
+
       setState(() {
         _latestPurchase = null;
       });
-      
+
     } catch (e) {
       _showError('Failed to finish transaction: $e');
     }
@@ -335,7 +335,7 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
       _showError('Not connected to store');
       return;
     }
-    
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -351,14 +351,14 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
           skus: [productId],
         ),
       );
-      
+
       await _iap.requestPurchase(
         request: request,
         type: PurchaseType.inapp,
       );
-      
+
       print('🛒 Purchase requested for: $productId');
-      
+
     } catch (e) {
       _showError('Failed to request purchase: $e');
     } finally {
@@ -377,13 +377,13 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
 
     try {
       await _iap.restorePurchases();
-      
+
       // Get available purchases
       final availablePurchases = await _iap.getAvailableItemsIOS();
-      
+
       if (availablePurchases != null && availablePurchases.isNotEmpty) {
         _showSuccessSnackBar('Restored ${availablePurchases.length} purchases');
-        
+
         // Process restored purchases
         for (final purchase in availablePurchases) {
           await _deliverProduct(purchase.productId);
@@ -391,7 +391,7 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
       } else {
         _showSuccessSnackBar('No purchases to restore');
       }
-      
+
     } catch (e) {
       _showError('Failed to restore purchases: $e');
     } finally {
@@ -406,7 +406,7 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
     setState(() {
       _errorMessage = message;
     });
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -453,13 +453,13 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
       children: [
         // Connection status
         _buildConnectionStatus(),
-        
+
         // Error message
         if (_errorMessage != null) _buildErrorBanner(),
-        
+
         // Latest purchase info
         if (_latestPurchase != null) _buildPurchaseInfo(),
-        
+
         // Products list
         Expanded(child: _buildProductsList()),
       ],
@@ -559,7 +559,7 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
     if (_isLoading && _products.isEmpty) {
       return Center(child: CircularProgressIndicator());
     }
-    
+
     if (_products.isEmpty) {
       return Center(
         child: Column(
@@ -580,7 +580,7 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
         ),
       );
     }
-    
+
     return ListView.builder(
       padding: EdgeInsets.all(16),
       itemCount: _products.length,
@@ -591,7 +591,7 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
     );
   }
 
-  Widget _buildProductCard(IAPItem product) {
+  Widget _buildProductCard(IapItem product) {
     return Card(
       margin: EdgeInsets.only(bottom: 12),
       elevation: 4,
@@ -651,8 +651,8 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
                   ),
                 ),
                 ElevatedButton(
-                  onPressed: _isLoading 
-                    ? null 
+                  onPressed: _isLoading
+                    ? null
                     : () => _makePurchase(product.productId!),
                   child: Text('Buy Now'),
                 ),
@@ -683,22 +683,27 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
 ## Key Features Explained
 
 ### 1. Connection Management
+
 ```dart
 await _iap.initConnection();
 ```
+
 - Initializes connection to App Store or Google Play
 - Must be called before any other IAP operations
 - Connection state is monitored via `connectionUpdated` stream
 
 ### 2. Product Loading
+
 ```dart
 final products = await _iap.getProducts(_productIds);
 ```
+
 - Fetches product information from the store
 - Returns localized pricing and descriptions
 - Product IDs must be configured in store console
 
 ### 3. Purchase Flow
+
 ```dart
 final request = RequestPurchase(
   ios: RequestPurchaseIOS(sku: productId, quantity: 1),
@@ -706,24 +711,29 @@ final request = RequestPurchase(
 );
 await _iap.requestPurchase(request: request, type: PurchaseType.inapp);
 ```
+
 - Platform-specific request objects handle iOS/Android differences
 - Purchase result comes through `purchaseUpdated` stream
 - Errors are delivered via `purchaseError` stream
 
 ### 4. Transaction Finishing
+
 ```dart
 // iOS
 await _iap.finishTransactionIOS(purchase, isConsumable: true);
 
-// Android  
+// Android
 await _iap.consumePurchaseAndroid(purchaseToken: token);
 ```
+
 - Essential for completing the purchase flow
 - iOS: `finishTransactionIOS` for all purchases
 - Android: `consumePurchaseAndroid` for consumables
 
 ### 5. Error Handling
+
 The example demonstrates handling common error scenarios:
+
 - User cancellation (don't show error)
 - Network errors (suggest retry)
 - Already owned items (suggest restore)
@@ -732,7 +742,7 @@ The example demonstrates handling common error scenarios:
 ## Usage Instructions
 
 1. **Replace Product IDs**: Update `_productIds` with your actual product IDs
-2. **Configure Stores**: 
+2. **Configure Stores**:
    - iOS: Add products to App Store Connect
    - Android: Add products to Google Play Console
 3. **Implement Server Verification**: Replace `_verifyPurchase` with real server validation
@@ -742,6 +752,7 @@ The example demonstrates handling common error scenarios:
 ## Customization Options
 
 ### Product Types
+
 ```dart
 // For different product types
 enum ProductType { consumable, nonConsumable, subscription }
@@ -753,6 +764,7 @@ bool _isConsumableProduct(String productId) {
 ```
 
 ### Custom Error Handling
+
 ```dart
 void _handlePurchaseError(PurchaseResult error) {
   switch (error.responseCode) {
@@ -765,6 +777,7 @@ void _handlePurchaseError(PurchaseResult error) {
 ```
 
 ### Loading States
+
 ```dart
 // Add loading indicators for better UX
 bool _isLoading = false;
