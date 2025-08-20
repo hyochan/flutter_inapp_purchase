@@ -147,19 +147,19 @@ class PurchaseResult {
   });
 
   PurchaseResult.fromJSON(Map<String, dynamic> json)
-    : responseCode = json['responseCode'] as int?,
-      debugMessage = json['debugMessage'] as String?,
-      code = json['code'] as String?,
-      message = json['message'] as String?,
-      purchaseTokenAndroid = json['purchaseTokenAndroid'] as String?;
+      : responseCode = json['responseCode'] as int?,
+        debugMessage = json['debugMessage'] as String?,
+        code = json['code'] as String?,
+        message = json['message'] as String?,
+        purchaseTokenAndroid = json['purchaseTokenAndroid'] as String?;
 
   Map<String, dynamic> toJson() => {
-    'responseCode': responseCode ?? 0,
-    'debugMessage': debugMessage ?? '',
-    'code': code ?? '',
-    'message': message ?? '',
-    'purchaseTokenAndroid': purchaseTokenAndroid ?? '',
-  };
+        'responseCode': responseCode ?? 0,
+        'debugMessage': debugMessage ?? '',
+        'code': code ?? '',
+        'message': message ?? '',
+        'purchaseTokenAndroid': purchaseTokenAndroid ?? '',
+      };
 
   @override
   String toString() {
@@ -221,7 +221,7 @@ class ConnectionResult {
   ConnectionResult({this.msg});
 
   ConnectionResult.fromJSON(Map<String, dynamic> json)
-    : msg = json['msg'] as String?;
+      : msg = json['msg'] as String?;
 
   Map<String, dynamic> toJson() => {'msg': msg ?? ''};
 

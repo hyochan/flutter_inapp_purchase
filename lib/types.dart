@@ -32,13 +32,13 @@ class PurchaseCommon {
   final String id; // Transaction identifier - used by finishTransaction
   final String productId; // Product identifier - which product was purchased
   final List<String>?
-  ids; // Product identifiers for purchases that include multiple products
+      ids; // Product identifiers for purchases that include multiple products
   @Deprecated('Use id instead')
   final String? transactionId; // @deprecated - use id instead
   final int transactionDate;
   final String transactionReceipt;
   final String?
-  purchaseToken; // Unified purchase token (jwsRepresentation for iOS, purchaseToken for Android)
+      purchaseToken; // Unified purchase token (jwsRepresentation for iOS, purchaseToken for Android)
   final String? platform;
 
   PurchaseCommon({
@@ -235,16 +235,15 @@ class Product extends ProductCommon {
     this.signatureAndroid,
     this.subscriptionOffersAndroid,
   }) : super(
-         id: id ?? productId ?? '',
-         type: type ?? 'inapp',
-         displayPrice: displayPrice ?? localizedPrice ?? '0',
-         platformEnum: platformEnum ?? IapPlatform.ios,
-         price:
-             price ??
-             (priceString != null ? double.tryParse(priceString) : null),
-         platform:
-             platform ?? (platformEnum == IapPlatform.ios ? 'ios' : 'android'),
-       );
+          id: id ?? productId ?? '',
+          type: type ?? 'inapp',
+          displayPrice: displayPrice ?? localizedPrice ?? '0',
+          platformEnum: platformEnum ?? IapPlatform.ios,
+          price: price ??
+              (priceString != null ? double.tryParse(priceString) : null),
+          platform:
+              platform ?? (platformEnum == IapPlatform.ios ? 'ios' : 'android'),
+        );
 
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
@@ -254,28 +253,26 @@ class Product extends ProductCommon {
       description: json['description'] as String? ?? '',
       type: json['type'] as String? ?? 'inapp',
       displayName: json['displayName'] as String?,
-      displayPrice:
-          json['displayPrice'] as String? ??
+      displayPrice: json['displayPrice'] as String? ??
           json['localizedPrice'] as String? ??
           '0',
       currency: json['currency'] as String? ?? '',
       price: (json['price'] is num)
           ? (json['price'] as num).toDouble()
           : (json['price'] is String
-                ? double.tryParse(json['price'] as String)
-                : null),
+              ? double.tryParse(json['price'] as String)
+              : null),
       platform: json['platform'] as String?,
       // Backward compatibility fields
       productId: json['productId'] as String?,
       priceString: (json['price'] is String) ? json['price'] as String : null,
       localizedPrice: json['localizedPrice'] as String?,
-      platformEnum: json['platform'] == 'android'
-          ? IapPlatform.android
-          : IapPlatform.ios,
+      platformEnum:
+          json['platform'] == 'android' ? IapPlatform.android : IapPlatform.ios,
       discountsIOS: json['discountsIOS'] != null
           ? (json['discountsIOS'] as List)
-                .map((d) => DiscountIOS.fromJson(d as Map<String, dynamic>))
-                .toList()
+              .map((d) => DiscountIOS.fromJson(d as Map<String, dynamic>))
+              .toList()
           : null,
       subscription: json['subscription'] != null
           ? SubscriptionInfo.fromJson(
@@ -300,10 +297,10 @@ class Product extends ProductCommon {
       nameAndroid: json['nameAndroid'] as String?,
       oneTimePurchaseOfferDetailsAndroid:
           json['oneTimePurchaseOfferDetailsAndroid'] != null
-          ? Map<String, dynamic>.from(
-              json['oneTimePurchaseOfferDetailsAndroid'] as Map,
-            )
-          : null,
+              ? Map<String, dynamic>.from(
+                  json['oneTimePurchaseOfferDetailsAndroid'] as Map,
+                )
+              : null,
       originalPrice: json['originalPrice'] as String?,
       originalPriceAmount: json['originalPriceAmount'] as double?,
       freeTrialPeriod: json['freeTrialPeriod'] as String?,
@@ -311,20 +308,21 @@ class Product extends ProductCommon {
       // TODO(v6.4.0): Remove deprecated subscriptionOfferDetails
       subscriptionOfferDetails: json['subscriptionOfferDetails'] != null
           ? (json['subscriptionOfferDetails'] as List)
-                .map((o) => OfferDetail.fromJson(o as Map<String, dynamic>))
-                .toList()
+              .map((o) => OfferDetail.fromJson(o as Map<String, dynamic>))
+              .toList()
           : null,
       // Use new Android suffix field if available, fallback to old field for compatibility
       subscriptionOfferDetailsAndroid:
           json['subscriptionOfferDetailsAndroid'] != null
-          ? (json['subscriptionOfferDetailsAndroid'] as List)
-                .map((o) => OfferDetail.fromJson(o as Map<String, dynamic>))
-                .toList()
-          : json['subscriptionOfferDetails'] != null
-          ? (json['subscriptionOfferDetails'] as List)
-                .map((o) => OfferDetail.fromJson(o as Map<String, dynamic>))
-                .toList()
-          : null,
+              ? (json['subscriptionOfferDetailsAndroid'] as List)
+                  .map((o) => OfferDetail.fromJson(o as Map<String, dynamic>))
+                  .toList()
+              : json['subscriptionOfferDetails'] != null
+                  ? (json['subscriptionOfferDetails'] as List)
+                      .map((o) =>
+                          OfferDetail.fromJson(o as Map<String, dynamic>))
+                      .toList()
+                  : null,
       subscriptionPeriodAndroid: json['subscriptionPeriodAndroid'] as String?,
       introductoryPriceCyclesAndroid:
           json['introductoryPriceCyclesAndroid'] as String?,
@@ -334,12 +332,12 @@ class Product extends ProductCommon {
       signatureAndroid: json['signatureAndroid'] as String?,
       subscriptionOffersAndroid: json['subscriptionOffersAndroid'] != null
           ? (json['subscriptionOffersAndroid'] as List)
-                .map(
-                  (o) => SubscriptionOfferAndroid.fromJson(
-                    o as Map<String, dynamic>,
-                  ),
-                )
-                .toList()
+              .map(
+                (o) => SubscriptionOfferAndroid.fromJson(
+                  o as Map<String, dynamic>,
+                ),
+              )
+              .toList()
           : null,
     );
   }
@@ -528,8 +526,8 @@ class Product extends ProductCommon {
 
       // Add subscriptionGroupId (convert to string for OpenIAP)
       if (subscriptionGroupIdIOS != null) {
-        subscriptionInfoJson['subscriptionGroupId'] = subscriptionGroupIdIOS
-            .toString();
+        subscriptionInfoJson['subscriptionGroupId'] =
+            subscriptionGroupIdIOS.toString();
       }
 
       // Add subscriptionPeriod with proper structure
@@ -592,22 +590,19 @@ class Product extends ProductCommon {
       } else if (subscriptionOfferDetails != null &&
           subscriptionOfferDetails!.isNotEmpty) {
         // Use old field data but new field name for TypeScript compatibility
-        json['subscriptionOfferDetailsAndroid'] = subscriptionOfferDetails!
-            .map((o) => o.toJson())
-            .toList();
+        json['subscriptionOfferDetailsAndroid'] =
+            subscriptionOfferDetails!.map((o) => o.toJson()).toList();
       }
       // TODO(v6.4.0): Remove deprecated subscriptionOfferDetails field completely - kept for backward compatibility until v6.4.0
       if (subscriptionOfferDetails != null &&
           subscriptionOfferDetails!.isNotEmpty) {
-        json['subscriptionOfferDetails'] = subscriptionOfferDetails!
-            .map((o) => o.toJson())
-            .toList();
+        json['subscriptionOfferDetails'] =
+            subscriptionOfferDetails!.map((o) => o.toJson()).toList();
       }
       if (subscriptionOffersAndroid != null &&
           subscriptionOffersAndroid!.isNotEmpty) {
-        json['subscriptionOffersAndroid'] = subscriptionOffersAndroid!
-            .map((o) => o.toJson())
-            .toList();
+        json['subscriptionOffersAndroid'] =
+            subscriptionOffersAndroid!.map((o) => o.toJson()).toList();
       }
     }
 
@@ -662,13 +657,13 @@ class DiscountIOS {
 
   @Deprecated('[2.0.0] Use DiscountIOS.fromJson instead')
   DiscountIOS.fromJSON(Map<String, dynamic> json)
-    : identifier = json['identifier'] as String,
-      type = json['type'] as String,
-      price = json['price'] as String,
-      localizedPrice = json['localizedPrice'] as String,
-      paymentMode = json['paymentMode'] as String,
-      numberOfPeriods = json['numberOfPeriods']?.toString() ?? '0',
-      subscriptionPeriod = json['subscriptionPeriod'] as String;
+      : identifier = json['identifier'] as String,
+        type = json['type'] as String,
+        price = json['price'] as String,
+        localizedPrice = json['localizedPrice'] as String,
+        paymentMode = json['paymentMode'] as String,
+        numberOfPeriods = json['numberOfPeriods']?.toString() ?? '0',
+        subscriptionPeriod = json['subscriptionPeriod'] as String;
 }
 
 /// Subscription class for subscription items (OpenIAP compliant)
@@ -759,13 +754,13 @@ class Subscription extends ProductCommon {
     this.signatureAndroid,
     this.subscriptionOffersAndroid,
   }) : super(
-         id: productId,
-         type: type ?? 'subs',
-         displayPrice: displayPrice ?? localizedPrice ?? price,
-         platformEnum: platform,
-         price: double.tryParse(price),
-         platform: platform == IapPlatform.ios ? 'ios' : 'android',
-       );
+          id: productId,
+          type: type ?? 'subs',
+          displayPrice: displayPrice ?? localizedPrice ?? price,
+          platformEnum: platform,
+          price: double.tryParse(price),
+          platform: platform == IapPlatform.ios ? 'ios' : 'android',
+        );
 
   factory Subscription.fromJson(Map<String, dynamic> json) {
     return Subscription(
@@ -775,17 +770,16 @@ class Subscription extends ProductCommon {
       localizedPrice: json['localizedPrice'] as String?,
       title: json['title'] as String?,
       description: json['description'] as String?,
-      platform: json['platform'] == 'android'
-          ? IapPlatform.android
-          : IapPlatform.ios,
+      platform:
+          json['platform'] == 'android' ? IapPlatform.android : IapPlatform.ios,
       type: json['type'] as String?,
       // iOS fields per OpenIAP spec
       displayName: json['displayName'] as String?,
       displayPrice: json['displayPrice'] as String?,
       discountsIOS: json['discountsIOS'] != null
           ? (json['discountsIOS'] as List)
-                .map((d) => DiscountIOS.fromJson(d as Map<String, dynamic>))
-                .toList()
+              .map((d) => DiscountIOS.fromJson(d as Map<String, dynamic>))
+              .toList()
           : null,
       subscription: json['subscription'] != null
           ? SubscriptionInfo.fromJson(
@@ -810,10 +804,10 @@ class Subscription extends ProductCommon {
       nameAndroid: json['nameAndroid'] as String?,
       oneTimePurchaseOfferDetailsAndroid:
           json['oneTimePurchaseOfferDetailsAndroid'] != null
-          ? Map<String, dynamic>.from(
-              json['oneTimePurchaseOfferDetailsAndroid'] as Map,
-            )
-          : null,
+              ? Map<String, dynamic>.from(
+                  json['oneTimePurchaseOfferDetailsAndroid'] as Map,
+                )
+              : null,
       originalPrice: json['originalPrice'] as String?,
       originalPriceAmount: json['originalPriceAmount'] as double?,
       freeTrialPeriod: json['freeTrialPeriod'] as String?,
@@ -821,20 +815,21 @@ class Subscription extends ProductCommon {
       // TODO(v6.4.0): Remove deprecated subscriptionOfferDetails
       subscriptionOfferDetails: json['subscriptionOfferDetails'] != null
           ? (json['subscriptionOfferDetails'] as List)
-                .map((o) => OfferDetail.fromJson(o as Map<String, dynamic>))
-                .toList()
+              .map((o) => OfferDetail.fromJson(o as Map<String, dynamic>))
+              .toList()
           : null,
       // Use new Android suffix field if available, fallback to old field for compatibility
       subscriptionOfferDetailsAndroid:
           json['subscriptionOfferDetailsAndroid'] != null
-          ? (json['subscriptionOfferDetailsAndroid'] as List)
-                .map((o) => OfferDetail.fromJson(o as Map<String, dynamic>))
-                .toList()
-          : json['subscriptionOfferDetails'] != null
-          ? (json['subscriptionOfferDetails'] as List)
-                .map((o) => OfferDetail.fromJson(o as Map<String, dynamic>))
-                .toList()
-          : null,
+              ? (json['subscriptionOfferDetailsAndroid'] as List)
+                  .map((o) => OfferDetail.fromJson(o as Map<String, dynamic>))
+                  .toList()
+              : json['subscriptionOfferDetails'] != null
+                  ? (json['subscriptionOfferDetails'] as List)
+                      .map((o) =>
+                          OfferDetail.fromJson(o as Map<String, dynamic>))
+                      .toList()
+                  : null,
       subscriptionPeriodAndroid: json['subscriptionPeriodAndroid'] as String?,
       introductoryPriceCyclesAndroid:
           json['introductoryPriceCyclesAndroid'] as String?,
@@ -844,12 +839,12 @@ class Subscription extends ProductCommon {
       signatureAndroid: json['signatureAndroid'] as String?,
       subscriptionOffersAndroid: json['subscriptionOffersAndroid'] != null
           ? (json['subscriptionOffersAndroid'] as List)
-                .map(
-                  (o) => SubscriptionOfferAndroid.fromJson(
-                    o as Map<String, dynamic>,
-                  ),
-                )
-                .toList()
+              .map(
+                (o) => SubscriptionOfferAndroid.fromJson(
+                  o as Map<String, dynamic>,
+                ),
+              )
+              .toList()
           : null,
     );
   }
@@ -1030,8 +1025,8 @@ class Subscription extends ProductCommon {
 
       // Add subscriptionGroupId (convert to string for OpenIAP)
       if (subscriptionGroupIdIOS != null) {
-        subscriptionInfoJson['subscriptionGroupId'] = subscriptionGroupIdIOS
-            .toString();
+        subscriptionInfoJson['subscriptionGroupId'] =
+            subscriptionGroupIdIOS.toString();
       }
 
       // Add subscriptionPeriod with proper structure
@@ -1094,22 +1089,19 @@ class Subscription extends ProductCommon {
       } else if (subscriptionOfferDetails != null &&
           subscriptionOfferDetails!.isNotEmpty) {
         // Use old field data but new field name for TypeScript compatibility
-        json['subscriptionOfferDetailsAndroid'] = subscriptionOfferDetails!
-            .map((o) => o.toJson())
-            .toList();
+        json['subscriptionOfferDetailsAndroid'] =
+            subscriptionOfferDetails!.map((o) => o.toJson()).toList();
       }
       // TODO(v6.4.0): Remove deprecated subscriptionOfferDetails field completely - kept for backward compatibility until v6.4.0
       if (subscriptionOfferDetails != null &&
           subscriptionOfferDetails!.isNotEmpty) {
-        json['subscriptionOfferDetails'] = subscriptionOfferDetails!
-            .map((o) => o.toJson())
-            .toList();
+        json['subscriptionOfferDetails'] =
+            subscriptionOfferDetails!.map((o) => o.toJson()).toList();
       }
       if (subscriptionOffersAndroid != null &&
           subscriptionOffersAndroid!.isNotEmpty) {
-        json['subscriptionOffersAndroid'] = subscriptionOffersAndroid!
-            .map((o) => o.toJson())
-            .toList();
+        json['subscriptionOffersAndroid'] =
+            subscriptionOffersAndroid!.map((o) => o.toJson()).toList();
       }
     }
 
@@ -1157,16 +1149,16 @@ class ProductIOS extends Product {
     this.promotionalOfferIds,
     this.discounts,
   }) : super(
-         priceString: price,
-         platformEnum: IapPlatform.ios,
-         subscriptionGroupIdIOS: subscriptionGroupIdentifier,
-         subscriptionPeriodUnitIOS: subscriptionPeriodUnit,
-         subscriptionPeriodNumberIOS: subscriptionPeriodNumber,
-         introductoryPricePaymentModeIOS: introductoryPricePaymentMode,
-         environmentIOS: environment,
-         promotionalOfferIdsIOS: promotionalOfferIds,
-         discountsIOS: discounts,
-       );
+          priceString: price,
+          platformEnum: IapPlatform.ios,
+          subscriptionGroupIdIOS: subscriptionGroupIdentifier,
+          subscriptionPeriodUnitIOS: subscriptionPeriodUnit,
+          subscriptionPeriodNumberIOS: subscriptionPeriodNumber,
+          introductoryPricePaymentModeIOS: introductoryPricePaymentMode,
+          environmentIOS: environment,
+          promotionalOfferIdsIOS: promotionalOfferIds,
+          discountsIOS: discounts,
+        );
 
   factory ProductIOS.fromJson(Map<String, dynamic> json) {
     return ProductIOS(
@@ -1179,11 +1171,9 @@ class ProductIOS extends Product {
       type: json['type'] as String?,
       displayName: json['displayName'] as String?,
       // OpenIAP compliant iOS fields
-      isFamilyShareableIOS:
-          json['isFamilyShareableIOS'] as bool? ??
+      isFamilyShareableIOS: json['isFamilyShareableIOS'] as bool? ??
           json['isFamilyShareable'] as bool?,
-      jsonRepresentationIOS:
-          json['jsonRepresentationIOS'] as String? ??
+      jsonRepresentationIOS: json['jsonRepresentationIOS'] as String? ??
           json['jsonRepresentation'] as String?,
       // Additional iOS fields
       subscriptionGroupIdentifier:
@@ -1198,8 +1188,8 @@ class ProductIOS extends Product {
           : null,
       discounts: json['discounts'] != null
           ? (json['discounts'] as List)
-                .map((d) => DiscountIOS.fromJson(d as Map<String, dynamic>))
-                .toList()
+              .map((d) => DiscountIOS.fromJson(d as Map<String, dynamic>))
+              .toList()
           : null,
     );
   }
@@ -1232,15 +1222,15 @@ class ProductAndroid extends Product {
     this.signature,
     this.subscriptionOffers,
   }) : super(
-         priceString: price,
-         platformEnum: IapPlatform.android,
-         subscriptionPeriodAndroid: subscriptionPeriod,
-         introductoryPriceCyclesAndroid: introductoryPriceCycles,
-         introductoryPricePeriodAndroid: introductoryPricePeriod,
-         freeTrialPeriodAndroid: freeTrialPeriod,
-         signatureAndroid: signature,
-         subscriptionOffersAndroid: subscriptionOffers,
-       );
+          priceString: price,
+          platformEnum: IapPlatform.android,
+          subscriptionPeriodAndroid: subscriptionPeriod,
+          introductoryPriceCyclesAndroid: introductoryPriceCycles,
+          introductoryPricePeriodAndroid: introductoryPricePeriod,
+          freeTrialPeriodAndroid: freeTrialPeriod,
+          signatureAndroid: signature,
+          subscriptionOffersAndroid: subscriptionOffers,
+        );
 
   factory ProductAndroid.fromJson(Map<String, dynamic> json) {
     return ProductAndroid(
@@ -1259,20 +1249,20 @@ class ProductAndroid extends Product {
       signature: json['signature'] as String?,
       subscriptionOffers: json['subscriptionOffers'] != null
           ? (json['subscriptionOffers'] as List)
-                .map(
-                  (o) => SubscriptionOfferAndroid.fromJson(
-                    o as Map<String, dynamic>,
-                  ),
-                )
-                .toList()
+              .map(
+                (o) => SubscriptionOfferAndroid.fromJson(
+                  o as Map<String, dynamic>,
+                ),
+              )
+              .toList()
           : null,
       originalPriceAmount: json['originalPriceAmount'] as double?,
       iconUrl: json['iconUrl'] as String?,
       // TODO(v6.4.0): Remove deprecated subscriptionOfferDetails
       subscriptionOfferDetails: json['subscriptionOfferDetails'] != null
           ? (json['subscriptionOfferDetails'] as List)
-                .map((o) => OfferDetail.fromJson(o as Map<String, dynamic>))
-                .toList()
+              .map((o) => OfferDetail.fromJson(o as Map<String, dynamic>))
+              .toList()
           : null,
       // Note: subscriptionOfferDetailsAndroid is not part of Subscription class
       // It's only in Product class
@@ -1496,8 +1486,7 @@ class PricingPhase {
       priceAmount: priceAmount,
       price:
           json['price'] as String? ?? json['formattedPrice'] as String? ?? '0',
-      currency:
-          json['currency'] as String? ??
+      currency: json['currency'] as String? ??
           json['priceCurrencyCode'] as String? ??
           'USD',
       billingPeriod: json['billingPeriod'] as String?,
@@ -1684,8 +1673,8 @@ class Purchase {
       transactionDate: json['transactionDate'] is int
           ? json['transactionDate'] as int
           : json['transactionDate'] is String
-          ? int.tryParse(json['transactionDate'] as String)
-          : null,
+              ? int.tryParse(json['transactionDate'] as String)
+              : null,
       transactionReceipt: json['transactionReceipt'] as String?,
       purchaseToken: json['purchaseToken'] as String?,
       orderId: json['orderId'] as String?,
@@ -1713,9 +1702,8 @@ class Purchase {
               isVerified: json['verificationResultIOS']['isVerified'] as bool,
               verificationError:
                   json['verificationResultIOS']['verificationError'] as String?,
-              data:
-                  json['verificationResultIOS']['data']
-                      as Map<String, dynamic>?,
+              data: json['verificationResultIOS']['data']
+                  as Map<String, dynamic>?,
             )
           : null,
       environmentIOS: json['environmentIOS'] as String?,
@@ -2093,13 +2081,13 @@ class PurchaseRequest {
 
   /// Constructor for in-app purchase (type is optional, defaults to 'inapp')
   PurchaseRequest.inapp(RequestPurchaseProps props)
-    : request = props,
-      type = null; // type is optional for inapp
+      : request = props,
+        type = null; // type is optional for inapp
 
   /// Constructor for subscription (type is required and must be 'subs')
   PurchaseRequest.subscription(RequestSubscriptionProps props)
-    : request = props,
-      type = 'subs';
+      : request = props,
+        type = 'subs';
 
   /// Check if this is a subscription purchase
   bool get isSubscription => type == 'subs';
@@ -2255,12 +2243,12 @@ class SubscriptionOfferAndroid {
   SubscriptionOfferAndroid({required this.sku, required this.offerToken});
 
   SubscriptionOfferAndroid.fromJSON(Map<String, dynamic> json)
-    : sku = json['sku'] as String,
-      offerToken = json['offerToken'] as String;
+      : sku = json['sku'] as String,
+        offerToken = json['offerToken'] as String;
 
   SubscriptionOfferAndroid.fromJson(Map<String, dynamic> json)
-    : sku = json['sku'] as String? ?? '',
-      offerToken = json['offerToken'] as String? ?? '';
+      : sku = json['sku'] as String? ?? '',
+        offerToken = json['offerToken'] as String? ?? '';
 
   Map<String, dynamic> toJson() => {'sku': sku, 'offerToken': offerToken};
 
@@ -2398,11 +2386,11 @@ class RequestProductsParams {
     List<String>? productIds,
     List<String>? skus, // Support legacy parameter name
     this.type = PurchaseType.inapp,
-  }) : productIds = productIds ?? skus ?? [],
-       assert(
-         productIds != null || skus != null,
-         'Either productIds or skus must be provided',
-       );
+  })  : productIds = productIds ?? skus ?? [],
+        assert(
+          productIds != null || skus != null,
+          'Either productIds or skus must be provided',
+        );
 }
 
 /// Unified purchase request (OpenIAP compliant)
@@ -2658,39 +2646,41 @@ class IapItem {
 
   /// Create [IapItem] from a Map that was previously JSON formatted
   IapItem.fromJSON(Map<String, dynamic> json)
-    : productId = json['productId'] as String?,
-      price = json['price'] as String?,
-      currency = json['currency'] as String?,
-      localizedPrice = json['localizedPrice'] as String?,
-      title = json['title'] as String?,
-      description = json['description'] as String?,
-      introductoryPrice = json['introductoryPrice'] as String?,
-      subscriptionPeriodNumberIOS =
-          json['subscriptionPeriodNumberIOS'] as String?,
-      subscriptionPeriodUnitIOS = json['subscriptionPeriodUnitIOS'] as String?,
-      introductoryPricePaymentModeIOS =
-          json['introductoryPricePaymentModeIOS'] as String?,
-      introductoryPriceNumberOfPeriodsIOS =
-          json['introductoryPriceNumberOfPeriodsIOS'] as String?,
-      introductoryPriceSubscriptionPeriodIOS =
-          json['introductoryPriceSubscriptionPeriodIOS'] as String?,
-      subscriptionPeriodAndroid = json['subscriptionPeriodAndroid'] as String?,
-      introductoryPriceCyclesAndroid =
-          json['introductoryPriceCyclesAndroid'] as String?,
-      introductoryPricePeriodAndroid =
-          json['introductoryPricePeriodAndroid'] as String?,
-      freeTrialPeriodAndroid = json['freeTrialPeriodAndroid'] as String?,
-      discountsIOS = _extractDiscountIOS(json['discountsIOS']),
-      signatureAndroid = json['signatureAndroid'] as String?,
-      subscriptionOffersAndroid = _extractSubscriptionOffersAndroid(
-        json['subscriptionOffersAndroid'],
-      ),
-      iconUrl = json['iconUrl'] as String?,
-      originalJson = json['originalJson'] as String?,
-      originalPrice = json['originalPrice'] as String?,
-      displayName = json['displayName'] as String?,
-      displayDescription = json['displayDescription'] as String?,
-      type = json['type'] as String?;
+      : productId = json['productId'] as String?,
+        price = json['price'] as String?,
+        currency = json['currency'] as String?,
+        localizedPrice = json['localizedPrice'] as String?,
+        title = json['title'] as String?,
+        description = json['description'] as String?,
+        introductoryPrice = json['introductoryPrice'] as String?,
+        subscriptionPeriodNumberIOS =
+            json['subscriptionPeriodNumberIOS'] as String?,
+        subscriptionPeriodUnitIOS =
+            json['subscriptionPeriodUnitIOS'] as String?,
+        introductoryPricePaymentModeIOS =
+            json['introductoryPricePaymentModeIOS'] as String?,
+        introductoryPriceNumberOfPeriodsIOS =
+            json['introductoryPriceNumberOfPeriodsIOS'] as String?,
+        introductoryPriceSubscriptionPeriodIOS =
+            json['introductoryPriceSubscriptionPeriodIOS'] as String?,
+        subscriptionPeriodAndroid =
+            json['subscriptionPeriodAndroid'] as String?,
+        introductoryPriceCyclesAndroid =
+            json['introductoryPriceCyclesAndroid'] as String?,
+        introductoryPricePeriodAndroid =
+            json['introductoryPricePeriodAndroid'] as String?,
+        freeTrialPeriodAndroid = json['freeTrialPeriodAndroid'] as String?,
+        discountsIOS = _extractDiscountIOS(json['discountsIOS']),
+        signatureAndroid = json['signatureAndroid'] as String?,
+        subscriptionOffersAndroid = _extractSubscriptionOffersAndroid(
+          json['subscriptionOffersAndroid'],
+        ),
+        iconUrl = json['iconUrl'] as String?,
+        originalJson = json['originalJson'] as String?,
+        originalPrice = json['originalPrice'] as String?,
+        displayName = json['displayName'] as String?,
+        displayDescription = json['displayDescription'] as String?,
+        type = json['type'] as String?;
 
   static List<DiscountIOS>? _extractDiscountIOS(dynamic json) {
     if (json == null) return null;
@@ -2777,34 +2767,33 @@ class PurchasedItem {
 
   /// Create [PurchasedItem] from a Map that was previously JSON formatted
   PurchasedItem.fromJSON(Map<String, dynamic> json)
-    : productId = json['productId'] as String?,
-      // Handle both string and number for id field
-      id = json['id'] != null
-          ? json['id'].toString()
-          : json['transactionId']?.toString(),
-      // Handle both string and number for transactionId
-      transactionId = json['transactionId']?.toString(),
-      transactionDate = _extractDate(json['transactionDate']),
-      transactionReceipt = json['transactionReceipt'] as String?,
-      purchaseToken = json['purchaseToken'] as String?,
-      orderId = json['orderId'] as String?,
-      purchaseStateAndroid = json['purchaseStateAndroid'] as int?,
-      packageNameAndroid = json['packageNameAndroid'] as String?,
-      isAcknowledgedAndroid = json['isAcknowledgedAndroid'] as bool?,
-      autoRenewingAndroid = json['autoRenewingAndroid'] as bool?,
-      signatureAndroid = json['signatureAndroid'] as String?,
-      originalJsonAndroid =
-          json['originalJsonAndroid'] as String? ??
-          json['dataAndroid'] as String?,
-      developerPayloadAndroid = json['developerPayloadAndroid'] as String?,
-      originalTransactionDateIOS = json['originalTransactionDateIOS']
-          ?.toString(),
-      // Handle both string and number for originalTransactionIdentifierIOS
-      originalTransactionIdentifierIOS =
-          json['originalTransactionIdentifierIOS']?.toString(),
-      transactionStateIOS = json['transactionStateIOS'] as String?,
-      purchaseTime = json['purchaseTime'] as int?,
-      purchaseTimeMillis = json['purchaseTimeMillis'] as String?;
+      : productId = json['productId'] as String?,
+        // Handle both string and number for id field
+        id = json['id'] != null
+            ? json['id'].toString()
+            : json['transactionId']?.toString(),
+        // Handle both string and number for transactionId
+        transactionId = json['transactionId']?.toString(),
+        transactionDate = _extractDate(json['transactionDate']),
+        transactionReceipt = json['transactionReceipt'] as String?,
+        purchaseToken = json['purchaseToken'] as String?,
+        orderId = json['orderId'] as String?,
+        purchaseStateAndroid = json['purchaseStateAndroid'] as int?,
+        packageNameAndroid = json['packageNameAndroid'] as String?,
+        isAcknowledgedAndroid = json['isAcknowledgedAndroid'] as bool?,
+        autoRenewingAndroid = json['autoRenewingAndroid'] as bool?,
+        signatureAndroid = json['signatureAndroid'] as String?,
+        originalJsonAndroid = json['originalJsonAndroid'] as String? ??
+            json['dataAndroid'] as String?,
+        developerPayloadAndroid = json['developerPayloadAndroid'] as String?,
+        originalTransactionDateIOS =
+            json['originalTransactionDateIOS']?.toString(),
+        // Handle both string and number for originalTransactionIdentifierIOS
+        originalTransactionIdentifierIOS =
+            json['originalTransactionIdentifierIOS']?.toString(),
+        transactionStateIOS = json['transactionStateIOS'] as String?,
+        purchaseTime = json['purchaseTime'] as int?,
+        purchaseTimeMillis = json['purchaseTimeMillis'] as String?;
 
   /// This returns transaction dates in ISO 8601 format.
   static DateTime? _extractDate(dynamic transactionDate) {
@@ -2906,8 +2895,7 @@ class PurchasedItem {
     }
 
     // Platform field - detect based on available fields
-    final isIOS =
-        originalTransactionIdentifierIOS != null ||
+    final isIOS = originalTransactionIdentifierIOS != null ||
         transactionStateIOS != null ||
         originalTransactionDateIOS != null;
     json['platform'] = isIOS ? 'ios' : 'android';
@@ -2982,12 +2970,12 @@ class PricingPhaseAndroid {
   final int priceAmountMicros;
 
   PricingPhaseAndroid.fromJSON(Map<String, dynamic> json)
-    : formattedPrice = json['formattedPrice'] as String,
-      priceCurrencyCode = json['priceCurrencyCode'] as int,
-      billingPeriod = json['billingPeriod'] as String,
-      recurrenceMode = json['recurrenceMode'] as int?,
-      billingCycleCount = json['billingCycleCount'] as int,
-      priceAmountMicros = json['priceAmountMicros'] as int;
+      : formattedPrice = json['formattedPrice'] as String,
+        priceCurrencyCode = json['priceCurrencyCode'] as int,
+        billingPeriod = json['billingPeriod'] as String,
+        recurrenceMode = json['recurrenceMode'] as int?,
+        billingCycleCount = json['billingCycleCount'] as int,
+        priceAmountMicros = json['priceAmountMicros'] as int;
 }
 
 /// iOS App Store info
@@ -2998,8 +2986,8 @@ class AppStoreInfo {
   AppStoreInfo({this.appStoreVersion, this.environment});
 
   AppStoreInfo.fromJSON(Map<String, dynamic> json)
-    : appStoreVersion = json['appStoreVersion'] as String?,
-      environment = json['environment'] as String?;
+      : appStoreVersion = json['appStoreVersion'] as String?,
+        environment = json['environment'] as String?;
 }
 
 /// App Transaction data (iOS 16.0+)
@@ -3038,14 +3026,14 @@ class AppTransaction {
   }
 
   AppTransaction.fromJSON(Map<String, dynamic> json)
-    : appBundleId = json['appBundleId'] as String,
-      appVersion = json['appVersion'] as int,
-      deviceVerification = json['deviceVerification'] as String,
-      deviceVerificationNonce = json['deviceVerificationNonce'] as String,
-      originalAppVersion = json['originalAppVersion'] as int,
-      originalPurchaseDate = json['originalPurchaseDate'] as String,
-      receiptCreationDate = json['receiptCreationDate'] as String,
-      receiptType = json['receiptType'] as String;
+      : appBundleId = json['appBundleId'] as String,
+        appVersion = json['appVersion'] as int,
+        deviceVerification = json['deviceVerification'] as String,
+        deviceVerificationNonce = json['deviceVerificationNonce'] as String,
+        originalAppVersion = json['originalAppVersion'] as int,
+        originalPurchaseDate = json['originalPurchaseDate'] as String,
+        receiptCreationDate = json['receiptCreationDate'] as String,
+        receiptType = json['receiptType'] as String;
 
   @override
   String toString() {
@@ -3142,9 +3130,9 @@ class PurchaseIOS extends PurchaseCommon {
     this.isFinishedIOS,
     this.transactionStateIOS,
   }) : super(
-         purchaseToken: purchaseToken ?? jwsRepresentationIOS,
-         platform: 'ios',
-       );
+          purchaseToken: purchaseToken ?? jwsRepresentationIOS,
+          platform: 'ios',
+        );
 }
 
 @Deprecated('Use PurchaseIOS instead')
@@ -3194,9 +3182,9 @@ class PurchaseAndroid extends PurchaseCommon {
     this.isConsumedAndroid,
     this.originalJsonAndroid,
   }) : super(
-         purchaseToken: purchaseToken ?? purchaseTokenAndroid,
-         platform: 'android',
-       );
+          purchaseToken: purchaseToken ?? purchaseTokenAndroid,
+          platform: 'android',
+        );
 }
 
 @Deprecated('Use PurchaseAndroid instead')

@@ -27,9 +27,9 @@ void main() {
 
           TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
               .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-                log.add(methodCall);
-                return 'Billing service is ready';
-              });
+            log.add(methodCall);
+            return 'Billing service is ready';
+          });
         });
 
         tearDown(() {
@@ -64,16 +64,16 @@ void main() {
 
             TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
                 .setMockMethodCallHandler(channel, (
-                  MethodCall methodCall,
-                ) async {
-                  log.add(methodCall);
-                  if (methodCall.method == 'initConnection') {
-                    return true;
-                  }
-                  // For requestProducts, Android expects parsed JSON list
-                  if (methodCall.method == 'getProducts' ||
-                      methodCall.method == 'getSubscriptions') {
-                    return '''[
+              MethodCall methodCall,
+            ) async {
+              log.add(methodCall);
+              if (methodCall.method == 'initConnection') {
+                return true;
+              }
+              // For requestProducts, Android expects parsed JSON list
+              if (methodCall.method == 'getProducts' ||
+                  methodCall.method == 'getSubscriptions') {
+                return '''[
                 {
                   "productId": "com.example.product1",
                   "price": "0.99",
@@ -91,9 +91,9 @@ void main() {
                   "description": "Description 2"
                 }
               ]''';
-                  }
-                  return null;
-                });
+              }
+              return null;
+            });
           });
 
           tearDown(() {
@@ -151,25 +151,25 @@ void main() {
 
             TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
                 .setMockMethodCallHandler(channel, (
-                  MethodCall methodCall,
-                ) async {
-                  log.add(methodCall);
-                  if (methodCall.method == 'initConnection') {
-                    return true;
-                  }
-                  return [
-                    {
-                      'productId': 'com.example.subscription1',
-                      'price': '9.99',
-                      'currency': 'USD',
-                      'localizedPrice': r'$9.99',
-                      'title': 'Subscription 1',
-                      'description': 'Monthly subscription',
-                      'subscriptionPeriodUnitIOS': 'MONTH',
-                      'subscriptionPeriodNumberIOS': '1',
-                    },
-                  ];
-                });
+              MethodCall methodCall,
+            ) async {
+              log.add(methodCall);
+              if (methodCall.method == 'initConnection') {
+                return true;
+              }
+              return [
+                {
+                  'productId': 'com.example.subscription1',
+                  'price': '9.99',
+                  'currency': 'USD',
+                  'localizedPrice': r'$9.99',
+                  'title': 'Subscription 1',
+                  'description': 'Monthly subscription',
+                  'subscriptionPeriodUnitIOS': 'MONTH',
+                  'subscriptionPeriodNumberIOS': '1',
+                },
+              ];
+            });
           });
 
           tearDown(() {
@@ -563,14 +563,14 @@ void main() {
 
           TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
               .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-                if (methodCall.method == 'initConnection') {
-                  return 'Billing service is ready';
-                }
-                if (methodCall.method == 'getAvailableItemsByType') {
-                  final arguments = methodCall.arguments;
-                  if (arguments is Map && arguments['type'] == 'subs') {
-                    // Return a mock subscription purchase
-                    return '''[
+            if (methodCall.method == 'initConnection') {
+              return 'Billing service is ready';
+            }
+            if (methodCall.method == 'getAvailableItemsByType') {
+              final arguments = methodCall.arguments;
+              if (arguments is Map && arguments['type'] == 'subs') {
+                // Return a mock subscription purchase
+                return '''[
                   {
                     "productId": "monthly_subscription",
                     "transactionId": "GPA.1234-5678-9012-34567",
@@ -582,11 +582,11 @@ void main() {
                     "isAcknowledgedAndroid": true
                   }
                 ]''';
-                  }
-                  return '[]';
-                }
-                return '[]';
-              });
+              }
+              return '[]';
+            }
+            return '[]';
+          });
         });
 
         tearDown(() {
@@ -623,28 +623,28 @@ void main() {
 
           TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
               .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-                if (methodCall.method == 'initConnection') {
-                  return 'Billing service is ready';
-                }
-                if (methodCall.method == 'getAvailableItems') {
-                  // Return a mock iOS subscription purchase
-                  return <Map<String, dynamic>>[
-                    <String, dynamic>{
-                      'productId': 'monthly_subscription',
-                      'transactionId': '1000000123456789',
-                      'transactionDate': DateTime.now().millisecondsSinceEpoch,
-                      'transactionReceipt': 'receipt_data',
-                      'purchaseToken':
-                          'ios_jws_token_123', // Unified field for iOS JWS
-                      'jwsRepresentationIOS':
-                          'ios_jws_token_123', // Deprecated field
-                      'transactionStateIOS':
-                          '1', // TransactionState.purchased value
-                    },
-                  ];
-                }
-                return null;
-              });
+            if (methodCall.method == 'initConnection') {
+              return 'Billing service is ready';
+            }
+            if (methodCall.method == 'getAvailableItems') {
+              // Return a mock iOS subscription purchase
+              return <Map<String, dynamic>>[
+                <String, dynamic>{
+                  'productId': 'monthly_subscription',
+                  'transactionId': '1000000123456789',
+                  'transactionDate': DateTime.now().millisecondsSinceEpoch,
+                  'transactionReceipt': 'receipt_data',
+                  'purchaseToken':
+                      'ios_jws_token_123', // Unified field for iOS JWS
+                  'jwsRepresentationIOS':
+                      'ios_jws_token_123', // Deprecated field
+                  'transactionStateIOS':
+                      '1', // TransactionState.purchased value
+                },
+              ];
+            }
+            return null;
+          });
         });
 
         tearDown(() {
@@ -675,37 +675,37 @@ void main() {
 
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-              if (methodCall.method == 'initConnection') {
-                return 'Billing service is ready';
-              }
-              if (methodCall.method == 'requestPurchase') {
-                // Simulate purchase flow with unified purchaseToken
-                return <String, dynamic>{
-                  'productId': methodCall.arguments['sku'],
-                  'transactionId': 'GPA.test-transaction-123',
-                  'transactionDate': DateTime.now().millisecondsSinceEpoch,
-                  'transactionReceipt': 'test_receipt',
-                  'purchaseToken': 'unified_purchase_token_123',
-                  'purchaseTokenAndroid': 'unified_purchase_token_123',
-                  'signatureAndroid': 'test_signature',
-                  'purchaseStateAndroid': 1,
-                };
-              }
-              if (methodCall.method == 'requestSubscription') {
-                // Simulate subscription flow with unified purchaseToken
-                return <String, dynamic>{
-                  'productId': methodCall.arguments['sku'],
-                  'transactionId': 'GPA.sub-transaction-456',
-                  'transactionDate': DateTime.now().millisecondsSinceEpoch,
-                  'transactionReceipt': 'test_subscription_receipt',
-                  'purchaseToken': 'unified_subscription_token_456',
-                  'purchaseTokenAndroid': 'unified_subscription_token_456',
-                  'autoRenewingAndroid': true,
-                  'purchaseStateAndroid': 1,
-                };
-              }
-              return null;
-            });
+          if (methodCall.method == 'initConnection') {
+            return 'Billing service is ready';
+          }
+          if (methodCall.method == 'requestPurchase') {
+            // Simulate purchase flow with unified purchaseToken
+            return <String, dynamic>{
+              'productId': methodCall.arguments['sku'],
+              'transactionId': 'GPA.test-transaction-123',
+              'transactionDate': DateTime.now().millisecondsSinceEpoch,
+              'transactionReceipt': 'test_receipt',
+              'purchaseToken': 'unified_purchase_token_123',
+              'purchaseTokenAndroid': 'unified_purchase_token_123',
+              'signatureAndroid': 'test_signature',
+              'purchaseStateAndroid': 1,
+            };
+          }
+          if (methodCall.method == 'requestSubscription') {
+            // Simulate subscription flow with unified purchaseToken
+            return <String, dynamic>{
+              'productId': methodCall.arguments['sku'],
+              'transactionId': 'GPA.sub-transaction-456',
+              'transactionDate': DateTime.now().millisecondsSinceEpoch,
+              'transactionReceipt': 'test_subscription_receipt',
+              'purchaseToken': 'unified_subscription_token_456',
+              'purchaseTokenAndroid': 'unified_subscription_token_456',
+              'autoRenewingAndroid': true,
+              'purchaseStateAndroid': 1,
+            };
+          }
+          return null;
+        });
       });
 
       tearDown(() {
@@ -759,23 +759,23 @@ void main() {
 
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-              if (methodCall.method == 'initConnection') {
-                return 'Billing service is ready';
-              }
-              if (methodCall.method == 'requestPurchase') {
-                // Simulate iOS purchase with JWS token
-                return <String, dynamic>{
-                  'productId': methodCall.arguments,
-                  'transactionId': '2000000123456789',
-                  'transactionDate': DateTime.now().millisecondsSinceEpoch,
-                  'transactionReceipt': 'ios_receipt_data',
-                  'purchaseToken': 'ios_jws_representation_token',
-                  'jwsRepresentationIOS': 'ios_jws_representation_token',
-                  'transactionStateIOS': '1',
-                };
-              }
-              return null;
-            });
+          if (methodCall.method == 'initConnection') {
+            return 'Billing service is ready';
+          }
+          if (methodCall.method == 'requestPurchase') {
+            // Simulate iOS purchase with JWS token
+            return <String, dynamic>{
+              'productId': methodCall.arguments,
+              'transactionId': '2000000123456789',
+              'transactionDate': DateTime.now().millisecondsSinceEpoch,
+              'transactionReceipt': 'ios_receipt_data',
+              'purchaseToken': 'ios_jws_representation_token',
+              'jwsRepresentationIOS': 'ios_jws_representation_token',
+              'transactionStateIOS': '1',
+            };
+          }
+          return null;
+        });
       });
 
       tearDown(() {
@@ -808,13 +808,13 @@ void main() {
 
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-              if (methodCall.method == 'initConnection') {
-                return 'Billing service is ready';
-              }
-              if (methodCall.method == 'getAvailableItemsByType') {
-                // Return purchases with unified purchaseToken as JSON string
-                final timestamp = DateTime.now().millisecondsSinceEpoch;
-                return '''[
+          if (methodCall.method == 'initConnection') {
+            return 'Billing service is ready';
+          }
+          if (methodCall.method == 'getAvailableItemsByType') {
+            // Return purchases with unified purchaseToken as JSON string
+            final timestamp = DateTime.now().millisecondsSinceEpoch;
+            return '''[
               {
                 "productId": "test.product.1",
                 "transactionId": "GPA.purchase-1",
@@ -838,9 +838,9 @@ void main() {
                 "isAcknowledgedAndroid": false
               }
             ]''';
-              }
-              return null;
-            });
+          }
+          return null;
+        });
       });
 
       tearDown(() {
@@ -873,25 +873,25 @@ void main() {
 
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-              if (methodCall.method == 'initConnection') {
-                return 'Billing service is ready';
-              }
-              if (methodCall.method == 'getAvailableItems') {
-                // Return iOS purchases with JWS tokens
-                return <Map<String, dynamic>>[
-                  <String, dynamic>{
-                    'productId': 'ios.product.1',
-                    'transactionId': '2000000111111111',
-                    'transactionDate': DateTime.now().millisecondsSinceEpoch,
-                    'transactionReceipt': 'ios_receipt_1',
-                    'purchaseToken': 'ios_jws_token_1',
-                    'jwsRepresentationIOS': 'ios_jws_token_1',
-                    'transactionStateIOS': '1',
-                  },
-                ];
-              }
-              return null;
-            });
+          if (methodCall.method == 'initConnection') {
+            return 'Billing service is ready';
+          }
+          if (methodCall.method == 'getAvailableItems') {
+            // Return iOS purchases with JWS tokens
+            return <Map<String, dynamic>>[
+              <String, dynamic>{
+                'productId': 'ios.product.1',
+                'transactionId': '2000000111111111',
+                'transactionDate': DateTime.now().millisecondsSinceEpoch,
+                'transactionReceipt': 'ios_receipt_1',
+                'purchaseToken': 'ios_jws_token_1',
+                'jwsRepresentationIOS': 'ios_jws_token_1',
+                'transactionStateIOS': '1',
+              },
+            ];
+          }
+          return null;
+        });
       });
 
       tearDown(() {
@@ -920,19 +920,19 @@ void main() {
 
           TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
               .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-                if (methodCall.method == 'initConnection') {
-                  return 'Billing service is ready';
-                }
-                if (methodCall.method == 'consumeProduct') {
-                  expect(methodCall.arguments['purchaseToken'], isNotNull);
-                  return 'consumed';
-                }
-                if (methodCall.method == 'acknowledgePurchase') {
-                  expect(methodCall.arguments['purchaseToken'], isNotNull);
-                  return 'acknowledged';
-                }
-                return null;
-              });
+            if (methodCall.method == 'initConnection') {
+              return 'Billing service is ready';
+            }
+            if (methodCall.method == 'consumeProduct') {
+              expect(methodCall.arguments['purchaseToken'], isNotNull);
+              return 'consumed';
+            }
+            if (methodCall.method == 'acknowledgePurchase') {
+              expect(methodCall.arguments['purchaseToken'], isNotNull);
+              return 'acknowledged';
+            }
+            return null;
+          });
         });
 
         tearDown(() {
@@ -993,15 +993,15 @@ void main() {
 
           TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
               .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-                if (methodCall.method == 'initConnection') {
-                  return 'Billing service is ready';
-                }
-                if (methodCall.method == 'finishTransaction') {
-                  // Allow null transactionId for edge case testing
-                  return 'finished';
-                }
-                return null;
-              });
+            if (methodCall.method == 'initConnection') {
+              return 'Billing service is ready';
+            }
+            if (methodCall.method == 'finishTransaction') {
+              // Allow null transactionId for edge case testing
+              return 'finished';
+            }
+            return null;
+          });
         });
 
         tearDown(() {
@@ -1047,13 +1047,13 @@ void main() {
 
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-              if (methodCall.method == 'initConnection') {
-                return 'Billing service is ready';
-              }
-              if (methodCall.method == 'getAvailableItemsByType') {
-                final arguments = methodCall.arguments;
-                if (arguments is Map && arguments['type'] == 'subs') {
-                  return '''[
+          if (methodCall.method == 'initConnection') {
+            return 'Billing service is ready';
+          }
+          if (methodCall.method == 'getAvailableItemsByType') {
+            final arguments = methodCall.arguments;
+            if (arguments is Map && arguments['type'] == 'subs') {
+              return '''[
                 {
                   "productId": "monthly_subscription",
                   "transactionId": "GPA.1234-5678-9012-34567",
@@ -1065,11 +1065,11 @@ void main() {
                   "isAcknowledgedAndroid": true
                 }
               ]''';
-                }
-                return '[]';
-              }
-              return '[]';
-            });
+            }
+            return '[]';
+          }
+          return '[]';
+        });
       });
 
       tearDown(() {

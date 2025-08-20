@@ -50,12 +50,12 @@ mixin FlutterInappPurchaseAndroid {
     try {
       final result = await channel
           .invokeMethod<Map<dynamic, dynamic>>('validateReceiptAndroid', {
-            'packageName': packageName,
-            'productId': productId,
-            'productToken': productToken,
-            'accessToken': accessToken,
-            'isSub': isSub,
-          });
+        'packageName': packageName,
+        'productId': productId,
+        'productToken': productToken,
+        'accessToken': accessToken,
+        'isSub': isSub,
+      });
       return result?.cast<String, dynamic>();
     } catch (error) {
       debugPrint('Error validating receipt: $error');

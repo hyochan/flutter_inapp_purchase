@@ -14,92 +14,92 @@ void main() {
       methodChannelLog.clear();
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(const MethodChannel('flutter_inapp'), (
-            MethodCall methodCall,
-          ) async {
-            methodChannelLog.add(methodCall);
-            switch (methodCall.method) {
-              case 'initConnection':
-                return true;
-              case 'endConnection':
-                return true;
-              case 'getSubscriptions':
-                final args = methodCall.arguments;
-                final productIds = args is Map
-                    ? (args['productIds'] as Iterable?)
-                          ?.map((e) => e.toString())
-                          .toList()
-                    : args is Iterable
+        MethodCall methodCall,
+      ) async {
+        methodChannelLog.add(methodCall);
+        switch (methodCall.method) {
+          case 'initConnection':
+            return true;
+          case 'endConnection':
+            return true;
+          case 'getSubscriptions':
+            final args = methodCall.arguments;
+            final productIds = args is Map
+                ? (args['productIds'] as Iterable?)
+                    ?.map((e) => e.toString())
+                    .toList()
+                : args is Iterable
                     ? args.map((e) => e.toString()).toList()
                     : null;
-                final allSubs = _getMockSubscriptions();
-                final filteredSubs = productIds != null
-                    ? allSubs
-                          .where((sub) => productIds.contains(sub['productId']))
-                          .toList()
-                    : allSubs;
-                return filteredSubs
-                    .map((item) => Map<String, dynamic>.from(item))
-                    .toList();
-              case 'requestSubscription':
-                return _getMockSubscriptionPurchase(methodCall.arguments);
-              case 'buyItemByType':
-                return _getMockSubscriptionPurchase(methodCall.arguments);
-              case 'buyProduct':
-                return _getMockSubscriptionPurchase(methodCall.arguments);
-              case 'requestProductWithOfferIOS':
-                return _getMockSubscriptionPurchase(methodCall.arguments);
-              case 'getActiveSubscriptions':
-                // For Android, it uses getAvailableItemsByType with type 'subs'
-                return _getMockActiveSubscriptions(
-                  methodCall.arguments,
-                ).map((item) => Map<String, dynamic>.from(item)).toList();
-              case 'getAvailablePurchases':
-                return _getMockActiveSubscriptions(
-                  methodCall.arguments,
-                ).map((item) => Map<String, dynamic>.from(item)).toList();
-              case 'restorePurchases':
-                return _getMockActiveSubscriptions(
-                  methodCall.arguments,
-                ).map((item) => Map<String, dynamic>.from(item)).toList();
-              case 'hasActiveSubscriptions':
-                return _getHasActiveSubscriptions(methodCall.arguments);
-              case 'acknowledgePurchase':
-                return <String, dynamic>{'acknowledged': true};
-              case 'finishTransaction':
-                return 'finished';
-              case 'getAvailableItemsByType':
-                // This is what Android actually calls for getActiveSubscriptions
-                final args = methodCall.arguments as Map<dynamic, dynamic>?;
-                // Return active subscriptions only for 'subs' type
-                // For 'inapp' type, return empty (no regular purchases in this test)
-                if (args?['type'] == 'subs') {
-                  return _getMockActiveSubscriptions(
-                    null,
-                  ).map((item) => Map<String, dynamic>.from(item)).toList();
-                }
-                return <Map<String, dynamic>>[];
-              case 'getItems':
-                // iOS uses unified getItems method for both products and subscriptions
-                final args = methodCall.arguments as Map<dynamic, dynamic>?;
-                final productIds = args?['skus'] as List<dynamic>?;
-                final allSubs = _getMockSubscriptions();
-                final filteredSubs = productIds != null
-                    ? allSubs
-                          .where((sub) => productIds.contains(sub['productId']))
-                          .toList()
-                    : allSubs;
-                return filteredSubs
-                    .map((item) => Map<String, dynamic>.from(item))
-                    .toList();
-              case 'getAvailableItems':
-                // iOS uses this for getActiveSubscriptions
-                return _getMockActiveSubscriptions(
-                  methodCall.arguments,
-                ).map((item) => Map<String, dynamic>.from(item)).toList();
-              default:
-                return null;
+            final allSubs = _getMockSubscriptions();
+            final filteredSubs = productIds != null
+                ? allSubs
+                    .where((sub) => productIds.contains(sub['productId']))
+                    .toList()
+                : allSubs;
+            return filteredSubs
+                .map((item) => Map<String, dynamic>.from(item))
+                .toList();
+          case 'requestSubscription':
+            return _getMockSubscriptionPurchase(methodCall.arguments);
+          case 'buyItemByType':
+            return _getMockSubscriptionPurchase(methodCall.arguments);
+          case 'buyProduct':
+            return _getMockSubscriptionPurchase(methodCall.arguments);
+          case 'requestProductWithOfferIOS':
+            return _getMockSubscriptionPurchase(methodCall.arguments);
+          case 'getActiveSubscriptions':
+            // For Android, it uses getAvailableItemsByType with type 'subs'
+            return _getMockActiveSubscriptions(
+              methodCall.arguments,
+            ).map((item) => Map<String, dynamic>.from(item)).toList();
+          case 'getAvailablePurchases':
+            return _getMockActiveSubscriptions(
+              methodCall.arguments,
+            ).map((item) => Map<String, dynamic>.from(item)).toList();
+          case 'restorePurchases':
+            return _getMockActiveSubscriptions(
+              methodCall.arguments,
+            ).map((item) => Map<String, dynamic>.from(item)).toList();
+          case 'hasActiveSubscriptions':
+            return _getHasActiveSubscriptions(methodCall.arguments);
+          case 'acknowledgePurchase':
+            return <String, dynamic>{'acknowledged': true};
+          case 'finishTransaction':
+            return 'finished';
+          case 'getAvailableItemsByType':
+            // This is what Android actually calls for getActiveSubscriptions
+            final args = methodCall.arguments as Map<dynamic, dynamic>?;
+            // Return active subscriptions only for 'subs' type
+            // For 'inapp' type, return empty (no regular purchases in this test)
+            if (args?['type'] == 'subs') {
+              return _getMockActiveSubscriptions(
+                null,
+              ).map((item) => Map<String, dynamic>.from(item)).toList();
             }
-          });
+            return <Map<String, dynamic>>[];
+          case 'getItems':
+            // iOS uses unified getItems method for both products and subscriptions
+            final args = methodCall.arguments as Map<dynamic, dynamic>?;
+            final productIds = args?['skus'] as List<dynamic>?;
+            final allSubs = _getMockSubscriptions();
+            final filteredSubs = productIds != null
+                ? allSubs
+                    .where((sub) => productIds.contains(sub['productId']))
+                    .toList()
+                : allSubs;
+            return filteredSubs
+                .map((item) => Map<String, dynamic>.from(item))
+                .toList();
+          case 'getAvailableItems':
+            // iOS uses this for getActiveSubscriptions
+            return _getMockActiveSubscriptions(
+              methodCall.arguments,
+            ).map((item) => Map<String, dynamic>.from(item)).toList();
+          default:
+            return null;
+        }
+      });
     });
 
     tearDown(() {
@@ -436,20 +436,20 @@ void main() {
       test('handles expired subscriptions', () async {
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .setMockMethodCallHandler(const MethodChannel('flutter_inapp'), (
-              MethodCall methodCall,
-            ) async {
-              if (methodCall.method == 'initConnection') return true;
-              if (methodCall.method == 'getActiveSubscriptions') {
-                return <Map<String, dynamic>>[]; // No active subscriptions
-              }
-              if (methodCall.method == 'getAvailableItemsByType') {
-                return <Map<String, dynamic>>[]; // No available items
-              }
-              if (methodCall.method == 'getAvailableItems') {
-                return <Map<String, dynamic>>[]; // No available items
-              }
-              return null;
-            });
+          MethodCall methodCall,
+        ) async {
+          if (methodCall.method == 'initConnection') return true;
+          if (methodCall.method == 'getActiveSubscriptions') {
+            return <Map<String, dynamic>>[]; // No active subscriptions
+          }
+          if (methodCall.method == 'getAvailableItemsByType') {
+            return <Map<String, dynamic>>[]; // No available items
+          }
+          if (methodCall.method == 'getAvailableItems') {
+            return <Map<String, dynamic>>[]; // No available items
+          }
+          return null;
+        });
 
         plugin = FlutterInappPurchase.private(
           FakePlatform(operatingSystem: 'android'),
