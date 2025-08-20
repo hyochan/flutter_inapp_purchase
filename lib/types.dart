@@ -351,9 +351,13 @@ class Product extends ProductCommon {
     buffer.writeln('  currency: $currency,');
     buffer.writeln('  localizedPrice: $localizedPrice,');
     buffer.writeln('  title: $title,');
-    buffer.writeln(
-      '  description: ${description?.substring(0, description!.length > 100 ? 100 : description!.length)}${description != null && description!.length > 100 ? '...' : ''},',
-    );
+    if (description != null) {
+      final desc = description!;
+      final short = desc.length > 100 ? '${desc.substring(0, 100)}...' : desc;
+      buffer.writeln('  description: $short,');
+    } else {
+      buffer.writeln('  description: null,');
+    }
     buffer.writeln('  type: $type,');
     buffer.writeln('  platform: $platform,');
 
@@ -1725,7 +1729,7 @@ class Purchase {
       storeFrontIOS: json['storeFrontIOS'] as String?,
       storeFrontCountryCodeIOS: json['storeFrontCountryCodeIOS'] as String?,
       currencyCodeIOS: json['currencyCodeIOS'] as String?,
-      priceIOS: json['priceIOS'] as double?,
+      priceIOS: (json['priceIOS'] as num?)?.toDouble(),
       jsonRepresentationIOS: json['jsonRepresentationIOS'] as String?,
       isFinishedIOS: json['isFinishedIOS'] as bool?,
       quantityIOS: json['quantityIOS'] as int?,
