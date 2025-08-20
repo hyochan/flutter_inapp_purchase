@@ -60,10 +60,8 @@ class SubscriptionManager {
   Future<void> loadSubscriptions() async {
     try {
       _subscriptions = await _iap.requestProducts(
-        RequestProductsParams(
-          skus: _subscriptionIds,
-          type: PurchaseType.subs,
-        ),
+        productIds: _subscriptionIds,
+        type: PurchaseType.subs,
       );
 
       // Sort by price or preference

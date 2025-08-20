@@ -97,14 +97,18 @@ Ends the connection to the platform's billing service. Should be called when the
 #### requestProducts()
 
 ```dart
-Future<List<ProductCommon>> requestProducts(RequestProductsParams params)
+Future<List<ProductCommon>> requestProducts({
+  required List<String> productIds,
+  PurchaseType type = PurchaseType.inapp,
+})
 ```
 
 Fetches product information from the store.
 
 **Parameters:**
 
-- `params`: Request parameters including SKUs and product type
+- `productIds`: List of product identifiers
+- `type`: Product type (optional, defaults to `PurchaseType.inapp`)
 
 **Returns:**
 
@@ -114,10 +118,8 @@ Fetches product information from the store.
 
 ```dart
 final products = await FlutterInappPurchase.instance.requestProducts(
-  RequestProductsParams(
-    skus: ['com.example.premium', 'com.example.pro'],
-    type: PurchaseType.inapp,
-  ),
+  productIds: ['com.example.premium', 'com.example.pro'],
+  type: PurchaseType.inapp,
 );
 ```
 

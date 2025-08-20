@@ -73,22 +73,6 @@ class RequestPurchaseAndroid {
 }
 ```
 
-### RequestProductsParams
-
-Parameters for loading product information.
-
-```dart
-class RequestProductsParams {
-  final List<String> skus;         // Product SKUs to load
-  final PurchaseType type;         // Product type (inapp/subs)
-
-  RequestProductsParams({
-    required this.skus,
-    required this.type,
-  });
-}
-```
-
 ## Product Types
 
 ### IapItem

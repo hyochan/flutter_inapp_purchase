@@ -195,42 +195,6 @@ class PricingPhase {
 - `billingCycleCount` - Number of billing cycles
 - `billingPeriod` - ISO 8601 duration
 
-## RequestProductsParams
-
-Parameters for requesting products from the store.
-
-```dart
-class RequestProductsParams {
-  final List<String> skus;
-  final PurchaseType type;
-
-  RequestProductsParams({
-    required this.skus,
-    required this.type,
-  });
-}
-```
-
-### Usage
-
-```dart
-// Request regular products
-final products = await iap.requestProducts(
-  RequestProductsParams(
-    skus: ['premium', 'remove_ads'],
-    type: PurchaseType.inapp,
-  ),
-);
-
-// Request subscriptions
-final subscriptions = await iap.requestProducts(
-  RequestProductsParams(
-    skus: ['monthly', 'yearly'],
-    type: PurchaseType.subs,
-  ),
-);
-```
-
 ## Platform-Specific Considerations
 
 ### iOS

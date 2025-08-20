@@ -232,7 +232,8 @@ class ProductLoadingTroubleshooter {
     // 2. Try loading products with error handling
     try {
       await FlutterInappPurchase.instance.requestProducts(
-        RequestProductsParams(skus: productIds, type: PurchaseType.inapp),
+        productIds: productIds,
+        type: PurchaseType.inapp,
       );
 
       final products = await FlutterInappPurchase.instance.getProducts(productIds);

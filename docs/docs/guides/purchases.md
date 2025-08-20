@@ -175,10 +175,8 @@ Future<void> _loadProducts() async {
   try {
     // Use requestProducts (new API)
     await FlutterInappPurchase.instance.requestProducts(
-      RequestProductsParams(
-        skus: productIds,
-        type: PurchaseType.inapp
-      ),
+      productIds: productIds,
+      type: PurchaseType.inapp,
     );
 
     // Get products from provider or state management
@@ -276,7 +274,8 @@ class ProductInfo {
     try {
       // Request products from store
       await FlutterInappPurchase.instance.requestProducts(
-        RequestProductsParams(skus: productIds, type: PurchaseType.inapp),
+        productIds: productIds,
+        type: PurchaseType.inapp,
       );
 
       // Get product details

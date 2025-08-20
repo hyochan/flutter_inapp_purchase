@@ -18,12 +18,14 @@
 ## 📦 Installation
 
 ### Latest Version (v6.4.0 - Current)
+
 ```yaml
 dependencies:
   flutter_inapp_purchase: ^6.4.0
 ```
 
 ### Previous Stable Version (v6.3.x)
+
 ```yaml
 dependencies:
   flutter_inapp_purchase: ^6.3.3

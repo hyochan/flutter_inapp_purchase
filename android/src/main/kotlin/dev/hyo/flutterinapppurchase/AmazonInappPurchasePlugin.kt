@@ -66,13 +66,16 @@ class AmazonInappPurchasePlugin : MethodCallHandler {
             "getProducts",
             "getSubscriptions" -> {
                 Log.d(TAG, call.method)
-                val productIds = call.argument<ArrayList<String>>("productIds")!!
-                val productSkus: MutableSet<String> = HashSet()
-                for (i in productIds.indices) {
-                    Log.d(TAG, "Adding " + productIds[i])
-                    productSkus.add(productIds[i])
+                val ids = call.argument<ArrayList<String>>("productIds")
+                    ?: call.argument<ArrayList<String>>("skus")
+                if (ids.isNullOrEmpty()) {
+                    safeResult!!.error(TAG, "E_INVALID_ARGS", "Missing or empty 'productIds'.")
+                    return
                 }
-                PurchasingService.getProductData(productSkus)
+                if (Log.isLoggable(TAG, Log.DEBUG)) {
+                    Log.d(TAG, "Requesting product data for ${ids.size} ids")
+                }
+                PurchasingService.getProductData(ids.toSet())
             }
             "getAvailableItemsByType" -> {
                 val type = call.argument<String>("type")

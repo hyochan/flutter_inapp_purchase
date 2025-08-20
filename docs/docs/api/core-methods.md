@@ -83,25 +83,27 @@ Future<void> finalize() async
 Loads product information from the store.
 
 ```dart
-Future<List<BaseProduct>> requestProducts(RequestProductsParams params) async
+Future<List<BaseProduct>> requestProducts({
+  required List<String> productIds,
+  PurchaseType type = PurchaseType.inapp,
+}) async
 ```
 
 **Parameters**:
 
-- `params` - Request parameters containing SKUs and product type
+- `productIds` - List of product identifiers
+- `type` - Product type (optional, defaults to `PurchaseType.inapp`)
 
 **Returns**: List of products with pricing and metadata
 
 **Example**:
 
 ```dart
-final params = RequestProductsParams(
-  skus: ['product_1', 'product_2', 'premium_upgrade'],
-  type: PurchaseType.inapp,
-);
-
 try {
-  final products = await FlutterInappPurchase.instance.requestProducts(params);
+  final products = await FlutterInappPurchase.instance.requestProducts(
+    productIds: ['product_1', 'product_2', 'premium_upgrade'],
+    type: PurchaseType.inapp,
+  );
 
   for (final product in products) {
     print('Product: ${product.id}');
@@ -615,8 +617,10 @@ class ProductManager {
       return _cachedProducts!;
     }
 
-    final params = RequestProductsParams(skus: skus, type: PurchaseType.inapp);
-    _cachedProducts = await FlutterInappPurchase.instance.requestProducts(params);
+    _cachedProducts = await FlutterInappPurchase.instance.requestProducts(
+      productIds: skus,
+      type: PurchaseType.inapp,
+    );
     _lastFetch = DateTime.now();
 
     return _cachedProducts!;
