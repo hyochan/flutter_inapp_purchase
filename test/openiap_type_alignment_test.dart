@@ -51,7 +51,8 @@ void main() {
         );
 
         expect(product.nameAndroid, isA<String?>());
-        expect(product.oneTimePurchaseOfferDetailsAndroid, isA<Map<String, dynamic>?>());
+        expect(product.oneTimePurchaseOfferDetailsAndroid,
+            isA<Map<String, dynamic>?>());
         expect(product.platformEnum, IapPlatform.android);
       });
 
@@ -108,7 +109,8 @@ void main() {
           ],
         );
 
-        expect(subscription.subscriptionOfferDetailsAndroid, isA<List<OfferDetail>?>());
+        expect(subscription.subscriptionOfferDetailsAndroid,
+            isA<List<OfferDetail>?>());
         final offer = subscription.subscriptionOfferDetailsAndroid!.first;
         expect(offer.basePlanId, 'monthly');
         expect(offer.offerId, 'intro_offer');
@@ -213,16 +215,17 @@ void main() {
         );
 
         final json = offer.toJson();
-        
+
         // Should match TypeScript structure with nested pricingPhases
         expect(json['basePlanId'], 'monthly_base');
         expect(json['offerId'], 'intro_offer');
         expect(json['pricingPhases'], isA<Map<String, dynamic>>());
         expect(json['pricingPhases']['pricingPhaseList'], isA<List<dynamic>>());
-        
-        final phases = json['pricingPhases']['pricingPhaseList'] as List<dynamic>;
+
+        final phases =
+            json['pricingPhases']['pricingPhaseList'] as List<dynamic>;
         expect(phases.length, 1);
-        
+
         final phase = phases.first as Map<String, dynamic>;
         expect(phase['priceAmountMicros'], isA<String>());
         expect(phase['formattedPrice'], '0.99');
