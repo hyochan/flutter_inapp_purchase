@@ -51,15 +51,18 @@ class ProductIos {
             )
           : null,
       discountId: json['discountId'] as String?,
-      discounts: (json['discounts'] as List<dynamic>?)
+      discounts:
+          (json['discounts'] as List<dynamic>?)
               ?.map((e) => PaymentDiscount.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-      introductoryOffers: (json['introductoryOffers'] as List<dynamic>?)
+      introductoryOffers:
+          (json['introductoryOffers'] as List<dynamic>?)
               ?.map((e) => PaymentDiscount.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-      subscriptionOffers: (json['subscriptionOffers'] as List<dynamic>?)
+      subscriptionOffers:
+          (json['subscriptionOffers'] as List<dynamic>?)
               ?.map((e) => SubscriptionInfo.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
@@ -106,7 +109,8 @@ class SubscriptionInfo {
 
   factory SubscriptionInfo.fromJson(Map<String, dynamic> json) {
     return SubscriptionInfo(
-      subscriptionOffers: (json['subscriptionOffers'] as List<dynamic>?)
+      subscriptionOffers:
+          (json['subscriptionOffers'] as List<dynamic>?)
               ?.map(
                 (e) => SubscriptionOffer.fromJson(e as Map<String, dynamic>),
               )

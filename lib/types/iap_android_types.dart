@@ -53,8 +53,8 @@ class ProductAndroid {
           (json['introductoryPriceCyclesAndroid'] as String?) ?? '',
       iconUrl: (json['iconUrl'] as String?) ?? '',
       originalJson: (json['originalJson'] as String?) ?? '',
-      subscriptionOffersAndroid: (json['subscriptionOffersAndroid']
-                  as List<dynamic>?)
+      subscriptionOffersAndroid:
+          (json['subscriptionOffersAndroid'] as List<dynamic>?)
               ?.map(
                 (e) =>
                     SubscriptionOfferDetail.fromJson(e as Map<String, dynamic>),
@@ -79,8 +79,9 @@ class ProductAndroid {
       'introductoryPriceCyclesAndroid': introductoryPriceCyclesAndroid,
       'iconUrl': iconUrl,
       'originalJson': originalJson,
-      'subscriptionOffersAndroid':
-          subscriptionOffersAndroid.map((e) => e.toJson()).toList(),
+      'subscriptionOffersAndroid': subscriptionOffersAndroid
+          .map((e) => e.toJson())
+          .toList(),
     };
   }
 }
@@ -98,7 +99,8 @@ class SubscriptionOfferDetail {
   factory SubscriptionOfferDetail.fromJson(Map<String, dynamic> json) {
     return SubscriptionOfferDetail(
       offerToken: (json['offerToken'] as String?) ?? '',
-      pricingPhases: (json['pricingPhases'] as List<dynamic>?)
+      pricingPhases:
+          (json['pricingPhases'] as List<dynamic>?)
               ?.map((e) => PricingPhase.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
