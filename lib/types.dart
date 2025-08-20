@@ -2963,7 +2963,7 @@ class PurchasedItem {
 /// Pricing phase for Android subscriptions
 class PricingPhaseAndroid {
   final String formattedPrice;
-  final int priceCurrencyCode;
+  final String priceCurrencyCode;
   final String billingPeriod;
   final int? recurrenceMode;
   final int billingCycleCount;
@@ -2971,7 +2971,7 @@ class PricingPhaseAndroid {
 
   PricingPhaseAndroid.fromJSON(Map<String, dynamic> json)
       : formattedPrice = json['formattedPrice'] as String,
-        priceCurrencyCode = json['priceCurrencyCode'] as int,
+        priceCurrencyCode = json['priceCurrencyCode'] as String,
         billingPeriod = json['billingPeriod'] as String,
         recurrenceMode = json['recurrenceMode'] as int?,
         billingCycleCount = json['billingCycleCount'] as int,

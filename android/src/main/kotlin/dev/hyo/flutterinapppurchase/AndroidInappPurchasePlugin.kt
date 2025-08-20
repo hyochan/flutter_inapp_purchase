@@ -628,8 +628,8 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
             }
 
             when (replacementMode) {
-                -1 -> {} //ignore - no replacement mode specified
-                BillingFlowParams.SubscriptionUpdateParams.ReplacementMode.CHARGE_PRORATED_PRICE -> {
+                -1 -> { /* ignore - no replacement mode specified */ }
+                2 -> { // CHARGE_PRORATED_PRICE
                     // For subscription replacement, purchaseToken is required
                     if (purchaseToken.isNullOrEmpty()) {
                         safeChannel.error(
@@ -646,12 +646,12 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                         safeChannel.error(
                             TAG,
                             "buyItemByType",
-                            "IMMEDIATE_AND_CHARGE_PRORATED_PRICE for proration mode only works in subscription purchase."
+                            "CHARGE_PRORATED_PRICE replacement mode only works with subscriptions."
                         )
                         return
                     }
                 }
-                1 -> { // IMMEDIATE_WITHOUT_PRORATION
+                3 -> { // WITHOUT_PRORATION
                     if (purchaseToken.isNullOrEmpty()) {
                         safeChannel.error(
                             TAG,
@@ -677,7 +677,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                         .setSubscriptionReplacementMode(BillingFlowParams.SubscriptionUpdateParams.ReplacementMode.DEFERRED)
                     builder.setSubscriptionUpdateParams(params.build())
                 }
-                2 -> { // IMMEDIATE_WITH_TIME_PRORATION
+                1 -> { // WITH_TIME_PRORATION
                     if (purchaseToken.isNullOrEmpty()) {
                         safeChannel.error(
                             TAG,
@@ -690,7 +690,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                         .setSubscriptionReplacementMode(BillingFlowParams.SubscriptionUpdateParams.ReplacementMode.WITH_TIME_PRORATION)
                     builder.setSubscriptionUpdateParams(params.build())
                 }
-                5 -> { // IMMEDIATE_AND_CHARGE_FULL_PRICE
+                5 -> { // CHARGE_FULL_PRICE
                     if (purchaseToken.isNullOrEmpty()) {
                         safeChannel.error(
                             TAG,
@@ -704,12 +704,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                     builder.setSubscriptionUpdateParams(params.build())
                 }
                 else -> {
-                    // For any other proration mode, also require purchase token
-                    if (!purchaseToken.isNullOrEmpty()) {
-                        params.setOldPurchaseToken(purchaseToken)
-                            .setSubscriptionReplacementMode(BillingFlowParams.SubscriptionUpdateParams.ReplacementMode.UNKNOWN_REPLACEMENT_MODE)
-                        builder.setSubscriptionUpdateParams(params.build())
-                    }
+                    // Unknown replacement mode: do not set subscription update params
                 }
             }
             if (activity != null) {
