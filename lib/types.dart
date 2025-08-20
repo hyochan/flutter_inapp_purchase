@@ -3391,3 +3391,161 @@ class ConsumptionParams {
 
   ConsumptionParams({required this.purchaseToken});
 }
+
+// ============================================================================
+// EXTENSIONS FOR OPENIAP FORMAT CONVERSION
+// ============================================================================
+
+/// Extension for Product to convert to OpenIAP/expo-iap compatible format
+extension ProductOpenIapExtension on Product {
+  /// Converts Product to OpenIAP/expo-iap compatible format
+  /// Handles platform-specific field mapping and type conversions
+  Map<String, dynamic> toOpenIapFormat() {
+    final json = toJson();
+    final isIOS = platformEnum == IapPlatform.ios;
+
+    if (isIOS) {
+      return {
+        ...json,
+        'platform': 'ios',
+        // Convert iOS native types to OpenIAP standard types
+        'type': _convertTypeForOpenIAP(type, true),
+        // Ensure iOS-specific fields are properly formatted
+        'discountsIOS': discountsIOS?.map((d) => d.toJson()).toList() ?? [],
+        'environmentIOS': environmentIOS ?? 'Production',
+        'subscriptionGroupIdIOS': subscriptionGroupIdIOS,
+        'promotionalOfferIdsIOS': promotionalOfferIdsIOS ?? [],
+        // Remove Android-specific fields
+      }..removeWhere((key, value) => key.endsWith('Android'));
+    } else {
+      // Android
+      return {
+        ...json,
+        'platform': 'android',
+        // Ensure Android-specific fields are properly formatted
+        'nameAndroid': nameAndroid ?? '',
+        'oneTimePurchaseOfferDetailsAndroid':
+            oneTimePurchaseOfferDetailsAndroid,
+        'subscriptionOfferDetailsAndroid':
+            subscriptionOfferDetailsAndroid ?? [],
+        // Remove iOS-specific fields
+      }..removeWhere((key, value) => key.endsWith('IOS'));
+    }
+  }
+
+  /// Converts Product to Expo IAP format (legacy compatibility)
+  Map<String, dynamic> toExpoIapFormat() => toOpenIapFormat();
+}
+
+/// Extension for Subscription to convert to OpenIAP/expo-iap compatible format
+extension SubscriptionOpenIapExtension on Subscription {
+  /// Converts Subscription to OpenIAP/expo-iap compatible format
+  /// Handles platform-specific field mapping and type conversions
+  Map<String, dynamic> toOpenIapFormat() {
+    final json = toJson();
+    final isIOS = platformEnum == IapPlatform.ios;
+
+    if (isIOS) {
+      return {
+        ...json,
+        'platform': 'ios',
+        // Convert iOS native types to OpenIAP standard types
+        'type': 'subs', // Subscriptions are always 'subs'
+        // Ensure iOS-specific fields are properly formatted
+        'environmentIOS': environmentIOS ?? 'Production',
+        'subscriptionGroupIdIOS': subscriptionGroupIdIOS,
+        'promotionalOfferIdsIOS': promotionalOfferIdsIOS ?? [],
+        'discountsIOS': discountsIOS?.map((d) => d.toJson()).toList() ?? [],
+        // Remove Android-specific fields
+      }..removeWhere((key, value) => key.endsWith('Android'));
+    } else {
+      // Android
+      return {
+        ...json,
+        'platform': 'android',
+        'type': 'subs', // Subscriptions are always 'subs'
+        // Ensure Android-specific fields are properly formatted
+        'nameAndroid': nameAndroid ?? '',
+        'subscriptionOfferDetailsAndroid':
+            subscriptionOfferDetailsAndroid?.map((o) => o.toJson()).toList() ??
+                [],
+        'subscriptionOffersAndroid':
+            subscriptionOffersAndroid?.map((o) => o.toJson()).toList() ?? [],
+        // Remove iOS-specific fields
+      }..removeWhere((key, value) => key.endsWith('IOS'));
+    }
+  }
+
+  /// Converts Subscription to Expo IAP format (legacy compatibility)
+  Map<String, dynamic> toExpoIapFormat() => toOpenIapFormat();
+}
+
+/// Extension for Purchase to convert to OpenIAP/expo-iap compatible format
+extension PurchaseOpenIapExtension on Purchase {
+  /// Converts Purchase to OpenIAP/expo-iap compatible format
+  /// Handles platform-specific field mapping and type conversions
+  Map<String, dynamic> toOpenIapFormat() {
+    // Build JSON manually instead of using toJson() to avoid method resolution issues
+    final json = <String, dynamic>{
+      'productId': productId,
+      'transactionId': transactionId,
+      'transactionDate': transactionDate,
+      'transactionReceipt': transactionReceipt,
+      'purchaseToken': purchaseToken,
+      'orderId': orderId,
+      'packageName': packageName,
+      'purchaseState': purchaseState?.toString(),
+      'isAcknowledged': isAcknowledged,
+      'autoRenewing': autoRenewing,
+      'platform': platform.toString(),
+    };
+
+    final isIOS = platform == IapPlatform.ios;
+
+    if (isIOS) {
+      json.addAll({
+        'platform': 'ios',
+        // OpenIAP id field should map to transaction identifier
+        'id': id, // Uses the id getter which returns transactionId
+        'ids': ids, // Uses the ids getter which returns [productId]
+        // Ensure iOS-specific fields are properly formatted
+        'quantityIOS': quantityIOS ?? 1,
+        'originalTransactionDateIOS': originalTransactionDateIOS,
+        'originalTransactionIdentifierIOS': originalTransactionIdentifierIOS,
+        'environmentIOS': environmentIOS ?? 'Production',
+        'currencyCodeIOS': currencyCodeIOS,
+        'priceIOS': priceIOS,
+        'appBundleIdIOS': appBundleIdIOS,
+        'productTypeIOS': productTypeIOS,
+        'transactionReasonIOS': transactionReasonIOS,
+        'webOrderLineItemIdIOS': webOrderLineItemIdIOS,
+        'subscriptionGroupIdIOS': subscriptionGroupIdIOS,
+      });
+      // Remove Android-specific fields
+      json.removeWhere((key, value) => key.endsWith('Android'));
+    } else {
+      // Android
+      json.addAll({
+        'platform': 'android',
+        // OpenIAP id field should map to transaction identifier
+        'id': id, // Uses the id getter which returns transactionId
+        'ids': ids, // Uses the ids getter which returns [productId]
+        // Ensure Android-specific fields are properly formatted
+        'dataAndroid': dataAndroid,
+        'signatureAndroid': signatureAndroid,
+        'purchaseStateAndroid': purchaseStateAndroid,
+        'isAcknowledgedAndroid': isAcknowledgedAndroid ?? false,
+        'packageNameAndroid': packageNameAndroid,
+        'obfuscatedAccountIdAndroid': obfuscatedAccountIdAndroid,
+        'obfuscatedProfileIdAndroid': obfuscatedProfileIdAndroid,
+      });
+      // Remove iOS-specific fields
+      json.removeWhere((key, value) => key.endsWith('IOS'));
+    }
+
+    return json;
+  }
+
+  /// Converts Purchase to Expo IAP format (legacy compatibility)
+  Map<String, dynamic> toExpoIapFormat() => toOpenIapFormat();
+}
