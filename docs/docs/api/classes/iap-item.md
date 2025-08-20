@@ -52,7 +52,7 @@ final String? description
 The localized description of the product.
 
 ```dart
-final String originalPrice
+final String? originalPrice
 ```
 
 The original price before any discounts.

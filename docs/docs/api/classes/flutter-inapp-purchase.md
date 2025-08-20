@@ -24,31 +24,31 @@ The singleton instance of the FlutterInappPurchase class.
 ### Streams
 
 ```dart
-static Stream<PurchasedItem?> purchaseUpdated
+Stream<PurchasedItem?> purchaseUpdated
 ```
 
 Stream that emits purchase updates when a transaction state changes.
 
 ```dart
-static Stream<PurchaseResult?> purchaseError
+Stream<PurchaseResult?> purchaseError
 ```
 
 Stream that emits purchase errors when a transaction fails.
 
 ```dart
-static Stream<ConnectionResult> connectionUpdated
+Stream<ConnectionResult> connectionUpdated
 ```
 
 Stream that emits connection state updates.
 
 ```dart
-static Stream<String?> purchasePromoted
+Stream<String?> purchasePromoted
 ```
 
 Stream that emits promoted product IDs (iOS only).
 
 ```dart
-static Stream<int?> inAppMessageAndroid
+Stream<int?> inAppMessageAndroid
 ```
 
 Stream that emits in-app message codes (Android only).

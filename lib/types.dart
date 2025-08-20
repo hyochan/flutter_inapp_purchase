@@ -302,7 +302,7 @@ class Product extends ProductCommon {
                 )
               : null,
       originalPrice: json['originalPrice'] as String?,
-      originalPriceAmount: json['originalPriceAmount'] as double?,
+      originalPriceAmount: (json['originalPriceAmount'] as num?)?.toDouble(),
       freeTrialPeriod: json['freeTrialPeriod'] as String?,
       iconUrl: json['iconUrl'] as String?,
       // TODO(v6.4.0): Remove deprecated subscriptionOfferDetails
@@ -813,7 +813,7 @@ class Subscription extends ProductCommon {
                 )
               : null,
       originalPrice: json['originalPrice'] as String?,
-      originalPriceAmount: json['originalPriceAmount'] as double?,
+      originalPriceAmount: (json['originalPriceAmount'] as num?)?.toDouble(),
       freeTrialPeriod: json['freeTrialPeriod'] as String?,
       iconUrl: json['iconUrl'] as String?,
       // TODO(v6.4.0): Remove deprecated subscriptionOfferDetails
@@ -1260,7 +1260,7 @@ class ProductAndroid extends Product {
               )
               .toList()
           : null,
-      originalPriceAmount: json['originalPriceAmount'] as double?,
+      originalPriceAmount: (json['originalPriceAmount'] as num?)?.toDouble(),
       iconUrl: json['iconUrl'] as String?,
       // TODO(v6.4.0): Remove deprecated subscriptionOfferDetails
       subscriptionOfferDetails: json['subscriptionOfferDetails'] != null
