@@ -32,13 +32,13 @@ class PurchaseCommon {
   final String id; // Transaction identifier - used by finishTransaction
   final String productId; // Product identifier - which product was purchased
   final List<String>?
-      ids; // Product identifiers for purchases that include multiple products
+  ids; // Product identifiers for purchases that include multiple products
   @Deprecated('Use id instead')
   final String? transactionId; // @deprecated - use id instead
   final int transactionDate;
   final String transactionReceipt;
   final String?
-      purchaseToken; // Unified purchase token (jwsRepresentation for iOS, purchaseToken for Android)
+  purchaseToken; // Unified purchase token (jwsRepresentation for iOS, purchaseToken for Android)
   final String? platform;
 
   PurchaseCommon({
@@ -174,7 +174,12 @@ class Product extends ProductCommon {
   final double? originalPriceAmount;
   final String? freeTrialPeriod;
   final String? iconUrl;
+  // TODO(v6.4.0): Remove deprecated subscriptionOfferDetails
+  @Deprecated(
+    'Use subscriptionOfferDetailsAndroid instead - will be removed in v6.4.0',
+  )
   final List<OfferDetail>? subscriptionOfferDetails;
+  final List<OfferDetail>? subscriptionOfferDetailsAndroid;
   final String? subscriptionPeriodAndroid;
   final String? introductoryPriceCyclesAndroid;
   final String? introductoryPricePeriodAndroid;
@@ -217,7 +222,12 @@ class Product extends ProductCommon {
     this.originalPriceAmount,
     this.freeTrialPeriod,
     this.iconUrl,
+    // TODO(v6.4.0): Remove deprecated subscriptionOfferDetails
+    @Deprecated(
+      'Use subscriptionOfferDetailsAndroid instead - will be removed in v6.4.0',
+    )
     this.subscriptionOfferDetails,
+    this.subscriptionOfferDetailsAndroid,
     this.subscriptionPeriodAndroid,
     this.introductoryPriceCyclesAndroid,
     this.introductoryPricePeriodAndroid,
@@ -225,15 +235,16 @@ class Product extends ProductCommon {
     this.signatureAndroid,
     this.subscriptionOffersAndroid,
   }) : super(
-          id: id ?? productId ?? '',
-          type: type ?? 'inapp',
-          displayPrice: displayPrice ?? localizedPrice ?? '0',
-          platformEnum: platformEnum ?? IapPlatform.ios,
-          price: price ??
-              (priceString != null ? double.tryParse(priceString) : null),
-          platform:
-              platform ?? (platformEnum == IapPlatform.ios ? 'ios' : 'android'),
-        );
+         id: id ?? productId ?? '',
+         type: type ?? 'inapp',
+         displayPrice: displayPrice ?? localizedPrice ?? '0',
+         platformEnum: platformEnum ?? IapPlatform.ios,
+         price:
+             price ??
+             (priceString != null ? double.tryParse(priceString) : null),
+         platform:
+             platform ?? (platformEnum == IapPlatform.ios ? 'ios' : 'android'),
+       );
 
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
@@ -243,26 +254,28 @@ class Product extends ProductCommon {
       description: json['description'] as String? ?? '',
       type: json['type'] as String? ?? 'inapp',
       displayName: json['displayName'] as String?,
-      displayPrice: json['displayPrice'] as String? ??
+      displayPrice:
+          json['displayPrice'] as String? ??
           json['localizedPrice'] as String? ??
           '0',
       currency: json['currency'] as String? ?? '',
       price: (json['price'] is num)
           ? (json['price'] as num).toDouble()
           : (json['price'] is String
-              ? double.tryParse(json['price'] as String)
-              : null),
+                ? double.tryParse(json['price'] as String)
+                : null),
       platform: json['platform'] as String?,
       // Backward compatibility fields
       productId: json['productId'] as String?,
       priceString: (json['price'] is String) ? json['price'] as String : null,
       localizedPrice: json['localizedPrice'] as String?,
-      platformEnum:
-          json['platform'] == 'android' ? IapPlatform.android : IapPlatform.ios,
+      platformEnum: json['platform'] == 'android'
+          ? IapPlatform.android
+          : IapPlatform.ios,
       discountsIOS: json['discountsIOS'] != null
           ? (json['discountsIOS'] as List)
-              .map((d) => DiscountIOS.fromJson(d as Map<String, dynamic>))
-              .toList()
+                .map((d) => DiscountIOS.fromJson(d as Map<String, dynamic>))
+                .toList()
           : null,
       subscription: json['subscription'] != null
           ? SubscriptionInfo.fromJson(
@@ -284,14 +297,33 @@ class Product extends ProductCommon {
           ? (json['promotionalOfferIdsIOS'] as List).cast<String>()
           : null,
       // Android fields per OpenIAP spec
+      nameAndroid: json['nameAndroid'] as String?,
+      oneTimePurchaseOfferDetailsAndroid:
+          json['oneTimePurchaseOfferDetailsAndroid'] != null
+          ? Map<String, dynamic>.from(
+              json['oneTimePurchaseOfferDetailsAndroid'] as Map,
+            )
+          : null,
       originalPrice: json['originalPrice'] as String?,
       originalPriceAmount: json['originalPriceAmount'] as double?,
       freeTrialPeriod: json['freeTrialPeriod'] as String?,
       iconUrl: json['iconUrl'] as String?,
+      // TODO(v6.4.0): Remove deprecated subscriptionOfferDetails
       subscriptionOfferDetails: json['subscriptionOfferDetails'] != null
           ? (json['subscriptionOfferDetails'] as List)
-              .map((o) => OfferDetail.fromJson(o as Map<String, dynamic>))
-              .toList()
+                .map((o) => OfferDetail.fromJson(o as Map<String, dynamic>))
+                .toList()
+          : null,
+      // Use new Android suffix field if available, fallback to old field for compatibility
+      subscriptionOfferDetailsAndroid:
+          json['subscriptionOfferDetailsAndroid'] != null
+          ? (json['subscriptionOfferDetailsAndroid'] as List)
+                .map((o) => OfferDetail.fromJson(o as Map<String, dynamic>))
+                .toList()
+          : json['subscriptionOfferDetails'] != null
+          ? (json['subscriptionOfferDetails'] as List)
+                .map((o) => OfferDetail.fromJson(o as Map<String, dynamic>))
+                .toList()
           : null,
       subscriptionPeriodAndroid: json['subscriptionPeriodAndroid'] as String?,
       introductoryPriceCyclesAndroid:
@@ -302,9 +334,12 @@ class Product extends ProductCommon {
       signatureAndroid: json['signatureAndroid'] as String?,
       subscriptionOffersAndroid: json['subscriptionOffersAndroid'] != null
           ? (json['subscriptionOffersAndroid'] as List)
-              .map((o) =>
-                  SubscriptionOfferAndroid.fromJson(o as Map<String, dynamic>))
-              .toList()
+                .map(
+                  (o) => SubscriptionOfferAndroid.fromJson(
+                    o as Map<String, dynamic>,
+                  ),
+                )
+                .toList()
           : null,
     );
   }
@@ -319,7 +354,8 @@ class Product extends ProductCommon {
     buffer.writeln('  localizedPrice: $localizedPrice,');
     buffer.writeln('  title: $title,');
     buffer.writeln(
-        '  description: ${description?.substring(0, description!.length > 100 ? 100 : description!.length)}${description != null && description!.length > 100 ? '...' : ''},');
+      '  description: ${description?.substring(0, description!.length > 100 ? 100 : description!.length)}${description != null && description!.length > 100 ? '...' : ''},',
+    );
     buffer.writeln('  type: $type,');
     buffer.writeln('  platform: $platform,');
 
@@ -328,37 +364,51 @@ class Product extends ProductCommon {
     if (environmentIOS != null)
       buffer.writeln('  environmentIOS: $environmentIOS,');
     if (subscriptionPeriodUnitIOS != null)
-      buffer
-          .writeln('  subscriptionPeriodUnitIOS: $subscriptionPeriodUnitIOS,');
+      buffer.writeln(
+        '  subscriptionPeriodUnitIOS: $subscriptionPeriodUnitIOS,',
+      );
     if (subscriptionPeriodNumberIOS != null)
       buffer.writeln(
-          '  subscriptionPeriodNumberIOS: $subscriptionPeriodNumberIOS,');
+        '  subscriptionPeriodNumberIOS: $subscriptionPeriodNumberIOS,',
+      );
     if (discountsIOS != null && discountsIOS!.isNotEmpty)
       buffer.writeln('  discountsIOS: ${discountsIOS!.length} discount(s),');
 
     // Android specific fields (show even if null for Android platform)
     if (platform == 'android') {
       buffer.writeln(
-          '  nameAndroid: ${nameAndroid != null ? '"$nameAndroid"' : 'null'},');
+        '  nameAndroid: ${nameAndroid != null ? '"$nameAndroid"' : 'null'},',
+      );
       buffer.writeln(
-          '  oneTimePurchaseOfferDetailsAndroid: $oneTimePurchaseOfferDetailsAndroid,');
+        '  oneTimePurchaseOfferDetailsAndroid: $oneTimePurchaseOfferDetailsAndroid,',
+      );
     } else {
       if (nameAndroid != null) buffer.writeln('  nameAndroid: "$nameAndroid",');
       if (oneTimePurchaseOfferDetailsAndroid != null)
         buffer.writeln(
-            '  oneTimePurchaseOfferDetailsAndroid: $oneTimePurchaseOfferDetailsAndroid,');
+          '  oneTimePurchaseOfferDetailsAndroid: $oneTimePurchaseOfferDetailsAndroid,',
+        );
     }
     if (originalPrice != null)
       buffer.writeln('  originalPrice: $originalPrice,');
     if (freeTrialPeriod != null)
       buffer.writeln('  freeTrialPeriod: $freeTrialPeriod,');
     if (subscriptionPeriodAndroid != null)
-      buffer
-          .writeln('  subscriptionPeriodAndroid: $subscriptionPeriodAndroid,');
+      buffer.writeln(
+        '  subscriptionPeriodAndroid: $subscriptionPeriodAndroid,',
+      );
+    // TODO(v6.4.0): Remove deprecated subscriptionOfferDetails
+    if (subscriptionOfferDetailsAndroid != null &&
+        subscriptionOfferDetailsAndroid!.isNotEmpty) {
+      buffer.writeln(
+        '  subscriptionOfferDetailsAndroid: ${subscriptionOfferDetailsAndroid!.length} offer(s),',
+      );
+    }
     if (subscriptionOfferDetails != null &&
         subscriptionOfferDetails!.isNotEmpty) {
       buffer.writeln(
-          '  subscriptionOfferDetails: ${subscriptionOfferDetails!.length} offer(s),');
+        '  subscriptionOfferDetails: ${subscriptionOfferDetails!.length} offer(s),',
+      );
     }
 
     // For Subscription class, add subscription info
@@ -369,12 +419,14 @@ class Product extends ProductCommon {
       }
       if (sub.subscriptionGroupIdIOS != null) {
         buffer.writeln(
-            '  subscriptionGroupIdIOS: ${sub.subscriptionGroupIdIOS},');
+          '  subscriptionGroupIdIOS: ${sub.subscriptionGroupIdIOS},',
+        );
       }
       if (sub.subscriptionOffersAndroid != null &&
           sub.subscriptionOffersAndroid!.isNotEmpty) {
         buffer.writeln(
-            '  subscriptionOffersAndroid: ${sub.subscriptionOffersAndroid!.length} offer(s),');
+          '  subscriptionOffersAndroid: ${sub.subscriptionOffersAndroid!.length} offer(s),',
+        );
       }
     }
 
@@ -476,8 +528,8 @@ class Product extends ProductCommon {
 
       // Add subscriptionGroupId (convert to string for OpenIAP)
       if (subscriptionGroupIdIOS != null) {
-        subscriptionInfoJson['subscriptionGroupId'] =
-            subscriptionGroupIdIOS.toString();
+        subscriptionInfoJson['subscriptionGroupId'] = subscriptionGroupIdIOS
+            .toString();
       }
 
       // Add subscriptionPeriod with proper structure
@@ -531,15 +583,31 @@ class Product extends ProductCommon {
         json['originalPriceAmount'] = originalPriceAmount;
       if (freeTrialPeriod != null) json['freeTrialPeriod'] = freeTrialPeriod;
       if (iconUrl != null) json['iconUrl'] = iconUrl;
+      // TODO(v6.4.0): Show subscription offer fields only on Android platform
+      // Always show Android suffix field (TypeScript compatible)
+      if (subscriptionOfferDetailsAndroid != null &&
+          subscriptionOfferDetailsAndroid!.isNotEmpty) {
+        json['subscriptionOfferDetailsAndroid'] =
+            subscriptionOfferDetailsAndroid!.map((o) => o.toJson()).toList();
+      } else if (subscriptionOfferDetails != null &&
+          subscriptionOfferDetails!.isNotEmpty) {
+        // Use old field data but new field name for TypeScript compatibility
+        json['subscriptionOfferDetailsAndroid'] = subscriptionOfferDetails!
+            .map((o) => o.toJson())
+            .toList();
+      }
+      // TODO(v6.4.0): Remove deprecated subscriptionOfferDetails field completely - kept for backward compatibility until v6.4.0
       if (subscriptionOfferDetails != null &&
           subscriptionOfferDetails!.isNotEmpty) {
-        json['subscriptionOfferDetails'] =
-            subscriptionOfferDetails!.map((o) => o.toJson()).toList();
+        json['subscriptionOfferDetails'] = subscriptionOfferDetails!
+            .map((o) => o.toJson())
+            .toList();
       }
       if (subscriptionOffersAndroid != null &&
           subscriptionOffersAndroid!.isNotEmpty) {
-        json['subscriptionOffersAndroid'] =
-            subscriptionOffersAndroid!.map((o) => o.toJson()).toList();
+        json['subscriptionOffersAndroid'] = subscriptionOffersAndroid!
+            .map((o) => o.toJson())
+            .toList();
       }
     }
 
@@ -594,13 +662,13 @@ class DiscountIOS {
 
   @Deprecated('[2.0.0] Use DiscountIOS.fromJson instead')
   DiscountIOS.fromJSON(Map<String, dynamic> json)
-      : identifier = json['identifier'] as String,
-        type = json['type'] as String,
-        price = json['price'] as String,
-        localizedPrice = json['localizedPrice'] as String,
-        paymentMode = json['paymentMode'] as String,
-        numberOfPeriods = json['numberOfPeriods']?.toString() ?? '0',
-        subscriptionPeriod = json['subscriptionPeriod'] as String;
+    : identifier = json['identifier'] as String,
+      type = json['type'] as String,
+      price = json['price'] as String,
+      localizedPrice = json['localizedPrice'] as String,
+      paymentMode = json['paymentMode'] as String,
+      numberOfPeriods = json['numberOfPeriods']?.toString() ?? '0',
+      subscriptionPeriod = json['subscriptionPeriod'] as String;
 }
 
 /// Subscription class for subscription items (OpenIAP compliant)
@@ -634,7 +702,12 @@ class Subscription extends ProductCommon {
   final double? originalPriceAmount;
   final String? freeTrialPeriod;
   final String? iconUrl;
+  // TODO(v6.4.0): Remove deprecated subscriptionOfferDetails
+  @Deprecated(
+    'Use subscriptionOfferDetailsAndroid instead - will be removed in v6.4.0',
+  )
   final List<OfferDetail>? subscriptionOfferDetails;
+  final List<OfferDetail>? subscriptionOfferDetailsAndroid;
   final String? subscriptionPeriodAndroid;
   final String? introductoryPriceCyclesAndroid;
   final String? introductoryPricePeriodAndroid;
@@ -673,7 +746,12 @@ class Subscription extends ProductCommon {
     this.originalPriceAmount,
     this.freeTrialPeriod,
     this.iconUrl,
+    // TODO(v6.4.0): Remove deprecated subscriptionOfferDetails
+    @Deprecated(
+      'Use subscriptionOfferDetailsAndroid instead - will be removed in v6.4.0',
+    )
     this.subscriptionOfferDetails,
+    this.subscriptionOfferDetailsAndroid,
     this.subscriptionPeriodAndroid,
     this.introductoryPriceCyclesAndroid,
     this.introductoryPricePeriodAndroid,
@@ -681,13 +759,13 @@ class Subscription extends ProductCommon {
     this.signatureAndroid,
     this.subscriptionOffersAndroid,
   }) : super(
-          id: productId,
-          type: type ?? 'subs',
-          displayPrice: displayPrice ?? localizedPrice ?? price,
-          platformEnum: platform,
-          price: double.tryParse(price),
-          platform: platform == IapPlatform.ios ? 'ios' : 'android',
-        );
+         id: productId,
+         type: type ?? 'subs',
+         displayPrice: displayPrice ?? localizedPrice ?? price,
+         platformEnum: platform,
+         price: double.tryParse(price),
+         platform: platform == IapPlatform.ios ? 'ios' : 'android',
+       );
 
   factory Subscription.fromJson(Map<String, dynamic> json) {
     return Subscription(
@@ -697,16 +775,17 @@ class Subscription extends ProductCommon {
       localizedPrice: json['localizedPrice'] as String?,
       title: json['title'] as String?,
       description: json['description'] as String?,
-      platform:
-          json['platform'] == 'android' ? IapPlatform.android : IapPlatform.ios,
+      platform: json['platform'] == 'android'
+          ? IapPlatform.android
+          : IapPlatform.ios,
       type: json['type'] as String?,
       // iOS fields per OpenIAP spec
       displayName: json['displayName'] as String?,
       displayPrice: json['displayPrice'] as String?,
       discountsIOS: json['discountsIOS'] != null
           ? (json['discountsIOS'] as List)
-              .map((d) => DiscountIOS.fromJson(d as Map<String, dynamic>))
-              .toList()
+                .map((d) => DiscountIOS.fromJson(d as Map<String, dynamic>))
+                .toList()
           : null,
       subscription: json['subscription'] != null
           ? SubscriptionInfo.fromJson(
@@ -728,14 +807,33 @@ class Subscription extends ProductCommon {
           ? (json['promotionalOfferIdsIOS'] as List).cast<String>()
           : null,
       // Android fields per OpenIAP spec
+      nameAndroid: json['nameAndroid'] as String?,
+      oneTimePurchaseOfferDetailsAndroid:
+          json['oneTimePurchaseOfferDetailsAndroid'] != null
+          ? Map<String, dynamic>.from(
+              json['oneTimePurchaseOfferDetailsAndroid'] as Map,
+            )
+          : null,
       originalPrice: json['originalPrice'] as String?,
       originalPriceAmount: json['originalPriceAmount'] as double?,
       freeTrialPeriod: json['freeTrialPeriod'] as String?,
       iconUrl: json['iconUrl'] as String?,
+      // TODO(v6.4.0): Remove deprecated subscriptionOfferDetails
       subscriptionOfferDetails: json['subscriptionOfferDetails'] != null
           ? (json['subscriptionOfferDetails'] as List)
-              .map((o) => OfferDetail.fromJson(o as Map<String, dynamic>))
-              .toList()
+                .map((o) => OfferDetail.fromJson(o as Map<String, dynamic>))
+                .toList()
+          : null,
+      // Use new Android suffix field if available, fallback to old field for compatibility
+      subscriptionOfferDetailsAndroid:
+          json['subscriptionOfferDetailsAndroid'] != null
+          ? (json['subscriptionOfferDetailsAndroid'] as List)
+                .map((o) => OfferDetail.fromJson(o as Map<String, dynamic>))
+                .toList()
+          : json['subscriptionOfferDetails'] != null
+          ? (json['subscriptionOfferDetails'] as List)
+                .map((o) => OfferDetail.fromJson(o as Map<String, dynamic>))
+                .toList()
           : null,
       subscriptionPeriodAndroid: json['subscriptionPeriodAndroid'] as String?,
       introductoryPriceCyclesAndroid:
@@ -746,9 +844,12 @@ class Subscription extends ProductCommon {
       signatureAndroid: json['signatureAndroid'] as String?,
       subscriptionOffersAndroid: json['subscriptionOffersAndroid'] != null
           ? (json['subscriptionOffersAndroid'] as List)
-              .map((o) =>
-                  SubscriptionOfferAndroid.fromJson(o as Map<String, dynamic>))
-              .toList()
+                .map(
+                  (o) => SubscriptionOfferAndroid.fromJson(
+                    o as Map<String, dynamic>,
+                  ),
+                )
+                .toList()
           : null,
     );
   }
@@ -765,7 +866,8 @@ class Subscription extends ProductCommon {
     buffer.writeln('  currency: $currency,');
     buffer.writeln('  localizedPrice: $localizedPrice,');
     buffer.writeln(
-        '  platform: ${platform ?? (platformEnum == IapPlatform.ios ? 'ios' : 'android')},');
+      '  platform: ${platform ?? (platformEnum == IapPlatform.ios ? 'ios' : 'android')},',
+    );
 
     // iOS specific fields (only show non-null)
     if (displayName != null) buffer.writeln('  displayName: $displayName,');
@@ -774,29 +876,36 @@ class Subscription extends ProductCommon {
       buffer.writeln('  isFamilyShareableIOS: $isFamilyShareableIOS,');
     if (jsonRepresentationIOS != null)
       buffer.writeln(
-          '  jsonRepresentationIOS: ${jsonRepresentationIOS!.length > 100 ? '${jsonRepresentationIOS!.substring(0, 100)}...' : jsonRepresentationIOS},');
+        '  jsonRepresentationIOS: ${jsonRepresentationIOS!.length > 100 ? '${jsonRepresentationIOS!.substring(0, 100)}...' : jsonRepresentationIOS},',
+      );
     if (environmentIOS != null)
       buffer.writeln('  environmentIOS: $environmentIOS,');
     if (subscriptionGroupIdIOS != null)
       buffer.writeln('  subscriptionGroupIdIOS: $subscriptionGroupIdIOS,');
     if (subscriptionPeriodUnitIOS != null)
-      buffer
-          .writeln('  subscriptionPeriodUnitIOS: $subscriptionPeriodUnitIOS,');
+      buffer.writeln(
+        '  subscriptionPeriodUnitIOS: $subscriptionPeriodUnitIOS,',
+      );
     if (subscriptionPeriodNumberIOS != null)
       buffer.writeln(
-          '  subscriptionPeriodNumberIOS: $subscriptionPeriodNumberIOS,');
+        '  subscriptionPeriodNumberIOS: $subscriptionPeriodNumberIOS,',
+      );
     if (introductoryPriceNumberOfPeriodsIOS != null)
       buffer.writeln(
-          '  introductoryPriceNumberOfPeriodsIOS: $introductoryPriceNumberOfPeriodsIOS,');
+        '  introductoryPriceNumberOfPeriodsIOS: $introductoryPriceNumberOfPeriodsIOS,',
+      );
     if (introductoryPriceSubscriptionPeriodIOS != null)
       buffer.writeln(
-          '  introductoryPriceSubscriptionPeriodIOS: $introductoryPriceSubscriptionPeriodIOS,');
+        '  introductoryPriceSubscriptionPeriodIOS: $introductoryPriceSubscriptionPeriodIOS,',
+      );
     if (introductoryPricePaymentModeIOS != null)
       buffer.writeln(
-          '  introductoryPricePaymentModeIOS: $introductoryPricePaymentModeIOS,');
+        '  introductoryPricePaymentModeIOS: $introductoryPricePaymentModeIOS,',
+      );
     if (promotionalOfferIdsIOS != null && promotionalOfferIdsIOS!.isNotEmpty)
       buffer.writeln(
-          '  promotionalOfferIdsIOS: ${promotionalOfferIdsIOS!.length} offer(s),');
+        '  promotionalOfferIdsIOS: ${promotionalOfferIdsIOS!.length} offer(s),',
+      );
     if (discountsIOS != null && discountsIOS!.isNotEmpty)
       buffer.writeln('  discountsIOS: ${discountsIOS!.length} discount(s),');
     if (subscription != null)
@@ -811,16 +920,19 @@ class Subscription extends ProductCommon {
       buffer.writeln('  freeTrialPeriod: $freeTrialPeriod,');
     if (iconUrl != null) buffer.writeln('  iconUrl: $iconUrl,');
     if (subscriptionPeriodAndroid != null)
-      buffer
-          .writeln('  subscriptionPeriodAndroid: $subscriptionPeriodAndroid,');
+      buffer.writeln(
+        '  subscriptionPeriodAndroid: $subscriptionPeriodAndroid,',
+      );
     if (subscriptionOfferDetails != null &&
         subscriptionOfferDetails!.isNotEmpty)
       buffer.writeln(
-          '  subscriptionOfferDetails: ${subscriptionOfferDetails!.length} offer(s),');
+        '  subscriptionOfferDetails: ${subscriptionOfferDetails!.length} offer(s),',
+      );
     if (subscriptionOffersAndroid != null &&
         subscriptionOffersAndroid!.isNotEmpty)
       buffer.writeln(
-          '  subscriptionOffersAndroid: ${subscriptionOffersAndroid!.length} offer(s),');
+        '  subscriptionOffersAndroid: ${subscriptionOffersAndroid!.length} offer(s),',
+      );
 
     // Remove last comma and close
     final str = buffer.toString();
@@ -918,8 +1030,8 @@ class Subscription extends ProductCommon {
 
       // Add subscriptionGroupId (convert to string for OpenIAP)
       if (subscriptionGroupIdIOS != null) {
-        subscriptionInfoJson['subscriptionGroupId'] =
-            subscriptionGroupIdIOS.toString();
+        subscriptionInfoJson['subscriptionGroupId'] = subscriptionGroupIdIOS
+            .toString();
       }
 
       // Add subscriptionPeriod with proper structure
@@ -973,15 +1085,31 @@ class Subscription extends ProductCommon {
         json['originalPriceAmount'] = originalPriceAmount;
       if (freeTrialPeriod != null) json['freeTrialPeriod'] = freeTrialPeriod;
       if (iconUrl != null) json['iconUrl'] = iconUrl;
+      // TODO(v6.4.0): Show subscription offer fields only on Android platform
+      // Always show Android suffix field (TypeScript compatible)
+      if (subscriptionOfferDetailsAndroid != null &&
+          subscriptionOfferDetailsAndroid!.isNotEmpty) {
+        json['subscriptionOfferDetailsAndroid'] =
+            subscriptionOfferDetailsAndroid!.map((o) => o.toJson()).toList();
+      } else if (subscriptionOfferDetails != null &&
+          subscriptionOfferDetails!.isNotEmpty) {
+        // Use old field data but new field name for TypeScript compatibility
+        json['subscriptionOfferDetailsAndroid'] = subscriptionOfferDetails!
+            .map((o) => o.toJson())
+            .toList();
+      }
+      // TODO(v6.4.0): Remove deprecated subscriptionOfferDetails field completely - kept for backward compatibility until v6.4.0
       if (subscriptionOfferDetails != null &&
           subscriptionOfferDetails!.isNotEmpty) {
-        json['subscriptionOfferDetails'] =
-            subscriptionOfferDetails!.map((o) => o.toJson()).toList();
+        json['subscriptionOfferDetails'] = subscriptionOfferDetails!
+            .map((o) => o.toJson())
+            .toList();
       }
       if (subscriptionOffersAndroid != null &&
           subscriptionOffersAndroid!.isNotEmpty) {
-        json['subscriptionOffersAndroid'] =
-            subscriptionOffersAndroid!.map((o) => o.toJson()).toList();
+        json['subscriptionOffersAndroid'] = subscriptionOffersAndroid!
+            .map((o) => o.toJson())
+            .toList();
       }
     }
 
@@ -1029,16 +1157,16 @@ class ProductIOS extends Product {
     this.promotionalOfferIds,
     this.discounts,
   }) : super(
-          priceString: price,
-          platformEnum: IapPlatform.ios,
-          subscriptionGroupIdIOS: subscriptionGroupIdentifier,
-          subscriptionPeriodUnitIOS: subscriptionPeriodUnit,
-          subscriptionPeriodNumberIOS: subscriptionPeriodNumber,
-          introductoryPricePaymentModeIOS: introductoryPricePaymentMode,
-          environmentIOS: environment,
-          promotionalOfferIdsIOS: promotionalOfferIds,
-          discountsIOS: discounts,
-        );
+         priceString: price,
+         platformEnum: IapPlatform.ios,
+         subscriptionGroupIdIOS: subscriptionGroupIdentifier,
+         subscriptionPeriodUnitIOS: subscriptionPeriodUnit,
+         subscriptionPeriodNumberIOS: subscriptionPeriodNumber,
+         introductoryPricePaymentModeIOS: introductoryPricePaymentMode,
+         environmentIOS: environment,
+         promotionalOfferIdsIOS: promotionalOfferIds,
+         discountsIOS: discounts,
+       );
 
   factory ProductIOS.fromJson(Map<String, dynamic> json) {
     return ProductIOS(
@@ -1051,9 +1179,11 @@ class ProductIOS extends Product {
       type: json['type'] as String?,
       displayName: json['displayName'] as String?,
       // OpenIAP compliant iOS fields
-      isFamilyShareableIOS: json['isFamilyShareableIOS'] as bool? ??
+      isFamilyShareableIOS:
+          json['isFamilyShareableIOS'] as bool? ??
           json['isFamilyShareable'] as bool?,
-      jsonRepresentationIOS: json['jsonRepresentationIOS'] as String? ??
+      jsonRepresentationIOS:
+          json['jsonRepresentationIOS'] as String? ??
           json['jsonRepresentation'] as String?,
       // Additional iOS fields
       subscriptionGroupIdentifier:
@@ -1068,8 +1198,8 @@ class ProductIOS extends Product {
           : null,
       discounts: json['discounts'] != null
           ? (json['discounts'] as List)
-              .map((d) => DiscountIOS.fromJson(d as Map<String, dynamic>))
-              .toList()
+                .map((d) => DiscountIOS.fromJson(d as Map<String, dynamic>))
+                .toList()
           : null,
     );
   }
@@ -1102,15 +1232,15 @@ class ProductAndroid extends Product {
     this.signature,
     this.subscriptionOffers,
   }) : super(
-          priceString: price,
-          platformEnum: IapPlatform.android,
-          subscriptionPeriodAndroid: subscriptionPeriod,
-          introductoryPriceCyclesAndroid: introductoryPriceCycles,
-          introductoryPricePeriodAndroid: introductoryPricePeriod,
-          freeTrialPeriodAndroid: freeTrialPeriod,
-          signatureAndroid: signature,
-          subscriptionOffersAndroid: subscriptionOffers,
-        );
+         priceString: price,
+         platformEnum: IapPlatform.android,
+         subscriptionPeriodAndroid: subscriptionPeriod,
+         introductoryPriceCyclesAndroid: introductoryPriceCycles,
+         introductoryPricePeriodAndroid: introductoryPricePeriod,
+         freeTrialPeriodAndroid: freeTrialPeriod,
+         signatureAndroid: signature,
+         subscriptionOffersAndroid: subscriptionOffers,
+       );
 
   factory ProductAndroid.fromJson(Map<String, dynamic> json) {
     return ProductAndroid(
@@ -1129,17 +1259,23 @@ class ProductAndroid extends Product {
       signature: json['signature'] as String?,
       subscriptionOffers: json['subscriptionOffers'] != null
           ? (json['subscriptionOffers'] as List)
-              .map((o) =>
-                  SubscriptionOfferAndroid.fromJson(o as Map<String, dynamic>))
-              .toList()
+                .map(
+                  (o) => SubscriptionOfferAndroid.fromJson(
+                    o as Map<String, dynamic>,
+                  ),
+                )
+                .toList()
           : null,
       originalPriceAmount: json['originalPriceAmount'] as double?,
       iconUrl: json['iconUrl'] as String?,
+      // TODO(v6.4.0): Remove deprecated subscriptionOfferDetails
       subscriptionOfferDetails: json['subscriptionOfferDetails'] != null
           ? (json['subscriptionOfferDetails'] as List)
-              .map((o) => OfferDetail.fromJson(o as Map<String, dynamic>))
-              .toList()
+                .map((o) => OfferDetail.fromJson(o as Map<String, dynamic>))
+                .toList()
           : null,
+      // Note: subscriptionOfferDetailsAndroid is not part of Subscription class
+      // It's only in Product class
     );
   }
 }
@@ -1248,12 +1384,31 @@ class OfferDetail {
   });
 
   factory OfferDetail.fromJson(Map<String, dynamic> json) {
+    // Handle pricingPhases which can be either:
+    // 1. A list of phases directly (legacy)
+    // 2. An object with 'pricingPhaseList' property (new Android structure)
+    List<PricingPhase> phases;
+    final pricingPhasesData = json['pricingPhases'];
+
+    if (pricingPhasesData is List) {
+      // Legacy format: direct list
+      phases = pricingPhasesData
+          .map((p) => PricingPhase.fromJson(p as Map<String, dynamic>))
+          .toList();
+    } else if (pricingPhasesData is Map &&
+        pricingPhasesData['pricingPhaseList'] != null) {
+      // New Android format: object with pricingPhaseList
+      phases = (pricingPhasesData['pricingPhaseList'] as List)
+          .map((p) => PricingPhase.fromJson(p as Map<String, dynamic>))
+          .toList();
+    } else {
+      phases = [];
+    }
+
     return OfferDetail(
       basePlanId: json['basePlanId'] as String? ?? '',
       offerId: json['offerId'] as String?,
-      pricingPhases: (json['pricingPhases'] as List? ?? [])
-          .map((p) => PricingPhase.fromJson(p as Map<String, dynamic>))
-          .toList(),
+      pricingPhases: phases,
       offerToken: json['offerToken'] as String?,
       offerTags: (json['offerTags'] as List?)?.cast<String>(),
     );
@@ -1262,11 +1417,14 @@ class OfferDetail {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{
       'basePlanId': basePlanId,
-      'pricingPhases': pricingPhases.map((p) => p.toJson()).toList(),
+      'offerId': offerId, // Always include offerId (can be null)
+      // Use nested structure to match TypeScript type
+      'pricingPhases': {
+        'pricingPhaseList': pricingPhases.map((p) => p.toJson()).toList(),
+      },
+      'offerToken': offerToken,
+      'offerTags': offerTags ?? [],
     };
-    if (offerId != null) json['offerId'] = offerId;
-    if (offerToken != null) json['offerToken'] = offerToken;
-    if (offerTags != null) json['offerTags'] = offerTags;
     return json;
   }
 }
@@ -1316,10 +1474,32 @@ class PricingPhase {
   });
 
   factory PricingPhase.fromJson(Map<String, dynamic> json) {
+    // Handle different field names from Android native
+    double priceAmount;
+    if (json['priceAmount'] != null) {
+      priceAmount = (json['priceAmount'] as num).toDouble();
+    } else if (json['priceAmountMicros'] != null) {
+      // Convert micros to regular amount
+      final micros = json['priceAmountMicros'];
+      if (micros is String) {
+        priceAmount = (int.tryParse(micros) ?? 0) / 1000000.0;
+      } else if (micros is num) {
+        priceAmount = micros / 1000000.0;
+      } else {
+        priceAmount = 0.0;
+      }
+    } else {
+      priceAmount = 0.0;
+    }
+
     return PricingPhase(
-      priceAmount: (json['priceAmount'] as num?)?.toDouble() ?? 0.0,
-      price: json['price'] as String? ?? '0',
-      currency: json['currency'] as String? ?? 'USD',
+      priceAmount: priceAmount,
+      price:
+          json['price'] as String? ?? json['formattedPrice'] as String? ?? '0',
+      currency:
+          json['currency'] as String? ??
+          json['priceCurrencyCode'] as String? ??
+          'USD',
       billingPeriod: json['billingPeriod'] as String?,
       billingCycleCount: json['billingCycleCount'] as int?,
       recurrenceMode: json['recurrenceMode'] != null
@@ -1330,13 +1510,15 @@ class PricingPhase {
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{
-      'priceAmount': priceAmount,
-      'price': price,
-      'currency': currency,
+      // Use TypeScript-expected field names
+      'formattedPrice': price,
+      'priceCurrencyCode': currency,
+      'priceAmountMicros': (priceAmount * 1000000).toStringAsFixed(0),
     };
     if (billingPeriod != null) json['billingPeriod'] = billingPeriod;
-    if (billingCycleCount != null)
+    if (billingCycleCount != null) {
       json['billingCycleCount'] = billingCycleCount;
+    }
     if (recurrenceMode != null) json['recurrenceMode'] = recurrenceMode?.index;
     return json;
   }
@@ -1401,6 +1583,7 @@ class Purchase {
   final bool? isAcknowledgedAndroid;
   final int? purchaseStateAndroid;
   final String? purchaseTokenAndroid;
+  final String? dataAndroid;
   final String? obfuscatedAccountIdAndroid;
   final String? obfuscatedProfileIdAndroid;
   final String? originalJsonAndroid;
@@ -1479,6 +1662,7 @@ class Purchase {
     this.isAcknowledgedAndroid,
     this.purchaseStateAndroid,
     this.purchaseTokenAndroid,
+    this.dataAndroid,
     this.obfuscatedAccountIdAndroid,
     this.obfuscatedProfileIdAndroid,
     this.originalJsonAndroid,
@@ -1500,8 +1684,8 @@ class Purchase {
       transactionDate: json['transactionDate'] is int
           ? json['transactionDate'] as int
           : json['transactionDate'] is String
-              ? int.tryParse(json['transactionDate'] as String)
-              : null,
+          ? int.tryParse(json['transactionDate'] as String)
+          : null,
       transactionReceipt: json['transactionReceipt'] as String?,
       purchaseToken: json['purchaseToken'] as String?,
       orderId: json['orderId'] as String?,
@@ -1529,8 +1713,9 @@ class Purchase {
               isVerified: json['verificationResultIOS']['isVerified'] as bool,
               verificationError:
                   json['verificationResultIOS']['verificationError'] as String?,
-              data: json['verificationResultIOS']['data']
-                  as Map<String, dynamic>?,
+              data:
+                  json['verificationResultIOS']['data']
+                      as Map<String, dynamic>?,
             )
           : null,
       environmentIOS: json['environmentIOS'] as String?,
@@ -1575,6 +1760,7 @@ class Purchase {
       isAcknowledgedAndroid: json['isAcknowledgedAndroid'] as bool?,
       purchaseStateAndroid: json['purchaseStateAndroid'] as int?,
       purchaseTokenAndroid: json['purchaseTokenAndroid'] as String?,
+      dataAndroid: json['dataAndroid'] as String?,
       obfuscatedAccountIdAndroid: json['obfuscatedAccountIdAndroid'] as String?,
       obfuscatedProfileIdAndroid: json['obfuscatedProfileIdAndroid'] as String?,
       originalJsonAndroid: json['originalJsonAndroid'] as String?,
@@ -1608,9 +1794,11 @@ class Purchase {
     buffer.writeln('  productId: $productId,');
     buffer.writeln('  id: "$id",'); // Show as string with quotes
     buffer.writeln(
-        '  transactionId: "$transactionId",'); // Show as string with quotes
+      '  transactionId: "$transactionId",',
+    ); // Show as string with quotes
     buffer.writeln(
-        '  platform: \'${platform == IapPlatform.ios ? 'ios' : 'android'}\','); // Show as string literal
+      '  platform: \'${platform == IapPlatform.ios ? 'ios' : 'android'}\',',
+    ); // Show as string literal
     buffer.writeln('  ids: $ids,'); // Show ids array
     buffer.writeln('  purchaseToken: ${truncate(purchaseToken)},');
     buffer.writeln('  transactionReceipt: ${truncate(transactionReceipt)},');
@@ -1620,130 +1808,144 @@ class Purchase {
     buffer.writeln('  autoRenewing: $autoRenewing,');
     buffer.writeln('  transactionDate: $transactionDate,');
 
-    // iOS specific fields (only print non-null values)
-    if (originalTransactionDateIOS != null) {
-      buffer.writeln(
-          '  originalTransactionDateIOS: $originalTransactionDateIOS,');
-    }
-    if (originalTransactionIdentifierIOS != null) {
-      buffer.writeln(
-          '  originalTransactionIdentifierIOS: "$originalTransactionIdentifierIOS",'); // Show as string with quotes
-    }
-    if (transactionStateIOS != null) {
-      buffer.writeln('  transactionStateIOS: $transactionStateIOS,');
-    }
-    if (quantityIOS != null) {
-      buffer.writeln('  quantityIOS: $quantityIOS,');
-    }
-    if (expirationDateIOS != null) {
-      buffer.writeln(
-          '  expirationDateIOS: ${expirationDateIOS!.millisecondsSinceEpoch},');
-    }
-    if (environmentIOS != null) {
-      buffer.writeln('  environmentIOS: "$environmentIOS",');
-    }
-    if (subscriptionGroupIdIOS != null) {
-      buffer.writeln('  subscriptionGroupIdIOS: "$subscriptionGroupIdIOS",');
-    }
-    if (productTypeIOS != null) {
-      buffer.writeln('  productTypeIOS: "$productTypeIOS",');
-    }
-    if (transactionReasonIOS != null) {
-      buffer.writeln('  transactionReasonIOS: "$transactionReasonIOS",');
-    }
-    if (currencyCodeIOS != null) {
-      buffer.writeln('  currencyCodeIOS: "$currencyCodeIOS",');
-    }
-    if (storeFrontCountryCodeIOS != null) {
-      buffer
-          .writeln('  storefrontCountryCodeIOS: "$storeFrontCountryCodeIOS",');
-    }
-    if (appAccountTokenIOS != null) {
-      buffer.writeln('  appAccountTokenIOS: $appAccountTokenIOS,');
-    }
-    if (appBundleIdIOS != null) {
-      buffer.writeln('  appBundleIdIOS: "$appBundleIdIOS",');
-    }
-    if (productTypeIOS != null) {
-      buffer.writeln('  productTypeIOS: "$productTypeIOS",');
-    }
-    if (subscriptionGroupIdIOS != null) {
-      buffer.writeln('  subscriptionGroupIdIOS: "$subscriptionGroupIdIOS",');
-    }
-    if (isUpgradedIOS != null) {
-      buffer.writeln('  isUpgradedIOS: $isUpgradedIOS,');
-    }
-    if (ownershipTypeIOS != null) {
-      buffer.writeln('  ownershipTypeIOS: "$ownershipTypeIOS",');
-    }
-    if (webOrderLineItemIdIOS != null) {
-      buffer.writeln('  webOrderLineItemIdIOS: "$webOrderLineItemIdIOS",');
-    }
-    if (environmentIOS != null) {
-      buffer.writeln('  environmentIOS: "$environmentIOS",');
-    }
-    if (storeFrontCountryCodeIOS != null) {
-      buffer.writeln('  storeFrontCountryCodeIOS: $storeFrontCountryCodeIOS,');
-    }
-    if (reasonIOS != null) {
-      buffer.writeln('  reasonIOS: "$reasonIOS",');
-    }
-    if (offerIOS != null) {
-      buffer.writeln('  offerIOS: $offerIOS,');
-    }
-    if (priceIOS != null) {
-      buffer.writeln('  priceIOS: $priceIOS,');
-    }
-    if (currencyCodeIOS != null) {
-      buffer.writeln('  currencyCodeIOS: "$currencyCodeIOS",');
-    }
-    if (expirationDateIOS != null) {
-      buffer.writeln('  expirationDateIOS: $expirationDateIOS,');
-    }
-    if (revocationDateIOS != null) {
-      buffer.writeln('  revocationDateIOS: $revocationDateIOS,');
-    }
-    if (revocationReasonIOS != null) {
-      buffer.writeln('  revocationReasonIOS: $revocationReasonIOS,');
-    }
-    if (jwsRepresentationIOS != null) {
-      buffer.writeln(
-          '  jwsRepresentationIOS: ${truncate(jwsRepresentationIOS)},');
+    // iOS specific fields (only print non-null values for iOS platform)
+    if (platform == IapPlatform.ios) {
+      if (originalTransactionDateIOS != null) {
+        buffer.writeln(
+          '  originalTransactionDateIOS: $originalTransactionDateIOS,',
+        );
+      }
+      if (originalTransactionIdentifierIOS != null) {
+        buffer.writeln(
+          '  originalTransactionIdentifierIOS: "$originalTransactionIdentifierIOS",',
+        ); // Show as string with quotes
+      }
+      if (transactionStateIOS != null) {
+        buffer.writeln('  transactionStateIOS: $transactionStateIOS,');
+      }
+      if (quantityIOS != null) {
+        buffer.writeln('  quantityIOS: $quantityIOS,');
+      }
+      if (expirationDateIOS != null) {
+        buffer.writeln(
+          '  expirationDateIOS: ${expirationDateIOS!.millisecondsSinceEpoch},',
+        );
+      }
+      if (environmentIOS != null) {
+        buffer.writeln('  environmentIOS: "$environmentIOS",');
+      }
+      if (subscriptionGroupIdIOS != null) {
+        buffer.writeln('  subscriptionGroupIdIOS: "$subscriptionGroupIdIOS",');
+      }
+      if (productTypeIOS != null) {
+        buffer.writeln('  productTypeIOS: "$productTypeIOS",');
+      }
+      if (transactionReasonIOS != null) {
+        buffer.writeln('  transactionReasonIOS: "$transactionReasonIOS",');
+      }
+      if (currencyCodeIOS != null) {
+        buffer.writeln('  currencyCodeIOS: "$currencyCodeIOS",');
+      }
+      if (storeFrontCountryCodeIOS != null) {
+        buffer.writeln(
+          '  storefrontCountryCodeIOS: "$storeFrontCountryCodeIOS",',
+        );
+      }
+      if (appAccountTokenIOS != null) {
+        buffer.writeln('  appAccountTokenIOS: $appAccountTokenIOS,');
+      }
+      if (appBundleIdIOS != null) {
+        buffer.writeln('  appBundleIdIOS: "$appBundleIdIOS",');
+      }
+      if (productTypeIOS != null) {
+        buffer.writeln('  productTypeIOS: "$productTypeIOS",');
+      }
+      if (subscriptionGroupIdIOS != null) {
+        buffer.writeln('  subscriptionGroupIdIOS: "$subscriptionGroupIdIOS",');
+      }
+      if (isUpgradedIOS != null) {
+        buffer.writeln('  isUpgradedIOS: $isUpgradedIOS,');
+      }
+      if (ownershipTypeIOS != null) {
+        buffer.writeln('  ownershipTypeIOS: "$ownershipTypeIOS",');
+      }
+      if (webOrderLineItemIdIOS != null) {
+        buffer.writeln('  webOrderLineItemIdIOS: "$webOrderLineItemIdIOS",');
+      }
+      if (storeFrontCountryCodeIOS != null) {
+        buffer.writeln(
+          '  storeFrontCountryCodeIOS: $storeFrontCountryCodeIOS,',
+        );
+      }
+      if (reasonIOS != null) {
+        buffer.writeln('  reasonIOS: "$reasonIOS",');
+      }
+      if (offerIOS != null) {
+        buffer.writeln('  offerIOS: $offerIOS,');
+      }
+      if (priceIOS != null) {
+        buffer.writeln('  priceIOS: $priceIOS,');
+      }
+      if (currencyCodeIOS != null) {
+        buffer.writeln('  currencyCodeIOS: "$currencyCodeIOS",');
+      }
+      if (expirationDateIOS != null) {
+        buffer.writeln('  expirationDateIOS: $expirationDateIOS,');
+      }
+      if (revocationDateIOS != null) {
+        buffer.writeln('  revocationDateIOS: $revocationDateIOS,');
+      }
+      if (revocationReasonIOS != null) {
+        buffer.writeln('  revocationReasonIOS: $revocationReasonIOS,');
+      }
+      if (jwsRepresentationIOS != null) {
+        buffer.writeln(
+          '  jwsRepresentationIOS: ${truncate(jwsRepresentationIOS)},',
+        );
+      }
     }
 
-    // Android specific fields (only print non-null values)
-    if (originalJsonAndroid != null) {
-      buffer
-          .writeln('  originalJsonAndroid: ${truncate(originalJsonAndroid)},');
-    }
-    if (signatureAndroid != null) {
-      buffer.writeln('  signatureAndroid: ${truncate(signatureAndroid)},');
-    }
-    if (orderIdAndroid != null) {
-      buffer.writeln('  orderIdAndroid: $orderIdAndroid,');
-    }
-    if (packageNameAndroid != null) {
-      buffer.writeln('  packageNameAndroid: $packageNameAndroid,');
-    }
-    if (developerPayloadAndroid != null) {
-      buffer.writeln('  developerPayloadAndroid: $developerPayloadAndroid,');
-    }
-    if (purchaseStateAndroid != null) {
-      buffer.writeln('  purchaseStateAndroid: $purchaseStateAndroid,');
-    }
-    if (isAcknowledgedAndroid != null) {
-      buffer.writeln('  isAcknowledgedAndroid: $isAcknowledgedAndroid,');
-    }
-    if (autoRenewingAndroid != null) {
-      buffer.writeln('  autoRenewingAndroid: $autoRenewingAndroid,');
-    }
-    if (obfuscatedAccountIdAndroid != null) {
-      buffer.writeln(
-          '  obfuscatedAccountIdAndroid: $obfuscatedAccountIdAndroid,');
-    }
-    if (obfuscatedProfileIdAndroid != null) {
-      buffer.writeln(
-          '  obfuscatedProfileIdAndroid: $obfuscatedProfileIdAndroid,');
+    // Android specific fields (only print non-null values for Android platform)
+    if (platform == IapPlatform.android) {
+      if (originalJsonAndroid != null) {
+        buffer.writeln(
+          '  originalJsonAndroid: ${truncate(originalJsonAndroid)},',
+        );
+      }
+      if (signatureAndroid != null) {
+        buffer.writeln('  signatureAndroid: ${truncate(signatureAndroid)},');
+      }
+      if (dataAndroid != null) {
+        buffer.writeln('  dataAndroid: ${truncate(dataAndroid)},');
+      }
+      if (orderIdAndroid != null) {
+        buffer.writeln('  orderIdAndroid: $orderIdAndroid,');
+      }
+      if (packageNameAndroid != null) {
+        buffer.writeln('  packageNameAndroid: $packageNameAndroid,');
+      }
+      if (developerPayloadAndroid != null) {
+        buffer.writeln('  developerPayloadAndroid: $developerPayloadAndroid,');
+      }
+      if (purchaseStateAndroid != null) {
+        buffer.writeln('  purchaseStateAndroid: $purchaseStateAndroid,');
+      }
+      if (isAcknowledgedAndroid != null) {
+        buffer.writeln('  isAcknowledgedAndroid: $isAcknowledgedAndroid,');
+      }
+      if (autoRenewingAndroid != null) {
+        buffer.writeln('  autoRenewingAndroid: $autoRenewingAndroid,');
+      }
+      if (obfuscatedAccountIdAndroid != null) {
+        buffer.writeln(
+          '  obfuscatedAccountIdAndroid: $obfuscatedAccountIdAndroid,',
+        );
+      }
+      if (obfuscatedProfileIdAndroid != null) {
+        buffer.writeln(
+          '  obfuscatedProfileIdAndroid: $obfuscatedProfileIdAndroid,',
+        );
+      }
     }
 
     // Remove last comma if present
@@ -1891,13 +2093,13 @@ class PurchaseRequest {
 
   /// Constructor for in-app purchase (type is optional, defaults to 'inapp')
   PurchaseRequest.inapp(RequestPurchaseProps props)
-      : request = props,
-        type = null; // type is optional for inapp
+    : request = props,
+      type = null; // type is optional for inapp
 
   /// Constructor for subscription (type is required and must be 'subs')
   PurchaseRequest.subscription(RequestSubscriptionProps props)
-      : request = props,
-        type = 'subs';
+    : request = props,
+      type = 'subs';
 
   /// Check if this is a subscription purchase
   bool get isSubscription => type == 'subs';
@@ -2053,12 +2255,12 @@ class SubscriptionOfferAndroid {
   SubscriptionOfferAndroid({required this.sku, required this.offerToken});
 
   SubscriptionOfferAndroid.fromJSON(Map<String, dynamic> json)
-      : sku = json['sku'] as String,
-        offerToken = json['offerToken'] as String;
+    : sku = json['sku'] as String,
+      offerToken = json['offerToken'] as String;
 
   SubscriptionOfferAndroid.fromJson(Map<String, dynamic> json)
-      : sku = json['sku'] as String? ?? '',
-        offerToken = json['offerToken'] as String? ?? '';
+    : sku = json['sku'] as String? ?? '',
+      offerToken = json['offerToken'] as String? ?? '';
 
   Map<String, dynamic> toJson() => {'sku': sku, 'offerToken': offerToken};
 
@@ -2158,7 +2360,8 @@ class UnifiedRequestSubscriptionProps extends UnifiedRequestPurchaseProps {
     this.replacementPurchaseToken,
     // TODO(v6.4.0): Remove deprecated prorationMode
     @Deprecated(
-        'Use replacementModeAndroid instead - will be removed in v6.4.0')
+      'Use replacementModeAndroid instead - will be removed in v6.4.0',
+    )
     this.prorationMode,
     this.replacementModeAndroid,
   });
@@ -2195,11 +2398,11 @@ class RequestProductsParams {
     List<String>? productIds,
     List<String>? skus, // Support legacy parameter name
     this.type = PurchaseType.inapp,
-  })  : productIds = productIds ?? skus ?? [],
-        assert(
-          productIds != null || skus != null,
-          'Either productIds or skus must be provided',
-        );
+  }) : productIds = productIds ?? skus ?? [],
+       assert(
+         productIds != null || skus != null,
+         'Either productIds or skus must be provided',
+       );
 }
 
 /// Unified purchase request (OpenIAP compliant)
@@ -2289,7 +2492,8 @@ class AndroidPurchaseOptions {
     this.replacementPurchaseToken,
     // TODO(v6.4.0): Remove deprecated prorationMode
     @Deprecated(
-        'Use replacementModeAndroid instead - will be removed in v6.4.0')
+      'Use replacementModeAndroid instead - will be removed in v6.4.0',
+    )
     this.prorationMode,
     this.replacementModeAndroid,
   });
@@ -2454,41 +2658,39 @@ class IapItem {
 
   /// Create [IapItem] from a Map that was previously JSON formatted
   IapItem.fromJSON(Map<String, dynamic> json)
-      : productId = json['productId'] as String?,
-        price = json['price'] as String?,
-        currency = json['currency'] as String?,
-        localizedPrice = json['localizedPrice'] as String?,
-        title = json['title'] as String?,
-        description = json['description'] as String?,
-        introductoryPrice = json['introductoryPrice'] as String?,
-        subscriptionPeriodNumberIOS =
-            json['subscriptionPeriodNumberIOS'] as String?,
-        subscriptionPeriodUnitIOS =
-            json['subscriptionPeriodUnitIOS'] as String?,
-        introductoryPricePaymentModeIOS =
-            json['introductoryPricePaymentModeIOS'] as String?,
-        introductoryPriceNumberOfPeriodsIOS =
-            json['introductoryPriceNumberOfPeriodsIOS'] as String?,
-        introductoryPriceSubscriptionPeriodIOS =
-            json['introductoryPriceSubscriptionPeriodIOS'] as String?,
-        subscriptionPeriodAndroid =
-            json['subscriptionPeriodAndroid'] as String?,
-        introductoryPriceCyclesAndroid =
-            json['introductoryPriceCyclesAndroid'] as String?,
-        introductoryPricePeriodAndroid =
-            json['introductoryPricePeriodAndroid'] as String?,
-        freeTrialPeriodAndroid = json['freeTrialPeriodAndroid'] as String?,
-        discountsIOS = _extractDiscountIOS(json['discountsIOS']),
-        signatureAndroid = json['signatureAndroid'] as String?,
-        subscriptionOffersAndroid = _extractSubscriptionOffersAndroid(
-          json['subscriptionOffersAndroid'],
-        ),
-        iconUrl = json['iconUrl'] as String?,
-        originalJson = json['originalJson'] as String?,
-        originalPrice = json['originalPrice'] as String?,
-        displayName = json['displayName'] as String?,
-        displayDescription = json['displayDescription'] as String?,
-        type = json['type'] as String?;
+    : productId = json['productId'] as String?,
+      price = json['price'] as String?,
+      currency = json['currency'] as String?,
+      localizedPrice = json['localizedPrice'] as String?,
+      title = json['title'] as String?,
+      description = json['description'] as String?,
+      introductoryPrice = json['introductoryPrice'] as String?,
+      subscriptionPeriodNumberIOS =
+          json['subscriptionPeriodNumberIOS'] as String?,
+      subscriptionPeriodUnitIOS = json['subscriptionPeriodUnitIOS'] as String?,
+      introductoryPricePaymentModeIOS =
+          json['introductoryPricePaymentModeIOS'] as String?,
+      introductoryPriceNumberOfPeriodsIOS =
+          json['introductoryPriceNumberOfPeriodsIOS'] as String?,
+      introductoryPriceSubscriptionPeriodIOS =
+          json['introductoryPriceSubscriptionPeriodIOS'] as String?,
+      subscriptionPeriodAndroid = json['subscriptionPeriodAndroid'] as String?,
+      introductoryPriceCyclesAndroid =
+          json['introductoryPriceCyclesAndroid'] as String?,
+      introductoryPricePeriodAndroid =
+          json['introductoryPricePeriodAndroid'] as String?,
+      freeTrialPeriodAndroid = json['freeTrialPeriodAndroid'] as String?,
+      discountsIOS = _extractDiscountIOS(json['discountsIOS']),
+      signatureAndroid = json['signatureAndroid'] as String?,
+      subscriptionOffersAndroid = _extractSubscriptionOffersAndroid(
+        json['subscriptionOffersAndroid'],
+      ),
+      iconUrl = json['iconUrl'] as String?,
+      originalJson = json['originalJson'] as String?,
+      originalPrice = json['originalPrice'] as String?,
+      displayName = json['displayName'] as String?,
+      displayDescription = json['displayDescription'] as String?,
+      type = json['type'] as String?;
 
   static List<DiscountIOS>? _extractDiscountIOS(dynamic json) {
     if (json == null) return null;
@@ -2575,32 +2777,34 @@ class PurchasedItem {
 
   /// Create [PurchasedItem] from a Map that was previously JSON formatted
   PurchasedItem.fromJSON(Map<String, dynamic> json)
-      : productId = json['productId'] as String?,
-        // Handle both string and number for id field
-        id = json['id'] != null
-            ? json['id'].toString()
-            : json['transactionId']?.toString(),
-        // Handle both string and number for transactionId
-        transactionId = json['transactionId']?.toString(),
-        transactionDate = _extractDate(json['transactionDate']),
-        transactionReceipt = json['transactionReceipt'] as String?,
-        purchaseToken = json['purchaseToken'] as String?,
-        orderId = json['orderId'] as String?,
-        purchaseStateAndroid = json['purchaseStateAndroid'] as int?,
-        packageNameAndroid = json['packageNameAndroid'] as String?,
-        isAcknowledgedAndroid = json['isAcknowledgedAndroid'] as bool?,
-        autoRenewingAndroid = json['autoRenewingAndroid'] as bool?,
-        signatureAndroid = json['signatureAndroid'] as String?,
-        originalJsonAndroid = json['originalJsonAndroid'] as String?,
-        developerPayloadAndroid = json['developerPayloadAndroid'] as String?,
-        originalTransactionDateIOS =
-            json['originalTransactionDateIOS']?.toString(),
-        // Handle both string and number for originalTransactionIdentifierIOS
-        originalTransactionIdentifierIOS =
-            json['originalTransactionIdentifierIOS']?.toString(),
-        transactionStateIOS = json['transactionStateIOS'] as String?,
-        purchaseTime = json['purchaseTime'] as int?,
-        purchaseTimeMillis = json['purchaseTimeMillis'] as String?;
+    : productId = json['productId'] as String?,
+      // Handle both string and number for id field
+      id = json['id'] != null
+          ? json['id'].toString()
+          : json['transactionId']?.toString(),
+      // Handle both string and number for transactionId
+      transactionId = json['transactionId']?.toString(),
+      transactionDate = _extractDate(json['transactionDate']),
+      transactionReceipt = json['transactionReceipt'] as String?,
+      purchaseToken = json['purchaseToken'] as String?,
+      orderId = json['orderId'] as String?,
+      purchaseStateAndroid = json['purchaseStateAndroid'] as int?,
+      packageNameAndroid = json['packageNameAndroid'] as String?,
+      isAcknowledgedAndroid = json['isAcknowledgedAndroid'] as bool?,
+      autoRenewingAndroid = json['autoRenewingAndroid'] as bool?,
+      signatureAndroid = json['signatureAndroid'] as String?,
+      originalJsonAndroid =
+          json['originalJsonAndroid'] as String? ??
+          json['dataAndroid'] as String?,
+      developerPayloadAndroid = json['developerPayloadAndroid'] as String?,
+      originalTransactionDateIOS = json['originalTransactionDateIOS']
+          ?.toString(),
+      // Handle both string and number for originalTransactionIdentifierIOS
+      originalTransactionIdentifierIOS =
+          json['originalTransactionIdentifierIOS']?.toString(),
+      transactionStateIOS = json['transactionStateIOS'] as String?,
+      purchaseTime = json['purchaseTime'] as int?,
+      purchaseTimeMillis = json['purchaseTimeMillis'] as String?;
 
   /// This returns transaction dates in ISO 8601 format.
   static DateTime? _extractDate(dynamic transactionDate) {
@@ -2672,10 +2876,12 @@ class PurchasedItem {
     buffer.writeln('  purchaseTime: $purchaseTime,');
     buffer.writeln('  purchaseTimeMillis: $purchaseTimeMillis,');
     // iOS-specific fields
-    buffer
-        .writeln('  originalTransactionDateIOS: $originalTransactionDateIOS,');
     buffer.writeln(
-        '  originalTransactionIdentifierIOS: $originalTransactionIdentifierIOS,');
+      '  originalTransactionDateIOS: $originalTransactionDateIOS,',
+    );
+    buffer.writeln(
+      '  originalTransactionIdentifierIOS: $originalTransactionIdentifierIOS,',
+    );
     buffer.writeln('  transactionStateIOS: $transactionStateIOS');
     buffer.write('}');
 
@@ -2700,7 +2906,8 @@ class PurchasedItem {
     }
 
     // Platform field - detect based on available fields
-    final isIOS = originalTransactionIdentifierIOS != null ||
+    final isIOS =
+        originalTransactionIdentifierIOS != null ||
         transactionStateIOS != null ||
         originalTransactionDateIOS != null;
     json['platform'] = isIOS ? 'ios' : 'android';
@@ -2775,12 +2982,12 @@ class PricingPhaseAndroid {
   final int priceAmountMicros;
 
   PricingPhaseAndroid.fromJSON(Map<String, dynamic> json)
-      : formattedPrice = json['formattedPrice'] as String,
-        priceCurrencyCode = json['priceCurrencyCode'] as int,
-        billingPeriod = json['billingPeriod'] as String,
-        recurrenceMode = json['recurrenceMode'] as int?,
-        billingCycleCount = json['billingCycleCount'] as int,
-        priceAmountMicros = json['priceAmountMicros'] as int;
+    : formattedPrice = json['formattedPrice'] as String,
+      priceCurrencyCode = json['priceCurrencyCode'] as int,
+      billingPeriod = json['billingPeriod'] as String,
+      recurrenceMode = json['recurrenceMode'] as int?,
+      billingCycleCount = json['billingCycleCount'] as int,
+      priceAmountMicros = json['priceAmountMicros'] as int;
 }
 
 /// iOS App Store info
@@ -2791,8 +2998,8 @@ class AppStoreInfo {
   AppStoreInfo({this.appStoreVersion, this.environment});
 
   AppStoreInfo.fromJSON(Map<String, dynamic> json)
-      : appStoreVersion = json['appStoreVersion'] as String?,
-        environment = json['environment'] as String?;
+    : appStoreVersion = json['appStoreVersion'] as String?,
+      environment = json['environment'] as String?;
 }
 
 /// App Transaction data (iOS 16.0+)
@@ -2831,14 +3038,14 @@ class AppTransaction {
   }
 
   AppTransaction.fromJSON(Map<String, dynamic> json)
-      : appBundleId = json['appBundleId'] as String,
-        appVersion = json['appVersion'] as int,
-        deviceVerification = json['deviceVerification'] as String,
-        deviceVerificationNonce = json['deviceVerificationNonce'] as String,
-        originalAppVersion = json['originalAppVersion'] as int,
-        originalPurchaseDate = json['originalPurchaseDate'] as String,
-        receiptCreationDate = json['receiptCreationDate'] as String,
-        receiptType = json['receiptType'] as String;
+    : appBundleId = json['appBundleId'] as String,
+      appVersion = json['appVersion'] as int,
+      deviceVerification = json['deviceVerification'] as String,
+      deviceVerificationNonce = json['deviceVerificationNonce'] as String,
+      originalAppVersion = json['originalAppVersion'] as int,
+      originalPurchaseDate = json['originalPurchaseDate'] as String,
+      receiptCreationDate = json['receiptCreationDate'] as String,
+      receiptType = json['receiptType'] as String;
 
   @override
   String toString() {
@@ -2935,9 +3142,9 @@ class PurchaseIOS extends PurchaseCommon {
     this.isFinishedIOS,
     this.transactionStateIOS,
   }) : super(
-          purchaseToken: purchaseToken ?? jwsRepresentationIOS,
-          platform: 'ios',
-        );
+         purchaseToken: purchaseToken ?? jwsRepresentationIOS,
+         platform: 'ios',
+       );
 }
 
 @Deprecated('Use PurchaseIOS instead')
@@ -2987,9 +3194,9 @@ class PurchaseAndroid extends PurchaseCommon {
     this.isConsumedAndroid,
     this.originalJsonAndroid,
   }) : super(
-          purchaseToken: purchaseToken ?? purchaseTokenAndroid,
-          platform: 'android',
-        );
+         purchaseToken: purchaseToken ?? purchaseTokenAndroid,
+         platform: 'android',
+       );
 }
 
 @Deprecated('Use PurchaseAndroid instead')
