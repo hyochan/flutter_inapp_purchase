@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 6.4.0
+## 6.4.0 (Current)
 
 ### Breaking Changes
 
@@ -22,6 +22,13 @@
   ```
   - Removed `RequestProductsParams` class
   - This change simplifies the API and improves developer experience based on user feedback
+
+### Deprecated Items Removed
+
+The following deprecated items from v6.3.x have been removed in v6.4.0:
+- `subscriptionOfferDetails` field (use `subscriptionOfferDetailsAndroid` instead)
+- `prorationMode` field (use `replacementModeAndroid` instead)
+- `AndroidProrationMode` typedef (use `AndroidReplacementMode` instead)
 
 ### Note to Users
 

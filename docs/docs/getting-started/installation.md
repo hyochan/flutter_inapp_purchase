@@ -34,7 +34,7 @@ Or add it manually to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flutter_inapp_purchase: ^6.0.0
+  flutter_inapp_purchase: ^6.4.0
 ```
 
 Then run:
@@ -83,7 +83,7 @@ Ensure your `android/app/build.gradle` has the minimum SDK version:
 ```gradle
 android {
     compileSdkVersion 34
-    
+
     defaultConfig {
         minSdkVersion 21  // Required minimum
         targetSdkVersion 34
@@ -116,12 +116,14 @@ The plugin automatically adds the required billing permission to your manifest.
 2. Select your app
 3. Navigate to **Monetization** → **In-App Purchases**
 4. Create your products:
+
    - **Consumable**: Can be purchased multiple times
    - **Non-Consumable**: One-time purchase
    - **Auto-Renewable Subscription**: Recurring payments
    - **Non-Renewing Subscription**: Fixed duration
 
 5. Fill in required fields:
+
    - Reference Name (internal use)
    - Product ID (used in code)
    - Pricing
@@ -135,10 +137,12 @@ The plugin automatically adds the required billing permission to your manifest.
 2. Select your app
 3. Navigate to **Monetization** → **In-app products**
 4. Create products:
+
    - **One-time products**: Consumable or non-consumable
    - **Subscriptions**: Recurring payments
 
 5. Configure product details:
+
    - Product ID (used in code)
    - Name and description
    - Price
@@ -164,7 +168,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final FlutterInappPurchase iap = FlutterInappPurchase();
-  
+
   @override
   void initState() {
     super.initState();
@@ -200,7 +204,7 @@ class _MyAppState extends State<MyApp> {
 ```dart
 class _MyAppState extends State<MyApp> {
   final iap = FlutterInappPurchase.instance;
-  
+
   Future<void> _initializeIAP() async {
     await iap.initConnection();
   }
@@ -214,7 +218,7 @@ class MyWidget extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final iapState = useIAP();
-    
+
     return Text('Connected: ${iapState.connected}');
   }
 }
@@ -230,11 +234,11 @@ Future<void> _testConnection() async {
   try {
     final String? result = await iap.initConnection();
     print('Connection result: $result');
-    
+
     // Test product fetching
     final products = await iap.getProducts(['test_product_id']);
     print('Found ${products.length} products');
-    
+
   } catch (e) {
     print('Connection test failed: $e');
   }
@@ -254,11 +258,13 @@ Now that you have flutter_inapp_purchase installed and configured:
 ### iOS Common Issues
 
 **Permission Denied**
+
 - Ensure In-App Purchase capability is enabled
 - Verify your Apple Developer account has active agreements
 - Check that products are configured in App Store Connect
 
 **Products Not Loading**
+
 - Products must be submitted for review (at least once)
 - Wait 24 hours after creating products
 - Verify product IDs match exactly
@@ -266,11 +272,13 @@ Now that you have flutter_inapp_purchase installed and configured:
 ### Android Common Issues
 
 **Billing Unavailable**
+
 - Test on a real device (not emulator)
 - Ensure Google Play is installed and up-to-date
 - Verify app is signed with the same key as uploaded to Play Console
 
 **Products Not Found**
+
 - Products must be active in Play Console
 - App must be published (at least to internal testing)
 - Wait 2-3 hours after creating products

@@ -7,7 +7,12 @@ title: Migration Guide
 
 This guide helps you migrate your existing flutter_inapp_purchase implementation to the latest version.
 
-## Migration from v6.3.x to v6.4.0
+## Version Support
+
+- **v6.4.0** (Current) - Latest version with simplified APIs
+- **v6.3.x** - Previous stable version with deprecated APIs still available
+
+## Migration from v6.3.x to v6.4.0 (Current)
 
 ### Breaking Changes
 
@@ -16,6 +21,7 @@ This guide helps you migrate your existing flutter_inapp_purchase implementation
 The `requestProducts` method now accepts direct parameters instead of a wrapper object:
 
 **Before (v6.3.x):**
+
 ```dart
 final products = await iap.requestProducts(
   RequestProductsParams(
@@ -26,6 +32,7 @@ final products = await iap.requestProducts(
 ```
 
 **After (v6.4.0):**
+
 ```dart
 final products = await iap.requestProducts(
   productIds: ['product_id'],
@@ -130,7 +137,7 @@ Update your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flutter_inapp_purchase: ^6.0.0 # Updated version
+  flutter_inapp_purchase: ^6.4.0 # Updated version
 ```
 
 Run:
