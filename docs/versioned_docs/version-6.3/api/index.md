@@ -16,11 +16,10 @@ Complete reference for flutter_inapp_purchase v6.0.0 - A unified API for impleme
 ### 🏪 Core Methods
 Essential methods for initializing connections, loading products, and processing purchases.
 
-- **Connection Management**: `initConnection()`, `finalize()`
+- **Connection Management**: `initConnection()`, `endConnection()`
 - **Product Loading**: `getProducts()`, `getSubscriptions()`
-- **Purchase Processing**: `requestPurchase()`, `requestSubscription()`
+- **Purchase Processing**: `requestPurchase()` (use `type: PurchaseType.inapp` or `type: PurchaseType.subs`)
 - **Transaction Management**: `finishTransaction()`, `consumePurchase()`
-
 ### 📱 Platform-Specific Methods
 Access iOS and Android specific features and capabilities.
 

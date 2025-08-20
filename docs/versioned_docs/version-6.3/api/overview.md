@@ -135,7 +135,7 @@ Fetches product or subscription information for the given SKUs.
 
 **Parameters**:
 
-- `skus`: List of product identifiers
+- `productIds`: List of product identifiers
 - `type`: Product type - `PurchaseType.inapp` (regular) or `PurchaseType.subs` (subscriptions)
 
 **Returns**: List of available products or subscriptions
@@ -350,7 +350,7 @@ void handlePurchase(Purchase purchase) {
 ```dart
 // 1. Load subscriptions
 var subs = await FlutterInappPurchase.instance.requestProducts(
-  skus: subIds,
+  productIds: subIds,
   type: PurchaseType.subs
 );
 

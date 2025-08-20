@@ -142,11 +142,10 @@ await FlutterInappPurchase.instance.acknowledgePurchase(
 For consumable products:
 
 ```dart
-// Consume a purchase
-await FlutterInappPurchase.instance.consumePurchase(
+// Consume a purchase on Android
+await FlutterInappPurchase.instance.consumePurchaseAndroid(
   purchaseToken: purchase.purchaseToken!,
 );
-```
 
 ### Handle Pending Purchases
 
@@ -197,7 +196,12 @@ FlutterInappPurchase.instance.setDebugMode(true);
 
 ```dart
 try {
-  await FlutterInappPurchase.instance.requestPurchase(productId);
+  await FlutterInappPurchase.instance.requestPurchase(
+    request: RequestPurchase(
+      android: RequestPurchaseAndroid(skus: [productId]),
+    ),
+    type: PurchaseType.inapp,
+  );
 } catch (e) {
   if (e.code == 'E_USER_CANCELLED') {
     // User cancelled the purchase
@@ -206,7 +210,6 @@ try {
   }
   // Handle other errors
 }
-```
 
 ## Testing Checklist
 
@@ -224,13 +227,12 @@ try {
 ## Production Checklist
 
 - [ ] Remove debug logging
-- [ ] Implement server-side receipt validation
-- [ ] Handle all error cases
-- [ ] Test with production builds
-- [ ] Monitor crash reports
-- [ ] Set up purchase analytics
-
-## Next Steps
+      await FlutterInappPurchase.instance.requestPurchase(
+        request: RequestPurchase(
+          android: RequestPurchaseAndroid(skus: [product.productId!]),
+        ),
+        type: type,
+      );
 
 - [Learn about iOS setup](./setup-ios)
 - [Explore getting started guide](./quickstart)

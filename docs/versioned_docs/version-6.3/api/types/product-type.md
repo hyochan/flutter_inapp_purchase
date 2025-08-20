@@ -46,9 +46,8 @@ abstract class BaseProduct {
   final String? localizedPrice;
   final String? title;
   final String? description;
-  final IAPPlatform platform;
-}
-```
+// File: docs/versioned_docs/version-6.3/api/types.md (around line 306)
+enum IapPlatform {
 
 ### Properties
 

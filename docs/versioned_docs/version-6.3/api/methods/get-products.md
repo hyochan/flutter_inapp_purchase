@@ -13,20 +13,17 @@ The `requestProducts()` method fetches product information for the specified pro
 
 ## Signature
 
-```dart
 Future<List<IapItem>> requestProducts({
-  required List<String> skus,
+  required List<String> productIds,
   PurchaseType type = PurchaseType.inapp,
 })
-```
 
 ## Parameters
 
-| Parameter | Type           | Required | Default   | Description                                                                |
-| --------- | -------------- | -------- | --------- | -------------------------------------------------------------------------- |
-| `skus`    | `List<String>` | Yes      | -         | List of product identifiers to fetch                                       |
-| `type`    | `PurchaseType` | No       | `PurchaseType.inapp` | Product type: `PurchaseType.inapp` (regular) or `PurchaseType.subs` (subscriptions) |
-
+| Parameter    | Type           | Required | Default                  | Description                                                                |
+| ------------ | -------------- | -------- | ------------------------ | -------------------------------------------------------------------------- |
+| `productIds` | `List<String>` | Yes      | -                        | Product identifiers to fetch                                               |
+| `type`       | `PurchaseType` | No       | `PurchaseType.inapp`     | Product type: `PurchaseType.inapp` (regular) or `PurchaseType.subs` (subscriptions) |
 ## Returns
 
 - **Type**: `Future<List<IapItem>>`

@@ -84,18 +84,15 @@ class _SimpleStoreState extends State<SimpleStore> {
     try {
       // Get consumable products
       List<IapItem> products =
-          await FlutterInappPurchase.instance.requestProducts(
-            skus: _productIds,
-            type: 'inapp',
-          );
+      final products = await FlutterInappPurchase.instance.requestProducts(
+        productIds: _productIds,
+        type: PurchaseType.inapp,
+      );
 
-      // Get subscriptions
-      List<IapItem> subscriptions =
-          await FlutterInappPurchase.instance.requestProducts(
-            skus: _subscriptionIds,
-            type: 'subs',
-          );
-
+      final subscriptions = await FlutterInappPurchase.instance.requestProducts(
+        productIds: _subscriptionIds,
+        type: PurchaseType.subs,
+      );
       setState(() {
         _products = products;
         _subscriptions = subscriptions;

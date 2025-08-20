@@ -289,7 +289,7 @@ void handleTransactionState(PurchasedItem item) {
 
 ## Important Notes
 
-1. **iOS Requirements**: All transactions must be finished, even failed ones
+1. **iOS Requirements**: Finish purchased/restored transactions. Do not finish failed transactions.
 2. **Android 3-Day Rule**: Acknowledge purchases within 3 days or they're refunded
 3. **Consumables**: Must be consumed on Android to allow repurchase
 4. **Network Failures**: Transactions remain pending if finish fails

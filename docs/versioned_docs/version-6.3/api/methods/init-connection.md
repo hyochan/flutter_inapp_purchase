@@ -38,59 +38,21 @@ A `Future` that completes when the connection is established.
 - Establishes connection to Google Play services
 - Sets up purchase update listeners
 
-## Usage Example
-
-```dart
-import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
-
-class IAPService {
-  final _iap = FlutterInappPurchase.instance;
-  
-  Future<void> initialize() async {
-    try {
-      // Initialize the connection
-      await _iap.initConnection();
-      print('IAP connection initialized successfully');
-      
-      // Set up listeners after initialization
-      _setupListeners();
-      
-      // Now you can fetch products, make purchases, etc.
-      await _fetchProducts();
-      
-    } catch (e) {
-      if (e is PurchaseError) {
-        switch (e.code) {
-          case ErrorCode.E_ALREADY_INITIALIZED:
-            print('IAP already initialized');
-            break;
-          case ErrorCode.E_NOT_INITIALIZED:
-            print('Failed to initialize IAP: ${e.message}');
-            break;
-          default:
-            print('IAP error: ${e.message}');
-        }
-      }
+void _setupListeners() {
+  // Listen to purchase updates
+  _iap.purchaseUpdatedListener.listen((purchase) {
+    if (purchase != null) {
+      _handlePurchase(purchase);
     }
-  }
+  });
   
-  void _setupListeners() {
-    // Listen to purchase updates
-    FlutterInappPurchase.purchaseUpdated.listen((purchase) {
-      if (purchase != null) {
-        _handlePurchase(purchase);
-      }
-    });
-    
-    // Listen to purchase errors
-    FlutterInappPurchase.purchaseError.listen((error) {
-      if (error != null) {
-        _handleError(error);
-      }
-    });
-  }
+  // Listen to purchase errors
+  _iap.purchaseErrorListener.listen((error) {
+    if (error != null) {
+      _handleError(error);
+    }
+  });
 }
-```
 
 ## Best Practices
 

@@ -137,10 +137,8 @@ class _IOSStoreExampleState extends State<IOSStoreExample> {
       await _grantPurchaseContent(purchase);
 
       // Finish the transaction
-      await FlutterInappPurchase.instance.finishTransactionIOS(
-        purchase,
-        isConsumable: purchase.productId?.contains('consumable') ?? false,
-      );
+      // Finish the transaction (iOS: ignores isConsumable)
+      await FlutterInappPurchase.instance.finishTransaction(purchase);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Purchase successful!')),
@@ -202,9 +200,11 @@ class _IOSStoreExampleState extends State<IOSStoreExample> {
 
   @override
   void dispose() {
+  @override
+  void dispose() {
     _purchaseUpdatedSubscription.cancel();
     _purchaseErrorSubscription.cancel();
-    FlutterInappPurchase.instance.finishTransaction();
+    FlutterInappPurchase.instance.endConnection();
     super.dispose();
   }
 }
@@ -298,26 +298,26 @@ Future<void> restorePurchases() async {
 ### Error Handling
 
 ```dart
-void handleIOSError(PurchaseResult? error) {
+void handleIOSError(BuildContext context, PurchaseResult? error) {
   if (error?.code != null) {
     switch (error!.code) {
       case 'E_USER_CANCELLED':
         // User cancelled - no action needed
         break;
       case 'E_PAYMENT_INVALID':
-        showErrorDialog('Payment information is invalid');
+        showErrorDialog(context, 'Payment information is invalid');
         break;
       case 'E_PAYMENT_NOT_ALLOWED':
-        showErrorDialog('Payments are not allowed on this device');
+        showErrorDialog(context, 'Payments are not allowed on this device');
         break;
       case 'E_PRODUCT_NOT_AVAILABLE':
-        showErrorDialog('This product is not available');
+        showErrorDialog(context, 'This product is not available');
         break;
       case 'E_RECEIPT_FAILED':
-        showErrorDialog('Receipt validation failed');
+        showErrorDialog(context, 'Receipt validation failed');
         break;
       default:
-        showErrorDialog('Purchase failed: ${error.message}');
+        showErrorDialog(context, 'Purchase failed: ${error.message}');
     }
   }
 }
