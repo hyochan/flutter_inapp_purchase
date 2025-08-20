@@ -1,5 +1,32 @@
 # CHANGELOG
 
+## 6.4.0
+
+### Breaking Changes
+
+- **Simplified requestProducts API**: The `requestProducts` method now accepts direct parameters instead of a wrapper object (Fixes [#527](https://github.com/hyochan/flutter_inapp_purchase/issues/527))
+  ```dart
+  // Before (6.3.x)
+  final products = await iap.requestProducts(
+    RequestProductsParams(
+      productIds: ['product_id'],
+      type: PurchaseType.inapp,
+    ),
+  );
+  
+  // After (6.4.0)
+  final products = await iap.requestProducts(
+    productIds: ['product_id'],
+    type: PurchaseType.inapp,  // Optional, defaults to PurchaseType.inapp
+  );
+  ```
+  - Removed `RequestProductsParams` class
+  - This change simplifies the API and improves developer experience based on user feedback
+
+### Note to Users
+
+We understand there have been several breaking changes recently. We sincerely apologize for any inconvenience. These changes are part of our effort to quickly address the long maintenance gap and bring the library up to modern standards. With version 6.4.0, we believe the major restructuring is now complete, and the API should remain stable going forward.
+
 ## 6.3.3
 
 ### Bug Fixes

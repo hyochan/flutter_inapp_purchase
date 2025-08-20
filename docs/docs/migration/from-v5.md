@@ -1,13 +1,43 @@
 ---
 sidebar_position: 1
-title: Migration from v5.x to v6.0
+title: Migration Guide
 ---
 
-# 🔄 Migration from v5.x to v6.0
+# Migration Guide
 
-This guide helps you migrate your existing flutter_inapp_purchase v5.x implementation to the new **6.0.0** release with StoreKit 2 and Billing Client v8 support.
+This guide helps you migrate your existing flutter_inapp_purchase implementation to the latest version.
 
-## 🎯 Overview
+## Migration from v6.3.x to v6.4.0
+
+### Breaking Changes
+
+#### Simplified requestProducts API
+
+The `requestProducts` method now accepts direct parameters instead of a wrapper object:
+
+**Before (v6.3.x):**
+```dart
+final products = await iap.requestProducts(
+  RequestProductsParams(
+    productIds: ['product_id'],
+    type: PurchaseType.inapp,
+  ),
+);
+```
+
+**After (v6.4.0):**
+```dart
+final products = await iap.requestProducts(
+  productIds: ['product_id'],
+  type: PurchaseType.inapp,  // Optional, defaults to PurchaseType.inapp
+);
+```
+
+The `RequestProductsParams` class has been removed to simplify the API.
+
+## Migration from v5.x to v6.0.0
+
+### Overview
 
 Version 6.0.0 is a **major release** with breaking changes to support modern platform APIs and improve developer experience.
 
@@ -19,9 +49,9 @@ Version 6.0.0 is a **major release** with breaking changes to support modern pla
 - ✅ **Enhanced Type Safety** with refined APIs
 - ⚠️ **Breaking Changes** in error codes and some method signatures
 
-## 💥 Breaking Changes
+### Breaking Changes
 
-### 1. Error Code Enum Changes (CRITICAL)
+#### 1. Error Code Enum Changes (CRITICAL)
 
 The most significant breaking change is the error code enum format.
 
