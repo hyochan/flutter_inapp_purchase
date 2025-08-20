@@ -1,5 +1,28 @@
 # Implementation Guidelines
 
+## API Changes
+
+### requestProducts API (Updated)
+The `requestProducts` method now uses direct parameters instead of a parameter object:
+
+```dart
+// Old API (removed):
+final products = await iap.requestProducts(
+  RequestProductsParams(
+    productIds: ['product_id'],
+    type: PurchaseType.inapp,
+  ),
+);
+
+// New API:
+final products = await iap.requestProducts(
+  productIds: ['product_id'],
+  type: PurchaseType.inapp,  // Optional, defaults to PurchaseType.inapp
+);
+```
+
+The `RequestProductsParams` class has been removed to simplify the API.
+
 ## Flutter-Specific Guidelines
 
 ### Documentation Style
