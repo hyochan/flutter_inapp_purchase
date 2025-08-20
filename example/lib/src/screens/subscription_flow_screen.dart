@@ -265,12 +265,10 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
 
     try {
       // Use the new requestProducts method
-      final params = RequestProductsParams(
+      final products = await _iap.requestProducts(
         productIds: subscriptionIds,
         type: PurchaseType.subs,
       );
-
-      final products = await _iap.requestProducts(params);
 
       debugPrint('Loaded ${products.length} subscriptions');
 

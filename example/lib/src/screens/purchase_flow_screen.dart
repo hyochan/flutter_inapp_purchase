@@ -320,10 +320,8 @@ Platform: ${error.platform}
       debugPrint('🔍 Loading products for IDs: ${productIds.join(", ")}');
       // Use requestProducts instead of deprecated getProducts
       final products = await _iap.requestProducts(
-        RequestProductsParams(
-          productIds: productIds,
-          type: PurchaseType.inapp,
-        ),
+        productIds: productIds,
+        type: PurchaseType.inapp,
       );
 
       debugPrint(
