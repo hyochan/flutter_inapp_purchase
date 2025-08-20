@@ -66,11 +66,11 @@ class AmazonInappPurchasePlugin : MethodCallHandler {
             "getProducts",
             "getSubscriptions" -> {
                 Log.d(TAG, call.method)
-                val skus = call.argument<ArrayList<String>>("skus")!!
+                val productIds = call.argument<ArrayList<String>>("productIds")!!
                 val productSkus: MutableSet<String> = HashSet()
-                for (i in skus.indices) {
-                    Log.d(TAG, "Adding " + skus[i])
-                    productSkus.add(skus[i])
+                for (i in productIds.indices) {
+                    Log.d(TAG, "Adding " + productIds[i])
+                    productSkus.add(productIds[i])
                 }
                 PurchasingService.getProductData(productSkus)
             }
