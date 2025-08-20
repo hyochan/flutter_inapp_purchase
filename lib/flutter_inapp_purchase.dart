@@ -178,9 +178,10 @@ class FlutterInappPurchase
   }
 
   /// Request products (flutter IAP compatible)
-  Future<List<iap_types.ProductCommon>> requestProducts(
-    iap_types.RequestProductsParams params,
-  ) async {
+  Future<List<iap_types.ProductCommon>> requestProducts({
+    required List<String> productIds,
+    iap_types.PurchaseType type = iap_types.PurchaseType.inapp,
+  }) async {
     if (!_isInitialized) {
       throw iap_types.PurchaseError(
         code: iap_types.ErrorCode.eNotInitialized,
@@ -193,7 +194,7 @@ class FlutterInappPurchase
 
     try {
       debugPrint(
-        '[flutter_inapp_purchase] requestProducts called with productIds: ${params.productIds}',
+        '[flutter_inapp_purchase] requestProducts called with productIds: $productIds,',
       );
 
       // Get raw data from native platform
@@ -201,15 +202,15 @@ class FlutterInappPurchase
       if (_platform.isIOS) {
         // iOS uses unified getItems method for both products and subscriptions
         rawResult = await _channel.invokeMethod('getItems', {
-          'skus': params.productIds,
+          'skus': productIds,
         });
-      } else if (params.type == iap_types.PurchaseType.inapp) {
+      } else if (type == iap_types.PurchaseType.inapp) {
         rawResult = await _channel.invokeMethod('getProducts', {
-          'productIds': params.productIds,
+          'productIds': productIds,
         });
       } else {
         rawResult = await _channel.invokeMethod('getSubscriptions', {
-          'productIds': params.productIds,
+          'productIds': productIds,
         });
       }
 
@@ -238,7 +239,7 @@ class FlutterInappPurchase
         } else {
           throw Exception('Unexpected item type: ${item.runtimeType}');
         }
-        return _parseProductFromNative(itemMap, params.type);
+        return _parseProductFromNative(itemMap, type);
       }).toList();
     } catch (e) {
       throw iap_types.PurchaseError(
@@ -1145,10 +1146,8 @@ class FlutterInappPurchase
   Future<List<iap_types.IapItem>> getProducts(List<String> productIds) async {
     // Redirect to requestProducts for backward compatibility
     final products = await requestProducts(
-      iap_types.RequestProductsParams(
-        productIds: productIds,
-        type: iap_types.PurchaseType.inapp,
-      ),
+      productIds: productIds,
+      type: iap_types.PurchaseType.inapp,
     );
 
     // Convert ProductCommon to IapItem for backward compatibility
@@ -1184,10 +1183,8 @@ class FlutterInappPurchase
   ) async {
     // Redirect to requestProducts for backward compatibility
     final products = await requestProducts(
-      iap_types.RequestProductsParams(
-        productIds: productIds,
-        type: iap_types.PurchaseType.subs,
-      ),
+      productIds: productIds,
+      type: iap_types.PurchaseType.subs,
     );
 
     // Convert ProductCommon to IapItem for backward compatibility
@@ -1590,10 +1587,8 @@ class FlutterInappPurchase
     List<String> productIds,
   ) async {
     final products = await requestProducts(
-      iap_types.RequestProductsParams(
-        productIds: productIds,
-        type: iap_types.PurchaseType.inapp,
-      ),
+      productIds: productIds,
+      type: iap_types.PurchaseType.inapp,
     );
     return products.whereType<iap_types.Product>().toList();
   }
