@@ -429,6 +429,12 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                     item.put("description", productDetails.description)
                     item.put("platform", "android")
                     
+                    // Debug logging
+                    Log.d("InappPurchase", "Product: ${productDetails.productId}")
+                    Log.d("InappPurchase", "Name: ${productDetails.name}")
+                    Log.d("InappPurchase", "Type: ${productDetails.productType}")
+                    Log.d("InappPurchase", "OneTimePurchaseOfferDetails: ${productDetails.oneTimePurchaseOfferDetails}")
+                    
                     // Set currency and displayPrice based on product type
                     val currency = productDetails.oneTimePurchaseOfferDetails?.priceCurrencyCode
                         ?: productDetails.subscriptionOfferDetails?.firstOrNull()?.pricingPhases?.pricingPhaseList?.firstOrNull()?.priceCurrencyCode
@@ -443,10 +449,14 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                     // One-time offer details have changed in 5.0
                     if (productDetails.oneTimePurchaseOfferDetails != null) {
                         item.put("introductoryPrice", productDetails.oneTimePurchaseOfferDetails!!.formattedPrice)
+                        // Also put the price here for consistency
+                        item.put("price", (productDetails.oneTimePurchaseOfferDetails!!.priceAmountMicros / 1000000f).toString())
                     }
 
                     if (productDetails.productType == BillingClient.ProductType.INAPP) {
                         val oneTimePurchaseOfferDetails = productDetails.oneTimePurchaseOfferDetails
+                        
+                        Log.d("InappPurchase", "INAPP product oneTimePurchaseOfferDetails is ${if (oneTimePurchaseOfferDetails != null) "available" else "null"}")
 
                         if (oneTimePurchaseOfferDetails != null) {
                             item.put("price", (oneTimePurchaseOfferDetails.priceAmountMicros / 1000000f).toString())
@@ -459,6 +469,25 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                             offerDetails.put("priceAmountMicros", oneTimePurchaseOfferDetails.priceAmountMicros.toString())
                             item.put("oneTimePurchaseOfferDetails", offerDetails)
                             item.put("oneTimePurchaseOfferDetailsAndroid", offerDetails)
+                            
+                            Log.d("InappPurchase", "Added oneTimePurchaseOfferDetailsAndroid: $offerDetails")
+                        } else {
+                            // Even if oneTimePurchaseOfferDetails is null, set price from displayPrice
+                            item.put("price", item.getString("displayPrice"))
+                            Log.d("InappPurchase", "oneTimePurchaseOfferDetails is null for INAPP product")
+                            
+                            // Create a basic offer details from available data
+                            if (currency != null && displayPrice != null) {
+                                val basicOfferDetails = JSONObject()
+                                basicOfferDetails.put("priceCurrencyCode", currency)
+                                basicOfferDetails.put("formattedPrice", displayPrice)
+                                // Try to extract price amount from the price field if available
+                                val priceString = item.optString("price", "0")
+                                val priceValue = priceString.toDoubleOrNull() ?: 0.0
+                                basicOfferDetails.put("priceAmountMicros", (priceValue * 1000000).toLong().toString())
+                                item.put("oneTimePurchaseOfferDetailsAndroid", basicOfferDetails)
+                                Log.d("InappPurchase", "Created basic oneTimePurchaseOfferDetailsAndroid: $basicOfferDetails")
+                            }
                         }
                     } else if (productDetails.productType == BillingClient.ProductType.SUBS) {
                         // These generalized values are derived from the first pricing object, mainly for backwards compatibility
@@ -479,7 +508,8 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                             for (offer in productDetails.subscriptionOfferDetails!!) {
                                 val offerItem = JSONObject()
                                 offerItem.put("basePlanId", offer.basePlanId)
-                                offerItem.put("offerId", offer.offerId)
+                                // offerId can be null for base plans without special offers
+                                offerItem.put("offerId", offer.offerId ?: JSONObject.NULL)
                                 offerItem.put("offerToken", offer.offerToken)
                                 offerItem.put("offerTags", JSONArray(offer.offerTags))
                                 
@@ -501,7 +531,11 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                                 subsOffers.put(offerItem)
                             }
                         }
-                        item.put("subscriptionOfferDetails", subsOffers)
+                        // Use Android suffix for platform-specific field
+                        item.put("subscriptionOfferDetailsAndroid", subsOffers)
+                        // TODO(v6.4.0): Remove deprecated subscriptionOfferDetails
+                        item.put("subscriptionOfferDetails", subsOffers) // Keep for backward compatibility
+                        Log.d("InappPurchase", "subscriptionOfferDetailsAndroid: $subsOffers")
                     }
 
                     items.put(item)
