@@ -27,9 +27,9 @@ void main() {
 
           TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
               .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-            log.add(methodCall);
-            return 'Billing service is ready';
-          });
+                log.add(methodCall);
+                return 'Billing service is ready';
+              });
         });
 
         tearDown(() {
@@ -50,26 +50,30 @@ void main() {
       });
     });
 
-    group('getProducts',
-        skip: 'Deprecated method - uses requestProducts internally', () {
-      group('for Android', () {
-        final List<MethodCall> log = <MethodCall>[];
-        late FlutterInappPurchase testIap;
-        setUp(() async {
-          testIap = FlutterInappPurchase.private(
-            FakePlatform(operatingSystem: 'android'),
-          );
+    group(
+      'getProducts',
+      skip: 'Deprecated method - uses requestProducts internally',
+      () {
+        group('for Android', () {
+          final List<MethodCall> log = <MethodCall>[];
+          late FlutterInappPurchase testIap;
+          setUp(() async {
+            testIap = FlutterInappPurchase.private(
+              FakePlatform(operatingSystem: 'android'),
+            );
 
-          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-              .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-            log.add(methodCall);
-            if (methodCall.method == 'initConnection') {
-              return true;
-            }
-            // For requestProducts, Android expects parsed JSON list
-            if (methodCall.method == 'getProducts' ||
-                methodCall.method == 'getSubscriptions') {
-              return '''[
+            TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+                .setMockMethodCallHandler(channel, (
+                  MethodCall methodCall,
+                ) async {
+                  log.add(methodCall);
+                  if (methodCall.method == 'initConnection') {
+                    return true;
+                  }
+                  // For requestProducts, Android expects parsed JSON list
+                  if (methodCall.method == 'getProducts' ||
+                      methodCall.method == 'getSubscriptions') {
+                    return '''[
                 {
                   "productId": "com.example.product1",
                   "price": "0.99",
@@ -87,115 +91,121 @@ void main() {
                   "description": "Description 2"
                 }
               ]''';
-            }
-            return null;
+                  }
+                  return null;
+                });
+          });
+
+          tearDown(() {
+            channel.setMethodCallHandler(null);
+          });
+
+          test('invokes correct method', () async {
+            // Initialize connection first
+            await testIap.initConnection();
+            log.clear(); // Clear init log
+
+            await testIap.getProducts([
+              'com.example.product1',
+              'com.example.product2',
+            ]);
+            // Since getProducts is deprecated and redirects to requestProducts,
+            // it now passes productIds directly as List, not wrapped in a Map
+            expect(log, <Matcher>[
+              isMethodCall(
+                'getProducts',
+                arguments: ['com.example.product1', 'com.example.product2'],
+              ),
+            ]);
+          });
+
+          test('returns correct products', () async {
+            // Initialize connection first
+            await testIap.initConnection();
+
+            final products = await testIap.getProducts([
+              'com.example.product1',
+              'com.example.product2',
+            ]);
+            expect(products.length, 2);
+            expect(products[0].productId, 'com.example.product1');
+            expect(products[0].price, '0.99');
+            expect(products[0].currency, 'USD');
+            expect(products[1].productId, 'com.example.product2');
           });
         });
+      },
+    );
 
-        tearDown(() {
-          channel.setMethodCallHandler(null);
-        });
+    group(
+      'getSubscriptions',
+      skip: 'Deprecated method - uses requestProducts internally',
+      () {
+        group('for iOS', () {
+          final List<MethodCall> log = <MethodCall>[];
+          late FlutterInappPurchase testIap;
+          setUp(() async {
+            testIap = FlutterInappPurchase.private(
+              FakePlatform(operatingSystem: 'ios'),
+            );
 
-        test('invokes correct method', () async {
-          // Initialize connection first
-          await testIap.initConnection();
-          log.clear(); // Clear init log
+            TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+                .setMockMethodCallHandler(channel, (
+                  MethodCall methodCall,
+                ) async {
+                  log.add(methodCall);
+                  if (methodCall.method == 'initConnection') {
+                    return true;
+                  }
+                  return [
+                    {
+                      'productId': 'com.example.subscription1',
+                      'price': '9.99',
+                      'currency': 'USD',
+                      'localizedPrice': r'$9.99',
+                      'title': 'Subscription 1',
+                      'description': 'Monthly subscription',
+                      'subscriptionPeriodUnitIOS': 'MONTH',
+                      'subscriptionPeriodNumberIOS': '1',
+                    },
+                  ];
+                });
+          });
 
-          await testIap.getProducts([
-            'com.example.product1',
-            'com.example.product2',
-          ]);
-          // Since getProducts is deprecated and redirects to requestProducts,
-          // it now passes productIds directly as List, not wrapped in a Map
-          expect(log, <Matcher>[
-            isMethodCall(
-              'getProducts',
-              arguments: ['com.example.product1', 'com.example.product2'],
-            ),
-          ]);
-        });
+          tearDown(() {
+            channel.setMethodCallHandler(null);
+          });
 
-        test('returns correct products', () async {
-          // Initialize connection first
-          await testIap.initConnection();
+          test('invokes correct method', () async {
+            // Initialize connection first
+            await testIap.initConnection();
+            log.clear(); // Clear init log
 
-          final products = await testIap.getProducts([
-            'com.example.product1',
-            'com.example.product2',
-          ]);
-          expect(products.length, 2);
-          expect(products[0].productId, 'com.example.product1');
-          expect(products[0].price, '0.99');
-          expect(products[0].currency, 'USD');
-          expect(products[1].productId, 'com.example.product2');
-        });
-      });
-    });
+            await testIap.getSubscriptions(['com.example.subscription1']);
+            expect(log, <Matcher>[
+              isMethodCall(
+                'getItems',
+                arguments: <String, dynamic>{
+                  'skus': ['com.example.subscription1'],
+                },
+              ),
+            ]);
+          });
 
-    group('getSubscriptions',
-        skip: 'Deprecated method - uses requestProducts internally', () {
-      group('for iOS', () {
-        final List<MethodCall> log = <MethodCall>[];
-        late FlutterInappPurchase testIap;
-        setUp(() async {
-          testIap = FlutterInappPurchase.private(
-            FakePlatform(operatingSystem: 'ios'),
-          );
+          test('returns correct subscriptions', () async {
+            // Initialize connection first
+            await testIap.initConnection();
 
-          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-              .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-            log.add(methodCall);
-            if (methodCall.method == 'initConnection') {
-              return true;
-            }
-            return [
-              {
-                'productId': 'com.example.subscription1',
-                'price': '9.99',
-                'currency': 'USD',
-                'localizedPrice': r'$9.99',
-                'title': 'Subscription 1',
-                'description': 'Monthly subscription',
-                'subscriptionPeriodUnitIOS': 'MONTH',
-                'subscriptionPeriodNumberIOS': '1',
-              },
-            ];
+            final subscriptions = await testIap.getSubscriptions([
+              'com.example.subscription1',
+            ]);
+            expect(subscriptions.length, 1);
+            expect(subscriptions[0].productId, 'com.example.subscription1');
+            expect(subscriptions[0].subscriptionPeriodUnitIOS, 'MONTH');
           });
         });
-
-        tearDown(() {
-          channel.setMethodCallHandler(null);
-        });
-
-        test('invokes correct method', () async {
-          // Initialize connection first
-          await testIap.initConnection();
-          log.clear(); // Clear init log
-
-          await testIap.getSubscriptions(['com.example.subscription1']);
-          expect(log, <Matcher>[
-            isMethodCall(
-              'getItems',
-              arguments: <String, dynamic>{
-                'skus': ['com.example.subscription1'],
-              },
-            ),
-          ]);
-        });
-
-        test('returns correct subscriptions', () async {
-          // Initialize connection first
-          await testIap.initConnection();
-
-          final subscriptions = await testIap.getSubscriptions([
-            'com.example.subscription1',
-          ]);
-          expect(subscriptions.length, 1);
-          expect(subscriptions[0].productId, 'com.example.subscription1');
-          expect(subscriptions[0].subscriptionPeriodUnitIOS, 'MONTH');
-        });
-      });
-    });
+      },
+    );
 
     group('Error Handling', () {
       test('PurchaseError creation from platform error', () {
@@ -255,10 +265,7 @@ void main() {
 
     group('Product OpenIAP Compatibility', () {
       test('Product has OpenIAP compliant id getter', () {
-        final product = Product(
-          productId: 'test.product.id',
-          price: 9.99,
-        );
+        final product = Product(productId: 'test.product.id', price: 9.99);
 
         expect(product.id, 'test.product.id');
         expect(product.productId, 'test.product.id');
@@ -286,17 +293,19 @@ void main() {
         expect(purchase.ids, ['test.product']);
       });
 
-      test('Purchase id getter returns empty string when transactionId is null',
-          () {
-        final purchase = Purchase(
-          productId: 'test.product',
-          transactionId: null,
-          platform: IapPlatform.ios,
-        );
+      test(
+        'Purchase id getter returns empty string when transactionId is null',
+        () {
+          final purchase = Purchase(
+            productId: 'test.product',
+            transactionId: null,
+            platform: IapPlatform.ios,
+          );
 
-        expect(purchase.id, '');
-        expect(purchase.ids, ['test.product']);
-      });
+          expect(purchase.id, '');
+          expect(purchase.ids, ['test.product']);
+        },
+      );
 
       test('Product toString includes new fields', () {
         final product = Product(
@@ -319,14 +328,13 @@ void main() {
           transactionId: 'trans123',
           platform: IapPlatform.ios,
           environmentIOS: 'Sandbox',
-          purchaseStateAndroid: 1,
         );
 
         final str = purchase.toString();
         expect(str, contains('productId: test.product'));
         expect(str, contains('id: "trans123"'));
-        expect(str, contains('environmentIOS: Sandbox'));
-        expect(str, contains('purchaseStateAndroid: 1'));
+        expect(str, contains('environmentIOS: "Sandbox"'));
+        expect(str, isNot(contains('purchaseStateAndroid')));
       });
     });
 
@@ -403,42 +411,44 @@ void main() {
         expect(item.id, '2000000985615347'); // OpenIAP compliance
       });
 
-      test('PurchasedItem handles purchaseToken field for different platforms',
-          () {
-        // Test Android purchase with purchaseToken
-        final jsonDataAndroid = {
-          'productId': 'android.product',
-          'transactionId': 'GPA.1234-5678-9012-34567',
-          'transactionDate': 1234567890,
-          'transactionReceipt': 'android_receipt',
-          'purchaseToken': 'android_purchase_token',
-          'signatureAndroid': 'android_signature',
-          'purchaseStateAndroid': 1,
-          'isAcknowledgedAndroid': true,
-        };
+      test(
+        'PurchasedItem handles purchaseToken field for different platforms',
+        () {
+          // Test Android purchase with purchaseToken
+          final jsonDataAndroid = {
+            'productId': 'android.product',
+            'transactionId': 'GPA.1234-5678-9012-34567',
+            'transactionDate': 1234567890,
+            'transactionReceipt': 'android_receipt',
+            'purchaseToken': 'android_purchase_token',
+            'signatureAndroid': 'android_signature',
+            'purchaseStateAndroid': 1,
+            'isAcknowledgedAndroid': true,
+          };
 
-        final itemAndroid = PurchasedItem.fromJSON(jsonDataAndroid);
-        expect(itemAndroid.productId, 'android.product');
-        expect(itemAndroid.purchaseToken, 'android_purchase_token');
-        expect(itemAndroid.signatureAndroid, 'android_signature');
-        expect(itemAndroid.purchaseStateAndroid, 1);
-        expect(itemAndroid.isAcknowledgedAndroid, true);
+          final itemAndroid = PurchasedItem.fromJSON(jsonDataAndroid);
+          expect(itemAndroid.productId, 'android.product');
+          expect(itemAndroid.purchaseToken, 'android_purchase_token');
+          expect(itemAndroid.signatureAndroid, 'android_signature');
+          expect(itemAndroid.purchaseStateAndroid, 1);
+          expect(itemAndroid.isAcknowledgedAndroid, true);
 
-        // Test iOS purchase with purchaseToken (JWS)
-        final jsonDataIOS = {
-          'productId': 'ios.product',
-          'transactionId': '2000000985615347',
-          'transactionDate': 1234567890,
-          'transactionReceipt': 'ios_receipt',
-          'purchaseToken': 'ios_jws_token',
-          'transactionStateIOS': '1',
-        };
+          // Test iOS purchase with purchaseToken (JWS)
+          final jsonDataIOS = {
+            'productId': 'ios.product',
+            'transactionId': '2000000985615347',
+            'transactionDate': 1234567890,
+            'transactionReceipt': 'ios_receipt',
+            'purchaseToken': 'ios_jws_token',
+            'transactionStateIOS': '1',
+          };
 
-        final itemIOS = PurchasedItem.fromJSON(jsonDataIOS);
-        expect(itemIOS.productId, 'ios.product');
-        expect(itemIOS.purchaseToken, 'ios_jws_token');
-        expect(itemIOS.transactionStateIOS, '1');
-      });
+          final itemIOS = PurchasedItem.fromJSON(jsonDataIOS);
+          expect(itemIOS.productId, 'ios.product');
+          expect(itemIOS.purchaseToken, 'ios_jws_token');
+          expect(itemIOS.transactionStateIOS, '1');
+        },
+      );
 
       test('PurchasedItem OpenIAP id field fallback', () {
         // Test id field fallback to transactionId for OpenIAP compliance
@@ -477,8 +487,10 @@ void main() {
         };
 
         final itemMillis = PurchasedItem.fromJSON(jsonWithMillis);
-        expect(itemMillis.transactionDate,
-            DateTime.fromMillisecondsSinceEpoch(1234567890123));
+        expect(
+          itemMillis.transactionDate,
+          DateTime.fromMillisecondsSinceEpoch(1234567890123),
+        );
 
         // Test smaller timestamp (seconds)
         final jsonWithSeconds = {
@@ -551,14 +563,14 @@ void main() {
 
           TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
               .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-            if (methodCall.method == 'initConnection') {
-              return 'Billing service is ready';
-            }
-            if (methodCall.method == 'getAvailableItemsByType') {
-              final arguments = methodCall.arguments;
-              if (arguments is Map && arguments['type'] == 'subs') {
-                // Return a mock subscription purchase
-                return '''[
+                if (methodCall.method == 'initConnection') {
+                  return 'Billing service is ready';
+                }
+                if (methodCall.method == 'getAvailableItemsByType') {
+                  final arguments = methodCall.arguments;
+                  if (arguments is Map && arguments['type'] == 'subs') {
+                    // Return a mock subscription purchase
+                    return '''[
                   {
                     "productId": "monthly_subscription",
                     "transactionId": "GPA.1234-5678-9012-34567",
@@ -570,11 +582,11 @@ void main() {
                     "isAcknowledgedAndroid": true
                   }
                 ]''';
-              }
-              return '[]';
-            }
-            return '[]';
-          });
+                  }
+                  return '[]';
+                }
+                return '[]';
+              });
         });
 
         tearDown(() {
@@ -611,28 +623,28 @@ void main() {
 
           TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
               .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-            if (methodCall.method == 'initConnection') {
-              return 'Billing service is ready';
-            }
-            if (methodCall.method == 'getAvailableItems') {
-              // Return a mock iOS subscription purchase
-              return <Map<String, dynamic>>[
-                <String, dynamic>{
-                  'productId': 'monthly_subscription',
-                  'transactionId': '1000000123456789',
-                  'transactionDate': DateTime.now().millisecondsSinceEpoch,
-                  'transactionReceipt': 'receipt_data',
-                  'purchaseToken':
-                      'ios_jws_token_123', // Unified field for iOS JWS
-                  'jwsRepresentationIOS':
-                      'ios_jws_token_123', // Deprecated field
-                  'transactionStateIOS':
-                      '1', // TransactionState.purchased value
+                if (methodCall.method == 'initConnection') {
+                  return 'Billing service is ready';
                 }
-              ];
-            }
-            return null;
-          });
+                if (methodCall.method == 'getAvailableItems') {
+                  // Return a mock iOS subscription purchase
+                  return <Map<String, dynamic>>[
+                    <String, dynamic>{
+                      'productId': 'monthly_subscription',
+                      'transactionId': '1000000123456789',
+                      'transactionDate': DateTime.now().millisecondsSinceEpoch,
+                      'transactionReceipt': 'receipt_data',
+                      'purchaseToken':
+                          'ios_jws_token_123', // Unified field for iOS JWS
+                      'jwsRepresentationIOS':
+                          'ios_jws_token_123', // Deprecated field
+                      'transactionStateIOS':
+                          '1', // TransactionState.purchased value
+                    },
+                  ];
+                }
+                return null;
+              });
         });
 
         tearDown(() {
@@ -663,74 +675,78 @@ void main() {
 
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-          if (methodCall.method == 'initConnection') {
-            return 'Billing service is ready';
-          }
-          if (methodCall.method == 'requestPurchase') {
-            // Simulate purchase flow with unified purchaseToken
-            return <String, dynamic>{
-              'productId': methodCall.arguments['sku'],
-              'transactionId': 'GPA.test-transaction-123',
-              'transactionDate': DateTime.now().millisecondsSinceEpoch,
-              'transactionReceipt': 'test_receipt',
-              'purchaseToken': 'unified_purchase_token_123',
-              'purchaseTokenAndroid': 'unified_purchase_token_123',
-              'signatureAndroid': 'test_signature',
-              'purchaseStateAndroid': 1,
-            };
-          }
-          if (methodCall.method == 'requestSubscription') {
-            // Simulate subscription flow with unified purchaseToken
-            return <String, dynamic>{
-              'productId': methodCall.arguments['sku'],
-              'transactionId': 'GPA.sub-transaction-456',
-              'transactionDate': DateTime.now().millisecondsSinceEpoch,
-              'transactionReceipt': 'test_subscription_receipt',
-              'purchaseToken': 'unified_subscription_token_456',
-              'purchaseTokenAndroid': 'unified_subscription_token_456',
-              'autoRenewingAndroid': true,
-              'purchaseStateAndroid': 1,
-            };
-          }
-          return null;
-        });
+              if (methodCall.method == 'initConnection') {
+                return 'Billing service is ready';
+              }
+              if (methodCall.method == 'requestPurchase') {
+                // Simulate purchase flow with unified purchaseToken
+                return <String, dynamic>{
+                  'productId': methodCall.arguments['sku'],
+                  'transactionId': 'GPA.test-transaction-123',
+                  'transactionDate': DateTime.now().millisecondsSinceEpoch,
+                  'transactionReceipt': 'test_receipt',
+                  'purchaseToken': 'unified_purchase_token_123',
+                  'purchaseTokenAndroid': 'unified_purchase_token_123',
+                  'signatureAndroid': 'test_signature',
+                  'purchaseStateAndroid': 1,
+                };
+              }
+              if (methodCall.method == 'requestSubscription') {
+                // Simulate subscription flow with unified purchaseToken
+                return <String, dynamic>{
+                  'productId': methodCall.arguments['sku'],
+                  'transactionId': 'GPA.sub-transaction-456',
+                  'transactionDate': DateTime.now().millisecondsSinceEpoch,
+                  'transactionReceipt': 'test_subscription_receipt',
+                  'purchaseToken': 'unified_subscription_token_456',
+                  'purchaseTokenAndroid': 'unified_subscription_token_456',
+                  'autoRenewingAndroid': true,
+                  'purchaseStateAndroid': 1,
+                };
+              }
+              return null;
+            });
       });
 
       tearDown(() {
         channel.setMethodCallHandler(null);
       });
 
-      test('requestPurchase includes unified purchaseToken in response',
-          () async {
-        await testIap.initConnection();
+      test(
+        'requestPurchase includes unified purchaseToken in response',
+        () async {
+          await testIap.initConnection();
 
-        // Request purchase will not directly return a PurchasedItem
-        // It triggers a native purchase flow that sends events
-        // For testing, we just verify the method can be called without error
-        await expectLater(
-          testIap.requestPurchaseAuto(
-            sku: 'test.product',
-            type: PurchaseType.inapp,
-          ),
-          completes,
-        );
-      });
+          // Request purchase will not directly return a PurchasedItem
+          // It triggers a native purchase flow that sends events
+          // For testing, we just verify the method can be called without error
+          await expectLater(
+            testIap.requestPurchaseAuto(
+              sku: 'test.product',
+              type: PurchaseType.inapp,
+            ),
+            completes,
+          );
+        },
+      );
 
-      test('requestSubscription includes unified purchaseToken in response',
-          () async {
-        await testIap.initConnection();
+      test(
+        'requestSubscription includes unified purchaseToken in response',
+        () async {
+          await testIap.initConnection();
 
-        // Request subscription will not directly return a PurchasedItem
-        // It triggers a native purchase flow that sends events
-        // For testing, we just verify the method can be called without error
-        await expectLater(
-          testIap.requestPurchaseAuto(
-            sku: 'test.subscription',
-            type: PurchaseType.subs,
-          ),
-          completes,
-        );
-      });
+          // Request subscription will not directly return a PurchasedItem
+          // It triggers a native purchase flow that sends events
+          // For testing, we just verify the method can be called without error
+          await expectLater(
+            testIap.requestPurchaseAuto(
+              sku: 'test.subscription',
+              type: PurchaseType.subs,
+            ),
+            completes,
+          );
+        },
+      );
     });
 
     group('requestPurchase for iOS', () {
@@ -743,23 +759,23 @@ void main() {
 
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-          if (methodCall.method == 'initConnection') {
-            return 'Billing service is ready';
-          }
-          if (methodCall.method == 'requestPurchase') {
-            // Simulate iOS purchase with JWS token
-            return <String, dynamic>{
-              'productId': methodCall.arguments,
-              'transactionId': '2000000123456789',
-              'transactionDate': DateTime.now().millisecondsSinceEpoch,
-              'transactionReceipt': 'ios_receipt_data',
-              'purchaseToken': 'ios_jws_representation_token',
-              'jwsRepresentationIOS': 'ios_jws_representation_token',
-              'transactionStateIOS': '1',
-            };
-          }
-          return null;
-        });
+              if (methodCall.method == 'initConnection') {
+                return 'Billing service is ready';
+              }
+              if (methodCall.method == 'requestPurchase') {
+                // Simulate iOS purchase with JWS token
+                return <String, dynamic>{
+                  'productId': methodCall.arguments,
+                  'transactionId': '2000000123456789',
+                  'transactionDate': DateTime.now().millisecondsSinceEpoch,
+                  'transactionReceipt': 'ios_receipt_data',
+                  'purchaseToken': 'ios_jws_representation_token',
+                  'jwsRepresentationIOS': 'ios_jws_representation_token',
+                  'transactionStateIOS': '1',
+                };
+              }
+              return null;
+            });
       });
 
       tearDown(() {
@@ -792,13 +808,13 @@ void main() {
 
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-          if (methodCall.method == 'initConnection') {
-            return 'Billing service is ready';
-          }
-          if (methodCall.method == 'getAvailableItemsByType') {
-            // Return purchases with unified purchaseToken as JSON string
-            final timestamp = DateTime.now().millisecondsSinceEpoch;
-            return '''[
+              if (methodCall.method == 'initConnection') {
+                return 'Billing service is ready';
+              }
+              if (methodCall.method == 'getAvailableItemsByType') {
+                // Return purchases with unified purchaseToken as JSON string
+                final timestamp = DateTime.now().millisecondsSinceEpoch;
+                return '''[
               {
                 "productId": "test.product.1",
                 "transactionId": "GPA.purchase-1",
@@ -822,9 +838,9 @@ void main() {
                 "isAcknowledgedAndroid": false
               }
             ]''';
-          }
-          return null;
-        });
+              }
+              return null;
+            });
       });
 
       tearDown(() {
@@ -857,25 +873,25 @@ void main() {
 
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-          if (methodCall.method == 'initConnection') {
-            return 'Billing service is ready';
-          }
-          if (methodCall.method == 'getAvailableItems') {
-            // Return iOS purchases with JWS tokens
-            return <Map<String, dynamic>>[
-              <String, dynamic>{
-                'productId': 'ios.product.1',
-                'transactionId': '2000000111111111',
-                'transactionDate': DateTime.now().millisecondsSinceEpoch,
-                'transactionReceipt': 'ios_receipt_1',
-                'purchaseToken': 'ios_jws_token_1',
-                'jwsRepresentationIOS': 'ios_jws_token_1',
-                'transactionStateIOS': '1',
-              },
-            ];
-          }
-          return null;
-        });
+              if (methodCall.method == 'initConnection') {
+                return 'Billing service is ready';
+              }
+              if (methodCall.method == 'getAvailableItems') {
+                // Return iOS purchases with JWS tokens
+                return <Map<String, dynamic>>[
+                  <String, dynamic>{
+                    'productId': 'ios.product.1',
+                    'transactionId': '2000000111111111',
+                    'transactionDate': DateTime.now().millisecondsSinceEpoch,
+                    'transactionReceipt': 'ios_receipt_1',
+                    'purchaseToken': 'ios_jws_token_1',
+                    'jwsRepresentationIOS': 'ios_jws_token_1',
+                    'transactionStateIOS': '1',
+                  },
+                ];
+              }
+              return null;
+            });
       });
 
       tearDown(() {
@@ -904,19 +920,19 @@ void main() {
 
           TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
               .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-            if (methodCall.method == 'initConnection') {
-              return 'Billing service is ready';
-            }
-            if (methodCall.method == 'consumeProduct') {
-              expect(methodCall.arguments['purchaseToken'], isNotNull);
-              return 'consumed';
-            }
-            if (methodCall.method == 'acknowledgePurchase') {
-              expect(methodCall.arguments['purchaseToken'], isNotNull);
-              return 'acknowledged';
-            }
-            return null;
-          });
+                if (methodCall.method == 'initConnection') {
+                  return 'Billing service is ready';
+                }
+                if (methodCall.method == 'consumeProduct') {
+                  expect(methodCall.arguments['purchaseToken'], isNotNull);
+                  return 'consumed';
+                }
+                if (methodCall.method == 'acknowledgePurchase') {
+                  expect(methodCall.arguments['purchaseToken'], isNotNull);
+                  return 'acknowledged';
+                }
+                return null;
+              });
         });
 
         tearDown(() {
@@ -977,15 +993,15 @@ void main() {
 
           TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
               .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-            if (methodCall.method == 'initConnection') {
-              return 'Billing service is ready';
-            }
-            if (methodCall.method == 'finishTransaction') {
-              // Allow null transactionId for edge case testing
-              return 'finished';
-            }
-            return null;
-          });
+                if (methodCall.method == 'initConnection') {
+                  return 'Billing service is ready';
+                }
+                if (methodCall.method == 'finishTransaction') {
+                  // Allow null transactionId for edge case testing
+                  return 'finished';
+                }
+                return null;
+              });
         });
 
         tearDown(() {
@@ -1016,10 +1032,7 @@ void main() {
 
           // When transactionId is null, finishTransaction should still be called
           // but with null transactionId. Test that it doesn't throw an error.
-          await expectLater(
-            testIap.finishTransaction(purchase),
-            completes,
-          );
+          await expectLater(testIap.finishTransaction(purchase), completes);
         });
       });
     });
@@ -1034,13 +1047,13 @@ void main() {
 
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-          if (methodCall.method == 'initConnection') {
-            return 'Billing service is ready';
-          }
-          if (methodCall.method == 'getAvailableItemsByType') {
-            final arguments = methodCall.arguments;
-            if (arguments is Map && arguments['type'] == 'subs') {
-              return '''[
+              if (methodCall.method == 'initConnection') {
+                return 'Billing service is ready';
+              }
+              if (methodCall.method == 'getAvailableItemsByType') {
+                final arguments = methodCall.arguments;
+                if (arguments is Map && arguments['type'] == 'subs') {
+                  return '''[
                 {
                   "productId": "monthly_subscription",
                   "transactionId": "GPA.1234-5678-9012-34567",
@@ -1052,11 +1065,11 @@ void main() {
                   "isAcknowledgedAndroid": true
                 }
               ]''';
-            }
-            return '[]';
-          }
-          return '[]';
-        });
+                }
+                return '[]';
+              }
+              return '[]';
+            });
       });
 
       tearDown(() {
@@ -1070,15 +1083,17 @@ void main() {
         expect(hasSubscriptions, true);
       });
 
-      test('returns false when filtering for non-existent subscription',
-          () async {
-        await testIap.initConnection();
-        final hasSubscriptions = await testIap.hasActiveSubscriptions(
-          subscriptionIds: ['non_existent_subscription'],
-        );
+      test(
+        'returns false when filtering for non-existent subscription',
+        () async {
+          await testIap.initConnection();
+          final hasSubscriptions = await testIap.hasActiveSubscriptions(
+            subscriptionIds: ['non_existent_subscription'],
+          );
 
-        expect(hasSubscriptions, false);
-      });
+          expect(hasSubscriptions, false);
+        },
+      );
 
       test('returns true when filtering for existing subscription', () async {
         await testIap.initConnection();

@@ -13,48 +13,47 @@ void main() {
     setUp(() {
       methodChannelLog.clear();
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(
-        const MethodChannel('flutter_inapp'),
-        (MethodCall methodCall) async {
-          methodChannelLog.add(methodCall);
-          switch (methodCall.method) {
-            case 'initConnection':
-              return true;
-            case 'endConnection':
-              return true;
-            case 'getAvailablePurchases':
-              return _getMockAvailablePurchases()
-                  .map((item) => Map<String, dynamic>.from(item))
-                  .toList();
-            case 'getPurchaseHistory':
-              return _getMockPurchaseHistory()
-                  .map((item) => Map<String, dynamic>.from(item))
-                  .toList();
-            case 'getPendingPurchases':
-              return _getMockPendingPurchases()
-                  .map((item) => Map<String, dynamic>.from(item))
-                  .toList();
-            case 'consumeProduct':
-              return <String, dynamic>{'consumed': true};
-            case 'acknowledgePurchase':
-              return <String, dynamic>{'acknowledged': true};
-            case 'finishTransaction':
-              return 'finished';
-            case 'clearTransactionIOS':
-              return 'cleared';
-            case 'getAvailableItemsByType':
-              return _getMockAvailablePurchases()
-                  .map((item) => Map<String, dynamic>.from(item))
-                  .toList();
-            case 'getAvailableItems':
-              return _getMockAvailablePurchases()
-                  .map((item) => Map<String, dynamic>.from(item))
-                  .toList();
-            default:
-              return null;
-          }
-        },
-      );
+          .setMockMethodCallHandler(const MethodChannel('flutter_inapp'), (
+            MethodCall methodCall,
+          ) async {
+            methodChannelLog.add(methodCall);
+            switch (methodCall.method) {
+              case 'initConnection':
+                return true;
+              case 'endConnection':
+                return true;
+              case 'getAvailablePurchases':
+                return _getMockAvailablePurchases()
+                    .map((item) => Map<String, dynamic>.from(item))
+                    .toList();
+              case 'getPurchaseHistory':
+                return _getMockPurchaseHistory()
+                    .map((item) => Map<String, dynamic>.from(item))
+                    .toList();
+              case 'getPendingPurchases':
+                return _getMockPendingPurchases()
+                    .map((item) => Map<String, dynamic>.from(item))
+                    .toList();
+              case 'consumeProduct':
+                return <String, dynamic>{'consumed': true};
+              case 'acknowledgePurchase':
+                return <String, dynamic>{'acknowledged': true};
+              case 'finishTransaction':
+                return 'finished';
+              case 'clearTransactionIOS':
+                return 'cleared';
+              case 'getAvailableItemsByType':
+                return _getMockAvailablePurchases()
+                    .map((item) => Map<String, dynamic>.from(item))
+                    .toList();
+              case 'getAvailableItems':
+                return _getMockAvailablePurchases()
+                    .map((item) => Map<String, dynamic>.from(item))
+                    .toList();
+              default:
+                return null;
+            }
+          });
     });
 
     tearDown(() {
@@ -74,8 +73,9 @@ void main() {
         // The mock returns all items (including iOS ones)
         expect(purchases.length, greaterThan(0));
         // Check that we have some purchases
-        final androidPurchases =
-            purchases.where((p) => p.purchaseToken != null).toList();
+        final androidPurchases = purchases
+            .where((p) => p.purchaseToken != null)
+            .toList();
         expect(androidPurchases.isNotEmpty, true);
       });
 
@@ -112,19 +112,18 @@ void main() {
 
       test('getAvailablePurchases handles empty list', () async {
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-            .setMockMethodCallHandler(
-          const MethodChannel('flutter_inapp'),
-          (MethodCall methodCall) async {
-            if (methodCall.method == 'initConnection') return true;
-            if (methodCall.method == 'getAvailablePurchases')
-              return <Map<String, dynamic>>[];
-            if (methodCall.method == 'getAvailableItems')
-              return <Map<String, dynamic>>[];
-            if (methodCall.method == 'getAvailableItemsByType')
-              return <Map<String, dynamic>>[];
-            return null;
-          },
-        );
+            .setMockMethodCallHandler(const MethodChannel('flutter_inapp'), (
+              MethodCall methodCall,
+            ) async {
+              if (methodCall.method == 'initConnection') return true;
+              if (methodCall.method == 'getAvailablePurchases')
+                return <Map<String, dynamic>>[];
+              if (methodCall.method == 'getAvailableItems')
+                return <Map<String, dynamic>>[];
+              if (methodCall.method == 'getAvailableItemsByType')
+                return <Map<String, dynamic>>[];
+              return null;
+            });
 
         plugin = FlutterInappPurchase.private(
           FakePlatform(operatingSystem: 'android'),
@@ -139,18 +138,17 @@ void main() {
     group('Purchase History', () {
       test('getPurchaseHistory returns history on Android', () async {
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-            .setMockMethodCallHandler(
-          const MethodChannel('flutter_inapp'),
-          (MethodCall methodCall) async {
-            if (methodCall.method == 'initConnection') return true;
-            if (methodCall.method == 'getPurchaseHistory') {
-              return _getMockPurchaseHistory()
-                  .map((item) => Map<String, dynamic>.from(item))
-                  .toList();
-            }
-            return null;
-          },
-        );
+            .setMockMethodCallHandler(const MethodChannel('flutter_inapp'), (
+              MethodCall methodCall,
+            ) async {
+              if (methodCall.method == 'initConnection') return true;
+              if (methodCall.method == 'getPurchaseHistory') {
+                return _getMockPurchaseHistory()
+                    .map((item) => Map<String, dynamic>.from(item))
+                    .toList();
+              }
+              return null;
+            });
 
         plugin = FlutterInappPurchase.private(
           FakePlatform(operatingSystem: 'android'),
@@ -184,8 +182,9 @@ void main() {
         );
         await plugin.initConnection();
 
-        final pendingPurchases =
-            await plugin.channel.invokeMethod('getPendingPurchases');
+        final pendingPurchases = await plugin.channel.invokeMethod(
+          'getPendingPurchases',
+        );
         expect((pendingPurchases as List).length, 2);
 
         final pending = pendingPurchases[0] as Map<dynamic, dynamic>;
@@ -233,7 +232,9 @@ void main() {
 
         expect(methodChannelLog.last.method, 'acknowledgePurchase');
         expect(
-            methodChannelLog.last.arguments['purchaseToken'], 'acknowledge_me');
+          methodChannelLog.last.arguments['purchaseToken'],
+          'acknowledge_me',
+        );
       });
 
       test('finishTransaction skips already acknowledged purchase', () async {
@@ -336,31 +337,30 @@ void main() {
 
       test('handles purchases with missing fields', () async {
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-            .setMockMethodCallHandler(
-          const MethodChannel('flutter_inapp'),
-          (MethodCall methodCall) async {
-            if (methodCall.method == 'initConnection') return true;
-            if (methodCall.method == 'getAvailablePurchases') {
-              return <Map<String, dynamic>>[
-                <String, dynamic>{
-                  'productId': 'incomplete_purchase',
-                  // Missing other fields
-                },
-              ];
-            }
-            if (methodCall.method == 'getAvailableItems') {
-              return <Map<String, dynamic>>[
-                <String, dynamic>{
-                  'productId': 'incomplete_purchase',
-                  // Missing other fields
-                },
-              ];
-            }
-            if (methodCall.method == 'getAvailableItemsByType')
-              return <Map<String, dynamic>>[];
-            return null;
-          },
-        );
+            .setMockMethodCallHandler(const MethodChannel('flutter_inapp'), (
+              MethodCall methodCall,
+            ) async {
+              if (methodCall.method == 'initConnection') return true;
+              if (methodCall.method == 'getAvailablePurchases') {
+                return <Map<String, dynamic>>[
+                  <String, dynamic>{
+                    'productId': 'incomplete_purchase',
+                    // Missing other fields
+                  },
+                ];
+              }
+              if (methodCall.method == 'getAvailableItems') {
+                return <Map<String, dynamic>>[
+                  <String, dynamic>{
+                    'productId': 'incomplete_purchase',
+                    // Missing other fields
+                  },
+                ];
+              }
+              if (methodCall.method == 'getAvailableItemsByType')
+                return <Map<String, dynamic>>[];
+              return null;
+            });
 
         plugin = FlutterInappPurchase.private(
           FakePlatform(operatingSystem: 'android'),
