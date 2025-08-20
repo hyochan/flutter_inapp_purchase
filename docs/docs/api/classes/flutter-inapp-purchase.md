@@ -97,7 +97,7 @@ Ends the connection to the platform's billing service. Should be called when the
 #### requestProducts()
 
 ```dart
-Future<List<BaseProduct>> requestProducts(RequestProductsParams params)
+Future<List<ProductCommon>> requestProducts(RequestProductsParams params)
 ```
 
 Fetches product information from the store.
@@ -126,7 +126,7 @@ final products = await FlutterInappPurchase.instance.requestProducts(
 ```dart
 Future<List<IapItem>> requestProducts({
   required List<String> skus,
-  String type = 'inapp',
+  PurchaseType type = PurchaseType.inapp,
 })
 ```
 

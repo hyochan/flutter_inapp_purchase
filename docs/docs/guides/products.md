@@ -134,12 +134,12 @@ Consumable products must be consumed:
 ```dart
 // For consumable products
 await FlutterInappPurchase.instance.consumePurchase(
-  purchaseToken: item.purchaseTokenAndroid!,
+  purchaseToken: item.purchaseToken!,
 );
 
 // For non-consumable products
 await FlutterInappPurchase.instance.acknowledgePurchase(
-  purchaseToken: item.purchaseTokenAndroid!,
+  purchaseToken: item.purchaseToken!,
 );
 ```
 
@@ -186,7 +186,7 @@ Future<bool> verifyPurchase(PurchasedItem item) async {
   if (Platform.isIOS) {
     receipt = await FlutterInappPurchase.instance.getReceiptData();
   } else {
-    receipt = item.purchaseTokenAndroid;
+    receipt = item.purchaseToken;
   }
 
   // Send to your server
@@ -225,7 +225,7 @@ class ConsumableManager {
     // Consume the purchase (Android)
     if (Platform.isAndroid) {
       await FlutterInappPurchase.instance.consumePurchase(
-        purchaseToken: item.purchaseTokenAndroid!,
+        purchaseToken: item.purchaseToken!,
       );
     }
 
@@ -262,7 +262,7 @@ class NonConsumableManager {
     // Acknowledge purchase (Android)
     if (Platform.isAndroid && item.isAcknowledgedAndroid == false) {
       await FlutterInappPurchase.instance.acknowledgePurchase(
-        purchaseToken: item.purchaseTokenAndroid!,
+        purchaseToken: item.purchaseToken!,
       );
     }
 

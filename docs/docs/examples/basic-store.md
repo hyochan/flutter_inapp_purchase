@@ -651,7 +651,7 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
                   ),
                 ),
                 ElevatedButton(
-                  onPressed: _isLoading
+                  onPressed: _isLoading || product.productId == null
                     ? null
                     : () => _makePurchase(product.productId!),
                   child: Text('Buy Now'),

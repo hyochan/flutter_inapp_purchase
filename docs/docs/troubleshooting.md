@@ -227,11 +227,11 @@ void _handlePurchaseUpdate(PurchasedItem? item) async {
       // Android: Choose based on product type
       if (isConsumable(item.productId!)) {
         await FlutterInappPurchase.instance.consumePurchase(
-          purchaseToken: item.purchaseTokenAndroid!,
+          purchaseToken: item.purchaseToken!,
         );
       } else {
         await FlutterInappPurchase.instance.acknowledgePurchase(
-          purchaseToken: item.purchaseTokenAndroid!,
+          purchaseToken: item.purchaseToken!,
         );
       }
     }
@@ -254,7 +254,7 @@ void _handlePurchaseUpdate(PurchasedItem? item) async {
    for (final purchase in purchases ?? []) {
      if (isConsumable(purchase.productId!)) {
        await FlutterInappPurchase.instance.consumePurchase(
-         purchaseToken: purchase.purchaseTokenAndroid!,
+         purchaseToken: purchase.purchaseToken!,
        );
      }
    }
@@ -393,7 +393,7 @@ void dispose() {
 ```dart
 // Use Google Play Developer API for server-side validation
 // Send purchase token to your server for verification
-final purchaseToken = item.purchaseTokenAndroid;
+final purchaseToken = item.purchaseToken;
 await validatePurchaseOnServer(purchaseToken, item.productId);
 ```
 

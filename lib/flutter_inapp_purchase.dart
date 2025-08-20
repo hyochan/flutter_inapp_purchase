@@ -1845,11 +1845,31 @@ class FlutterInappPurchase
             final transDate = DateTime.fromMillisecondsSinceEpoch(
               purchase.transactionDate!,
             );
-            // Assume 30-day subscription for demo purposes
-            // In production, this should come from receipt validation
-            expirationDate = transDate.add(const Duration(days: 30));
+            // TODO: Retrieve actual subscription duration from receipt validation
+            // This is a placeholder that should be replaced with actual data
+            if (purchase is iap_types.PurchaseIOS) {
+              final purchaseIOS = purchase as iap_types.PurchaseIOS;
+              if (purchaseIOS.expirationDateIOS != null) {
+                expirationDate = DateTime.fromMillisecondsSinceEpoch(
+                  purchaseIOS.expirationDateIOS!,
+                );
+              } else {
+                // Fallback to 30-day assumption for demo purposes only
+                expirationDate = transDate.add(const Duration(days: 30));
+              }
+            } else {
+              // For regular Purchase class (not PurchaseIOS)
+              if (purchase.expirationDateIOS != null) {
+                // Purchase class has expirationDateIOS as DateTime already
+                expirationDate = purchase.expirationDateIOS;
+              } else {
+                // Fallback to 30-day assumption for demo purposes only
+                expirationDate = transDate.add(const Duration(days: 30));
+              }
+            }
+
             daysUntilExpiration =
-                expirationDate.difference(DateTime.now()).inDays;
+                expirationDate!.difference(DateTime.now()).inDays;
             willExpireSoon = daysUntilExpiration <= 7;
           }
 

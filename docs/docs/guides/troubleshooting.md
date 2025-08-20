@@ -67,7 +67,7 @@ final purchase = await FlutterInappPurchase.instance.requestPurchase(
 purchase.purchaseToken; // Contains JWS for server validation
 
 // DEPRECATED - use purchaseToken instead
-purchase.jwsRepresentationIOS; // Still available but deprecated
+purchase.jwsRepresentationIOS; // [DEPRECATED] Use purchaseToken instead
 ```
 
 ### Server Validation with Unified Token

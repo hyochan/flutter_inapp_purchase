@@ -3498,10 +3498,9 @@ extension PurchaseOpenIapExtension on Purchase {
       'purchaseToken': purchaseToken,
       'orderId': orderId,
       'packageName': packageName,
-      'purchaseState': purchaseState?.toString(),
+      'purchaseState': purchaseState?.index,
       'isAcknowledged': isAcknowledged,
       'autoRenewing': autoRenewing,
-      'platform': platform.toString(),
     };
 
     final isIOS = platform == IapPlatform.ios;

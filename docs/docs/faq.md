@@ -85,11 +85,11 @@ if (Platform.isIOS) {
   // Android: Consume or acknowledge
   if (isConsumable) {
     await FlutterInappPurchase.instance.consumePurchase(
-      purchaseToken: item.purchaseTokenAndroid!,
+      purchaseToken: item.purchaseToken!,
     );
   } else {
     await FlutterInappPurchase.instance.acknowledgePurchase(
-      purchaseToken: item.purchaseTokenAndroid!,
+      purchaseToken: item.purchaseToken!,
     );
   }
 }
@@ -196,7 +196,7 @@ await validateReceiptOnServer(receiptData);
 
 ```dart
 // Get purchase token
-String? token = item.purchaseTokenAndroid;
+String? token = item.purchaseToken;
 
 // Validate on your server using Google Play Developer API
 await validateTokenOnServer(token, item.productId);

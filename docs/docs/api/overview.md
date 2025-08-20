@@ -88,7 +88,7 @@ class PurchasedItem {
   final String? originalTransactionIdentifierIOS;
 
   // Android specific
-  final String? purchaseTokenAndroid;
+  final String? purchaseTokenAndroid;  // [DEPRECATED] Use purchaseToken instead
   final String? developerPayloadAndroid;
   final bool? isAcknowledgedAndroid;
   final int? purchaseStateAndroid;

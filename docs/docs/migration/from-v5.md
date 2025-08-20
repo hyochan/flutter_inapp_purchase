@@ -355,7 +355,7 @@ class _MyAppState extends State<MyApp> {
   Future<void> _getProduct() async {
     try {
       List<IapItem> items = await FlutterInappPurchase.instance
-          .requestProducts(skus: _kProductIds, type: 'inapp');
+          .getProducts(_kProductIds);
       setState(() {
         _items = items;
       });

@@ -168,7 +168,7 @@ void _handlePurchaseUpdate(PurchasedItem item) async {
   } else {
     // Android - consume or acknowledge
     await FlutterInappPurchase.instance.consumePurchase(
-      purchaseToken: item.purchaseTokenAndroid!,
+      purchaseToken: item.purchaseToken!,
     );
   }
 }
@@ -378,11 +378,11 @@ class _StoreState extends State<Store> {
 
         if (isConsumable) {
           await FlutterInappPurchase.instance.consumePurchase(
-            purchaseToken: item.purchaseTokenAndroid!,
+            purchaseToken: item.purchaseToken!,
           );
         } else {
           await FlutterInappPurchase.instance.acknowledgePurchase(
-            purchaseToken: item.purchaseTokenAndroid!,
+            purchaseToken: item.purchaseToken!,
           );
         }
       }

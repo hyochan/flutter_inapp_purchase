@@ -133,11 +133,11 @@ class _SimpleStoreState extends State<SimpleStore> {
         await FlutterInappPurchase.instance.finishTransaction(productItem);
       } else if (productItem.isConsumableAndroid ?? false) {
         await FlutterInappPurchase.instance.consumePurchase(
-          purchaseToken: productItem.purchaseTokenAndroid!,
+          purchaseToken: productItem.purchaseToken!,
         );
       } else {
         await FlutterInappPurchase.instance.acknowledgePurchase(
-          purchaseToken: productItem.purchaseTokenAndroid!,
+          purchaseToken: productItem.purchaseToken!,
         );
       }
 
@@ -354,11 +354,11 @@ if (Platform.isIOS) {
   // Android: Acknowledge or consume
   if (isConsumable) {
     await FlutterInappPurchase.instance.consumePurchase(
-      purchaseToken: item.purchaseTokenAndroid!,
+      purchaseToken: item.purchaseToken!,
     );
   } else {
     await FlutterInappPurchase.instance.acknowledgePurchase(
-      purchaseToken: item.purchaseTokenAndroid!,
+      purchaseToken: item.purchaseToken!,
     );
   }
 }

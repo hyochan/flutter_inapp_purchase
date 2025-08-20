@@ -178,7 +178,7 @@ class _SubscriptionStoreState extends State<SubscriptionStore> {
       // But you might want to acknowledge manually for better control
       if (item.isAcknowledgedAndroid == false) {
         await FlutterInappPurchase.instance.acknowledgePurchase(
-          purchaseToken: item.purchaseTokenAndroid!,
+          purchaseToken: item.purchaseToken!,
         );
       }
     }

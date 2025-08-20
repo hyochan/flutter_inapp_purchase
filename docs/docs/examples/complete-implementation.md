@@ -147,7 +147,7 @@ class IAPService {
       if (Platform.isIOS) {
         receipt = await FlutterInappPurchase.instance.getReceiptData();
       } else {
-        receipt = item.purchaseTokenAndroid;
+        receipt = item.purchaseToken;
       }
 
       final response = await http.post(
@@ -201,11 +201,11 @@ class IAPService {
 
       if (isConsumable) {
         await FlutterInappPurchase.instance.consumePurchase(
-          purchaseToken: item.purchaseTokenAndroid!,
+          purchaseToken: item.purchaseToken!,
         );
       } else {
         await FlutterInappPurchase.instance.acknowledgePurchase(
-          purchaseToken: item.purchaseTokenAndroid!,
+          purchaseToken: item.purchaseToken!,
         );
       }
     }

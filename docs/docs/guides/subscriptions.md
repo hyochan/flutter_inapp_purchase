@@ -134,7 +134,7 @@ Future<void> purchaseSubscriptionAdvanced({
           ios: RequestPurchaseIOS(sku: subscriptionId),
           android: RequestPurchaseAndroid(
             skus: [subscriptionId],
-            purchaseTokenAndroid: currentToken,
+            purchaseTokenAndroid: currentToken, // [DEPRECATED] Use purchaseToken instead
             replacementModeAndroid: prorationMode ??
                 AndroidProrationMode.IMMEDIATE_AND_CHARGE_PRORATED_PRICE,
             obfuscatedAccountIdAndroid: await _getUserId(),
@@ -229,7 +229,7 @@ class SubscriptionChangeHandler {
               ios: RequestPurchaseIOS(sku: toProductId),
               android: RequestPurchaseAndroid(
                 skus: [toProductId],
-                purchaseTokenAndroid: currentToken,
+                purchaseTokenAndroid: currentToken, // [DEPRECATED] Use purchaseToken instead
                 replacementModeAndroid: AndroidProrationMode.IMMEDIATE_AND_CHARGE_PRORATED_PRICE,
               ),
             ),

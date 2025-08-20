@@ -133,7 +133,7 @@ Android requires acknowledging purchases within 3 days:
 ```dart
 // Acknowledge a purchase
 await FlutterInappPurchase.instance.acknowledgePurchase(
-  purchaseToken: purchase.purchaseTokenAndroid!,
+  purchaseToken: purchase.purchaseToken!,
 );
 ```
 
@@ -144,7 +144,7 @@ For consumable products:
 ```dart
 // Consume a purchase
 await FlutterInappPurchase.instance.consumePurchase(
-  purchaseToken: purchase.purchaseTokenAndroid!,
+  purchaseToken: purchase.purchaseToken!,
 );
 ```
 

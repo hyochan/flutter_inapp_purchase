@@ -30,7 +30,7 @@ Future requestSubscription(
 - `prorationModeAndroid` - (Android only) How to handle proration for upgrades/downgrades
 - `obfuscatedAccountIdAndroid` - (Android only) Obfuscated user account identifier
 - `obfuscatedProfileIdAndroid` - (Android only) Obfuscated profile identifier
-- `purchaseTokenAndroid` - (Android only) Token of existing subscription for upgrades
+- `purchaseTokenAndroid` - (Android only) Token of existing subscription for upgrades [DEPRECATED] Use purchaseToken instead
 - `offerTokenIndex` - (Android only) Index of specific offer to purchase
 
 ## Usage Examples
@@ -59,7 +59,7 @@ await FlutterInappPurchase.instance.requestSubscription(
 await FlutterInappPurchase.instance.requestSubscription(
   'com.example.yearly',
   prorationModeAndroid: AndroidProrationMode.IMMEDIATE_AND_CHARGE_PRORATED_PRICE,
-  purchaseTokenAndroid: currentMonthlyToken,
+  purchaseTokenAndroid: currentMonthlyToken, // [DEPRECATED] Use purchaseToken instead
   obfuscatedAccountIdAndroid: 'user123_hashed',
 );
 ```
@@ -99,7 +99,7 @@ class SubscriptionManager {
       await _iap.requestSubscription(
         newSubscriptionId,
         prorationModeAndroid: prorationMode,
-        purchaseTokenAndroid: _currentSubscriptionToken,
+        purchaseTokenAndroid: _currentSubscriptionToken, // [DEPRECATED] Use purchaseToken instead
         obfuscatedAccountIdAndroid: await _getUserId(),
       );
     } catch (e) {
@@ -131,21 +131,21 @@ When upgrading or downgrading subscriptions on Android, you can specify how to h
 await _iap.requestSubscription(
   'com.example.yearly',
   prorationModeAndroid: AndroidProrationMode.IMMEDIATE_AND_CHARGE_PRORATED_PRICE,
-  purchaseTokenAndroid: monthlyToken,
+  purchaseTokenAndroid: monthlyToken, // [DEPRECATED] Use purchaseToken instead
 );
 
 // Immediate upgrade with full price
 await _iap.requestSubscription(
   'com.example.yearly',
   prorationModeAndroid: AndroidProrationMode.IMMEDIATE_AND_CHARGE_FULL_PRICE,
-  purchaseTokenAndroid: monthlyToken,
+  purchaseTokenAndroid: monthlyToken, // [DEPRECATED] Use purchaseToken instead
 );
 
 // Deferred upgrade (at next renewal)
 await _iap.requestSubscription(
   'com.example.yearly',
   prorationModeAndroid: AndroidProrationMode.DEFERRED,
-  purchaseTokenAndroid: monthlyToken,
+  purchaseTokenAndroid: monthlyToken, // [DEPRECATED] Use purchaseToken instead
 );
 ```
 
