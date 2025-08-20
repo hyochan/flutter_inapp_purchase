@@ -150,10 +150,8 @@ void main() {
         await plugin.initConnection();
 
         final products = await plugin.requestProducts(
-          RequestProductsParams(
-            productIds: ['product1', 'product2'],
-            type: PurchaseType.inapp,
-          ),
+          productIds: ['product1', 'product2'],
+          type: PurchaseType.inapp,
         );
 
         expect(products.length, 2);
@@ -169,10 +167,8 @@ void main() {
 
         expect(
           () => plugin.requestProducts(
-            RequestProductsParams(
-              productIds: ['product1'],
-              type: PurchaseType.inapp,
-            ),
+            productIds: ['product1'],
+            type: PurchaseType.inapp,
           ),
           throwsA(
             isA<PurchaseError>().having(
@@ -191,10 +187,8 @@ void main() {
         await plugin.initConnection();
 
         final subscriptions = await plugin.requestProducts(
-          RequestProductsParams(
-            productIds: ['sub1', 'sub2'],
-            type: PurchaseType.subs,
-          ),
+          productIds: ['sub1', 'sub2'],
+          type: PurchaseType.subs,
         );
 
         expect(subscriptions.length, 2);
@@ -469,10 +463,8 @@ void main() {
 
         expect(
           () => plugin.requestProducts(
-            RequestProductsParams(
-              productIds: ['product1'],
-              type: PurchaseType.inapp,
-            ),
+            productIds: ['product1'],
+            type: PurchaseType.inapp,
           ),
           throwsA(isA<PurchaseError>()),
         );

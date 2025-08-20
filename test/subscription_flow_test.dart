@@ -115,10 +115,8 @@ void main() {
         await plugin.initConnection();
 
         final subscriptions = await plugin.requestProducts(
-          RequestProductsParams(
-            productIds: ['monthly_sub', 'yearly_sub'],
-            type: PurchaseType.subs,
-          ),
+          productIds: ['monthly_sub', 'yearly_sub'],
+          type: PurchaseType.subs,
         );
 
         expect(subscriptions.length, 2);
@@ -135,10 +133,8 @@ void main() {
         await plugin.initConnection();
 
         final subscriptions = await plugin.requestProducts(
-          RequestProductsParams(
-            productIds: ['ios_monthly_sub'],
-            type: PurchaseType.subs,
-          ),
+          productIds: ['ios_monthly_sub'],
+          type: PurchaseType.subs,
         );
 
         expect(subscriptions.length, 1);
@@ -156,10 +152,8 @@ void main() {
         await plugin.initConnection();
 
         final subscriptions = await plugin.requestProducts(
-          RequestProductsParams(
-            productIds: ['android_sub_with_offers'],
-            type: PurchaseType.subs,
-          ),
+          productIds: ['android_sub_with_offers'],
+          type: PurchaseType.subs,
         );
 
         expect(subscriptions.length, 1);
