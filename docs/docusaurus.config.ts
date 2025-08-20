@@ -48,8 +48,12 @@ const config: Config = {
             'https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/',
           versions: {
             current: {
-              label: '6.0 (Current)',
+              label: '6.4 (Current)',
               path: '',
+            },
+            '6.3': {
+              label: '6.3',
+              path: '6.3',
             },
           },
           lastVersion: 'current',

@@ -14,8 +14,8 @@ The `requestProducts()` method fetches product information for the specified pro
 ## Signature
 
 ```dart
-Future<List<ProductCommon>> requestProducts({
-  required List<String> productIds,
+Future<List<IapItem>> requestProducts({
+  required List<String> skus,
   PurchaseType type = PurchaseType.inapp,
 })
 ```
@@ -24,12 +24,12 @@ Future<List<ProductCommon>> requestProducts({
 
 | Parameter | Type           | Required | Default   | Description                                                                |
 | --------- | -------------- | -------- | --------- | -------------------------------------------------------------------------- |
-| `productIds` | `List<String>` | Yes      | -         | List of product identifiers to fetch                                       |
+| `skus`    | `List<String>` | Yes      | -         | List of product identifiers to fetch                                       |
 | `type`    | `PurchaseType` | No       | `PurchaseType.inapp` | Product type: `PurchaseType.inapp` (regular) or `PurchaseType.subs` (subscriptions) |
 
 ## Returns
 
-- **Type**: `Future<List<ProductCommon>>`
+- **Type**: `Future<List<IapItem>>`
 - **Description**: A list of product items with pricing and metadata
 
 ## Usage Examples
@@ -38,14 +38,14 @@ Future<List<ProductCommon>> requestProducts({
 
 ```dart
 try {
-  List<ProductCommon> products = await FlutterInappPurchase.instance.requestProducts(
-    productIds: ['coins_100', 'coins_500', 'remove_ads'],
+  List<IapItem> products = await FlutterInappPurchase.instance.requestProducts(
+    skus: ['coins_100', 'coins_500', 'remove_ads'],
     type: PurchaseType.inapp,
   );
 
   for (var product in products) {
     print('Product: ${product.title}');
-    print('Price: ${product.displayPrice}');
+    print('Price: ${product.localizedPrice}');
     print('Currency: ${product.currency}');
   }
 } catch (e) {
@@ -57,14 +57,14 @@ try {
 
 ```dart
 try {
-  List<ProductCommon> subscriptions = await FlutterInappPurchase.instance.requestProducts(
-    productIds: ['premium_monthly', 'premium_yearly'],
+  List<IapItem> subscriptions = await FlutterInappPurchase.instance.requestProducts(
+    skus: ['premium_monthly', 'premium_yearly'],
     type: PurchaseType.subs,
   );
 
   for (var subscription in subscriptions) {
     print('Subscription: ${subscription.title}');
-    print('Price: ${subscription.displayPrice}');
+    print('Price: ${subscription.localizedPrice}');
     print('Description: ${subscription.description}');
   }
 } catch (e) {
@@ -80,14 +80,14 @@ class ProductService {
     try {
       // Load regular products
       final products = await FlutterInappPurchase.instance.requestProducts(
-        productIds: ['coins_100', 'remove_ads'],
-        type: PurchaseType.inapp,
+        skus: ['coins_100', 'remove_ads'],
+        type: 'inapp',
       );
 
       // Load subscriptions
       final subscriptions = await FlutterInappPurchase.instance.requestProducts(
-        productIds: ['premium_monthly', 'premium_yearly'],
-        type: PurchaseType.subs,
+        skus: ['premium_monthly', 'premium_yearly'],
+        type: 'subs',
       );
 
       print('Loaded ${products.length} products');
