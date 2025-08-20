@@ -963,12 +963,9 @@ class FlutterInappPurchase
       }
     }
 
-    // Debug: Log the conversion
+    // Convert transactionId to string
     final convertedTransactionId =
         item.id?.toString() ?? item.transactionId?.toString();
-    debugPrint(
-      '[flutter_inapp_purchase] _convertToPurchase - transactionId conversion: ${item.id} -> $convertedTransactionId (${convertedTransactionId.runtimeType})',
-    );
 
     return iap_types.Purchase(
       productId: item.productId ?? '',
@@ -1382,11 +1379,6 @@ class FlutterInappPurchase
     final transactionId =
         purchase.id.isNotEmpty ? purchase.id : purchase.transactionId;
 
-    debugPrint('[FlutterInappPurchase] finishTransaction called');
-    debugPrint('[FlutterInappPurchase] Purchase object: $purchase');
-    debugPrint('[FlutterInappPurchase] Final transactionId: $transactionId');
-    debugPrint('[FlutterInappPurchase] Platform: ${_platform.operatingSystem}');
-
     if (_platform.isAndroid) {
       if (isConsumable) {
         debugPrint(
@@ -1514,67 +1506,22 @@ class FlutterInappPurchase
     _connectionController ??= StreamController.broadcast();
     _purchasePromotedController ??= StreamController.broadcast();
 
-    debugPrint('[flutter_inapp_purchase] Setting up method call handler');
     _channel.setMethodCallHandler((MethodCall call) async {
-      debugPrint(
-        '[flutter_inapp_purchase] Received method call: ${call.method}',
-      );
-      debugPrint('[flutter_inapp_purchase] Arguments: ${call.arguments}');
-
       switch (call.method) {
         case 'purchase-updated':
-          debugPrint(
-            '[flutter_inapp_purchase] Processing purchase-updated event',
-          );
           try {
             Map<String, dynamic> result =
                 jsonDecode(call.arguments as String) as Map<String, dynamic>;
-            debugPrint('[flutter_inapp_purchase] Decoded result: $result');
-
-            // Debug: Check the actual types of ID fields
-            if (result['transactionId'] != null) {
-              debugPrint(
-                '[flutter_inapp_purchase] transactionId type: ${result['transactionId'].runtimeType}, value: ${result['transactionId']}',
-              );
-            }
-            if (result['id'] != null) {
-              debugPrint(
-                '[flutter_inapp_purchase] id type: ${result['id'].runtimeType}, value: ${result['id']}',
-              );
-            }
-            if (result['originalTransactionIdentifierIOS'] != null) {
-              debugPrint(
-                '[flutter_inapp_purchase] originalTransactionIdentifierIOS type: ${result['originalTransactionIdentifierIOS'].runtimeType}, value: ${result['originalTransactionIdentifierIOS']}',
-              );
-            }
 
             iap_types.PurchasedItem item = iap_types.PurchasedItem.fromJSON(
               result,
             );
-            debugPrint('[flutter_inapp_purchase] Created PurchasedItem: $item');
-            debugPrint(
-              '[flutter_inapp_purchase] PurchasedItem.id: ${item.id} (${item.id.runtimeType})',
-            );
-            debugPrint(
-              '[flutter_inapp_purchase] PurchasedItem.transactionId: ${item.transactionId} (${item.transactionId.runtimeType})',
-            );
 
             _purchaseController!.add(item);
-            debugPrint('[flutter_inapp_purchase] Added to purchaseController');
 
             // Also emit to flutter IAP compatible stream with original JSON for iOS subscription fields
             final purchase = _convertToPurchase(item, result);
-            debugPrint(
-              '[flutter_inapp_purchase] Converted to Purchase: $purchase',
-            );
-            debugPrint(
-              '[flutter_inapp_purchase] Emitting purchase to purchaseUpdatedController: $purchase',
-            );
-
             _purchaseUpdatedListener.add(purchase);
-            debugPrint(
-              '[flutter_inapp_purchase] Successfully emitted to purchaseUpdatedListener',
-            );
           } catch (e, stackTrace) {
             debugPrint(
               '[flutter_inapp_purchase] ERROR in purchase-updated: $e',

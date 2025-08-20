@@ -66,11 +66,11 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
   bool _isLoading = false;
   List<IapItem> _products = [];
   String? _errorMessage;
-  PurchasedItem? _latestPurchase;
+  Purchase? _latestPurchase;
 
   // Stream subscriptions
-  StreamSubscription<PurchasedItem?>? _purchaseSubscription;
-  StreamSubscription<PurchaseResult?>? _errorSubscription;
+  StreamSubscription<Purchase>? _purchaseSubscription;
+  StreamSubscription<PurchaseError>? _errorSubscription;
   StreamSubscription<ConnectionResult>? _connectionSubscription;
 
   // Product IDs - Replace with your actual product IDs
@@ -108,11 +108,9 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
       await _iap.initConnection();
 
       // Set up purchase success listener
-      _purchaseSubscription = FlutterInappPurchase.purchaseUpdated.listen(
+      _purchaseSubscription = _iap.purchaseUpdatedListener.listen(
         (purchase) {
-          if (purchase != null) {
-            _handlePurchaseSuccess(purchase);
-          }
+          _handlePurchaseSuccess(purchase);
         },
         onError: (error) {
           _showError('Purchase stream error: $error');
@@ -120,11 +118,9 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
       );
 
       // Set up purchase error listener
-      _errorSubscription = FlutterInappPurchase.purchaseError.listen(
+      _errorSubscription = _iap.purchaseErrorListener.listen(
         (error) {
-          if (error != null) {
-            _handlePurchaseError(error);
-          }
+          _handlePurchaseError(error);
         },
       );
 
@@ -167,7 +163,10 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
     });
 
     try {
-      final products = await _iap.getProducts(_productIds);
+      final products = await _iap.requestProducts(
+        skus: _productIds,
+        type: PurchaseType.inapp,
+      );
 
       setState(() {
         _products = products;
@@ -188,7 +187,7 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
   }
 
   /// Handle successful purchase
-  Future<void> _handlePurchaseSuccess(PurchasedItem purchase) async {
+  Future<void> _handlePurchaseSuccess(Purchase purchase) async {
     print('✅ Purchase successful: ${purchase.productId}');
 
     setState(() {
@@ -221,7 +220,7 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
   }
 
   /// Handle purchase errors
-  void _handlePurchaseError(PurchaseResult error) {
+  void _handlePurchaseError(PurchaseError error) {
     print('❌ Purchase failed: ${error.message}');
 
     setState(() {
@@ -695,7 +694,10 @@ await _iap.initConnection();
 ### 2. Product Loading
 
 ```dart
-final products = await _iap.getProducts(_productIds);
+final products = await _iap.requestProducts(
+  skus: _productIds,
+  type: PurchaseType.inapp,
+);
 ```
 
 - Fetches product information from the store
@@ -766,8 +768,8 @@ bool _isConsumableProduct(String productId) {
 ### Custom Error Handling
 
 ```dart
-void _handlePurchaseError(PurchaseResult error) {
-  switch (error.responseCode) {
+void _handlePurchaseError(PurchaseError error) {
+  switch (error.code) {
     case 1: /* User cancelled */
     case 2: /* Network error */
     case 7: /* Already owned */

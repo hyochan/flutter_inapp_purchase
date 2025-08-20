@@ -303,17 +303,13 @@ class StoreService {
     await _iap.initConnection();
 
     // Listen to purchase updates
-    FlutterInappPurchase.purchaseUpdated.listen((purchase) {
-      if (purchase != null) {
-        _handlePurchase(purchase);
-      }
+    _iap.purchaseUpdatedListener.listen((purchase) {
+      _handlePurchase(purchase);
     });
 
     // Listen to purchase errors
-    FlutterInappPurchase.purchaseError.listen((error) {
-      if (error != null) {
-        _handleError(error);
-      }
+    _iap.purchaseErrorListener.listen((error) {
+      _handleError(error);
     });
   }
 
