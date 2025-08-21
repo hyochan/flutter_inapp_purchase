@@ -117,7 +117,10 @@ void main() {
               isMethodCall(
                 'getProducts',
                 arguments: {
-                  'productIds': ['com.example.product1', 'com.example.product2'],
+                  'productIds': [
+                    'com.example.product1',
+                    'com.example.product2'
+                  ],
                 },
               ),
             ]);

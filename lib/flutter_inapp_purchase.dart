@@ -1860,7 +1860,7 @@ class FlutterInappPurchase
         .map<iap_types.Purchase>(
           (dynamic product) => _convertFromLegacyPurchase(
             Map<String, dynamic>.from(product as Map),
-            Map<String, dynamic>.from(product as Map), // Pass original JSON as well
+            Map<String, dynamic>.from(product), // Pass original JSON as well
           ),
         )
         .toList();
