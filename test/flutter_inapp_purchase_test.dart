@@ -116,7 +116,9 @@ void main() {
             expect(log, <Matcher>[
               isMethodCall(
                 'getProducts',
-                arguments: ['com.example.product1', 'com.example.product2'],
+                arguments: {
+                  'productIds': ['com.example.product1', 'com.example.product2'],
+                },
               ),
             ]);
           });
@@ -134,7 +136,7 @@ void main() {
             );
             expect(products.length, 2);
             expect(products[0].productId, 'com.example.product1');
-            expect(products[0].price, '0.99');
+            expect(products[0].price, 0.99);
             expect(products[0].currency, 'USD');
             expect(products[1].productId, 'com.example.product2');
           });
@@ -474,6 +476,10 @@ void main() {
                       'ios_jws_token_123', // Deprecated field
                   'transactionStateIOS':
                       '1', // TransactionState.purchased value
+                  'environmentIOS': 'Production',
+                  'expirationDateIOS': DateTime.now()
+                      .add(Duration(days: 30))
+                      .millisecondsSinceEpoch,
                 },
               ];
             }

@@ -55,7 +55,7 @@ void main() {
 
         expect(subscription.productId, 'android_sub');
         expect(subscription.subscriptionPeriodAndroid, 'P1M');
-        expect(subscription.platform, IapPlatform.android);
+        expect(subscription.platform, 'android');
       });
 
       test('Subscription should be created correctly for iOS', () {
@@ -72,7 +72,7 @@ void main() {
 
         expect(subscription.productId, 'ios_sub');
         expect(subscription.subscriptionGroupIdIOS, 'group_123');
-        expect(subscription.platform, IapPlatform.ios);
+        expect(subscription.platform, 'ios');
       });
     });
 

@@ -523,11 +523,7 @@ class FlutterInappPurchase
         final subscriptions = extractPurchases(result2) ?? [];
         allPurchases.addAll(subscriptions);
 
-        return allPurchases
-            .map((item) => _convertFromLegacyPurchase(
-                  Map<String, dynamic>.from(item as Map),
-                ))
-            .toList();
+        return allPurchases;
       } else if (_platform.isIOS) {
         // On iOS, use the internal method to get available items
         return await _getAvailableItems();
@@ -583,11 +579,7 @@ class FlutterInappPurchase
         history.addAll(items);
       }
 
-      return history
-          .map((item) => _convertFromLegacyPurchase(
-                Map<String, dynamic>.from(item as Map),
-              ))
-          .toList();
+      return history;
     } catch (e) {
       throw iap_types.PurchaseError(
         code: iap_types.ErrorCode.eServiceError,
@@ -1245,11 +1237,7 @@ class FlutterInappPurchase
       );
     }
 
-    return items
-        .map((item) => _convertFromLegacyPurchase(
-              Map<String, dynamic>.from(item as Map),
-            ))
-        .toList();
+    return items;
   }
 
   /// Request a subscription
@@ -1872,6 +1860,7 @@ class FlutterInappPurchase
         .map<iap_types.Purchase>(
           (dynamic product) => _convertFromLegacyPurchase(
             Map<String, dynamic>.from(product as Map),
+            Map<String, dynamic>.from(product as Map), // Pass original JSON as well
           ),
         )
         .toList();
