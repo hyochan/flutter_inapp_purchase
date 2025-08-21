@@ -108,6 +108,86 @@ class SubscriptionPurchase extends Purchase {
   }
 }
 
+/// Active subscription information (OpenIAP compliant)
+/// Used by getActiveSubscriptions() and hasActiveSubscriptions()
+class ActiveSubscription {
+  /// Product identifier
+  final String productId;
+
+  /// Always true for active subscriptions
+  final bool isActive;
+
+  /// Subscription expiration date (iOS only)
+  final DateTime? expirationDateIOS;
+
+  /// Auto-renewal status (Android only)
+  final bool? autoRenewingAndroid;
+
+  /// Environment: 'Sandbox' | 'Production' (iOS only)
+  final String? environmentIOS;
+
+  /// True if subscription expires within 7 days
+  final bool? willExpireSoon;
+
+  /// Days remaining until expiration (iOS only)
+  final int? daysUntilExpirationIOS;
+
+  ActiveSubscription({
+    required this.productId,
+    required this.isActive,
+    this.expirationDateIOS,
+    this.autoRenewingAndroid,
+    this.environmentIOS,
+    this.willExpireSoon,
+    this.daysUntilExpirationIOS,
+  });
+
+  /// Creates ActiveSubscription from a Purchase or SubscriptionPurchase
+  factory ActiveSubscription.fromPurchase(Purchase purchase) {
+    DateTime? expirationDate;
+    bool? willExpireSoon;
+    int? daysUntilExpiration;
+
+    // Get expiration date for iOS
+    if (purchase.platform == IapPlatform.ios) {
+      expirationDate = purchase.expirationDateIOS;
+
+      // Calculate days until expiration and willExpireSoon
+      if (expirationDate != null) {
+        final now = DateTime.now();
+        final difference = expirationDate.difference(now);
+        daysUntilExpiration = difference.inDays;
+        willExpireSoon = daysUntilExpiration <= 7;
+      }
+    }
+
+    return ActiveSubscription(
+      productId: purchase.productId,
+      isActive: true, // Only active subscriptions are returned
+      expirationDateIOS: expirationDate,
+      autoRenewingAndroid: purchase.autoRenewingAndroid,
+      environmentIOS: purchase.environmentIOS,
+      willExpireSoon: willExpireSoon,
+      daysUntilExpirationIOS: daysUntilExpiration,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'productId': productId,
+      'isActive': isActive,
+      if (expirationDateIOS != null)
+        'expirationDateIOS': expirationDateIOS!.toIso8601String(),
+      if (autoRenewingAndroid != null)
+        'autoRenewingAndroid': autoRenewingAndroid,
+      if (environmentIOS != null) 'environmentIOS': environmentIOS,
+      if (willExpireSoon != null) 'willExpireSoon': willExpireSoon,
+      if (daysUntilExpirationIOS != null)
+        'daysUntilExpirationIOS': daysUntilExpirationIOS,
+    };
+  }
+}
+
 /// iOS-specific purchase class
 class PurchaseIOS extends Purchase {
   @override
