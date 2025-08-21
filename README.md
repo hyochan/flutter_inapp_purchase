@@ -46,7 +46,7 @@ await iap.initConnection();
 
 // Get products
 final products = await iap.requestProducts(
-  productIds: ['product_id'],
+  skus: ['product_id'],
   type: PurchaseType.inapp,
 );
 

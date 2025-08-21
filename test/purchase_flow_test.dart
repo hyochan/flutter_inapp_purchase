@@ -150,7 +150,7 @@ void main() {
         await plugin.initConnection();
 
         final products = await plugin.requestProducts(
-          productIds: ['product1', 'product2'],
+          skus: ['product1', 'product2'],
           type: PurchaseType.inapp,
         );
 
@@ -167,7 +167,7 @@ void main() {
 
         expect(
           () => plugin.requestProducts(
-            productIds: ['product1'],
+            skus: ['product1'],
             type: PurchaseType.inapp,
           ),
           throwsA(
@@ -187,7 +187,7 @@ void main() {
         await plugin.initConnection();
 
         final subscriptions = await plugin.requestProducts(
-          productIds: ['sub1', 'sub2'],
+          skus: ['sub1', 'sub2'],
           type: PurchaseType.subs,
         );
 
@@ -463,7 +463,7 @@ void main() {
 
         expect(
           () => plugin.requestProducts(
-            productIds: ['product1'],
+            skus: ['product1'],
             type: PurchaseType.inapp,
           ),
           throwsA(isA<PurchaseError>()),

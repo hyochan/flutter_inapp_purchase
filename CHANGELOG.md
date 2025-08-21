@@ -9,14 +9,14 @@
   // Before (6.3.x)
   final products = await iap.requestProducts(
     RequestProductsParams(
-      productIds: ['product_id'],
+      skus: ['product_id'],
       type: PurchaseType.inapp,
     ),
   );
   
   // After (6.4.0)
   final products = await iap.requestProducts(
-    productIds: ['product_id'],
+    skus: ['product_id'],
     type: PurchaseType.inapp,  // Optional, defaults to PurchaseType.inapp
   );
   ```

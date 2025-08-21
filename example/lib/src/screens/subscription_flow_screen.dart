@@ -266,7 +266,7 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
     try {
       // Use the new requestProducts method
       final products = await _iap.requestProducts(
-        productIds: subscriptionIds,
+        skus: subscriptionIds,
         type: PurchaseType.subs,
       );
 

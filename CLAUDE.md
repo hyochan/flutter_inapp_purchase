@@ -9,14 +9,14 @@ The `requestProducts` method now uses direct parameters instead of a parameter o
 // Old API (removed):
 final products = await iap.requestProducts(
   RequestProductsParams(
-    productIds: ['product_id'],
+    skus: ['product_id'],
     type: PurchaseType.inapp,
   ),
 );
 
 // New API:
 final products = await iap.requestProducts(
-  productIds: ['product_id'],
+  skus: ['product_id'],
   type: PurchaseType.inapp,  // Optional, defaults to PurchaseType.inapp
 );
 ```

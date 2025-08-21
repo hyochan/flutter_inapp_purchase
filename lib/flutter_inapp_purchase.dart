@@ -179,7 +179,7 @@ class FlutterInappPurchase
 
   /// Request products (flutter IAP compatible)
   Future<List<iap_types.ProductCommon>> requestProducts({
-    required List<String> productIds,
+    required List<String> skus,
     iap_types.PurchaseType type = iap_types.PurchaseType.inapp,
   }) async {
     if (!_isInitialized) {
@@ -194,7 +194,7 @@ class FlutterInappPurchase
 
     try {
       debugPrint(
-        '[flutter_inapp_purchase] requestProducts called with productIds: $productIds,',
+        '[flutter_inapp_purchase] requestProducts called with skus: $skus,',
       );
 
       // Get raw data from native platform
@@ -202,15 +202,15 @@ class FlutterInappPurchase
       if (_platform.isIOS) {
         // iOS uses unified getItems method for both products and subscriptions
         rawResult = await _channel.invokeMethod('getItems', {
-          'skus': productIds,
+          'skus': skus,
         });
       } else if (type == iap_types.PurchaseType.inapp) {
         rawResult = await _channel.invokeMethod('getProducts', {
-          'productIds': productIds,
+          'productIds': skus,
         });
       } else {
         rawResult = await _channel.invokeMethod('getSubscriptions', {
-          'productIds': productIds,
+          'productIds': skus,
         });
       }
 
@@ -1146,7 +1146,7 @@ class FlutterInappPurchase
   Future<List<iap_types.IapItem>> getProducts(List<String> productIds) async {
     // Redirect to requestProducts for backward compatibility
     final products = await requestProducts(
-      productIds: productIds,
+      skus: productIds,
       type: iap_types.PurchaseType.inapp,
     );
 
@@ -1183,7 +1183,7 @@ class FlutterInappPurchase
   ) async {
     // Redirect to requestProducts for backward compatibility
     final products = await requestProducts(
-      productIds: productIds,
+      skus: productIds,
       type: iap_types.PurchaseType.subs,
     );
 
@@ -1587,7 +1587,7 @@ class FlutterInappPurchase
     List<String> productIds,
   ) async {
     final products = await requestProducts(
-      productIds: productIds,
+      skus: productIds,
       type: iap_types.PurchaseType.inapp,
     );
     return products.whereType<iap_types.Product>().toList();
