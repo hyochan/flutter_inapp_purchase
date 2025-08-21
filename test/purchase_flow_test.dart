@@ -151,7 +151,7 @@ void main() {
 
         final products = await plugin.requestProducts(
           skus: ['product1', 'product2'],
-          type: PurchaseType.inapp,
+          type: ProductType.inapp,
         );
 
         expect(products.length, 2);
@@ -168,7 +168,7 @@ void main() {
         expect(
           () => plugin.requestProducts(
             skus: ['product1'],
-            type: PurchaseType.inapp,
+            type: ProductType.inapp,
           ),
           throwsA(
             isA<PurchaseError>().having(
@@ -188,7 +188,7 @@ void main() {
 
         final subscriptions = await plugin.requestProducts(
           skus: ['sub1', 'sub2'],
-          type: PurchaseType.subs,
+          type: ProductType.subs,
         );
 
         expect(subscriptions.length, 2);
@@ -207,7 +207,7 @@ void main() {
           request: RequestPurchase(
             android: RequestPurchaseAndroid(skus: ['product1']),
           ),
-          type: PurchaseType.inapp,
+          type: ProductType.inapp,
         );
 
         expect(methodChannelLog.last.method, 'buyItemByType');
@@ -227,7 +227,7 @@ void main() {
               obfuscatedProfileIdAndroid: 'profile456',
             ),
           ),
-          type: PurchaseType.inapp,
+          type: ProductType.inapp,
         );
 
         expect(
@@ -255,7 +255,7 @@ void main() {
           request: RequestPurchase(
             android: RequestPurchaseAndroid(skus: ['subscription1']),
           ),
-          type: PurchaseType.subs,
+          type: ProductType.subs,
         );
 
         expect(methodChannelLog.last.method, 'buyItemByType');
@@ -279,7 +279,7 @@ void main() {
               ],
             ),
           ),
-          type: PurchaseType.subs,
+          type: ProductType.subs,
         );
 
         // Check that subscription1 is in the arguments
@@ -297,7 +297,7 @@ void main() {
 
         await plugin.requestPurchase(
           request: RequestPurchase(ios: RequestPurchaseIOS(sku: 'ios.product')),
-          type: PurchaseType.inapp,
+          type: ProductType.inapp,
         );
 
         expect(methodChannelLog.last.method, 'buyProduct');
@@ -435,7 +435,7 @@ void main() {
             request: RequestPurchase(
               android: RequestPurchaseAndroid(skus: ['product1']),
             ),
-            type: PurchaseType.inapp,
+            type: ProductType.inapp,
           ),
           throwsA(isA<PurchaseError>()),
         );
@@ -464,7 +464,7 @@ void main() {
         expect(
           () => plugin.requestProducts(
             skus: ['product1'],
-            type: PurchaseType.inapp,
+            type: ProductType.inapp,
           ),
           throwsA(isA<PurchaseError>()),
         );

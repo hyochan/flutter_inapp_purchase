@@ -2,244 +2,221 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_inapp_purchase/types.dart';
 
 void main() {
-  group('OpenIAP Extensions Tests', () {
-    group('Product Extension', () {
-      test('toOpenIapFormat should work for Android Product', () {
+  group('Product and Purchase Type Tests', () {
+    group('Product Tests', () {
+      test('Product should be created correctly for Android', () {
         final product = Product(
           productId: 'android_product',
-          priceString: '9.99',
-          platformEnum: IapPlatform.android,
-          nameAndroid: 'Android Product Name',
-          oneTimePurchaseOfferDetailsAndroid: {
-            'priceAmountMicros': 9990000,
-            'priceCurrencyCode': 'USD',
-            'formattedPrice': '\$9.99',
-          },
+          title: 'Test Product',
+          description: 'Test Description',
+          price: 9.99,
+          localizedPrice: '\$9.99',
+          currency: 'USD',
+          nameAndroid: 'Android Product',
         );
 
-        final result = product.toOpenIapFormat();
-
-        expect(result['platform'], 'android');
-        expect(result['nameAndroid'], 'Android Product Name');
-        expect(result['oneTimePurchaseOfferDetailsAndroid'], isNotNull);
-
-        // Should not contain iOS-specific fields
-        expect(result.containsKey('environmentIOS'), false);
-        expect(result.containsKey('subscriptionGroupIdIOS'), false);
+        expect(product.productId, 'android_product');
+        expect(product.title, 'Test Product');
+        expect(product.description, 'Test Description');
+        expect(product.price, 9.99);
+        expect(product.localizedPrice, '\$9.99');
+        expect(product.currency, 'USD');
+        expect(product.nameAndroid, 'Android Product');
       });
 
-      test('toOpenIapFormat should work for iOS Product', () {
+      test('Product should be created correctly for iOS', () {
         final product = Product(
           productId: 'ios_product',
-          priceString: '9.99',
-          platformEnum: IapPlatform.ios,
-          environmentIOS: 'Sandbox',
-          subscriptionGroupIdIOS: 'group_123',
-          discountsIOS: [],
+          title: 'iOS Product',
+          description: 'iOS Description',
+          price: 4.99,
+          localizedPrice: '\$4.99',
+          currency: 'USD',
         );
 
-        final result = product.toOpenIapFormat();
-
-        expect(result['platform'], 'ios');
-        expect(result['environmentIOS'], 'Sandbox');
-        expect(result['subscriptionGroupIdIOS'], 'group_123');
-        expect(result['discountsIOS'], isA<List<dynamic>>());
-
-        // Should not contain Android-specific fields
-        expect(result.containsKey('nameAndroid'), false);
-        expect(result.containsKey('oneTimePurchaseOfferDetailsAndroid'), false);
-      });
-
-      test('toExpoIapFormat should be alias for toOpenIapFormat', () {
-        final product = Product(
-          productId: 'test_product',
-          priceString: '5.99',
-          platformEnum: IapPlatform.ios,
-        );
-
-        final openIapResult = product.toOpenIapFormat();
-        final expoResult = product.toExpoIapFormat();
-
-        expect(expoResult, equals(openIapResult));
+        expect(product.productId, 'ios_product');
+        expect(product.title, 'iOS Product');
+        expect(product.price, 4.99);
       });
     });
 
-    group('Subscription Extension', () {
-      test('toOpenIapFormat should work for Android Subscription', () {
+    group('Subscription Tests', () {
+      test('Subscription should be created correctly for Android', () {
         final subscription = Subscription(
           productId: 'android_sub',
+          title: 'Premium Subscription',
+          description: 'Premium features',
           price: '9.99',
+          localizedPrice: '\$9.99',
+          currency: 'USD',
+          subscriptionPeriodAndroid: 'P1M',
           platform: IapPlatform.android,
-          nameAndroid: 'Android Subscription',
-          subscriptionOfferDetailsAndroid: [
-            OfferDetail(
-              basePlanId: 'monthly',
-              pricingPhases: [
-                PricingPhase(
-                  priceAmount: 9.99,
-                  price: '9.99',
-                  currency: 'USD',
-                  billingPeriod: 'P1M',
-                ),
-              ],
-            ),
-          ],
         );
 
-        final result = subscription.toOpenIapFormat();
-
-        expect(result['platform'], 'android');
-        expect(result['type'], 'subs');
-        expect(result['nameAndroid'], 'Android Subscription');
-        expect(result['subscriptionOfferDetailsAndroid'], isA<List<dynamic>>());
-
-        // Should not contain iOS-specific fields
-        expect(result.containsKey('environmentIOS'), false);
+        expect(subscription.productId, 'android_sub');
+        expect(subscription.subscriptionPeriodAndroid, 'P1M');
+        expect(subscription.platform, IapPlatform.android);
       });
 
-      test('toOpenIapFormat should work for iOS Subscription', () {
+      test('Subscription should be created correctly for iOS', () {
         final subscription = Subscription(
           productId: 'ios_sub',
+          title: 'Premium',
+          description: 'Premium subscription',
           price: '9.99',
+          localizedPrice: '\$9.99',
+          currency: 'USD',
+          subscriptionGroupIdIOS: 'group_123',
           platform: IapPlatform.ios,
-          environmentIOS: 'Production',
-          subscriptionGroupIdIOS: 'ios_group_456',
-          discountsIOS: [],
         );
 
-        final result = subscription.toOpenIapFormat();
-
-        expect(result['platform'], 'ios');
-        expect(result['type'], 'subs');
-        expect(result['environmentIOS'], 'Production');
-        expect(result['subscriptionGroupIdIOS'], 'ios_group_456');
-        expect(result['discountsIOS'], isA<List<dynamic>>());
-
-        // Should not contain Android-specific fields
-        expect(result.containsKey('nameAndroid'), false);
+        expect(subscription.productId, 'ios_sub');
+        expect(subscription.subscriptionGroupIdIOS, 'group_123');
+        expect(subscription.platform, IapPlatform.ios);
       });
     });
 
-    group('Purchase Extension', () {
-      test('toOpenIapFormat should work for Android Purchase', () {
+    group('Purchase Tests', () {
+      test('Purchase should be created correctly for Android', () {
         final purchase = Purchase(
           productId: 'android_product',
+          transactionId: 'trans_123',
+          transactionDate: 1234567890,
+          purchaseToken: 'token_123',
           platform: IapPlatform.android,
-          transactionId: 'GPA.123456789',
-          purchaseToken: 'android_token',
-          dataAndroid: '{"test": "android_data"}',
-          signatureAndroid: 'android_signature',
-          purchaseStateAndroid: 1,
           isAcknowledgedAndroid: true,
+          purchaseStateAndroid: 1,
         );
 
-        final result = purchase.toOpenIapFormat();
-
-        expect(result['platform'], 'android');
-        expect(result['id'], purchase.id);
-        expect(result['ids'], purchase.ids);
-        expect(result['dataAndroid'], '{"test": "android_data"}');
-        expect(result['signatureAndroid'], 'android_signature');
-        expect(result['purchaseStateAndroid'], 1);
-        expect(result['isAcknowledgedAndroid'], true);
-
-        // Should not contain iOS-specific fields
-        expect(result.containsKey('quantityIOS'), false);
-        expect(result.containsKey('environmentIOS'), false);
+        expect(purchase.productId, 'android_product');
+        expect(purchase.transactionId, 'trans_123');
+        expect(purchase.id, 'trans_123');
+        expect(purchase.platform, IapPlatform.android);
+        expect(purchase.isAcknowledgedAndroid, true);
+        expect(purchase.purchaseStateAndroid, 1);
       });
 
-      test('toOpenIapFormat should work for iOS Purchase', () {
+      test('Purchase should be created correctly for iOS', () {
         final purchase = Purchase(
           productId: 'ios_product',
+          transactionId: 'trans_456',
+          transactionDate: 1234567890,
+          purchaseToken: 'token_456',
           platform: IapPlatform.ios,
-          transactionId: '2000000123456789',
-          quantityIOS: 2,
-          originalTransactionDateIOS: '2023-08-20T10:00:00Z',
-          environmentIOS: 'Production',
-          currencyCodeIOS: 'USD',
-          priceIOS: 9.99,
-          appBundleIdIOS: 'com.example.ios.app',
+          transactionStateIOS: TransactionState.purchased,
+          originalTransactionIdentifierIOS: 'original_123',
         );
 
-        final result = purchase.toOpenIapFormat();
-
-        expect(result['platform'], 'ios');
-        expect(result['id'], purchase.id);
-        expect(result['ids'], purchase.ids);
-        expect(result['quantityIOS'], 2);
-        expect(result['originalTransactionDateIOS'], '2023-08-20T10:00:00Z');
-        expect(result['environmentIOS'], 'Production');
-        expect(result['currencyCodeIOS'], 'USD');
-        expect(result['priceIOS'], 9.99);
-        expect(result['appBundleIdIOS'], 'com.example.ios.app');
-
-        // Should not contain Android-specific fields
-        expect(result.containsKey('dataAndroid'), false);
-        expect(result.containsKey('signatureAndroid'), false);
+        expect(purchase.productId, 'ios_product');
+        expect(purchase.transactionId, 'trans_456');
+        expect(purchase.platform, IapPlatform.ios);
+        expect(purchase.transactionStateIOS, TransactionState.purchased);
+        expect(purchase.originalTransactionIdentifierIOS, 'original_123');
       });
 
-      test('Purchase should handle empty transactionId correctly', () {
+      test('Purchase id getter should return transactionId', () {
+        final purchase = Purchase(
+          productId: 'test_product',
+          transactionId: 'test_trans_id',
+          platform: IapPlatform.android,
+        );
+
+        expect(purchase.id, 'test_trans_id');
+      });
+
+      test(
+          'Purchase id getter should return empty string when transactionId is null',
+          () {
         final purchase = Purchase(
           productId: 'test_product',
           platform: IapPlatform.android,
-          transactionId: null,
         );
 
-        final result = purchase.toOpenIapFormat();
-
-        expect(result['id'], purchase.id); // Should be empty string from getter
-        expect(result['ids'], purchase.ids); // Should be [productId]
-      });
-
-      test('toExpoIapFormat should be alias for toOpenIapFormat', () {
-        final purchase = Purchase(
-          productId: 'test_product',
-          platform: IapPlatform.android,
-          transactionId: 'test_123',
-        );
-
-        final openIapResult = purchase.toOpenIapFormat();
-        final expoResult = purchase.toExpoIapFormat();
-
-        expect(expoResult, equals(openIapResult));
+        expect(purchase.id, '');
       });
     });
 
-    group('Platform Field Filtering', () {
-      test('should remove all Android fields from iOS products', () {
-        final product = Product(
-          productId: 'mixed_product',
-          priceString: '9.99',
-          platformEnum: IapPlatform.ios,
-          // iOS fields
-          environmentIOS: 'Sandbox',
-          // These would normally not be set together, but testing filtering
-          nameAndroid: 'Should be removed',
+    group('SubscriptionPurchase Tests', () {
+      test('SubscriptionPurchase should be created correctly', () {
+        final subPurchase = SubscriptionPurchase(
+          productId: 'sub_123',
+          transactionId: 'trans_123',
+          transactionDate: DateTime(2024, 1, 1).millisecondsSinceEpoch,
+          isActive: true,
+          expirationDate: DateTime(2024, 2, 1),
+          platform: IapPlatform.android,
         );
 
-        final result = product.toOpenIapFormat();
-
-        expect(result['platform'], 'ios');
-        expect(result['environmentIOS'], 'Sandbox');
-        expect(result.containsKey('nameAndroid'), false);
+        expect(subPurchase.productId, 'sub_123');
+        expect(subPurchase.transactionId, 'trans_123');
+        expect(subPurchase.isActive, true);
+        expect(subPurchase.expirationDate, DateTime(2024, 2, 1));
+        expect(subPurchase.platform, IapPlatform.android);
       });
 
-      test('should remove all iOS fields from Android products', () {
-        final product = Product(
-          productId: 'mixed_product',
-          priceString: '9.99',
-          platformEnum: IapPlatform.android,
-          // Android fields
-          nameAndroid: 'Android Name',
-          // These would normally not be set together, but testing filtering
-          environmentIOS: 'Should be removed',
+      test('SubscriptionPurchase toJson should serialize correctly', () {
+        final subPurchase = SubscriptionPurchase(
+          productId: 'sub_123',
+          isActive: true,
+          expirationDate: DateTime(2024, 2, 1),
+          platform: IapPlatform.ios,
         );
 
-        final result = product.toOpenIapFormat();
+        final json = subPurchase.toJson();
 
-        expect(result['platform'], 'android');
-        expect(result['nameAndroid'], 'Android Name');
-        expect(result.containsKey('environmentIOS'), false);
+        expect(json['productId'], 'sub_123');
+        expect(json['isActive'], true);
+        expect(json['expirationDate'], contains('2024-02-01'));
+        expect(json['platform'], 'ios');
+      });
+    });
+
+    group('AppTransaction Tests', () {
+      test('AppTransaction should be created correctly', () {
+        final appTrans = AppTransaction(
+          appAppleId: '123456',
+          bundleId: 'com.example.app',
+          originalAppVersion: '1.0',
+          originalPurchaseDate: '2024-01-01',
+        );
+
+        expect(appTrans.appAppleId, '123456');
+        expect(appTrans.bundleId, 'com.example.app');
+        expect(appTrans.originalAppVersion, '1.0');
+        expect(appTrans.originalPurchaseDate, '2024-01-01');
+      });
+
+      test('AppTransaction fromJson should deserialize correctly', () {
+        final json = {
+          'appAppleId': '123456',
+          'bundleId': 'com.example.app',
+          'originalAppVersion': '1.0',
+        };
+
+        final appTrans = AppTransaction.fromJson(json);
+
+        expect(appTrans.appAppleId, '123456');
+        expect(appTrans.bundleId, 'com.example.app');
+        expect(appTrans.originalAppVersion, '1.0');
+      });
+    });
+
+    group('PurchaseIOS Tests', () {
+      test('PurchaseIOS should be created correctly', () {
+        final expirationDate = DateTime(2024, 2, 1);
+        final purchaseIOS = PurchaseIOS(
+          productId: 'ios_product',
+          transactionId: 'trans_123',
+          transactionDate: 1234567890,
+          expirationDateIOS: expirationDate,
+          transactionStateIOS: TransactionState.purchased,
+        );
+
+        expect(purchaseIOS.productId, 'ios_product');
+        expect(purchaseIOS.transactionId, 'trans_123');
+        expect(purchaseIOS.expirationDateIOS, expirationDate);
+        expect(purchaseIOS.platform, IapPlatform.ios);
+        expect(purchaseIOS.transactionStateIOS, TransactionState.purchased);
       });
     });
   });

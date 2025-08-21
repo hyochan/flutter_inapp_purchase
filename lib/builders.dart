@@ -82,7 +82,7 @@ class RequestSubscriptionAndroidBuilder {
 class RequestPurchaseBuilder {
   final ios = RequestPurchaseIOSBuilder();
   final android = RequestPurchaseAndroidBuilder();
-  PurchaseType type = PurchaseType.inapp;
+  String type = ProductType.inapp;
 
   RequestPurchaseBuilder();
 
@@ -99,7 +99,7 @@ class RequestPurchaseBuilder {
 class RequestSubscriptionBuilder {
   final ios = RequestPurchaseIOSBuilder();
   final android = RequestSubscriptionAndroidBuilder();
-  PurchaseType type = PurchaseType.subs;
+  String type = ProductType.subs;
 
   RequestSubscriptionBuilder();
 

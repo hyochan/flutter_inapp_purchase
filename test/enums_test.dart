@@ -33,11 +33,6 @@ void main() {
       expect(TransactionState.deferred.toString(), contains('deferred'));
     });
 
-    test('PurchaseType should work correctly', () {
-      expect(PurchaseType.inapp.toString(), contains('inapp'));
-      expect(PurchaseType.subs.toString(), contains('subs'));
-    });
-
     test('RecurrenceMode should work correctly', () {
       expect(RecurrenceMode.infiniteRecurring, isA<RecurrenceMode>());
       expect(RecurrenceMode.finiteRecurring, isA<RecurrenceMode>());

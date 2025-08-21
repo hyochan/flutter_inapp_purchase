@@ -21,7 +21,7 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
     'dev.hyo.martie.30bulbs',
   ];
 
-  List<IapItem> _products = [];
+  List<ProductCommon> _products = [];
   final Map<String, ProductCommon> _originalProducts =
       {}; // Store original products for detail view
   bool _isProcessing = false;
@@ -320,10 +320,10 @@ Platform: ${error.platform}
 
     try {
       debugPrint('🔍 Loading products for IDs: ${productIds.join(", ")}');
-      // Use requestProducts instead of deprecated getProducts
-      final products = await _iap.requestProducts(
+      // Use requestProducts with Product type for type-safe list
+      final products = await _iap.requestProducts<Product>(
         skus: productIds,
-        type: PurchaseType.inapp,
+        type: ProductType.inapp,
       );
 
       debugPrint(
@@ -332,33 +332,19 @@ Platform: ${error.platform}
       // Clear and store original products
       _originalProducts.clear();
 
-      // Convert ProductCommon to IapItem for compatibility
-      final items = products.map((product) {
-        // Store original product - use id as key with null safety
+      // Store original products
+      for (final product in products) {
         final productKey = product.productId ?? product.id;
         _originalProducts[productKey] = product;
 
-        // Cast to Product for more detailed info if available
-        if (product is Product) {
-          debugPrint('Product: ${product.id} - ${product.title ?? 'No title'}');
-          debugPrint('  Price: ${product.price ?? 'No price'}');
-          debugPrint('  Currency: ${product.currency ?? 'No currency'}');
-          debugPrint(
-              '  Description: ${product.description ?? 'No description'}');
-        }
-
-        return IapItem.fromJSON({
-          'productId': product.productId ?? product.id,
-          'title': product.title ?? product.displayName ?? '',
-          'description': product.description ?? '',
-          'price': product.price?.toString() ?? '0',
-          'localizedPrice': product.localizedPrice ?? product.displayPrice,
-          'currency': product.currency ?? 'USD',
-        });
-      }).toList();
+        debugPrint('Product: ${product.id} - ${product.title ?? 'No title'}');
+        debugPrint('  Price: ${product.price ?? 'No price'}');
+        debugPrint('  Currency: ${product.currency ?? 'No currency'}');
+        debugPrint('  Description: ${product.description ?? 'No description'}');
+      }
 
       setState(() {
-        _products = items;
+        _products = products;
       });
     } catch (e) {
       debugPrint('Error loading products: $e');
@@ -383,7 +369,7 @@ Platform: ${error.platform}
       // This provides better type safety and cleaner API than the old approach
       await _iap.requestPurchaseWithBuilder(
         build: (r) => r
-          ..type = PurchaseType.inapp
+          ..type = ProductType.inapp
           ..withIOS((i) => i
             ..sku = productId
             ..quantity = 1) // Optional: specify quantity for iOS

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 
 class ProductDetailModal extends StatelessWidget {
-  final IapItem item;
+  final ProductCommon item; // Can be Product or Subscription
   final ProductCommon? product;
 
   const ProductDetailModal({
@@ -15,7 +15,7 @@ class ProductDetailModal extends StatelessWidget {
 
   static void show({
     required BuildContext context,
-    required IapItem item,
+    required ProductCommon item, // Can be Product or Subscription
     ProductCommon? product,
   }) {
     showModalBottomSheet<void>(
@@ -29,7 +29,7 @@ class ProductDetailModal extends StatelessWidget {
     );
   }
 
-  Map<String, dynamic> _itemToMap(IapItem item) {
+  Map<String, dynamic> _itemToMap(ProductCommon item) {
     final map = <String, dynamic>{
       'productId': item.productId,
       'price': item.price,
@@ -37,14 +37,18 @@ class ProductDetailModal extends StatelessWidget {
       'localizedPrice': item.localizedPrice,
       'title': item.title,
       'description': item.description,
-      'introductoryPrice': item.introductoryPrice,
-      'subscriptionPeriodNumberIOS': item.subscriptionPeriodNumberIOS,
-      'subscriptionPeriodUnitIOS': item.subscriptionPeriodUnitIOS,
-      'introductoryPriceNumberOfPeriodsIOS':
-          item.introductoryPriceNumberOfPeriodsIOS,
-      'introductoryPriceSubscriptionPeriodIOS':
-          item.introductoryPriceSubscriptionPeriodIOS,
-      'discountsIOS': item.discountsIOS
+    };
+
+    // Add Subscription-specific fields
+    if (item is Subscription) {
+      map['subscriptionPeriodNumberIOS'] = item.subscriptionPeriodNumberIOS;
+      map['subscriptionPeriodUnitIOS'] = item.subscriptionPeriodUnitIOS;
+      map['introductoryPriceNumberOfPeriodsIOS'] =
+          item.introductoryPriceNumberOfPeriodsIOS;
+      map['introductoryPriceSubscriptionPeriodIOS'] =
+          item.introductoryPriceSubscriptionPeriodIOS;
+      map['subscriptionPeriodAndroid'] = item.subscriptionPeriodAndroid;
+      map['discountsIOS'] = item.discountsIOS
           ?.map((d) => {
                 'identifier': d.identifier,
                 'type': d.type,
@@ -54,19 +58,33 @@ class ProductDetailModal extends StatelessWidget {
                 'paymentMode': d.paymentMode,
                 'subscriptionPeriod': d.subscriptionPeriod,
               })
-          .toList(),
-      'subscriptionPeriodAndroid': item.subscriptionPeriodAndroid,
-      'signatureAndroid': item.signatureAndroid,
-      'iconUrl': item.iconUrl,
-      'originalJson': item.originalJson,
-      'originalPrice': item.originalPrice,
-      'subscriptionOffersAndroid': item.subscriptionOffersAndroid
+          .toList();
+      map['signatureAndroid'] = item.signatureAndroid;
+      map['iconUrl'] = item.iconUrl;
+      map['subscriptionOffersAndroid'] = item.subscriptionOffersAndroid
           ?.map((o) => {
                 'sku': o.sku,
                 'offerToken': o.offerToken,
               })
-          .toList(),
-    };
+          .toList();
+    }
+
+    // Add Product-specific fields
+    if (item is Product) {
+      map['discountsIOS'] = item.discountsIOS
+          ?.map((d) => {
+                'identifier': d.identifier,
+                'type': d.type,
+                'numberOfPeriods': d.numberOfPeriods,
+                'price': d.price,
+                'localizedPrice': d.localizedPrice,
+                'paymentMode': d.paymentMode,
+                'subscriptionPeriod': d.subscriptionPeriod,
+              })
+          .toList();
+      map['signatureAndroid'] = item.signatureAndroid;
+      map['iconUrl'] = item.iconUrl;
+    }
 
     // Remove null values for cleaner display
     map.removeWhere((key, value) => value == null);
@@ -190,95 +208,152 @@ class ProductDetailModal extends StatelessWidget {
                         _buildDetailRow('Product ID', item.productId),
                         _buildDetailRow('Price', item.localizedPrice),
                         _buildDetailRow('Currency', item.currency),
-                        if (item.originalPrice != null)
-                          _buildDetailRow(
-                              'Original Price', item.originalPrice.toString()),
                         _buildDetailRow('Description', item.description),
                       ],
                     ),
                   ),
 
                   // Subscription Information (if applicable)
-                  if (item.subscriptionPeriodAndroid != null ||
-                      item.subscriptionPeriodUnitIOS != null)
-                    _buildSection(
-                      'Subscription Details',
-                      Column(
-                        children: [
-                          if (item.subscriptionPeriodAndroid != null)
-                            _buildDetailRow('Period (Android)',
-                                item.subscriptionPeriodAndroid),
-                          if (item.subscriptionPeriodUnitIOS != null)
-                            _buildDetailRow(
-                              'Period (iOS)',
-                              '${item.subscriptionPeriodNumberIOS ?? ''} ${item.subscriptionPeriodUnitIOS}',
-                            ),
-                          if (item.introductoryPrice != null)
-                            _buildDetailRow(
-                                'Introductory Price', item.introductoryPrice),
-                        ],
-                      ),
-                    ),
+                  if (item is Subscription) ...[
+                    () {
+                      final subscription = item as Subscription;
+                      if (subscription.subscriptionPeriodAndroid != null ||
+                          subscription.subscriptionPeriodUnitIOS != null) {
+                        return _buildSection(
+                          'Subscription Details',
+                          Column(
+                            children: [
+                              if (subscription.subscriptionPeriodAndroid !=
+                                  null)
+                                _buildDetailRow('Period (Android)',
+                                    subscription.subscriptionPeriodAndroid),
+                              if (subscription.subscriptionPeriodUnitIOS !=
+                                  null)
+                                _buildDetailRow(
+                                  'Period (iOS)',
+                                  '${subscription.subscriptionPeriodNumberIOS ?? ''} ${subscription.subscriptionPeriodUnitIOS}',
+                                ),
+                            ],
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    }(),
+                  ],
 
                   // Android Offers
-                  if (item.subscriptionOffersAndroid?.isNotEmpty ?? false)
-                    _buildSection(
-                      'Android Subscription Offers',
-                      Column(
-                        children: item.subscriptionOffersAndroid!
-                            .map((offer) => Card(
-                                  margin:
-                                      const EdgeInsets.symmetric(vertical: 4),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(12),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        _buildDetailRow('SKU', offer.sku),
-                                        _buildDetailRow(
-                                          'Token',
-                                          offer.offerToken.length > 20
-                                              ? '${offer.offerToken.substring(0, 20)}...'
-                                              : offer.offerToken,
+                  if (item is Subscription) ...[
+                    () {
+                      final subscription = item as Subscription;
+                      if (subscription.subscriptionOffersAndroid?.isNotEmpty ??
+                          false) {
+                        return _buildSection(
+                          'Android Subscription Offers',
+                          Column(
+                            children: subscription.subscriptionOffersAndroid!
+                                .map<Widget>((offer) => Card(
+                                      margin: const EdgeInsets.symmetric(
+                                          vertical: 4),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(12),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            _buildDetailRow('SKU', offer.sku),
+                                            _buildDetailRow(
+                                              'Token',
+                                              offer.offerToken.length > 20
+                                                  ? '${offer.offerToken.substring(0, 20)}...'
+                                                  : offer.offerToken,
+                                            ),
+                                          ],
                                         ),
-                                      ],
-                                    ),
-                                  ),
-                                ))
-                            .toList(),
-                      ),
-                    ),
+                                      ),
+                                    ))
+                                .toList(),
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    }(),
+                  ],
 
-                  // iOS Discounts
-                  if (item.discountsIOS?.isNotEmpty ?? false)
-                    _buildSection(
-                      'iOS Discounts',
-                      Column(
-                        children: item.discountsIOS!
-                            .map((discount) => Card(
-                                  margin:
-                                      const EdgeInsets.symmetric(vertical: 4),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(12),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        _buildDetailRow(
-                                            'Identifier', discount.identifier),
-                                        _buildDetailRow(
-                                            'Price', discount.localizedPrice),
-                                        _buildDetailRow('Type', discount.type),
-                                        _buildDetailRow('Payment Mode',
-                                            discount.paymentMode),
-                                      ],
-                                    ),
-                                  ),
-                                ))
-                            .toList(),
-                      ),
-                    ),
+                  // iOS Discounts - for Product
+                  if (item is Product) ...[
+                    () {
+                      final product = item as Product;
+                      if (product.discountsIOS?.isNotEmpty ?? false) {
+                        return _buildSection(
+                          'iOS Discounts',
+                          Column(
+                            children: product.discountsIOS!
+                                .map<Widget>((discount) => Card(
+                                      margin: const EdgeInsets.symmetric(
+                                          vertical: 4),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(12),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            _buildDetailRow('Identifier',
+                                                discount.identifier),
+                                            _buildDetailRow('Price',
+                                                discount.localizedPrice),
+                                            _buildDetailRow(
+                                                'Type', discount.type),
+                                            _buildDetailRow('Payment Mode',
+                                                discount.paymentMode),
+                                          ],
+                                        ),
+                                      ),
+                                    ))
+                                .toList(),
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    }(),
+                  ],
+
+                  // iOS Discounts - for Subscription
+                  if (item is Subscription) ...[
+                    () {
+                      final subscription = item as Subscription;
+                      if (subscription.discountsIOS?.isNotEmpty ?? false) {
+                        return _buildSection(
+                          'iOS Discounts',
+                          Column(
+                            children: subscription.discountsIOS!
+                                .map<Widget>((discount) => Card(
+                                      margin: const EdgeInsets.symmetric(
+                                          vertical: 4),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(12),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            _buildDetailRow('Identifier',
+                                                discount.identifier),
+                                            _buildDetailRow('Price',
+                                                discount.localizedPrice),
+                                            _buildDetailRow(
+                                                'Type', discount.type),
+                                            _buildDetailRow('Payment Mode',
+                                                discount.paymentMode),
+                                          ],
+                                        ),
+                                      ),
+                                    ))
+                                .toList(),
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    }(),
+                  ],
 
                   // Raw JSON Data
                   _buildSection(
@@ -385,10 +460,11 @@ class ProductDetailModal extends StatelessWidget {
                                     debugPrint(
                                         'Subscription Info: ${subscription.subscription}');
                                   }
-                                  if (subscription.subscriptionOfferDetails !=
+                                  if (subscription
+                                          .subscriptionOfferDetailsAndroid !=
                                       null) {
                                     debugPrint(
-                                        'Offer Details: ${subscription.subscriptionOfferDetails}');
+                                        'Offer Details: ${subscription.subscriptionOfferDetailsAndroid}');
                                   }
                                 }
                                 debugPrint(

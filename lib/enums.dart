@@ -6,9 +6,6 @@ enum Store { none, playStore, amazon, appStore }
 /// Platform detection enum
 enum IapPlatform { ios, android }
 
-/// Purchase type enum
-enum PurchaseType { inapp, subs }
-
 /// Error codes (OpenIAP compliant)
 enum ErrorCode {
   // Common error codes per OpenIAP spec

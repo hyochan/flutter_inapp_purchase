@@ -40,7 +40,7 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
     try {
       await _iap.requestPurchaseWithBuilder(
         build: (r) => r
-          ..type = PurchaseType.inapp
+          ..type = ProductType.inapp
           ..withIOS((i) => i..sku = 'com.example.coins100')
           ..withAndroid((a) => a..skus = ['com.example.coins100']),
       );
@@ -62,7 +62,7 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
     try {
       await _iap.requestPurchaseWithBuilder(
         build: (r) => r
-          ..type = PurchaseType.inapp
+          ..type = ProductType.inapp
           ..withIOS((i) => i
             ..sku = 'com.example.coins100'
             ..quantity = 5)
@@ -139,7 +139,7 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
     try {
       await _iap.requestPurchaseWithBuilder(
         build: (r) => r
-          ..type = PurchaseType.inapp
+          ..type = ProductType.inapp
           ..withIOS((i) => i
             ..sku = 'com.example.powerup'
             ..applicationUsername = 'user123'
@@ -345,7 +345,7 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
                       child: const Text(
                         '''await iap.requestPurchaseWithBuilder(
   build: (r) => r
-    ..type = PurchaseType.inapp
+    ..type = ProductType.inapp
     ..withIOS((i) => i
       ..sku = 'product_id'
       ..quantity = 1)

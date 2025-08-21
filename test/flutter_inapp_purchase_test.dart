@@ -51,8 +51,7 @@ void main() {
     });
 
     group(
-      'getProducts',
-      skip: 'Deprecated method - uses requestProducts internally',
+      'requestProducts',
       () {
         group('for Android', () {
           final List<MethodCall> log = <MethodCall>[];
@@ -105,10 +104,13 @@ void main() {
             await testIap.initConnection();
             log.clear(); // Clear init log
 
-            await testIap.getProducts([
-              'com.example.product1',
-              'com.example.product2',
-            ]);
+            await testIap.requestProducts(
+              skus: [
+                'com.example.product1',
+                'com.example.product2',
+              ],
+              type: ProductType.inapp,
+            );
             // Since getProducts is deprecated and redirects to requestProducts,
             // it now passes productIds directly as List, not wrapped in a Map
             expect(log, <Matcher>[
@@ -123,10 +125,13 @@ void main() {
             // Initialize connection first
             await testIap.initConnection();
 
-            final products = await testIap.getProducts([
-              'com.example.product1',
-              'com.example.product2',
-            ]);
+            final products = await testIap.requestProducts<Product>(
+              skus: [
+                'com.example.product1',
+                'com.example.product2',
+              ],
+              type: ProductType.inapp,
+            );
             expect(products.length, 2);
             expect(products[0].productId, 'com.example.product1');
             expect(products[0].price, '0.99');
@@ -138,8 +143,7 @@ void main() {
     );
 
     group(
-      'getSubscriptions',
-      skip: 'Deprecated method - uses requestProducts internally',
+      'requestProducts for subscriptions',
       () {
         group('for iOS', () {
           final List<MethodCall> log = <MethodCall>[];
@@ -181,7 +185,10 @@ void main() {
             await testIap.initConnection();
             log.clear(); // Clear init log
 
-            await testIap.getSubscriptions(['com.example.subscription1']);
+            await testIap.requestProducts(
+              skus: ['com.example.subscription1'],
+              type: ProductType.subs,
+            );
             expect(log, <Matcher>[
               isMethodCall(
                 'getItems',
@@ -196,11 +203,13 @@ void main() {
             // Initialize connection first
             await testIap.initConnection();
 
-            final subscriptions = await testIap.getSubscriptions([
-              'com.example.subscription1',
-            ]);
+            final subscriptions = await testIap.requestProducts<Subscription>(
+              skus: ['com.example.subscription1'],
+              type: ProductType.subs,
+            );
             expect(subscriptions.length, 1);
             expect(subscriptions[0].productId, 'com.example.subscription1');
+            // Now we can directly access Subscription properties
             expect(subscriptions[0].subscriptionPeriodUnitIOS, 'MONTH');
           });
         });
@@ -338,180 +347,6 @@ void main() {
       });
     });
 
-    group('Type Conversions', () {
-      test('IapItem conversion preserves all fields', () {
-        final jsonData = {
-          'productId': 'test.product',
-          'price': '1.99',
-          'currency': 'USD',
-          'localizedPrice': r'$1.99',
-          'title': 'Test Product',
-          'description': 'Test Description',
-          'type': 'inapp',
-          'iconUrl': 'https://example.com/icon.png',
-          'originalJson': '{}',
-          'originalPrice': '1.99',
-          'discounts': <dynamic>[],
-        };
-
-        final item = IapItem.fromJSON(jsonData);
-        expect(item.productId, 'test.product');
-        expect(item.price, '1.99');
-        expect(item.currency, 'USD');
-        expect(item.localizedPrice, r'$1.99');
-        expect(item.title, 'Test Product');
-        expect(item.description, 'Test Description');
-        // type field was removed in refactoring
-        expect(item.iconUrl, 'https://example.com/icon.png');
-      });
-
-      test('PurchasedItem conversion handles all fields', () {
-        final jsonData = {
-          'productId': 'test.product',
-          'transactionId': 'trans123',
-          'transactionDate': 1234567890,
-          'transactionReceipt': 'receipt_data',
-          'purchaseToken': 'token123',
-          'orderId': 'order123',
-          'dataAndroid': 'android_data',
-          'signatureAndroid': 'signature',
-          'isAcknowledgedAndroid': true,
-          'purchaseStateAndroid': 1,
-          'originalTransactionDateIOS': 1234567890,
-          'originalTransactionIdentifierIOS': 'orig_trans123',
-        };
-
-        final item = PurchasedItem.fromJSON(jsonData);
-        expect(item.productId, 'test.product');
-        expect(item.transactionId, 'trans123');
-        expect(
-          item.transactionDate,
-          DateTime.fromMillisecondsSinceEpoch(1234567890),
-        );
-        expect(item.transactionReceipt, 'receipt_data');
-        expect(item.purchaseToken, 'token123');
-        // orderId field was removed in refactoring
-        expect(item.isAcknowledgedAndroid, true);
-      });
-
-      test('PurchasedItem handles unified purchaseToken field', () {
-        // Test with purchaseToken field present
-        final jsonDataWithToken = {
-          'productId': 'test.product',
-          'transactionId': '2000000985615347',
-          'transactionDate': 1234567890,
-          'transactionReceipt': 'receipt_data',
-          'purchaseToken': 'unified_token_123',
-        };
-
-        final item = PurchasedItem.fromJSON(jsonDataWithToken);
-        expect(item.productId, 'test.product');
-        expect(item.purchaseToken, 'unified_token_123');
-        expect(item.transactionId, '2000000985615347');
-        expect(item.id, '2000000985615347'); // OpenIAP compliance
-      });
-
-      test(
-        'PurchasedItem handles purchaseToken field for different platforms',
-        () {
-          // Test Android purchase with purchaseToken
-          final jsonDataAndroid = {
-            'productId': 'android.product',
-            'transactionId': 'GPA.1234-5678-9012-34567',
-            'transactionDate': 1234567890,
-            'transactionReceipt': 'android_receipt',
-            'purchaseToken': 'android_purchase_token',
-            'signatureAndroid': 'android_signature',
-            'purchaseStateAndroid': 1,
-            'isAcknowledgedAndroid': true,
-          };
-
-          final itemAndroid = PurchasedItem.fromJSON(jsonDataAndroid);
-          expect(itemAndroid.productId, 'android.product');
-          expect(itemAndroid.purchaseToken, 'android_purchase_token');
-          expect(itemAndroid.signatureAndroid, 'android_signature');
-          expect(itemAndroid.purchaseStateAndroid, 1);
-          expect(itemAndroid.isAcknowledgedAndroid, true);
-
-          // Test iOS purchase with purchaseToken (JWS)
-          final jsonDataIOS = {
-            'productId': 'ios.product',
-            'transactionId': '2000000985615347',
-            'transactionDate': 1234567890,
-            'transactionReceipt': 'ios_receipt',
-            'purchaseToken': 'ios_jws_token',
-            'transactionStateIOS': '1',
-          };
-
-          final itemIOS = PurchasedItem.fromJSON(jsonDataIOS);
-          expect(itemIOS.productId, 'ios.product');
-          expect(itemIOS.purchaseToken, 'ios_jws_token');
-          expect(itemIOS.transactionStateIOS, '1');
-        },
-      );
-
-      test('PurchasedItem OpenIAP id field fallback', () {
-        // Test id field fallback to transactionId for OpenIAP compliance
-        final jsonData = {
-          'productId': 'test.product',
-          'transactionId': 'fallback_transaction_id',
-          'transactionDate': 1234567890,
-          'transactionReceipt': 'receipt_data',
-        };
-
-        final item = PurchasedItem.fromJSON(jsonData);
-        expect(item.id, 'fallback_transaction_id');
-        expect(item.transactionId, 'fallback_transaction_id');
-      });
-
-      test('PurchasedItem handles missing token fields gracefully', () {
-        final jsonDataWithoutTokens = {
-          'productId': 'product.without.tokens',
-          'transactionId': 'trans_no_tokens',
-          'transactionDate': 1234567890,
-          'transactionReceipt': 'receipt_data',
-        };
-
-        final item = PurchasedItem.fromJSON(jsonDataWithoutTokens);
-        expect(item.productId, 'product.without.tokens');
-        expect(item.purchaseToken, isNull);
-        expect(item.transactionId, 'trans_no_tokens');
-        expect(item.id, 'trans_no_tokens');
-      });
-
-      test('PurchasedItem date parsing handles different formats', () {
-        // Test millisecond timestamp
-        final jsonWithMillis = {
-          'productId': 'test.product.millis',
-          'transactionDate': 1234567890123, // Large number (milliseconds)
-        };
-
-        final itemMillis = PurchasedItem.fromJSON(jsonWithMillis);
-        expect(
-          itemMillis.transactionDate,
-          DateTime.fromMillisecondsSinceEpoch(1234567890123),
-        );
-
-        // Test smaller timestamp (seconds)
-        final jsonWithSeconds = {
-          'productId': 'test.product.seconds',
-          'transactionDate': 1234567890, // Smaller number
-        };
-
-        final itemSeconds = PurchasedItem.fromJSON(jsonWithSeconds);
-        expect(itemSeconds.transactionDate, isNotNull);
-
-        // Test string date
-        final jsonWithString = {
-          'productId': 'test.product.string',
-          'transactionDate': '2023-01-01T00:00:00Z',
-        };
-
-        final itemString = PurchasedItem.fromJSON(jsonWithString);
-        expect(itemString.transactionDate, isNotNull);
-      });
-    });
-
     group('Enum Values', () {
       test('Store enum has correct values', () {
         expect(Store.values.length, 4);
@@ -521,10 +356,9 @@ void main() {
         expect(Store.appStore.toString(), 'Store.appStore');
       });
 
-      test('PurchaseType enum has correct values', () {
-        expect(PurchaseType.values.length, 2);
-        expect(PurchaseType.inapp.toString(), 'PurchaseType.inapp');
-        expect(PurchaseType.subs.toString(), 'PurchaseType.subs');
+      test('ProductType has correct values', () {
+        expect(ProductType.inapp, 'inapp');
+        expect(ProductType.subs, 'subs');
       });
 
       test('SubscriptionState enum has correct values', () {
@@ -660,7 +494,6 @@ void main() {
           expect(subscriptions.first.isActive, true);
           expect(subscriptions.first.environmentIOS, 'Production');
           expect(subscriptions.first.expirationDateIOS, isNotNull);
-          expect(subscriptions.first.daysUntilExpirationIOS, isNotNull);
         });
       });
     });
@@ -723,7 +556,7 @@ void main() {
           await expectLater(
             testIap.requestPurchaseAuto(
               sku: 'test.product',
-              type: PurchaseType.inapp,
+              type: ProductType.inapp,
             ),
             completes,
           );
@@ -741,7 +574,7 @@ void main() {
           await expectLater(
             testIap.requestPurchaseAuto(
               sku: 'test.subscription',
-              type: PurchaseType.subs,
+              type: ProductType.subs,
             ),
             completes,
           );
@@ -791,7 +624,7 @@ void main() {
         await expectLater(
           testIap.requestPurchaseAuto(
             sku: 'ios.test.product',
-            type: PurchaseType.inapp,
+            type: ProductType.inapp,
           ),
           completes,
         );

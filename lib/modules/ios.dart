@@ -2,8 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
-
-import '../types.dart';
+import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 
 /// iOS-specific IAP functionality as a mixin
 mixin FlutterInappPurchaseIOS {
@@ -121,7 +120,7 @@ mixin FlutterInappPurchaseIOS {
   }
 
   /// Gets available items (iOS)
-  Future<List<PurchasedItem>?> getAvailableItemsIOS() async {
+  Future<List<Purchase>?> getAvailableItemsIOS() async {
     if (!_isIOS) {
       return null;
     }
@@ -169,7 +168,7 @@ mixin FlutterInappPurchaseIOS {
   }
 
   /// iOS-specific utility function
-  List<PurchasedItem>? extractPurchasedItems(dynamic result);
+  List<Purchase>? extractPurchasedItems(dynamic result);
 }
 
 /// iOS App Transaction model (iOS 18.4+)

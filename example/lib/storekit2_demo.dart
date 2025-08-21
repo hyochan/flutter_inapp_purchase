@@ -13,14 +13,14 @@ class StoreKit2Demo extends StatefulWidget {
 
 class _StoreKit2DemoState extends State<StoreKit2Demo> {
   final FlutterInappPurchase _iap = FlutterInappPurchase();
-  StreamSubscription<PurchasedItem?>? _purchaseUpdatedSubscription;
-  StreamSubscription<PurchaseResult?>? _purchaseErrorSubscription;
+  StreamSubscription<Purchase?>? _purchaseUpdatedSubscription;
+  StreamSubscription<PurchaseError>? _purchaseErrorSubscription;
 
   bool _connected = false;
   bool _loading = false;
   String? _error;
-  List<IapItem> _products = [];
-  List<PurchasedItem> _purchases = [];
+  List<ProductCommon> _products = [];
+  List<Purchase> _purchases = [];
 
   // Test product IDs
   final List<String> _productIds = [
@@ -53,15 +53,14 @@ class _StoreKit2DemoState extends State<StoreKit2Demo> {
       await _iap.initConnection();
 
       // Set up purchase listeners
-      _purchaseUpdatedSubscription = _iap.purchaseUpdated.listen((purchase) {
-        if (purchase != null) {
-          _handlePurchaseUpdate(purchase);
-        }
+      _purchaseUpdatedSubscription =
+          _iap.purchaseUpdatedListener.listen((purchase) {
+        _handlePurchaseUpdate(purchase);
       });
 
-      _purchaseErrorSubscription = _iap.purchaseError.listen((error) {
+      _purchaseErrorSubscription = _iap.purchaseErrorListener.listen((error) {
         setState(() {
-          _error = error?.message ?? 'Unknown purchase error';
+          _error = error.message;
           _loading = false;
         });
       });
@@ -87,7 +86,10 @@ class _StoreKit2DemoState extends State<StoreKit2Demo> {
 
   Future<void> _getProducts() async {
     try {
-      final products = await _iap.getProducts(_productIds);
+      final products = await _iap.requestProducts<Product>(
+        skus: _productIds,
+        type: ProductType.inapp,
+      );
       setState(() {
         _products = products;
       });
@@ -98,16 +100,16 @@ class _StoreKit2DemoState extends State<StoreKit2Demo> {
 
   Future<void> _getAvailablePurchases() async {
     try {
-      final purchases = await _iap.getAvailableItemsIOS();
+      final purchases = await _iap.getAvailablePurchases();
       setState(() {
-        _purchases = purchases ?? [];
+        _purchases = purchases;
       });
     } catch (e) {
       print('Error getting purchases: $e');
     }
   }
 
-  Future<void> _handlePurchaseUpdate(PurchasedItem purchase) async {
+  Future<void> _handlePurchaseUpdate(Purchase purchase) async {
     setState(() {
       _loading = true;
     });
@@ -116,7 +118,7 @@ class _StoreKit2DemoState extends State<StoreKit2Demo> {
       // Verify the purchase with your backend here
       // For demo, we'll just finish the transaction
 
-      await _iap.finishTransactionIOS(purchase, isConsumable: true);
+      await _iap.finishTransaction(purchase, isConsumable: true);
 
       // Refresh purchases list
       await _getAvailablePurchases();
@@ -150,7 +152,7 @@ class _StoreKit2DemoState extends State<StoreKit2Demo> {
         request: RequestPurchase(
           ios: RequestPurchaseIOS(sku: productId),
         ),
-        type: PurchaseType.inapp,
+        type: ProductType.inapp,
       );
     } catch (e) {
       setState(() {
@@ -228,7 +230,7 @@ class _StoreKit2DemoState extends State<StoreKit2Demo> {
     }
   }
 
-  Widget _buildProductCard(IapItem product) {
+  Widget _buildProductCard(ProductCommon product) {
     final isSubscription = product.productId?.contains('subscription') ?? false;
 
     return Card(
@@ -252,7 +254,7 @@ class _StoreKit2DemoState extends State<StoreKit2Demo> {
                   ),
                 ),
                 Text(
-                  product.localizedPrice ?? product.price ?? '0',
+                  product.localizedPrice ?? product.price?.toString() ?? '0',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         color: Theme.of(context).primaryColor,
                         fontWeight: FontWeight.bold,
@@ -266,6 +268,7 @@ class _StoreKit2DemoState extends State<StoreKit2Demo> {
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             if (isSubscription &&
+                product is Subscription &&
                 product.subscriptionPeriodUnitIOS != null) ...[
               const SizedBox(height: 8),
               Text(
@@ -288,16 +291,16 @@ class _StoreKit2DemoState extends State<StoreKit2Demo> {
     );
   }
 
-  Widget _buildPurchaseItem(PurchasedItem purchase) {
+  Widget _buildPurchaseItem(Purchase purchase) {
     return Card(
       color: Colors.green.shade50,
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         leading: const Icon(Icons.check_circle, color: Colors.green),
-        title: Text(purchase.productId ?? 'Unknown'),
+        title: Text(purchase.productId),
         subtitle: Text(
           'Transaction: ${purchase.transactionId ?? 'N/A'}\n'
-          'Date: ${purchase.transactionDate?.toLocal().toString() ?? 'N/A'}',
+          'Date: ${purchase.transactionDate != null ? DateTime.fromMillisecondsSinceEpoch(purchase.transactionDate!).toLocal().toString() : 'N/A'}',
         ),
         isThreeLine: true,
       ),

@@ -216,7 +216,7 @@ if (Platform.isAndroid && item.purchaseToken != null) {
 - Uses `transactionReceipt` for validation
 - Has `transactionStateIOS` to track transaction lifecycle
 - Supports restored purchases with original transaction information
-- Must call `finishTransactionIOS()` to complete the purchase
+- Must call `finishTransaction()` to complete the purchase
 
 ### Android
 

@@ -52,7 +52,10 @@ class _TestScreenState extends State<TestScreen> {
 
       // Test 3: Get simple product
       setState(() => _status = 'Getting products...');
-      final products = await _iap.getProducts(['dev.hyo.martie.10bulbs']);
+      final products = await _iap.requestProducts(
+        skus: ['dev.hyo.martie.10bulbs'],
+        type: ProductType.inapp,
+      );
       setState(() => _status = 'Got ${products.length} products');
 
       if (products.isNotEmpty) {

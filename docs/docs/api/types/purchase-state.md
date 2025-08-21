@@ -205,8 +205,6 @@ class PurchaseStateHandler {
 ```
 User initiates purchase
          ↓
-    PurchaseState.purchasing (internal)
-         ↓
  Payment method selected
          ↓
     PurchaseState.pending (if async payment)
@@ -254,7 +252,7 @@ class StateRecoveryHandler {
   Future<void> _recoverPurchaseState(Purchase purchase) async {
     if (Platform.isAndroid) {
       // Check if acknowledgment is needed
-      if (purchase.purchaseStateAndroid == 'purchased' &&
+      if (purchase.purchaseStateAndroid == PurchaseState.purchased &&
           purchase.isAcknowledgedAndroid == false) {
 
         // Check if content was already delivered
@@ -295,7 +293,7 @@ class StateRecoveryHandler {
 ```dart
 bool isPurchaseComplete(Purchase purchase) {
   if (Platform.isAndroid) {
-    return purchase.purchaseStateAndroid == 'purchased' &&
+    return purchase.purchaseStateAndroid == PurchaseState.purchased &&
            purchase.isAcknowledgedAndroid == true;
   } else if (Platform.isIOS) {
     // On iOS, if we receive the purchase, it's valid
@@ -307,7 +305,7 @@ bool isPurchaseComplete(Purchase purchase) {
 
 bool needsAcknowledgment(Purchase purchase) {
   return Platform.isAndroid &&
-         purchase.purchaseStateAndroid == 'purchased' &&
+         purchase.purchaseStateAndroid == PurchaseState.purchased &&
          purchase.isAcknowledgedAndroid == false;
 }
 
