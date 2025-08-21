@@ -379,23 +379,18 @@ Platform: ${error.platform}
       debugPrint('Requesting purchase...');
       debugPrint('Product ID: $productId');
 
-      // Log the actual request being sent
-      final request = RequestPurchase(
-        ios: RequestPurchaseIOS(
-          sku: productId,
-        ),
-        android: RequestPurchaseAndroid(
-          skus: [productId],
-        ),
+      // Use the new DSL-like builder pattern for purchase request
+      // This provides better type safety and cleaner API than the old approach
+      await _iap.requestPurchaseWithBuilder(
+        build: (r) => r
+          ..type = PurchaseType.inapp
+          ..withIOS((i) => i
+            ..sku = productId
+            ..quantity = 1) // Optional: specify quantity for iOS
+          ..withAndroid(
+              (a) => a..skus = [productId]), // Android uses array of SKUs
       );
 
-      debugPrint(
-          'Request details: Android SKUs: ${request.android?.skus}, iOS SKU: ${request.ios?.sku}');
-
-      await _iap.requestPurchase(
-        request: request,
-        type: PurchaseType.inapp,
-      );
       debugPrint('✅ Purchase request sent successfully');
       // Note: The actual purchase result will come through the purchaseUpdatedListener
     } catch (error) {
