@@ -284,10 +284,10 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
           final itemMap = <String, dynamic>{
             'productId': baseProduct.productId ?? baseProduct.id,
             'price': baseProduct.price?.toString() ?? '0',
-            'currency': baseProduct.currency ?? '',
+            'currency': baseProduct.currency ?? 'USD',
             'localizedPrice':
                 baseProduct.localizedPrice ?? baseProduct.displayPrice,
-            'title': baseProduct.title ?? '',
+            'title': baseProduct.title ?? baseProduct.displayName ?? '',
             'description': baseProduct.description ?? '',
           };
 

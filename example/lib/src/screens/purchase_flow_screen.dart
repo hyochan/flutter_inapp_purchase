@@ -347,11 +347,11 @@ Platform: ${error.platform}
 
         return IapItem.fromJSON({
           'productId': product.productId ?? product.id,
-          'title': product.title ?? '',
+          'title': product.title ?? product.displayName ?? '',
           'description': product.description ?? '',
           'price': product.price?.toString() ?? '0',
           'localizedPrice': product.localizedPrice ?? product.displayPrice,
-          'currency': product.currency ?? '',
+          'currency': product.currency ?? 'USD',
         });
       }).toList();
 
