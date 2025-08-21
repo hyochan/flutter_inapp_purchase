@@ -5,6 +5,7 @@
 ### Breaking Changes
 
 - **Simplified requestProducts API**: The `requestProducts` method now accepts direct parameters instead of a wrapper object (Fixes [#527](https://github.com/hyochan/flutter_inapp_purchase/issues/527))
+
   ```dart
   // Before (6.3.x)
   final products = await iap.requestProducts(
@@ -13,19 +14,49 @@
       type: PurchaseType.inapp,
     ),
   );
-  
+
   // After (6.4.0)
   final products = await iap.requestProducts(
     skus: ['product_id'],
     type: PurchaseType.inapp,  // Optional, defaults to PurchaseType.inapp
   );
   ```
+
   - Removed `RequestProductsParams` class
   - This change simplifies the API and improves developer experience based on user feedback
+
+### New Features
+
+- **DSL-like Builder Pattern for Purchase Requests**: Added a builder pattern API for more intuitive and type-safe purchase request construction
+  
+  ```dart
+  // New builder pattern approach
+  await iap.requestPurchaseWithBuilder(
+    build: (r) => r
+      ..type = PurchaseType.inapp
+      ..withIOS((i) => i
+        ..sku = 'product_id'
+        ..quantity = 1)
+      ..withAndroid((a) => a
+        ..skus = ['product_id']),
+  );
+  ```
+  
+  - Provides better type safety with platform-specific configurations
+  - Supports cascade notation for cleaner code
+  - Separate builders for iOS and Android parameters
+  - Available for both purchases and subscriptions
+
+### Improvements
+
+- **Replaced magic numbers with enums**: Android purchase states now use `AndroidPurchaseState` enum instead of hardcoded values (0, 1, 2)
+  - Better code readability and maintainability
+  - Type-safe state checking
 
 ### Deprecated Items Removed
 
 The following deprecated items from v6.3.x have been removed in v6.4.0:
+
 - `subscriptionOfferDetails` field (use `subscriptionOfferDetailsAndroid` instead)
 - `prorationMode` field (use `replacementModeAndroid` instead)
 - `AndroidProrationMode` typedef (use `AndroidReplacementMode` instead)

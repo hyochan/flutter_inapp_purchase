@@ -4,6 +4,7 @@ import 'screens/purchase_flow_screen.dart';
 import 'screens/subscription_flow_screen.dart';
 import 'screens/available_purchases_screen.dart';
 import 'screens/offer_code_screen.dart';
+import 'screens/builder_demo_screen.dart';
 
 class App extends StatelessWidget {
   const App({Key? key}) : super(key: key);
@@ -33,6 +34,7 @@ class App extends StatelessWidget {
         '/subscription-flow': (context) => const SubscriptionFlowScreen(),
         '/available-purchases': (context) => const AvailablePurchasesScreen(),
         '/offer-code': (context) => const OfferCodeScreen(),
+        '/builder-demo': (context) => const BuilderDemoScreen(),
       },
     );
   }

@@ -10,11 +10,13 @@ import 'enums.dart';
 import 'types.dart' as iap_types;
 import 'modules/ios.dart';
 import 'modules/android.dart';
+import 'builders.dart';
 
 export 'types.dart';
 export 'enums.dart';
 export 'errors.dart';
 export 'events.dart';
+export 'builders.dart';
 
 // Enums moved to enums.dart
 
@@ -434,6 +436,54 @@ class FlutterInappPurchase
     );
 
     await requestPurchase(request: request, type: type);
+  }
+
+  /// DSL-like request purchase method with builder pattern
+  /// Provides a more intuitive and type-safe way to build purchase requests
+  ///
+  /// Example:
+  /// ```dart
+  /// await iap.requestPurchaseWithBuilder(
+  ///   build: (r) => r
+  ///     ..type = PurchaseType.inapp
+  ///     ..withIOS((i) => i
+  ///       ..sku = 'product_id'
+  ///       ..quantity = 1)
+  ///     ..withAndroid((a) => a
+  ///       ..skus = ['product_id']),
+  /// );
+  /// ```
+  Future<void> requestPurchaseWithBuilder({
+    required RequestBuilder build,
+  }) async {
+    final builder = RequestPurchaseBuilder();
+    build(builder);
+    final request = builder.build();
+    await requestPurchase(request: request, type: builder.type);
+  }
+
+  /// DSL-like request subscription method with builder pattern
+  /// Provides a more intuitive and type-safe way to build subscription requests
+  ///
+  /// Example:
+  /// ```dart
+  /// await iap.requestSubscriptionWithBuilder(
+  ///   build: (r) => r
+  ///     ..withIOS((i) => i
+  ///       ..sku = 'subscription_id')
+  ///     ..withAndroid((a) => a
+  ///       ..skus = ['subscription_id']
+  ///       ..replacementModeAndroid = AndroidReplacementMode.withTimeProration.value
+  ///       ..purchaseTokenAndroid = existingToken),
+  /// );
+  /// ```
+  Future<void> requestSubscriptionWithBuilder({
+    required SubscriptionBuilder build,
+  }) async {
+    final builder = RequestSubscriptionBuilder();
+    build(builder);
+    final request = builder.build();
+    await requestPurchase(request: request, type: iap_types.PurchaseType.subs);
   }
 
   /// Get all available purchases (OpenIAP standard)

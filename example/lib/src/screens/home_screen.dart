@@ -89,6 +89,16 @@ class HomeScreen extends StatelessWidget {
                         onTap: () =>
                             Navigator.pushNamed(context, '/offer-code'),
                       ),
+                      const Divider(height: 1),
+                      _buildMenuItem(
+                        context,
+                        icon: CupertinoIcons.hammer,
+                        title: 'Builder Pattern Demo',
+                        subtitle: 'DSL-like purchase API',
+                        color: const Color(0xFF9B59B6),
+                        onTap: () =>
+                            Navigator.pushNamed(context, '/builder-demo'),
+                      ),
                     ],
                   ),
                 ),
