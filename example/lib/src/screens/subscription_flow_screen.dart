@@ -18,9 +18,7 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
   // Multiple subscription tiers for testing upgrades/downgrades
   // Replace these with your actual subscription IDs
   final List<String> subscriptionIds = [
-    'dev.hyo.martie.basic', // Basic tier
     'dev.hyo.martie.premium', // Premium tier
-    'dev.hyo.martie.pro', // Pro tier
   ];
 
   List<IapItem> _subscriptions = [];

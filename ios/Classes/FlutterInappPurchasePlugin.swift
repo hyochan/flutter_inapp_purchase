@@ -41,11 +41,11 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
             
         case "getItems":
             guard let args = call.arguments as? [String: Any],
-                  let productIds = args["productIds"] as? [String] else {
-                result(FlutterError(code: "INVALID_ARGUMENTS", message: "productIds required", details: nil))
+                  let skus = args["skus"] as? [String] else {
+                result(FlutterError(code: "INVALID_ARGUMENTS", message: "skus required", details: nil))
                 return
             }
-            getItems(skus: productIds, result: result)
+            getItems(skus: skus, result: result)
             
         case "getAvailableItems":
             getAvailableItems(result: result)
