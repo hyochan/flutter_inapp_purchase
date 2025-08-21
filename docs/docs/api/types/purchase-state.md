@@ -23,7 +23,7 @@ class Purchase {
   final String? purchaseStateAndroid;
   final String? originalTransactionIdentifierIOS;
   final Map<String, dynamic>? originalJson;
-  
+
   // StoreKit 2 specific fields
   final String? transactionState;
   final bool? isUpgraded;
@@ -112,13 +112,13 @@ void handleIOSTransaction(PurchasedItem item) {
     case TransactionState.restored:
       // Safe to deliver content and finish transaction
       deliverContent(item.productId);
-      FlutterInappPurchase.instance.finishTransactionIOS(item);
+      FlutterInappPurchase.instance.finishTransaction(item);
       break;
     case TransactionState.failed:
       // Transaction failed - don't deliver content
       showErrorMessage();
       // Still need to finish failed transactions
-      FlutterInappPurchase.instance.finishTransactionIOS(item);
+      FlutterInappPurchase.instance.finishTransaction(item);
       break;
     case TransactionState.purchasing:
       // Still processing - wait
@@ -143,7 +143,7 @@ class PurchaseStateHandler {
       _handleIOSPurchase(purchase);
     }
   }
-  
+
   void _handleAndroidPurchase(PurchasedItem purchase) {
     switch (purchase.purchaseStateAndroid) {
       case PurchaseState.purchased:
@@ -153,42 +153,42 @@ class PurchaseStateHandler {
         }
         _deliverContent(purchase);
         break;
-        
+
       case PurchaseState.pending:
         // Store pending purchase for later processing
         _storePendingPurchase(purchase);
         _showPendingUI();
         break;
-        
+
       case PurchaseState.unspecified:
         // Log for investigation
         _logUnknownPurchaseState(purchase);
         break;
     }
   }
-  
+
   void _handleIOSPurchase(PurchasedItem purchase) {
     switch (purchase.transactionStateIOS) {
       case TransactionState.purchased:
         _deliverContent(purchase);
         _finishTransaction(purchase);
         break;
-        
+
       case TransactionState.restored:
         _restoreContent(purchase);
         _finishTransaction(purchase);
         break;
-        
+
       case TransactionState.failed:
         _handleFailure(purchase);
         _finishTransaction(purchase); // Still need to finish
         break;
-        
+
       case TransactionState.deferred:
         _handleDeferred(purchase);
         // Don't finish - wait for final state
         break;
-        
+
       case TransactionState.purchasing:
         _showPurchasingUI();
         // Don't finish - wait for completion
@@ -245,18 +245,18 @@ class StateRecoveryHandler {
   Future<void> recoverPendingStates() async {
     // Get all available purchases
     final purchases = await FlutterInappPurchase.instance.getAvailablePurchases();
-    
+
     for (var purchase in purchases) {
       await _recoverPurchaseState(purchase);
     }
   }
-  
+
   Future<void> _recoverPurchaseState(Purchase purchase) async {
     if (Platform.isAndroid) {
       // Check if acknowledgment is needed
-      if (purchase.purchaseStateAndroid == 'purchased' && 
+      if (purchase.purchaseStateAndroid == 'purchased' &&
           purchase.isAcknowledgedAndroid == false) {
-        
+
         // Check if content was already delivered
         if (await _wasContentDelivered(purchase.transactionId)) {
           // Just acknowledge without re-delivering
@@ -269,16 +269,16 @@ class StateRecoveryHandler {
     } else if (Platform.isIOS) {
       // Check for unfinished transactions
       final pending = await FlutterInappPurchase.instance.getPendingTransactionsIOS();
-      
+
       for (var transaction in pending ?? []) {
         if (transaction.transactionStateIOS == TransactionState.purchased ||
             transaction.transactionStateIOS == TransactionState.restored) {
-          
+
           // Verify content delivery
           if (!await _wasContentDelivered(transaction.transactionId)) {
             await _deliverContent(transaction);
           }
-          
+
           // Finish the transaction
           await FlutterInappPurchase.instance.finishTransactionIOS(transaction);
         }
@@ -326,24 +326,24 @@ bool canFinishTransaction(PurchasedItem item) {
 ```dart
 class PurchaseStateManager {
   final SharedPreferences prefs;
-  
+
   Future<void> savePurchaseState(Purchase purchase) async {
     final stateData = {
       'productId': purchase.productId,
       'transactionId': purchase.transactionId,
-      'state': Platform.isAndroid 
-          ? purchase.purchaseStateAndroid 
+      'state': Platform.isAndroid
+          ? purchase.purchaseStateAndroid
           : purchase.transactionState,
       'acknowledged': purchase.isAcknowledgedAndroid,
       'timestamp': DateTime.now().millisecondsSinceEpoch,
     };
-    
+
     await prefs.setString(
       'purchase_state_${purchase.transactionId}',
       json.encode(stateData),
     );
   }
-  
+
   Future<Map<String, dynamic>?> getPurchaseState(String transactionId) async {
     final stateJson = prefs.getString('purchase_state_$transactionId');
     return stateJson != null ? json.decode(stateJson) : null;

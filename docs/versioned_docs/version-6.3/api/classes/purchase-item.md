@@ -18,26 +18,31 @@ The `PurchasedItem` class contains all the information about a completed or pend
 ```dart
 final String? productId
 ```
+
 The product identifier of the purchased item.
 
 ```dart
 final String? transactionId
 ```
+
 The unique transaction identifier.
 
 ```dart
 final DateTime? transactionDate
 ```
+
 The date and time when the transaction occurred.
 
 ```dart
 final String? transactionReceipt
 ```
+
 The receipt data for the transaction (primarily used on iOS).
 
 ```dart
 final String? purchaseToken
 ```
+
 The purchase token (primarily used on Android).
 
 ### Android-Specific Properties
@@ -45,26 +50,31 @@ The purchase token (primarily used on Android).
 ```dart
 final String? dataAndroid
 ```
+
 The original purchase data from Google Play.
 
 ```dart
 final String? signatureAndroid
 ```
+
 The signature for purchase verification on Android.
 
 ```dart
 final bool? autoRenewingAndroid
 ```
+
 Whether the subscription is set to auto-renew.
 
 ```dart
 final bool? isAcknowledgedAndroid
 ```
+
 Whether the purchase has been acknowledged (Android requires acknowledgment within 3 days).
 
 ```dart
 final PurchaseState? purchaseStateAndroid
 ```
+
 The current state of the purchase on Android.
 
 ### iOS-Specific Properties
@@ -72,30 +82,37 @@ The current state of the purchase on Android.
 ```dart
 final DateTime? originalTransactionDateIOS
 ```
+
 The date of the original transaction (for restored purchases).
 
 ```dart
 final String? originalTransactionIdentifierIOS
 ```
+
 The identifier of the original transaction (for restored purchases).
 
 ```dart
 final TransactionState? transactionStateIOS
 ```
+
 The current state of the transaction on iOS.
 
 ## Methods
 
 ### fromJSON()
+
 ```dart
 PurchasedItem.fromJSON(Map<String, dynamic> json)
 ```
+
 Creates a `PurchasedItem` instance from a JSON map.
 
 ### toString()
+
 ```dart
 String toString()
 ```
+
 Returns a string representation with all properties. Transaction dates are formatted in ISO 8601 format.
 
 ## Enums
@@ -131,13 +148,13 @@ FlutterInappPurchase.purchaseUpdated.listen((PurchasedItem? item) {
     print('Product purchased: ${item.productId}');
     print('Transaction ID: ${item.transactionId}');
     print('Transaction Date: ${item.transactionDate}');
-    
+
     // Platform-specific handling
     if (Platform.isIOS) {
       // Check iOS transaction state
       if (item.transactionStateIOS == TransactionState.purchased) {
         // Finish the transaction
-        await FlutterInappPurchase.instance.finishTransactionIOS(item);
+        await FlutterInappPurchase.instance.finishTransaction(item);
       }
     } else if (Platform.isAndroid) {
       // Check if acknowledgment is needed
@@ -165,6 +182,7 @@ if (history != null) {
 For receipt validation, use the appropriate properties:
 
 **iOS:**
+
 ```dart
 if (Platform.isIOS && item.transactionReceipt != null) {
   final response = await FlutterInappPurchase.instance.validateReceiptIos(
@@ -178,6 +196,7 @@ if (Platform.isIOS && item.transactionReceipt != null) {
 ```
 
 **Android:**
+
 ```dart
 if (Platform.isAndroid && item.purchaseToken != null) {
   final response = await FlutterInappPurchase.instance.validateReceiptAndroid(
@@ -193,12 +212,14 @@ if (Platform.isAndroid && item.purchaseToken != null) {
 ## Platform Differences
 
 ### iOS
+
 - Uses `transactionReceipt` for validation
 - Has `transactionStateIOS` to track transaction lifecycle
 - Supports restored purchases with original transaction information
 - Must call `finishTransactionIOS()` to complete the purchase
 
 ### Android
+
 - Uses `purchaseToken` for validation
 - Requires acknowledgment within 3 days via `acknowledgePurchaseAndroid()`
 - Has `purchaseStateAndroid` to track purchase state

@@ -890,19 +890,14 @@ class FlutterInappPurchase
     }).toList();
   }
 
-  iap_types.PurchaseState _mapAndroidPurchaseState(int state) {
-    // Android purchase states from Google Play Billing:
-    // 0 = UNSPECIFIED_STATE
-    // 1 = PURCHASED
-    // 2 = PENDING
+  iap_types.PurchaseState _mapAndroidPurchaseState(int stateValue) {
+    final state = AndroidPurchaseState.fromValue(stateValue);
     switch (state) {
-      case 1:
+      case AndroidPurchaseState.purchased:
         return iap_types.PurchaseState.purchased;
-      case 2:
+      case AndroidPurchaseState.pending:
         return iap_types.PurchaseState.pending;
-      case 0:
-      default:
-        // For UNSPECIFIED_STATE (0) and any unknown states
+      case AndroidPurchaseState.unspecified:
         return iap_types.PurchaseState.unspecified;
     }
   }

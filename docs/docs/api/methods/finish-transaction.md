@@ -14,11 +14,13 @@ The `finishTransaction()` method marks a transaction as complete, removing it fr
 ## Signatures
 
 ### expo-iap Compatible
+
 ```dart
 Future<String?> finishTransaction(Purchase purchase, {bool isConsumable = false})
 ```
 
 ### Legacy Method
+
 ```dart
 Future<String?> finishTransactionIOS(PurchasedItem purchasedItem, {bool isConsumable = false})
 ```
@@ -31,11 +33,13 @@ Future<String?> finishTransactionIOS(PurchasedItem purchasedItem, {bool isConsum
 ## Platform Behavior
 
 ### iOS
+
 - Removes the transaction from StoreKit's payment queue
 - Required for all purchases (consumable and non-consumable)
 - Must be called after content delivery
 
 ### Android
+
 - For consumables: Consumes the purchase, allowing repurchase
 - For non-consumables: Acknowledges the purchase
 - Must acknowledge within 3 days or purchase is refunded
@@ -50,7 +54,7 @@ FlutterInappPurchase.purchaseUpdated.listen((PurchasedItem? item) async {
   if (item != null) {
     // Verify and deliver content
     await _verifyAndDeliver(item);
-    
+
     // Finish the transaction
     await FlutterInappPurchase.instance.finishTransactionIOS(
       item,
@@ -67,7 +71,7 @@ FlutterInappPurchase.purchaseUpdated.listen((PurchasedItem? item) async {
 FlutterInappPurchase.instance.purchaseUpdatedListener.listen((Purchase purchase) async {
   // Process the purchase
   await _processPurchase(purchase);
-  
+
   // Finish the transaction
   await FlutterInappPurchase.instance.finishTransaction(
     purchase,
@@ -82,14 +86,14 @@ FlutterInappPurchase.instance.purchaseUpdatedListener.listen((Purchase purchase)
 class PurchaseHandler {
   final _iap = FlutterInappPurchase.instance;
   final _consumableIds = ['coins_100', 'coins_500', 'powerup_pack'];
-  
+
   void initialize() {
     FlutterInappPurchase.purchaseUpdated.listen(_handlePurchase);
   }
-  
+
   Future<void> _handlePurchase(PurchasedItem? item) async {
     if (item == null) return;
-    
+
     try {
       // Step 1: Verify the purchase
       final isValid = await _verifyPurchase(item);
@@ -97,23 +101,23 @@ class PurchaseHandler {
         print('Invalid purchase detected');
         return;
       }
-      
+
       // Step 2: Deliver the content
       await _deliverContent(item.productId!);
-      
+
       // Step 3: Finish the transaction
       final isConsumable = _consumableIds.contains(item.productId);
       await _iap.finishTransactionIOS(item, isConsumable: isConsumable);
-      
+
       print('Transaction completed successfully');
-      
+
     } catch (e) {
       print('Error processing purchase: $e');
       // Don't finish transaction if processing failed
       // This keeps it in the queue for retry
     }
   }
-  
+
   Future<bool> _verifyPurchase(PurchasedItem item) async {
     // Implement your verification logic
     // - Verify receipt with your backend
@@ -121,7 +125,7 @@ class PurchaseHandler {
     // - Validate product ID
     return true;
   }
-  
+
   Future<void> _deliverContent(String productId) async {
     // Deliver the purchased content
     switch (productId) {
@@ -144,7 +148,7 @@ class PurchaseHandler {
 ```dart
 Future<void> handleAndroidPurchase(PurchasedItem item) async {
   if (!Platform.isAndroid) return;
-  
+
   // Check acknowledgment status
   if (item.isAcknowledgedAndroid == false) {
     if (_isConsumable(item.productId)) {
@@ -170,10 +174,10 @@ class TransactionManager {
     try {
       // Get pending transactions
       final pending = await FlutterInappPurchase.instance.getPendingTransactionsIOS();
-      
+
       if (pending != null && pending.isNotEmpty) {
         print('Found ${pending.length} pending transactions');
-        
+
         for (var transaction in pending) {
           // Process each pending transaction
           await _processPendingTransaction(transaction);
@@ -183,19 +187,19 @@ class TransactionManager {
       print('Error processing pending transactions: $e');
     }
   }
-  
+
   Future<void> _processPendingTransaction(PurchasedItem item) async {
     // Verify the transaction
     final isValid = await _verifyTransaction(item);
-    
+
     if (isValid) {
       // Deliver content if not already delivered
       if (!await _isContentDelivered(item.transactionId)) {
         await _deliverContent(item.productId!);
       }
-      
+
       // Finish the transaction
-      await FlutterInappPurchase.instance.finishTransactionIOS(item);
+      await FlutterInappPurchase.instance.finishTransaction(item);
     }
   }
 }
@@ -215,7 +219,7 @@ class TransactionManager {
 Future<void> safeFinishTransaction(PurchasedItem item) async {
   const maxRetries = 3;
   var retryCount = 0;
-  
+
   while (retryCount < maxRetries) {
     try {
       await _iap.finishTransactionIOS(
@@ -224,11 +228,11 @@ Future<void> safeFinishTransaction(PurchasedItem item) async {
       );
       print('Transaction finished successfully');
       break;
-      
+
     } catch (e) {
       retryCount++;
       print('Failed to finish transaction (attempt $retryCount): $e');
-      
+
       if (retryCount >= maxRetries) {
         // Log error but don't throw
         // Transaction will remain pending

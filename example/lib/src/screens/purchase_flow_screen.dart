@@ -148,12 +148,14 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
       bool condition2 = (purchase.isAcknowledgedAndroid == false &&
           purchase.purchaseToken != null &&
           purchase.purchaseToken!.isNotEmpty);
-      bool condition3 = purchase.purchaseStateAndroid == 1;
+      bool condition3 =
+          purchase.purchaseStateAndroid == AndroidPurchaseState.purchased.value;
 
       debugPrint('  Android condition checks:');
       debugPrint('    purchaseState == purchased: $condition1');
       debugPrint('    unacknowledged with token: $condition2');
-      debugPrint('    purchaseStateAndroid == 1: $condition3');
+      debugPrint(
+          '    purchaseStateAndroid == AndroidPurchaseState.purchased: $condition3');
 
       isPurchased = condition1 || condition2 || condition3;
       debugPrint('  Final isPurchased: $isPurchased');
