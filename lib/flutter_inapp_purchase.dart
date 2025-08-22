@@ -770,9 +770,25 @@ class FlutterInappPurchase
         originalPriceAmount: json['originalPriceAmount'] as double?,
         freeTrialPeriod: json['freeTrialPeriod'] as String?,
         iconUrl: json['iconUrl'] as String?,
-        subscriptionOfferDetails: _parseOfferDetails(
-          json['subscriptionOfferDetails'],
+        subscriptionOfferDetailsAndroid: _parseOfferDetails(
+          json['subscriptionOfferDetailsAndroid'],
         ),
+        subscriptionPeriodAndroid: json['subscriptionPeriodAndroid'] as String?,
+        introductoryPriceCyclesAndroid:
+            json['introductoryPriceCyclesAndroid'] as String?,
+        introductoryPricePeriodAndroid:
+            json['introductoryPricePeriodAndroid'] as String?,
+        freeTrialPeriodAndroid: json['freeTrialPeriodAndroid'] as String?,
+        signatureAndroid: json['signatureAndroid'] as String?,
+        subscriptionOffersAndroid: json['subscriptionOffersAndroid'] != null
+            ? (json['subscriptionOffersAndroid'] as List)
+                .map(
+                  (o) => iap_types.SubscriptionOfferAndroid.fromJson(
+                    o as Map<String, dynamic>,
+                  ),
+                )
+                .toList()
+            : null,
       );
     } else {
       // For iOS platform, create ProductIOS instance to capture iOS-specific fields
@@ -834,9 +850,6 @@ class FlutterInappPurchase
           originalPriceAmount: json['originalPriceAmount'] as double?,
           freeTrialPeriod: json['freeTrialPeriod'] as String?,
           iconUrl: json['iconUrl'] as String?,
-          subscriptionOfferDetails: _parseOfferDetails(
-            json['subscriptionOfferDetails'],
-          ),
         );
       }
     }
@@ -875,15 +888,27 @@ class FlutterInappPurchase
     }
 
     return list
-        .map(
-          (e) => iap_types.OfferDetail(
+        .map((item) {
+          // Convert Map<Object?, Object?> to Map<String, dynamic>
+          final Map<String, dynamic> e;
+          if (item is Map<String, dynamic>) {
+            e = item;
+          } else if (item is Map) {
+            e = Map<String, dynamic>.from(item);
+          } else {
+            // Skip invalid items
+            return null;
+          }
+
+          return iap_types.OfferDetail(
             offerId: e['offerId'] as String?,
             basePlanId: e['basePlanId'] as String? ?? '',
             offerToken: e['offerToken'] as String?,
             pricingPhases: _parsePricingPhases(e['pricingPhases']) ?? [],
             offerTags: (e['offerTags'] as List<dynamic>?)?.cast<String>(),
-          ),
-        )
+          );
+        })
+        .whereType<iap_types.OfferDetail>()
         .toList();
   }
 
@@ -902,45 +927,60 @@ class FlutterInappPurchase
 
     if (list == null) return null;
 
-    return list.map((e) {
-      // Handle priceAmountMicros as either String or num and scale to currency units
-      final priceAmountMicros = e['priceAmountMicros'];
-      double priceAmount = 0.0;
-      if (priceAmountMicros != null) {
-        final double micros = priceAmountMicros is num
-            ? priceAmountMicros.toDouble()
-            : (priceAmountMicros is String
-                ? double.tryParse(priceAmountMicros) ?? 0.0
-                : 0.0);
-        priceAmount = micros / 1000000.0; // Convert micros to currency units
-      }
+    return list
+        .map((item) {
+          // Convert Map<Object?, Object?> to Map<String, dynamic>
+          final Map<String, dynamic> e;
+          if (item is Map<String, dynamic>) {
+            e = item;
+          } else if (item is Map) {
+            e = Map<String, dynamic>.from(item);
+          } else {
+            // Skip invalid items
+            return null;
+          }
 
-      // Map recurrenceMode if present (BillingClient: 1=infinite, 2=finite, 3=non-recurring)
-      iap_types.RecurrenceMode? recurrenceMode;
-      final rm = e['recurrenceMode'];
-      if (rm is int) {
-        switch (rm) {
-          case 1:
-            recurrenceMode = iap_types.RecurrenceMode.infiniteRecurring;
-            break;
-          case 2:
-            recurrenceMode = iap_types.RecurrenceMode.finiteRecurring;
-            break;
-          case 3:
-            recurrenceMode = iap_types.RecurrenceMode.nonRecurring;
-            break;
-        }
-      }
+          // Handle priceAmountMicros as either String or num and scale to currency units
+          final priceAmountMicros = e['priceAmountMicros'];
+          double priceAmount = 0.0;
+          if (priceAmountMicros != null) {
+            final double micros = priceAmountMicros is num
+                ? priceAmountMicros.toDouble()
+                : (priceAmountMicros is String
+                    ? double.tryParse(priceAmountMicros) ?? 0.0
+                    : 0.0);
+            priceAmount =
+                micros / 1000000.0; // Convert micros to currency units
+          }
 
-      return iap_types.PricingPhase(
-        priceAmount: priceAmount,
-        price: e['formattedPrice'] as String? ?? '0',
-        currency: e['priceCurrencyCode'] as String? ?? 'USD',
-        billingPeriod: e['billingPeriod'] as String?,
-        billingCycleCount: e['billingCycleCount'] as int?,
-        recurrenceMode: recurrenceMode,
-      );
-    }).toList();
+          // Map recurrenceMode if present (BillingClient: 1=infinite, 2=finite, 3=non-recurring)
+          iap_types.RecurrenceMode? recurrenceMode;
+          final rm = e['recurrenceMode'];
+          if (rm is int) {
+            switch (rm) {
+              case 1:
+                recurrenceMode = iap_types.RecurrenceMode.infiniteRecurring;
+                break;
+              case 2:
+                recurrenceMode = iap_types.RecurrenceMode.finiteRecurring;
+                break;
+              case 3:
+                recurrenceMode = iap_types.RecurrenceMode.nonRecurring;
+                break;
+            }
+          }
+
+          return iap_types.PricingPhase(
+            priceAmount: priceAmount,
+            price: e['formattedPrice'] as String? ?? '0',
+            currency: e['priceCurrencyCode'] as String? ?? 'USD',
+            billingPeriod: e['billingPeriod'] as String?,
+            billingCycleCount: e['billingCycleCount'] as int?,
+            recurrenceMode: recurrenceMode,
+          );
+        })
+        .whereType<iap_types.PricingPhase>()
+        .toList();
   }
 
   iap_types.PurchaseState _mapAndroidPurchaseState(int stateValue) {
