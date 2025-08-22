@@ -1,6 +1,22 @@
 # CHANGELOG
 
-## 6.4.1 (Current)
+## 6.4.2 (Current)
+
+### Bug Fixes
+
+- **Android**: Fixed `subscriptionOfferDetailsAndroid` field returning null (Fixes [#534](https://github.com/hyochan/flutter_inapp_purchase/issues/534))
+  - Added proper parsing for `subscriptionOfferDetailsAndroid` in subscription products
+  - Removed parsing of deprecated `subscriptionOfferDetails` field
+  - Fixed Map type casting issues that could cause runtime errors with `Map<dynamic, dynamic>` inputs
+
+### Improvements
+
+- **Type Safety**: Improved type safety for JSON parsing across the codebase
+  - Added safe JSON map conversion helper to prevent type casting errors
+  - Fixed all unsafe `as Map<String, dynamic>` casts in `types.dart`
+  - Ensures robust handling of platform channel data
+
+## 6.4.1
 
 ### Improvements
 
