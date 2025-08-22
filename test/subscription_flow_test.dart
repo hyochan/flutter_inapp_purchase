@@ -499,14 +499,23 @@ List<Map<String, dynamic>> _getMockSubscriptions() {
       'currency': 'USD',
       'localizedPrice': '\$19.99',
       'title': 'Premium Subscription',
-      'subscriptionOffersAndroid': <Map<String, dynamic>>[
+      'displayPrice': '\$19.99',
+      'subscriptionOfferDetailsAndroid': <Map<String, dynamic>>[
         <String, dynamic>{
-          'sku': 'android_sub_with_offers',
+          'basePlanId': 'monthly',
+          'offerId': 'offer1',
           'offerToken': 'offer_token_1',
-        },
-        <String, dynamic>{
-          'sku': 'android_sub_with_offers',
-          'offerToken': 'offer_token_2',
+          'pricingPhases': {
+            'pricingPhaseList': [
+              {
+                'formattedPrice': '\$19.99',
+                'priceCurrencyCode': 'USD',
+                'priceAmountMicros': 19990000,
+                'billingPeriod': 'P1M',
+                'recurrenceMode': 1,
+              }
+            ]
+          },
         },
       ],
     },
