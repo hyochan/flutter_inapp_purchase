@@ -773,20 +773,20 @@ class FlutterInappPurchase
         subscriptionOfferDetailsAndroid: _parseOfferDetails(
           json['subscriptionOfferDetailsAndroid'],
         ),
-        subscriptionPeriodAndroid: json['subscriptionPeriodAndroid'] as String?,
-        introductoryPriceCyclesAndroid:
-            json['introductoryPriceCyclesAndroid'] as String?,
-        introductoryPricePeriodAndroid:
-            json['introductoryPricePeriodAndroid'] as String?,
-        freeTrialPeriodAndroid: json['freeTrialPeriodAndroid'] as String?,
-        signatureAndroid: json['signatureAndroid'] as String?,
         subscriptionOffersAndroid: json['subscriptionOffersAndroid'] != null
             ? (json['subscriptionOffersAndroid'] as List)
-                .map(
-                  (o) => iap_types.SubscriptionOfferAndroid.fromJson(
-                    o as Map<String, dynamic>,
-                  ),
-                )
+                .map((item) {
+                  final Map<String, dynamic> offer;
+                  if (item is Map<String, dynamic>) {
+                    offer = item;
+                  } else if (item is Map) {
+                    offer = Map<String, dynamic>.from(item);
+                  } else {
+                    return null;
+                  }
+                  return iap_types.SubscriptionOfferAndroid.fromJson(offer);
+                })
+                .whereType<iap_types.SubscriptionOfferAndroid>()
                 .toList()
             : null,
       );
@@ -1122,8 +1122,10 @@ class FlutterInappPurchase
       webOrderLineItemIdIOS: _platform.isIOS
           ? (originalJson?['webOrderLineItemIdIOS'] as String?)
           : null,
-      offerIOS: _platform.isIOS
-          ? (originalJson?['offerIOS'] as Map<String, dynamic>?)
+      offerIOS: _platform.isIOS && originalJson?['offerIOS'] != null
+          ? (originalJson!['offerIOS'] is Map<String, dynamic>
+              ? originalJson['offerIOS'] as Map<String, dynamic>
+              : Map<String, dynamic>.from(originalJson['offerIOS'] as Map))
           : null,
       priceIOS: _platform.isIOS && originalJson?['priceIOS'] != null
           ? (originalJson!['priceIOS'] as num).toDouble()

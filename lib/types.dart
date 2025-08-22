@@ -5,6 +5,15 @@ export 'errors.dart'
     show PurchaseError, PurchaseResult, ConnectionResult, getCurrentPlatform;
 export 'types_additions.dart';
 
+/// Safely convert any JSON map (possibly Map<dynamic, dynamic>)
+/// into Map<String, dynamic>, or return null if not a map.
+Map<String, dynamic>? _safeJsonMap(dynamic json) {
+  if (json == null) return null;
+  if (json is Map<String, dynamic>) return json;
+  if (json is Map) return Map<String, dynamic>.from(json);
+  return null;
+}
+
 // ============================================================================
 // CORE TYPES (OpenIAP compliant)
 // ============================================================================
@@ -271,7 +280,11 @@ class Product extends ProductCommon {
           json['platform'] == 'android' ? IapPlatform.android : IapPlatform.ios,
       discountsIOS: json['discountsIOS'] != null
           ? (json['discountsIOS'] as List)
-              .map((d) => DiscountIOS.fromJson(d as Map<String, dynamic>))
+              .map((item) {
+                final map = _safeJsonMap(item);
+                return map != null ? DiscountIOS.fromJson(map) : null;
+              })
+              .whereType<DiscountIOS>()
               .toList()
           : null,
       subscription: json['subscription'] != null
@@ -308,14 +321,22 @@ class Product extends ProductCommon {
       // TODO(v6.4.0): Remove deprecated subscriptionOfferDetails
       subscriptionOfferDetails: json['subscriptionOfferDetails'] != null
           ? (json['subscriptionOfferDetails'] as List)
-              .map((o) => OfferDetail.fromJson(o as Map<String, dynamic>))
+              .map((item) {
+                final map = _safeJsonMap(item);
+                return map != null ? OfferDetail.fromJson(map) : null;
+              })
+              .whereType<OfferDetail>()
               .toList()
           : null,
       // Use new Android suffix field if available, fallback to old field for compatibility
       subscriptionOfferDetailsAndroid:
           json['subscriptionOfferDetailsAndroid'] != null
               ? (json['subscriptionOfferDetailsAndroid'] as List)
-                  .map((o) => OfferDetail.fromJson(o as Map<String, dynamic>))
+                  .map((item) {
+                    final map = _safeJsonMap(item);
+                    return map != null ? OfferDetail.fromJson(map) : null;
+                  })
+                  .whereType<OfferDetail>()
                   .toList()
               : json['subscriptionOfferDetails'] != null
                   ? (json['subscriptionOfferDetails'] as List)
@@ -334,7 +355,7 @@ class Product extends ProductCommon {
           ? (json['subscriptionOffersAndroid'] as List)
               .map(
                 (o) => SubscriptionOfferAndroid.fromJson(
-                  o as Map<String, dynamic>,
+                  _safeJsonMap(o) ?? {},
                 ),
               )
               .toList()
@@ -782,7 +803,11 @@ class Subscription extends ProductCommon {
       displayPrice: json['displayPrice'] as String?,
       discountsIOS: json['discountsIOS'] != null
           ? (json['discountsIOS'] as List)
-              .map((d) => DiscountIOS.fromJson(d as Map<String, dynamic>))
+              .map((item) {
+                final map = _safeJsonMap(item);
+                return map != null ? DiscountIOS.fromJson(map) : null;
+              })
+              .whereType<DiscountIOS>()
               .toList()
           : null,
       subscription: json['subscription'] != null
@@ -819,14 +844,22 @@ class Subscription extends ProductCommon {
       // TODO(v6.4.0): Remove deprecated subscriptionOfferDetails
       subscriptionOfferDetails: json['subscriptionOfferDetails'] != null
           ? (json['subscriptionOfferDetails'] as List)
-              .map((o) => OfferDetail.fromJson(o as Map<String, dynamic>))
+              .map((item) {
+                final map = _safeJsonMap(item);
+                return map != null ? OfferDetail.fromJson(map) : null;
+              })
+              .whereType<OfferDetail>()
               .toList()
           : null,
       // Use new Android suffix field if available, fallback to old field for compatibility
       subscriptionOfferDetailsAndroid:
           json['subscriptionOfferDetailsAndroid'] != null
               ? (json['subscriptionOfferDetailsAndroid'] as List)
-                  .map((o) => OfferDetail.fromJson(o as Map<String, dynamic>))
+                  .map((item) {
+                    final map = _safeJsonMap(item);
+                    return map != null ? OfferDetail.fromJson(map) : null;
+                  })
+                  .whereType<OfferDetail>()
                   .toList()
               : json['subscriptionOfferDetails'] != null
                   ? (json['subscriptionOfferDetails'] as List)
@@ -845,7 +878,7 @@ class Subscription extends ProductCommon {
           ? (json['subscriptionOffersAndroid'] as List)
               .map(
                 (o) => SubscriptionOfferAndroid.fromJson(
-                  o as Map<String, dynamic>,
+                  _safeJsonMap(o) ?? {},
                 ),
               )
               .toList()
@@ -1192,7 +1225,11 @@ class ProductIOS extends Product {
           : null,
       discounts: json['discounts'] != null
           ? (json['discounts'] as List)
-              .map((d) => DiscountIOS.fromJson(d as Map<String, dynamic>))
+              .map((item) {
+                final map = _safeJsonMap(item);
+                return map != null ? DiscountIOS.fromJson(map) : null;
+              })
+              .whereType<DiscountIOS>()
               .toList()
           : null,
     );
@@ -1255,7 +1292,7 @@ class ProductAndroid extends Product {
           ? (json['subscriptionOffers'] as List)
               .map(
                 (o) => SubscriptionOfferAndroid.fromJson(
-                  o as Map<String, dynamic>,
+                  _safeJsonMap(o) ?? {},
                 ),
               )
               .toList()
@@ -1265,7 +1302,11 @@ class ProductAndroid extends Product {
       // TODO(v6.4.0): Remove deprecated subscriptionOfferDetails
       subscriptionOfferDetails: json['subscriptionOfferDetails'] != null
           ? (json['subscriptionOfferDetails'] as List)
-              .map((o) => OfferDetail.fromJson(o as Map<String, dynamic>))
+              .map((item) {
+                final map = _safeJsonMap(item);
+                return map != null ? OfferDetail.fromJson(map) : null;
+              })
+              .whereType<OfferDetail>()
               .toList()
           : null,
       // Note: subscriptionOfferDetailsAndroid is not part of Subscription class
@@ -1387,13 +1428,21 @@ class OfferDetail {
     if (pricingPhasesData is List) {
       // Legacy format: direct list
       phases = pricingPhasesData
-          .map((p) => PricingPhase.fromJson(p as Map<String, dynamic>))
+          .map((item) {
+            final map = _safeJsonMap(item);
+            return map != null ? PricingPhase.fromJson(map) : null;
+          })
+          .whereType<PricingPhase>()
           .toList();
     } else if (pricingPhasesData is Map &&
         pricingPhasesData['pricingPhaseList'] != null) {
       // New Android format: object with pricingPhaseList
       phases = (pricingPhasesData['pricingPhaseList'] as List)
-          .map((p) => PricingPhase.fromJson(p as Map<String, dynamic>))
+          .map((item) {
+            final map = _safeJsonMap(item);
+            return map != null ? PricingPhase.fromJson(map) : null;
+          })
+          .whereType<PricingPhase>()
           .toList();
     } else {
       phases = [];
@@ -1706,8 +1755,7 @@ class Purchase {
               isVerified: json['verificationResultIOS']['isVerified'] as bool,
               verificationError:
                   json['verificationResultIOS']['verificationError'] as String?,
-              data: json['verificationResultIOS']['data']
-                  as Map<String, dynamic>?,
+              data: _safeJsonMap(json['verificationResultIOS']['data']),
             )
           : null,
       environmentIOS: json['environmentIOS'] as String?,
