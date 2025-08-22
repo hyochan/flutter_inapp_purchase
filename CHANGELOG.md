@@ -1,6 +1,16 @@
 # CHANGELOG
 
-## 6.4.0 (Current)
+## 6.4.1 (Current)
+
+### Improvements
+
+- **ActiveSubscription Type**: Implemented a dedicated `ActiveSubscription` type for subscription APIs to provide better type safety and clearer subscription status information ([#532](https://github.com/hyochan/flutter_inapp_purchase/issues/532))
+  - `getActiveSubscriptions()` now returns `List<ActiveSubscription>` instead of `List<SubscriptionPurchase>`
+  - New type includes subscription-specific fields like `willExpireSoon` and `daysUntilExpirationIOS`
+  - Automatically calculates expiration status for iOS subscriptions
+  - Provides cleaner API with subscription-focused properties
+
+## 6.4.0
 
 ### Breaking Changes
 
