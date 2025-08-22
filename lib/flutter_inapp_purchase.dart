@@ -1701,7 +1701,7 @@ class FlutterInappPurchase
   /// Returns an array of active subscriptions. If subscriptionIds is not provided,
   /// returns all active subscriptions. Platform-specific fields are populated based
   /// on the current platform.
-  Future<List<iap_types.SubscriptionPurchase>> getActiveSubscriptions({
+  Future<List<iap_types.ActiveSubscription>> getActiveSubscriptions({
     List<String>? subscriptionIds,
   }) async {
     if (!_isInitialized) {
@@ -1718,8 +1718,8 @@ class FlutterInappPurchase
       // Get all available purchases (which includes active subscriptions)
       final purchases = await getAvailablePurchases();
 
-      // Filter to only subscriptions
-      final List<iap_types.SubscriptionPurchase> activeSubscriptions = [];
+      // Filter to only active subscriptions
+      final List<iap_types.ActiveSubscription> activeSubscriptions = [];
 
       for (final purchase in purchases) {
         // Check if this purchase should be included based on subscriptionIds filter
@@ -1732,7 +1732,6 @@ class FlutterInappPurchase
         // or by checking the purchase against known subscription products
         bool isSubscription = false;
         bool isActive = false;
-        DateTime? expirationDate;
 
         if (_platform.isAndroid) {
           // On Android, check if it's auto-renewing
@@ -1752,64 +1751,12 @@ class FlutterInappPurchase
                       iap_types.TransactionState.restored ||
                   purchase.transactionStateIOS == null) &&
               isSubscription;
-
-          // Try to parse expiration date from transaction date if available
-          // In a real implementation, this would come from the receipt validation
-          if (purchase.transactionDate != null) {
-            final transDate = DateTime.fromMillisecondsSinceEpoch(
-              purchase.transactionDate!,
-            );
-            // This is a placeholder that should be replaced with actual data
-            if (purchase is iap_types.PurchaseIOS) {
-              final purchaseIOS = purchase;
-              if (purchaseIOS.expirationDateIOS != null) {
-                expirationDate = purchaseIOS.expirationDateIOS;
-              } else {
-                // Fallback to 30-day assumption for demo purposes only
-                expirationDate = transDate.add(const Duration(days: 30));
-              }
-            } else {
-              // For regular Purchase class (not PurchaseIOS)
-              if (purchase.expirationDateIOS != null) {
-                // Purchase class has expirationDateIOS as DateTime already
-                expirationDate = purchase.expirationDateIOS;
-              } else {
-                // Fallback to 30-day assumption for demo purposes only
-                expirationDate = transDate.add(const Duration(days: 30));
-              }
-            }
-          }
         }
 
         if (isSubscription && isActive) {
+          // Create ActiveSubscription from Purchase
           activeSubscriptions.add(
-            iap_types.SubscriptionPurchase(
-              productId: purchase.productId,
-              transactionId: purchase.transactionId,
-              transactionDate: purchase.transactionDate,
-              transactionReceipt: purchase.transactionReceipt,
-              purchaseToken: purchase.purchaseToken,
-              isActive: true,
-              expirationDate: expirationDate,
-              platform: _platform.isIOS
-                  ? iap_types.IapPlatform.ios
-                  : iap_types.IapPlatform.android,
-              // iOS specific
-              transactionStateIOS: purchase.transactionStateIOS,
-              originalTransactionIdentifierIOS:
-                  purchase.originalTransactionIdentifierIOS,
-              originalTransactionDateIOS: purchase.originalTransactionDateIOS,
-              quantityIOS: purchase.quantityIOS,
-              environmentIOS: purchase.environmentIOS,
-              expirationDateIOS: expirationDate,
-              // Android specific
-              isAcknowledgedAndroid: purchase.isAcknowledgedAndroid,
-              purchaseStateAndroid: purchase.purchaseStateAndroid,
-              signatureAndroid: purchase.signatureAndroid,
-              originalJson: purchase.originalJson,
-              packageNameAndroid: purchase.packageNameAndroid,
-              autoRenewingAndroid: purchase.autoRenewingAndroid,
-            ),
+            iap_types.ActiveSubscription.fromPurchase(purchase),
           );
         }
       }
