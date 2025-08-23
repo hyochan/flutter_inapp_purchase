@@ -1,0 +1,153 @@
+name: Gemini Auto PR
+
+on:
+  issues:
+    types: [opened, labeled]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  analyze-and-pr:
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'issues' && 
+       (github.event.action == 'opened' || 
+        (github.event.action == 'labeled' && contains(github.event.issue.labels.*.name, 'auto-fix')))) ||
+      (github.event_name == 'issue_comment' && 
+       contains(github.event.comment.body, '@gemini-cli') && 
+       contains(github.event.comment.body, '/fix'))
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          flutter-version: "3.x"
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze issue and create PR if solvable
+        id: analyze-pr
+        uses: google-github-actions/run-gemini-cli@v0
+        with:
+          prompt: |
+            You are an expert Flutter developer helping with the flutter_inapp_purchase package.
+
+            Analyze the following issue: ${{ github.event.issue.title }}
+
+            Issue description:
+            ${{ github.event.issue.body }}
+
+            Your task:
+            1. Determine if this issue can be automatically resolved with code changes
+            2. If it's a bug that can be fixed or a simple feature that can be implemented:
+               - Create a new branch named 'fix-issue-${{ github.event.issue.number }}'
+               - Make the necessary code changes following the CLAUDE.md guidelines
+               - Ensure all tests pass (flutter test)
+               - Ensure code is formatted (dart format .)
+               - Create a pull request that references issue #${{ github.event.issue.number }}
+            3. If the issue requires human intervention or discussion:
+               - Add a comment explaining why it cannot be automatically resolved
+               - Suggest what information or decisions are needed
+
+            Important:
+            - Follow the API changes and naming conventions in CLAUDE.md
+            - MUST comply with OpenIAP specification: https://openiap.dev
+              - APIs: https://openiap.dev/docs/apis
+              - Types: https://openiap.dev/docs/types  
+              - Events: https://openiap.dev/docs/events
+              - Errors: https://openiap.dev/docs/errors
+            - Maintain backward compatibility unless explicitly mentioned in the issue
+            - Add tests for any new functionality
+            - Update documentation if needed
+
+            Only create a PR if you're confident the solution is correct and complete.
+
+          settings: |
+            {
+              "tools": [
+                {
+                  "name": "gh",
+                  "description": "GitHub CLI for creating branches and PRs"
+                },
+                {
+                  "name": "git",
+                  "description": "Git commands for version control"
+                },
+                {
+                  "name": "flutter",
+                  "description": "Flutter CLI for testing and analysis"
+                },
+                {
+                  "name": "dart",
+                  "description": "Dart CLI for formatting and analysis"
+                }
+              ],
+              "repositories": [
+                {
+                  "path": ".",
+                  "instructions": "file://CLAUDE.md"
+                }
+              ],
+              "model": "gemini-2.5-pro-latest"
+            }
+
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Comment on issue with result
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueNumber = context.issue.number;
+            const outputs = ${{ toJSON(steps.analyze-pr.outputs) }};
+            const summary = outputs.summary || '';
+            const error = outputs.error || '';
+
+            let comment = '';
+            if (error) {
+              comment = `Failed to analyze or fix the issue:\n\`\`\`\n${error}\n\`\`\``;
+            } else if (summary) {
+              comment = `Gemini Analysis Result:\n${summary}`;
+            }
+
+            if (comment) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: comment
+              });
+            }
+
+  auto-pr-on-comment:
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'issue_comment' && 
+      contains(github.event.comment.body, '@gemini-cli') && 
+      contains(github.event.comment.body, '/fix')
+
+    steps:
+      - name: React to comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: 'rocket'
+            });
