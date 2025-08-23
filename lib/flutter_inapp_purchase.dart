@@ -1095,7 +1095,7 @@ class FlutterInappPurchase
       expirationDateIOS:
           _platform.isIOS && originalJson?['expirationDateIOS'] != null
               ? DateTime.fromMillisecondsSinceEpoch(
-                  originalJson!['expirationDateIOS'] as int,
+                  (originalJson!['expirationDateIOS'] as num).toInt(),
                 )
               : null,
       subscriptionGroupIdIOS: _platform.isIOS
@@ -1133,7 +1133,7 @@ class FlutterInappPurchase
       revocationDateIOS:
           _platform.isIOS && originalJson?['revocationDateIOS'] != null
               ? DateTime.fromMillisecondsSinceEpoch(
-                  originalJson!['revocationDateIOS'] as int,
+                  (originalJson!['revocationDateIOS'] as num).toInt(),
                 )
               : null,
       revocationReasonIOS: _platform.isIOS
