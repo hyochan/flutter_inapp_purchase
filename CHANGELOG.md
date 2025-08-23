@@ -1,6 +1,16 @@
 # CHANGELOG
 
-## 6.4.2 (Current)
+## 6.4.3
+
+### Bug Fixes
+
+- **iOS**: Replace ISO8601DateFormatter with millisecond timestamps for date fields ([#535](https://github.com/hyochan/flutter_inapp_purchase/issues/535))
+  - Changed `expirationDateIOS` and `revocationDateIOS` to use millisecond timestamps
+  - Added explicit Int64 casting for better type safety
+  - Aligned with expo-iap implementation for consistency
+  - Improved Dart type safety for date parsing with safe num to int conversion
+
+## 6.4.2
 
 ### Bug Fixes
 
