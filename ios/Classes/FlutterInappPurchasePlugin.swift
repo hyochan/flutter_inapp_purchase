@@ -436,14 +436,12 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                     
                     // Add expiration date if available
                     if let expirationDate = transaction.expirationDate {
-                        let f = ISO8601DateFormatter()
-                        purchase["expirationDateIOS"] = f.string(from: expirationDate)
+                        purchase["expirationDateIOS"] = expirationDate.timeIntervalSince1970 * 1000
                     }
                     
                     // Add revocation info if available
                     if let revocationDate = transaction.revocationDate {
-                        let f = ISO8601DateFormatter()
-                        purchase["revocationDateIOS"] = f.string(from: revocationDate)
+                        purchase["revocationDateIOS"] = revocationDate.timeIntervalSince1970 * 1000
                         purchase["revocationReasonIOS"] = transaction.revocationReason?.rawValue
                     }
                     purchases.append(purchase)
