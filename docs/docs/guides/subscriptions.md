@@ -692,6 +692,5 @@ class SubscriptionTesting {
 ## Related Documentation
 
 - [Purchases Guide](./purchases.md) - General purchase handling
-- [Receipt Validation](./receipt-validation.md) - Validating receipts
 - [Error Handling](./error-handling.md) - Handling subscription errors
 - [API Reference](../api/methods/request-subscription.md) - Subscription API methods

@@ -308,7 +308,6 @@ Future<void> restorePurchases() async {
 
 ### 1. Product Loading
 
-- Cache product information to reduce API calls
 - Handle network failures gracefully
 - Show loading states while fetching products
 
@@ -372,5 +371,4 @@ void handlePurchaseError(dynamic error) {
 ## Next Steps
 
 - [Subscriptions Guide](./subscriptions) - Implementing auto-renewable subscriptions
-- [Receipt Validation](./receipt-validation) - Verifying purchases securely
 - [Error Handling](./error-handling) - Comprehensive error management

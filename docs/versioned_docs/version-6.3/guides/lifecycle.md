@@ -267,7 +267,7 @@ class IapHook {
 
 ## Best Practices
 
-### ✅ Do:
+### ✅ Do
 
 - **Initialize connections early** in your app lifecycle
 - **Set up purchase listeners** before making any purchase requests
@@ -303,7 +303,7 @@ class GoodPurchaseManager extends WidgetsBindingObserver {
 }
 ```
 
-### ❌ Don't:
+### ❌ Don't
 
 - **Make purchases without listeners** set up first
 - **Ignore connection state** when making requests

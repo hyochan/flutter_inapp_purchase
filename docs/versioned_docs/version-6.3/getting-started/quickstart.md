@@ -373,5 +373,4 @@ if (Platform.isIOS) {
 
 - [Products Guide](../guides/products) - Working with consumable products
 - [Subscriptions Guide](../guides/subscriptions) - Implementing subscriptions
-- [Receipt Validation](../guides/receipt-validation) - Secure purchase verification
 - [Error Handling](../guides/error-handling) - Handling edge cases

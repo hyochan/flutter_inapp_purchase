@@ -467,49 +467,6 @@ class PurchaseTesting {
 }
 ```
 
-### Should I cache product information?
-
-Yes, cache products for better UX:
-
-```dart
-class ProductCache {
-  static final Map<String, IapItem> _cache = {};
-  static DateTime? _lastFetch;
-  static const cacheDuration = Duration(hours: 1);
-
-  static Future<List<IapItem>> getProducts(List<String> ids) async {
-    // Check cache validity
-    if (_lastFetch != null &&
-        DateTime.now().difference(_lastFetch!) < cacheDuration &&
-        ids.every((id) => _cache.containsKey(id))) {
-      return ids.map((id) => _cache[id]!).toList();
-    }
-
-    // Fetch fresh data
-    try {
-      final products = await FlutterInappPurchase.instance.getProducts(ids);
-
-      // Update cache
-      for (final product in products) {
-        if (product.productId != null) {
-          _cache[product.productId!] = product;
-        }
-      }
-      _lastFetch = DateTime.now();
-
-      return products;
-    } catch (e) {
-      debugPrint('Error fetching products: $e');
-      // Return cached data on error
-      return ids
-          .where((id) => _cache.containsKey(id))
-          .map((id) => _cache[id]!)
-          .toList();
-    }
-  }
-}
-```
-
 ## Migration Questions
 
 ### How do I migrate from v5 to v6?

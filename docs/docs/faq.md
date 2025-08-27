@@ -274,27 +274,6 @@ FlutterInappPurchase.purchaseError.listen((error) {
 
 ## Performance & Best Practices
 
-### Q: Should I cache product information?
-
-**A:** Yes, caching improves performance:
-
-```dart
-class ProductCache {
-  static final Map<String, IapItem> _cache = {};
-
-  static Future<IapItem?> getProduct(String id) async {
-    if (_cache.containsKey(id)) return _cache[id];
-
-    final products = await FlutterInappPurchase.instance.requestProducts(skus: [id], type: 'inapp');
-    if (products.isNotEmpty) {
-      _cache[id] = products.first;
-      return products.first;
-    }
-    return null;
-  }
-}
-```
-
 ### Q: When should I initialize the IAP connection?
 
 **A:** Initialize as early as possible, typically in your app's main entry point or store screen initialization. Don't initialize on every screen.
