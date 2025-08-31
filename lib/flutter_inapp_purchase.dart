@@ -11,12 +11,14 @@ import 'types.dart' as iap_types;
 import 'modules/ios.dart';
 import 'modules/android.dart';
 import 'builders.dart';
+import 'utils.dart';
 
 export 'types.dart';
 export 'enums.dart';
 export 'errors.dart';
 export 'events.dart';
 export 'builders.dart';
+export 'utils.dart';
 
 // Enums moved to enums.dart
 
@@ -1424,23 +1426,13 @@ class FlutterInappPurchase
             await _channel.invokeMethod('consumeProduct', <String, dynamic>{
           'purchaseToken': purchase.purchaseToken,
         });
-        // Android returns a JSON string, parse it to validate the response
-        if (result != null && result is String) {
-          try {
-            final response = jsonDecode(result) as Map<String, dynamic>;
-            if (kDebugMode) {
-              debugPrint(
-                '[FlutterInappPurchase] Android: Product consumed successfully. Response code: ${response['responseCode']}',
-              );
-            }
-          } catch (e) {
-            if (kDebugMode) {
-              debugPrint(
-                '[FlutterInappPurchase] Android: Failed to parse consume response: $e',
-              );
-            }
-          }
-        }
+        parseAndLogAndroidResponse(
+          result,
+          successLog:
+              '[FlutterInappPurchase] Android: Product consumed successfully',
+          failureLog:
+              '[FlutterInappPurchase] Android: Failed to parse consume response',
+        );
         return;
       } else {
         if (purchase.isAcknowledgedAndroid == true) {
@@ -1464,23 +1456,13 @@ class FlutterInappPurchase
               .invokeMethod('acknowledgePurchase', <String, dynamic>{
             'purchaseToken': purchase.purchaseToken,
           });
-          // Android returns a JSON string, parse it to validate the response
-          if (result != null && result is String) {
-            try {
-              final response = jsonDecode(result) as Map<String, dynamic>;
-              if (kDebugMode) {
-                debugPrint(
-                  '[FlutterInappPurchase] Android: Purchase acknowledged successfully. Response code: ${response['responseCode']}',
-                );
-              }
-            } catch (e) {
-              if (kDebugMode) {
-                debugPrint(
-                  '[FlutterInappPurchase] Android: Failed to parse acknowledge response: $e',
-                );
-              }
-            }
-          }
+          parseAndLogAndroidResponse(
+            result,
+            successLog:
+                '[FlutterInappPurchase] Android: Purchase acknowledged successfully',
+            failureLog:
+                '[FlutterInappPurchase] Android: Failed to parse acknowledge response',
+          );
           return;
         }
       }

@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 6.4.4
+
+### Bug Fixes
+
+- **Android**: Fixed FormatException when calling finishTransaction ([#539](https://github.com/hyochan/flutter_inapp_purchase/issues/539))
+
 ## 6.4.3
 
 ### Bug Fixes
