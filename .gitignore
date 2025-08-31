@@ -35,3 +35,7 @@ docs/node_modules/
 !.vscode/tasks.json
 !.vscode/settings.json
 !.vscode/extensions.json
+
+# Android build artifacts
+example/android/app/.cxx/
+*.cxx/

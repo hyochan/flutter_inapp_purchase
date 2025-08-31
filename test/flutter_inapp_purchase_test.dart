@@ -767,11 +767,13 @@ void main() {
             }
             if (methodCall.method == 'consumeProduct') {
               expect(methodCall.arguments['purchaseToken'], isNotNull);
-              return 'consumed';
+              // Return JSON response like actual Android implementation
+              return '{"responseCode":0,"debugMessage":"","code":"OK","message":"","purchaseToken":"${methodCall.arguments['purchaseToken']}"}';
             }
             if (methodCall.method == 'acknowledgePurchase') {
               expect(methodCall.arguments['purchaseToken'], isNotNull);
-              return 'acknowledged';
+              // Return JSON response like actual Android implementation
+              return '{"responseCode":0,"debugMessage":"","code":"OK","message":""}';
             }
             return null;
           });

@@ -1420,9 +1420,27 @@ class FlutterInappPurchase
         debugPrint(
           '[FlutterInappPurchase] Android: Consuming product with token: ${purchase.purchaseToken}',
         );
-        await _channel.invokeMethod('consumeProduct', <String, dynamic>{
+        final result =
+            await _channel.invokeMethod('consumeProduct', <String, dynamic>{
           'purchaseToken': purchase.purchaseToken,
         });
+        // Android returns a JSON string, parse it to validate the response
+        if (result != null && result is String) {
+          try {
+            final response = jsonDecode(result) as Map<String, dynamic>;
+            if (kDebugMode) {
+              debugPrint(
+                '[FlutterInappPurchase] Android: Product consumed successfully. Response code: ${response['responseCode']}',
+              );
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              debugPrint(
+                '[FlutterInappPurchase] Android: Failed to parse consume response: $e',
+              );
+            }
+          }
+        }
         return;
       } else {
         if (purchase.isAcknowledgedAndroid == true) {
@@ -1442,9 +1460,27 @@ class FlutterInappPurchase
               '[FlutterInappPurchase] Android: Acknowledging purchase with token: $maskedToken',
             );
           }
-          await _channel.invokeMethod('acknowledgePurchase', <String, dynamic>{
+          final result = await _channel
+              .invokeMethod('acknowledgePurchase', <String, dynamic>{
             'purchaseToken': purchase.purchaseToken,
           });
+          // Android returns a JSON string, parse it to validate the response
+          if (result != null && result is String) {
+            try {
+              final response = jsonDecode(result) as Map<String, dynamic>;
+              if (kDebugMode) {
+                debugPrint(
+                  '[FlutterInappPurchase] Android: Purchase acknowledged successfully. Response code: ${response['responseCode']}',
+                );
+              }
+            } catch (e) {
+              if (kDebugMode) {
+                debugPrint(
+                  '[FlutterInappPurchase] Android: Failed to parse acknowledge response: $e',
+                );
+              }
+            }
+          }
           return;
         }
       }
