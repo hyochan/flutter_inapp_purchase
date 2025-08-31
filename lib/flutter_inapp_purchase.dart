@@ -11,12 +11,14 @@ import 'types.dart' as iap_types;
 import 'modules/ios.dart';
 import 'modules/android.dart';
 import 'builders.dart';
+import 'utils.dart';
 
 export 'types.dart';
 export 'enums.dart';
 export 'errors.dart';
 export 'events.dart';
 export 'builders.dart';
+export 'utils.dart';
 
 // Enums moved to enums.dart
 
@@ -1420,9 +1422,17 @@ class FlutterInappPurchase
         debugPrint(
           '[FlutterInappPurchase] Android: Consuming product with token: ${purchase.purchaseToken}',
         );
-        await _channel.invokeMethod('consumeProduct', <String, dynamic>{
+        final result =
+            await _channel.invokeMethod('consumeProduct', <String, dynamic>{
           'purchaseToken': purchase.purchaseToken,
         });
+        parseAndLogAndroidResponse(
+          result,
+          successLog:
+              '[FlutterInappPurchase] Android: Product consumed successfully',
+          failureLog:
+              '[FlutterInappPurchase] Android: Failed to parse consume response',
+        );
         return;
       } else {
         if (purchase.isAcknowledgedAndroid == true) {
@@ -1442,9 +1452,17 @@ class FlutterInappPurchase
               '[FlutterInappPurchase] Android: Acknowledging purchase with token: $maskedToken',
             );
           }
-          await _channel.invokeMethod('acknowledgePurchase', <String, dynamic>{
+          final result = await _channel
+              .invokeMethod('acknowledgePurchase', <String, dynamic>{
             'purchaseToken': purchase.purchaseToken,
           });
+          parseAndLogAndroidResponse(
+            result,
+            successLog:
+                '[FlutterInappPurchase] Android: Purchase acknowledged successfully',
+            failureLog:
+                '[FlutterInappPurchase] Android: Failed to parse acknowledge response',
+          );
           return;
         }
       }
