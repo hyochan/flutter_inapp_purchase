@@ -100,7 +100,7 @@ jobs:
                   "instructions": "file://CLAUDE.md"
                 }
               ],
-              "model": "gemini-2.5-pro-latest"
+              "model": "gemini-2.5-pro"
             }
 
           gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
