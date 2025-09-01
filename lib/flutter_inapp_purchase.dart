@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:platform/platform.dart';
 
 import 'enums.dart';
+import 'errors.dart' show getCurrentPlatform;
 import 'types.dart' as iap_types;
 import 'modules/ios.dart';
 import 'modules/android.dart';
