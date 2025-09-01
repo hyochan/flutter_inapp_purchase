@@ -1,4 +1,5 @@
 /// Error types for flutter_inapp_purchase (OpenIAP compliant)
+library errors;
 
 import 'dart:io';
 import 'enums.dart';
@@ -92,8 +93,8 @@ class PurchaseError implements Exception {
   final IapPlatform? platform;
 
   PurchaseError({
-    String? name,
     required this.message,
+    String? name,
     this.responseCode,
     this.debugMessage,
     this.code,
@@ -178,14 +179,14 @@ class ErrorCodeUtils {
     IapPlatform platform,
   ) {
     if (platform == IapPlatform.ios) {
-      final mapping = ErrorCodeMapping.ios;
+      const mapping = ErrorCodeMapping.ios;
       for (final entry in mapping.entries) {
         if (entry.value == platformCode) {
           return entry.key;
         }
       }
     } else {
-      final mapping = ErrorCodeMapping.android;
+      const mapping = ErrorCodeMapping.android;
       for (final entry in mapping.entries) {
         if (entry.value == platformCode) {
           return entry.key;

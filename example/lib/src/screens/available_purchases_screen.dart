@@ -20,6 +20,50 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
   bool _connected = false;
   String? _error;
 
+  /// Convert various date formats to milliseconds timestamp
+  int _parseTimestamp(dynamic date) {
+    if (date == null) return 0;
+
+    if (date is String) {
+      // Try to parse as ISO date string first
+      final dateTime = DateTime.tryParse(date);
+      if (dateTime != null) {
+        return dateTime.millisecondsSinceEpoch;
+      }
+      // Try to parse as milliseconds string
+      return int.tryParse(date) ?? 0;
+    } else if (date is num) {
+      return date.toInt();
+    } else if (date is DateTime) {
+      return date.millisecondsSinceEpoch;
+    }
+
+    return 0;
+  }
+
+  /// Remove duplicate purchases by productId, keeping the most recent transaction
+  List<Purchase> _deduplicatePurchases(List<Purchase> purchases) {
+    final Map<String, Purchase> uniquePurchases = {};
+
+    for (final purchase in purchases) {
+      final existingPurchase = uniquePurchases[purchase.productId];
+      if (existingPurchase == null) {
+        uniquePurchases[purchase.productId] = purchase;
+      } else {
+        // Keep the most recent transaction
+        final existingTimestamp =
+            _parseTimestamp(existingPurchase.transactionDate);
+        final newTimestamp = _parseTimestamp(purchase.transactionDate);
+
+        if (newTimestamp > existingTimestamp) {
+          uniquePurchases[purchase.productId] = purchase;
+        }
+      }
+    }
+
+    return uniquePurchases.values.toList();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -70,14 +114,20 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
       debugPrint(
           'Loaded ${availablePurchases.length} available purchases (non-consumed/non-acknowledged)');
 
+      // Remove duplicates by productId, keeping the most recent one
+      final deduplicatedPurchases = _deduplicatePurchases(availablePurchases);
+
       // Load purchase history
       final purchaseHistory = await _iap.getPurchaseHistories();
       debugPrint('Loaded ${purchaseHistory.length} purchases from history');
 
       setState(() {
-        _availablePurchases = availablePurchases;
+        _availablePurchases = deduplicatedPurchases;
         _purchaseHistory = purchaseHistory;
       });
+
+      debugPrint(
+          'After deduplication: ${_availablePurchases.length} unique active purchases');
     } catch (e) {
       setState(() {
         _error = e.toString();
@@ -134,8 +184,12 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
 
     try {
       final restored = await _iap.getAvailablePurchases();
+
+      // Remove duplicates by productId, keeping the most recent one
+      final deduplicatedPurchases = _deduplicatePurchases(restored);
+
       setState(() {
-        _availablePurchases = restored;
+        _availablePurchases = deduplicatedPurchases;
       });
 
       if (mounted) {
@@ -143,7 +197,8 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Restore Complete'),
-            content: Text('Restored ${_availablePurchases.length} purchase(s)'),
+            content: Text(
+                'Restored ${_availablePurchases.length} unique purchase(s)'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),

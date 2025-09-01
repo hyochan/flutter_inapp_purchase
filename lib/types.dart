@@ -2635,6 +2635,168 @@ class ValidationResult {
 
 // ReplacementMode enum is defined in enums.dart to avoid duplication
 
+/// Receipt validation properties (OpenIAP compliant)
+class ReceiptValidationProps {
+  /// Product SKU to validate (required for both iOS and Android)
+  final String sku;
+
+  /// Android-specific validation options
+  final AndroidValidationOptions? androidOptions;
+
+  ReceiptValidationProps({
+    required this.sku,
+    this.androidOptions,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'productId': sku, // Use productId for backward compatibility
+      'sku': sku,
+      if (androidOptions != null) 'androidOptions': androidOptions!.toJson(),
+    };
+  }
+
+  factory ReceiptValidationProps.fromJson(Map<String, dynamic> json) {
+    final sku = json['sku'] as String? ?? json['productId'] as String?;
+    if (sku == null) {
+      throw ArgumentError('Either sku or productId must be provided');
+    }
+    return ReceiptValidationProps(
+      sku: sku,
+      androidOptions: json['androidOptions'] != null
+          ? AndroidValidationOptions.fromJson(
+              Map<String, dynamic>.from(json['androidOptions'] as Map),
+            )
+          : null,
+    );
+  }
+}
+
+/// Android-specific validation options for receipt validation
+class AndroidValidationOptions {
+  /// Package name of your Android app
+  final String packageName;
+
+  /// Purchase token for validation (from the purchase)
+  final String productToken;
+
+  /// OAuth access token with androidpublisher scope
+  /// WARNING: Including this in production builds is dangerous!
+  final String accessToken;
+
+  /// Whether this is a subscription (true) or in-app product (false)
+  final bool isSub;
+
+  AndroidValidationOptions({
+    required this.packageName,
+    required this.productToken,
+    required this.accessToken,
+    this.isSub = false,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'packageName': packageName,
+      'productToken': productToken,
+      // Do not include accessToken in toJson for security reasons
+      // accessToken should only be used server-side
+      'isSub': isSub,
+    };
+  }
+
+  factory AndroidValidationOptions.fromJson(Map<String, dynamic> json) {
+    return AndroidValidationOptions(
+      packageName: json['packageName'] as String,
+      productToken: json['productToken'] as String,
+      accessToken: json['accessToken'] as String,
+      isSub: json['isSub'] as bool? ?? false,
+    );
+  }
+}
+
+/// Receipt validation result (OpenIAP compliant)
+class ReceiptValidationResult {
+  /// Whether the receipt is valid
+  final bool isValid;
+
+  /// Error message if validation failed
+  final String? errorMessage;
+
+  /// Base64 encoded receipt data (iOS legacy)
+  final String? receiptData;
+
+  /// Unified purchase token field (JWS for iOS, purchase token for Android)
+  final String? purchaseToken;
+
+  /// JWS representation (iOS StoreKit 2) - DEPRECATED: Use purchaseToken instead
+  @Deprecated('Use purchaseToken instead. Will be removed in v7.0.0')
+  final String? jwsRepresentation;
+
+  /// Latest transaction information (StoreKit 2)
+  final Map<String, dynamic>? latestTransaction;
+
+  /// Raw validation response from platform
+  final Map<String, dynamic>? rawResponse;
+
+  /// Platform that performed the validation
+  final IapPlatform? platform;
+
+  ReceiptValidationResult({
+    required this.isValid,
+    this.errorMessage,
+    this.receiptData,
+    this.purchaseToken,
+    this.jwsRepresentation,
+    this.latestTransaction,
+    this.rawResponse,
+    this.platform,
+  });
+
+  factory ReceiptValidationResult.fromJson(Map<String, dynamic> json) {
+    return ReceiptValidationResult(
+      isValid: json['isValid'] as bool? ?? false,
+      errorMessage: json['errorMessage'] as String?,
+      receiptData: json['receiptData'] as String?,
+      purchaseToken: json['purchaseToken'] as String?,
+      jwsRepresentation: json['jwsRepresentation']
+          as String?, // Kept for backward compatibility
+      latestTransaction: json['latestTransaction'] != null
+          ? Map<String, dynamic>.from(json['latestTransaction'] as Map)
+          : null,
+      rawResponse: json['rawResponse'] != null
+          ? Map<String, dynamic>.from(json['rawResponse'] as Map)
+          : null,
+      platform: json['platform'] != null
+          ? (json['platform'] == 'ios' ? IapPlatform.ios : IapPlatform.android)
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'isValid': isValid,
+      if (errorMessage != null) 'errorMessage': errorMessage,
+      if (receiptData != null) 'receiptData': receiptData,
+      if (purchaseToken != null) 'purchaseToken': purchaseToken,
+      if (jwsRepresentation != null)
+        'jwsRepresentation':
+            jwsRepresentation, // Kept for backward compatibility
+      if (latestTransaction != null) 'latestTransaction': latestTransaction,
+      if (rawResponse != null) 'rawResponse': rawResponse,
+      if (platform != null)
+        'platform': platform == IapPlatform.ios ? 'ios' : 'android',
+    };
+  }
+
+  @override
+  String toString() {
+    final platformStr = platform == null
+        ? 'unknown'
+        : (platform == IapPlatform.ios ? 'ios' : 'android');
+    return 'ReceiptValidationResult{isValid: $isValid, errorMessage: $errorMessage, platform: $platformStr}';
+  }
+}
+
 /// Deep link options (OpenIAP compliant)
 class DeepLinkOptions {
   final String? scheme;
