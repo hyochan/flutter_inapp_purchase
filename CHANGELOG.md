@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 6.4.5
+
+### Bug Fixes
+
+- **iOS**: Fixed missing transactionStateIOS field in getAvailableItems method ([#538](https://github.com/hyochan/flutter_inapp_purchase/issues/538))
+
 ## 6.4.4
 
 ### Bug Fixes
