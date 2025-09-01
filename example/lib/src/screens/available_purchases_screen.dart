@@ -38,13 +38,15 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
 
         if (existingDate is String) {
           existingTimestamp = int.tryParse(existingDate as String) ?? 0;
-        } else
+        } else {
           existingTimestamp = (existingDate as num).toInt();
+        }
 
         if (newDate is String) {
           newTimestamp = int.tryParse(newDate as String) ?? 0;
-        } else
+        } else {
           newTimestamp = (newDate as num).toInt();
+        }
 
         if (newTimestamp > existingTimestamp) {
           uniquePurchases[purchase.productId] = purchase;
