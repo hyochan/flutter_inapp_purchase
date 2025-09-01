@@ -40,12 +40,13 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
         if (existingDate != null) {
           if (existingDate is String) {
             // Try to parse as ISO date string first
-            final dateTime = DateTime.tryParse(existingDate);
+            final dateStr = existingDate as String;
+            final dateTime = DateTime.tryParse(dateStr);
             if (dateTime != null) {
               existingTimestamp = dateTime.millisecondsSinceEpoch;
             } else {
               // Try to parse as milliseconds string
-              existingTimestamp = int.tryParse(existingDate) ?? 0;
+              existingTimestamp = int.tryParse(dateStr) ?? 0;
             }
           } else if (existingDate is num) {
             existingTimestamp = existingDate.toInt();
@@ -55,12 +56,13 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
         if (newDate != null) {
           if (newDate is String) {
             // Try to parse as ISO date string first
-            final dateTime = DateTime.tryParse(newDate);
+            final dateStr = newDate as String;
+            final dateTime = DateTime.tryParse(dateStr);
             if (dateTime != null) {
               newTimestamp = dateTime.millisecondsSinceEpoch;
             } else {
               // Try to parse as milliseconds string
-              newTimestamp = int.tryParse(newDate) ?? 0;
+              newTimestamp = int.tryParse(dateStr) ?? 0;
             }
           } else if (newDate is num) {
             newTimestamp = newDate.toInt();
