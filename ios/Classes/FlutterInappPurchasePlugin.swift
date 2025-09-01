@@ -639,6 +639,39 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
     
     // MARK: - Receipt Validation (StoreKit 2)
     
+    // Helper function to process transaction and avoid code duplication
+    private func processTransaction(_ verificationResult: VerificationResult<Transaction>) throws -> [String: Any] {
+        let transaction = try self.checkVerified(verificationResult)
+        
+        var transactionData: [String: Any] = [
+            "id": String(transaction.id),
+            "productId": transaction.productID,
+            // Convert to milliseconds for consistency
+            "purchaseDate": Int64(transaction.purchaseDate.timeIntervalSince1970 * 1000),
+            "originalPurchaseDate": Int64(transaction.originalPurchaseDate.timeIntervalSince1970 * 1000),
+            "expirationDate": transaction.expirationDate != nil ? Int64(transaction.expirationDate!.timeIntervalSince1970 * 1000) : 0,
+            "isRevoked": transaction.revocationDate != nil,
+            "revocationDate": transaction.revocationDate != nil ? Int64(transaction.revocationDate!.timeIntervalSince1970 * 1000) : 0,
+            "isUpgraded": transaction.isUpgraded,
+            "subscriptionGroupID": transaction.subscriptionGroupID ?? "",
+            "ownershipType": transaction.ownershipType.rawValue,
+            "appAccountToken": transaction.appAccountToken?.uuidString ?? "",
+            
+            // Additional info for server validation
+            "_comment": "Send 'purchaseToken' to your server for validation",
+            "_serverValidationGuide": "https://developer.apple.com/documentation/storekit/in-app_purchase/original_api_for_in-app_purchase/validating_receipts_with_the_app_store"
+        ]
+        
+        // Add environment field only on iOS 16.0+
+        if #available(iOS 16.0, *) {
+            transactionData["environment"] = transaction.environment.rawValue
+        } else {
+            transactionData["environment"] = ""
+        }
+        
+        return transactionData
+    }
+    
     private func validateReceiptIOS(productId: String, result: @escaping FlutterResult) {
         print("\(FlutterInappPurchasePlugin.TAG) validateReceiptIOS called for product: \(productId)")
         print("\(FlutterInappPurchasePlugin.TAG) ⚠️ This is for LOCAL TESTING only. For production, validate on your server using the JWS representation.")
@@ -652,51 +685,35 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
             }
             
             var isValid = false
-            var purchaseToken: String? = nil  // Using purchaseToken for unified API (jwsRepresentation deprecated)
-            var latestTransaction: [String: Any]? = nil
+            var purchaseToken: String?  // Using purchaseToken for unified API (jwsRepresentation deprecated)
+            var latestTransaction: [String: Any]?
             
             // Get the product and verify its latest transaction
-            if let product = self.products[productId] {
-                // Get the latest transaction for this product
+            var product = self.products[productId]
+            
+            // If product not in cache, try to fetch it
+            if product == nil {
+                do {
+                    let productList = try await Product.products(for: [productId])
+                    if let fetchedProduct = productList.first {
+                        self.products[productId] = fetchedProduct
+                        product = fetchedProduct
+                    }
+                } catch {
+                    print("\(FlutterInappPurchasePlugin.TAG) Failed to fetch product: \(error)")
+                }
+            }
+            
+            // Process the transaction if product exists
+            if let product = product {
                 if let verificationResult = await product.latestTransaction {
                     purchaseToken = verificationResult.jwsRepresentation  // JWS is the purchase token for iOS
                     
                     do {
-                        // LOCAL VALIDATION (for testing only)
-                        let transaction = try self.checkVerified(verificationResult)
+                        latestTransaction = try processTransaction(verificationResult)
                         isValid = true
-                        
-                        // Prepare transaction data
-                        var transactionData: [String: Any] = [
-                            "id": String(transaction.id),
-                            "productId": transaction.productID,
-                            "purchaseDate": transaction.purchaseDate.timeIntervalSince1970,
-                            "originalPurchaseDate": transaction.originalPurchaseDate.timeIntervalSince1970,
-                            "expirationDate": transaction.expirationDate?.timeIntervalSince1970 ?? 0,
-                            "isRevoked": transaction.revocationDate != nil,
-                            "revocationDate": transaction.revocationDate?.timeIntervalSince1970 ?? 0,
-                            "isUpgraded": transaction.isUpgraded,
-                            "subscriptionGroupID": transaction.subscriptionGroupID ?? "",
-                            "ownershipType": transaction.ownershipType.rawValue,
-                            "appAccountToken": transaction.appAccountToken?.uuidString ?? "",
-                            
-                            // Additional info for server validation
-                            "_comment": "Send 'purchaseToken' to your server for validation",
-                            "_serverValidationGuide": "https://developer.apple.com/documentation/storekit/in-app_purchase/original_api_for_in-app_purchase/validating_receipts_with_the_app_store"
-                        ]
-                        
-                        // Add environment field only on iOS 16.0+
-                        if #available(iOS 16.0, *) {
-                            transactionData["environment"] = transaction.environment.rawValue
-                        } else {
-                            transactionData["environment"] = ""
-                        }
-                        
-                        latestTransaction = transactionData
-                        
                         print("\(FlutterInappPurchasePlugin.TAG) ✅ Local validation successful")
                         print("\(FlutterInappPurchasePlugin.TAG) 📤 For production: Send the purchaseToken (JWS) to your server")
-                        
                     } catch {
                         isValid = false
                         print("\(FlutterInappPurchasePlugin.TAG) ❌ Local validation failed: \(error)")
@@ -705,57 +722,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                     print("\(FlutterInappPurchasePlugin.TAG) No transaction found for product: \(productId)")
                 }
             } else {
-                // Product not found in cache, try to fetch it
-                do {
-                    let productList = try await Product.products(for: [productId])
-                    if let product = productList.first {
-                        self.products[productId] = product
-                        
-                        // Retry with the fetched product
-                        if let verificationResult = await product.latestTransaction {
-                            purchaseToken = verificationResult.jwsRepresentation  // JWS is the purchase token for iOS
-                            
-                            do {
-                                let transaction = try self.checkVerified(verificationResult)
-                                isValid = true
-                                
-                                var transactionData: [String: Any] = [
-                                    "id": String(transaction.id),
-                                    "productId": transaction.productID,
-                                    "purchaseDate": transaction.purchaseDate.timeIntervalSince1970,
-                                    "originalPurchaseDate": transaction.originalPurchaseDate.timeIntervalSince1970,
-                                    "expirationDate": transaction.expirationDate?.timeIntervalSince1970 ?? 0,
-                                    "isRevoked": transaction.revocationDate != nil,
-                                    "revocationDate": transaction.revocationDate?.timeIntervalSince1970 ?? 0,
-                                    "isUpgraded": transaction.isUpgraded,
-                                    "subscriptionGroupID": transaction.subscriptionGroupID ?? "",
-                                    "ownershipType": transaction.ownershipType.rawValue,
-                                    "appAccountToken": transaction.appAccountToken?.uuidString ?? "",
-                                    
-                                    "_comment": "Send 'purchaseToken' to your server for validation",
-                                    "_serverValidationGuide": "https://developer.apple.com/documentation/storekit/in-app_purchase/original_api_for_in-app_purchase/validating_receipts_with_the_app_store"
-                                ]
-                                
-                                // Add environment field only on iOS 16.0+
-                                if #available(iOS 16.0, *) {
-                                    transactionData["environment"] = transaction.environment.rawValue
-                                } else {
-                                    transactionData["environment"] = ""
-                                }
-                                
-                                latestTransaction = transactionData
-                                
-                                print("\(FlutterInappPurchasePlugin.TAG) ✅ Local validation successful (fetched product)")
-                                
-                            } catch {
-                                isValid = false
-                                print("\(FlutterInappPurchasePlugin.TAG) ❌ Local validation failed: \(error)")
-                            }
-                        }
-                    }
-                } catch {
-                    print("\(FlutterInappPurchasePlugin.TAG) Failed to fetch product: \(error)")
-                }
+                print("\(FlutterInappPurchasePlugin.TAG) Product not found: \(productId)")
             }
             
             // Return the validation result
@@ -764,7 +731,8 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 "receiptData": receiptData,
                 "purchaseToken": purchaseToken ?? "",  // Unified field name (was jwsRepresentation)
                 "jwsRepresentation": purchaseToken ?? "",  // Keep for backward compatibility (deprecated)
-                "latestTransaction": latestTransaction as Any
+                "latestTransaction": latestTransaction as Any,
+                "platform": "ios"  // Include platform for consistency
             ]
             
             await MainActor.run {

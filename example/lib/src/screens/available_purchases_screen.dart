@@ -30,22 +30,41 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
         uniquePurchases[purchase.productId] = purchase;
       } else {
         // Keep the most recent transaction
-        final existingDate = existingPurchase.transactionDate ?? 0;
-        final newDate = purchase.transactionDate ?? 0;
+        final existingDate = existingPurchase.transactionDate;
+        final newDate = purchase.transactionDate;
 
         int existingTimestamp = 0;
         int newTimestamp = 0;
 
-        if (existingDate is String) {
-          existingTimestamp = int.tryParse(existingDate as String) ?? 0;
-        } else {
-          existingTimestamp = (existingDate as num).toInt();
+        // Handle different types of date values
+        if (existingDate != null) {
+          if (existingDate is String) {
+            // Try to parse as ISO date string first
+            final dateTime = DateTime.tryParse(existingDate);
+            if (dateTime != null) {
+              existingTimestamp = dateTime.millisecondsSinceEpoch;
+            } else {
+              // Try to parse as milliseconds string
+              existingTimestamp = int.tryParse(existingDate) ?? 0;
+            }
+          } else if (existingDate is num) {
+            existingTimestamp = existingDate.toInt();
+          }
         }
 
-        if (newDate is String) {
-          newTimestamp = int.tryParse(newDate as String) ?? 0;
-        } else {
-          newTimestamp = (newDate as num).toInt();
+        if (newDate != null) {
+          if (newDate is String) {
+            // Try to parse as ISO date string first
+            final dateTime = DateTime.tryParse(newDate);
+            if (dateTime != null) {
+              newTimestamp = dateTime.millisecondsSinceEpoch;
+            } else {
+              // Try to parse as milliseconds string
+              newTimestamp = int.tryParse(newDate) ?? 0;
+            }
+          } else if (newDate is num) {
+            newTimestamp = newDate.toInt();
+          }
         }
 
         if (newTimestamp > existingTimestamp) {

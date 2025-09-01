@@ -2657,9 +2657,12 @@ class ReceiptValidationProps {
   }
 
   factory ReceiptValidationProps.fromJson(Map<String, dynamic> json) {
+    final sku = json['sku'] as String? ?? json['productId'] as String?;
+    if (sku == null) {
+      throw ArgumentError('Either sku or productId must be provided');
+    }
     return ReceiptValidationProps(
-      sku: json['sku'] as String? ??
-          json['productId'] as String, // Support both sku and productId
+      sku: sku,
       androidOptions: json['androidOptions'] != null
           ? AndroidValidationOptions.fromJson(
               Map<String, dynamic>.from(json['androidOptions'] as Map),
@@ -2695,7 +2698,8 @@ class AndroidValidationOptions {
     return {
       'packageName': packageName,
       'productToken': productToken,
-      'accessToken': accessToken,
+      // Do not include accessToken in toJson for security reasons
+      // accessToken should only be used server-side
       'isSub': isSub,
     };
   }
@@ -2786,7 +2790,10 @@ class ReceiptValidationResult {
 
   @override
   String toString() {
-    return 'ReceiptValidationResult{isValid: $isValid, errorMessage: $errorMessage, platform: ${platform == IapPlatform.ios ? 'ios' : 'android'}}';
+    final platformStr = platform == null
+        ? 'unknown'
+        : (platform == IapPlatform.ios ? 'ios' : 'android');
+    return 'ReceiptValidationResult{isValid: $isValid, errorMessage: $errorMessage, platform: $platformStr}';
   }
 }
 

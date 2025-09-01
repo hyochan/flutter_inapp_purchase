@@ -1564,7 +1564,7 @@ class FlutterInappPurchase
       return iap_types.ReceiptValidationResult(
         isValid: false,
         errorMessage: 'Receipt validation is only available on iOS',
-        platform: iap_types.IapPlatform.android,
+        platform: iap_types.IapPlatform.ios, // Fixed: should be iOS
       );
     }
 
@@ -1572,6 +1572,14 @@ class FlutterInappPurchase
       return iap_types.ReceiptValidationResult(
         isValid: false,
         errorMessage: 'IAP connection not initialized',
+        platform: iap_types.IapPlatform.ios,
+      );
+    }
+
+    if (sku.trim().isEmpty) {
+      return iap_types.ReceiptValidationResult(
+        isValid: false,
+        errorMessage: 'sku cannot be empty',
         platform: iap_types.IapPlatform.ios,
       );
     }
@@ -1612,6 +1620,13 @@ class FlutterInappPurchase
             as String?, // Deprecated, for backward compatibility
         latestTransaction: latestTransaction,
         rawResponse: validationResult,
+        platform: iap_types.IapPlatform.ios,
+      );
+    } on PlatformException catch (e) {
+      return iap_types.ReceiptValidationResult(
+        isValid: false,
+        errorMessage:
+            'Failed to validate receipt [${e.code}]: ${e.message ?? e.details}',
         platform: iap_types.IapPlatform.ios,
       );
     } catch (e) {
@@ -1695,7 +1710,7 @@ class FlutterInappPurchase
       return iap_types.ReceiptValidationResult(
         isValid: false,
         errorMessage: 'Receipt validation is only available on Android',
-        platform: iap_types.IapPlatform.ios,
+        platform: iap_types.IapPlatform.android, // Fixed: should be Android
       );
     }
 
@@ -1736,20 +1751,44 @@ class FlutterInappPurchase
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $accessToken',
         },
-      );
+      ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body) as Map<String, dynamic>;
 
-        // Check purchase state for validation
-        // 0 = Purchased, 1 = Canceled
-        final purchaseState = responseData['purchaseState'] as int?;
-        final isValid = purchaseState == 0;
+        bool isValid;
+        if (isSub) {
+          // Active if not canceled and not expired
+          final expiryRaw = responseData['expiryTimeMillis'];
+          final cancelReason = responseData['cancelReason'];
+          final expiryMs = expiryRaw is String
+              ? int.tryParse(expiryRaw)
+              : (expiryRaw is num ? expiryRaw.toInt() : null);
+          final nowMs = DateTime.now().millisecondsSinceEpoch;
+          isValid = (expiryMs != null && expiryMs > nowMs) &&
+              (cancelReason == null || cancelReason == 0);
+        } else {
+          // One-time products: 0 = Purchased, 1 = Canceled
+          final purchaseState = responseData['purchaseState'] as int?;
+          isValid = purchaseState == 0;
+        }
 
         return iap_types.ReceiptValidationResult(
           isValid: isValid,
-          errorMessage: isValid ? null : 'Purchase state is not valid',
+          errorMessage: isValid ? null : 'Purchase is not active/valid',
           rawResponse: responseData,
+          platform: iap_types.IapPlatform.android,
+        );
+      } else if (response.statusCode == 401 || response.statusCode == 403) {
+        return iap_types.ReceiptValidationResult(
+          isValid: false,
+          errorMessage: 'Unauthorized/forbidden (check access token/scopes)',
+          platform: iap_types.IapPlatform.android,
+        );
+      } else if (response.statusCode == 404) {
+        return iap_types.ReceiptValidationResult(
+          isValid: false,
+          errorMessage: 'Token or SKU not found',
           platform: iap_types.IapPlatform.android,
         );
       } else {
@@ -1760,6 +1799,12 @@ class FlutterInappPurchase
           platform: iap_types.IapPlatform.android,
         );
       }
+    } on TimeoutException {
+      return iap_types.ReceiptValidationResult(
+        isValid: false,
+        errorMessage: 'Request to Google Play API timed out',
+        platform: iap_types.IapPlatform.android,
+      );
     } catch (e) {
       return iap_types.ReceiptValidationResult(
         isValid: false,
