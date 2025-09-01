@@ -1498,8 +1498,8 @@ class FlutterInappPurchase
   /// This method uses the legacy Apple verification endpoints which are being phased out.
   /// Please migrate to validateReceiptIOS which uses StoreKit 2 on-device validation.
   @Deprecated(
-    'Use validateReceiptIOS instead for StoreKit 2 on-device validation. '
-    'Apple is phasing out server-side receipt validation endpoints. '
+    'Use validateReceiptIOS for StoreKit 2 on-device validation. '
+    'Server-side verifyReceipt remains supported by Apple but is legacy in this plugin. '
     'Will be removed in v7.0.0',
   )
   Future<http.Response> validateReceiptIos({

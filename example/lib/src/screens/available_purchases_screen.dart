@@ -48,9 +48,8 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
               // Try to parse as milliseconds string
               existingTimestamp = int.tryParse(dateStr) ?? 0;
             }
-          } else if (existingDate is num) {
+          } else
             existingTimestamp = existingDate.toInt();
-          }
         }
 
         if (newDate != null) {
@@ -64,7 +63,7 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
               // Try to parse as milliseconds string
               newTimestamp = int.tryParse(dateStr) ?? 0;
             }
-          } else if (newDate is num) {
+          } else {
             newTimestamp = newDate.toInt();
           }
         }
