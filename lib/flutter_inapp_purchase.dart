@@ -1565,7 +1565,7 @@ class FlutterInappPurchase
       return iap_types.ReceiptValidationResult(
         isValid: false,
         errorMessage: 'Receipt validation is only available on iOS',
-        platform: getCurrentPlatform(), // Show actual platform for debugging
+        platform: iap_types.IapPlatform.ios,
       );
     }
 
@@ -1573,7 +1573,7 @@ class FlutterInappPurchase
       return iap_types.ReceiptValidationResult(
         isValid: false,
         errorMessage: 'IAP connection not initialized',
-        platform: getCurrentPlatform(), // Show actual platform for debugging
+        platform: iap_types.IapPlatform.ios,
       );
     }
 
@@ -1581,7 +1581,7 @@ class FlutterInappPurchase
       return iap_types.ReceiptValidationResult(
         isValid: false,
         errorMessage: 'sku cannot be empty',
-        platform: getCurrentPlatform(), // Show actual platform for debugging
+        platform: iap_types.IapPlatform.ios,
       );
     }
 
@@ -1628,13 +1628,15 @@ class FlutterInappPurchase
         isValid: false,
         errorMessage:
             'Failed to validate receipt [${e.code}]: ${e.message ?? e.details}',
-        platform: iap_types.IapPlatform.ios,
+        platform:
+            getCurrentPlatform(), // Show actual platform when exception occurs
       );
     } catch (e) {
       return iap_types.ReceiptValidationResult(
         isValid: false,
         errorMessage: 'Failed to validate receipt: ${e.toString()}',
-        platform: iap_types.IapPlatform.ios,
+        platform:
+            getCurrentPlatform(), // Show actual platform when exception occurs
       );
     }
   }
@@ -1711,7 +1713,7 @@ class FlutterInappPurchase
       return iap_types.ReceiptValidationResult(
         isValid: false,
         errorMessage: 'Receipt validation is only available on Android',
-        platform: getCurrentPlatform(), // Show actual platform for debugging
+        platform: iap_types.IapPlatform.android,
       );
     }
 
@@ -1721,7 +1723,7 @@ class FlutterInappPurchase
       return iap_types.ReceiptValidationResult(
         isValid: false,
         errorMessage: 'Android options required for Android validation',
-        platform: getCurrentPlatform(), // Show actual platform for debugging
+        platform: iap_types.IapPlatform.android,
       );
     }
 
@@ -1735,7 +1737,7 @@ class FlutterInappPurchase
         isValid: false,
         errorMessage:
             'Invalid parameters: packageName, productToken, and accessToken cannot be empty',
-        platform: getCurrentPlatform(), // Show actual platform for debugging
+        platform: iap_types.IapPlatform.android,
       );
     }
 
@@ -1804,13 +1806,15 @@ class FlutterInappPurchase
       return iap_types.ReceiptValidationResult(
         isValid: false,
         errorMessage: 'Request to Google Play API timed out',
-        platform: iap_types.IapPlatform.android,
+        platform:
+            getCurrentPlatform(), // Show actual platform when exception occurs
       );
     } catch (e) {
       return iap_types.ReceiptValidationResult(
         isValid: false,
         errorMessage: 'Failed to validate receipt: ${e.toString()}',
-        platform: iap_types.IapPlatform.android,
+        platform:
+            getCurrentPlatform(), // Show actual platform when exception occurs
       );
     }
   }

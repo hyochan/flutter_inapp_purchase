@@ -1,4 +1,5 @@
 /// Error types for flutter_inapp_purchase (OpenIAP compliant)
+library errors;
 
 import 'dart:io';
 import 'enums.dart';
