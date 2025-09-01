@@ -7,7 +7,6 @@ import 'package:http/http.dart' as http;
 import 'package:platform/platform.dart';
 
 import 'enums.dart';
-import 'errors.dart' show getCurrentPlatform;
 import 'types.dart' as iap_types;
 import 'modules/ios.dart';
 import 'modules/android.dart';
@@ -1565,7 +1564,7 @@ class FlutterInappPurchase
       return iap_types.ReceiptValidationResult(
         isValid: false,
         errorMessage: 'Receipt validation is only available on iOS',
-        platform: getCurrentPlatform(),
+        platform: iap_types.IapPlatform.ios,
       );
     }
 
@@ -1573,7 +1572,7 @@ class FlutterInappPurchase
       return iap_types.ReceiptValidationResult(
         isValid: false,
         errorMessage: 'IAP connection not initialized',
-        platform: getCurrentPlatform(),
+        platform: iap_types.IapPlatform.ios,
       );
     }
 
@@ -1581,7 +1580,7 @@ class FlutterInappPurchase
       return iap_types.ReceiptValidationResult(
         isValid: false,
         errorMessage: 'sku cannot be empty',
-        platform: getCurrentPlatform(),
+        platform: iap_types.IapPlatform.ios,
       );
     }
 
@@ -1595,7 +1594,7 @@ class FlutterInappPurchase
         return iap_types.ReceiptValidationResult(
           isValid: false,
           errorMessage: 'No validation result received from native platform',
-          platform: getCurrentPlatform(),
+          platform: iap_types.IapPlatform.ios,
         );
       }
 
@@ -1621,20 +1620,20 @@ class FlutterInappPurchase
             as String?, // Deprecated, for backward compatibility
         latestTransaction: latestTransaction,
         rawResponse: validationResult,
-        platform: getCurrentPlatform(),
+        platform: iap_types.IapPlatform.ios,
       );
     } on PlatformException catch (e) {
       return iap_types.ReceiptValidationResult(
         isValid: false,
         errorMessage:
             'Failed to validate receipt [${e.code}]: ${e.message ?? e.details}',
-        platform: getCurrentPlatform(),
+        platform: iap_types.IapPlatform.ios,
       );
     } catch (e) {
       return iap_types.ReceiptValidationResult(
         isValid: false,
         errorMessage: 'Failed to validate receipt: ${e.toString()}',
-        platform: getCurrentPlatform(),
+        platform: iap_types.IapPlatform.ios,
       );
     }
   }
@@ -1698,7 +1697,7 @@ class FlutterInappPurchase
       return iap_types.ReceiptValidationResult(
         isValid: false,
         errorMessage: 'Platform not supported for receipt validation',
-        platform: getCurrentPlatform(),
+        platform: null, // Unknown/unsupported platform
       );
     }
   }
@@ -1711,7 +1710,7 @@ class FlutterInappPurchase
       return iap_types.ReceiptValidationResult(
         isValid: false,
         errorMessage: 'Receipt validation is only available on Android',
-        platform: getCurrentPlatform(),
+        platform: iap_types.IapPlatform.android,
       );
     }
 
@@ -1721,7 +1720,7 @@ class FlutterInappPurchase
       return iap_types.ReceiptValidationResult(
         isValid: false,
         errorMessage: 'Android options required for Android validation',
-        platform: getCurrentPlatform(),
+        platform: iap_types.IapPlatform.android,
       );
     }
 
@@ -1735,7 +1734,7 @@ class FlutterInappPurchase
         isValid: false,
         errorMessage:
             'Invalid parameters: packageName, productToken, and accessToken cannot be empty',
-        platform: getCurrentPlatform(),
+        platform: iap_types.IapPlatform.android,
       );
     }
 
@@ -1778,39 +1777,39 @@ class FlutterInappPurchase
           isValid: isValid,
           errorMessage: isValid ? null : 'Purchase is not active/valid',
           rawResponse: responseData,
-          platform: getCurrentPlatform(),
+          platform: iap_types.IapPlatform.android,
         );
       } else if (response.statusCode == 401 || response.statusCode == 403) {
         return iap_types.ReceiptValidationResult(
           isValid: false,
           errorMessage: 'Unauthorized/forbidden (check access token/scopes)',
-          platform: getCurrentPlatform(),
+          platform: iap_types.IapPlatform.android,
         );
       } else if (response.statusCode == 404) {
         return iap_types.ReceiptValidationResult(
           isValid: false,
           errorMessage: 'Token or SKU not found',
-          platform: getCurrentPlatform(),
+          platform: iap_types.IapPlatform.android,
         );
       } else {
         return iap_types.ReceiptValidationResult(
           isValid: false,
           errorMessage:
               'API returned status ${response.statusCode}: ${response.body}',
-          platform: getCurrentPlatform(),
+          platform: iap_types.IapPlatform.android,
         );
       }
     } on TimeoutException {
       return iap_types.ReceiptValidationResult(
         isValid: false,
         errorMessage: 'Request to Google Play API timed out',
-        platform: getCurrentPlatform(),
+        platform: iap_types.IapPlatform.android,
       );
     } catch (e) {
       return iap_types.ReceiptValidationResult(
         isValid: false,
         errorMessage: 'Failed to validate receipt: ${e.toString()}',
-        platform: getCurrentPlatform(),
+        platform: iap_types.IapPlatform.android,
       );
     }
   }
