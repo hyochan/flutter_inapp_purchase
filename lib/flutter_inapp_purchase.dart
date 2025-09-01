@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:platform/platform.dart';
 
 import 'enums.dart';
+import 'errors.dart' show getCurrentPlatform;
 import 'types.dart' as iap_types;
 import 'modules/ios.dart';
 import 'modules/android.dart';
@@ -1564,7 +1565,7 @@ class FlutterInappPurchase
       return iap_types.ReceiptValidationResult(
         isValid: false,
         errorMessage: 'Receipt validation is only available on iOS',
-        platform: iap_types.IapPlatform.ios,
+        platform: getCurrentPlatform(), // Show actual platform for debugging
       );
     }
 
@@ -1572,7 +1573,7 @@ class FlutterInappPurchase
       return iap_types.ReceiptValidationResult(
         isValid: false,
         errorMessage: 'IAP connection not initialized',
-        platform: iap_types.IapPlatform.ios,
+        platform: getCurrentPlatform(), // Show actual platform for debugging
       );
     }
 
@@ -1580,7 +1581,7 @@ class FlutterInappPurchase
       return iap_types.ReceiptValidationResult(
         isValid: false,
         errorMessage: 'sku cannot be empty',
-        platform: iap_types.IapPlatform.ios,
+        platform: getCurrentPlatform(), // Show actual platform for debugging
       );
     }
 
@@ -1594,7 +1595,7 @@ class FlutterInappPurchase
         return iap_types.ReceiptValidationResult(
           isValid: false,
           errorMessage: 'No validation result received from native platform',
-          platform: iap_types.IapPlatform.ios,
+          platform: iap_types.IapPlatform.ios, // This is iOS validation
         );
       }
 
@@ -1710,7 +1711,7 @@ class FlutterInappPurchase
       return iap_types.ReceiptValidationResult(
         isValid: false,
         errorMessage: 'Receipt validation is only available on Android',
-        platform: iap_types.IapPlatform.android,
+        platform: getCurrentPlatform(), // Show actual platform for debugging
       );
     }
 
@@ -1720,7 +1721,7 @@ class FlutterInappPurchase
       return iap_types.ReceiptValidationResult(
         isValid: false,
         errorMessage: 'Android options required for Android validation',
-        platform: iap_types.IapPlatform.android,
+        platform: getCurrentPlatform(), // Show actual platform for debugging
       );
     }
 
@@ -1734,7 +1735,7 @@ class FlutterInappPurchase
         isValid: false,
         errorMessage:
             'Invalid parameters: packageName, productToken, and accessToken cannot be empty',
-        platform: iap_types.IapPlatform.android,
+        platform: getCurrentPlatform(), // Show actual platform for debugging
       );
     }
 
