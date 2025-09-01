@@ -1492,7 +1492,15 @@ class FlutterInappPurchase
     await finishTransaction(purchase, isConsumable: isConsumable);
   }
 
-  /// Validate receipt in ios
+  /// Validate receipt in iOS (deprecated - use validateReceiptIOS instead)
+  ///
+  /// This method uses the legacy Apple verification endpoints which are being phased out.
+  /// Please migrate to validateReceiptIOS which uses StoreKit 2 on-device validation.
+  @Deprecated(
+    'Use validateReceiptIOS instead for StoreKit 2 on-device validation. '
+    'Apple is phasing out server-side receipt validation endpoints. '
+    'Will be removed in v7.0.0',
+  )
   Future<http.Response> validateReceiptIos({
     required Map<String, String> receiptBody,
     bool isTest = true,
@@ -1510,31 +1518,254 @@ class FlutterInappPurchase
     );
   }
 
-  @override
-  Future<Map<String, dynamic>?> validateReceiptAndroid({
-    required String packageName,
-    required String productId,
-    required String productToken,
-    required String accessToken,
-    required bool isSub,
+  /// Validate receipt using StoreKit 2 (iOS only) - LOCAL TESTING ONLY
+  ///
+  /// ⚠️ WARNING: This performs LOCAL validation for TESTING purposes.
+  /// For production, send the JWS representation to your server for validation.
+  ///
+  /// What this method does:
+  /// 1. Performs local on-device validation (for testing)
+  /// 2. Returns JWS representation (send this to your server)
+  /// 3. Provides transaction details for debugging
+  ///
+  /// Server-side validation guide:
+  /// 1. Send `result.jwsRepresentation` to your server
+  /// 2. Verify the JWS using Apple's public keys
+  /// 3. Decode and validate the transaction on your server
+  /// 4. Grant entitlements based on server validation
+  ///
+  /// Example for LOCAL TESTING:
+  /// ```dart
+  /// // Step 1: Local validation (testing only)
+  /// final result = await FlutterInappPurchase.instance.validateReceiptIOS(
+  ///   sku: 'com.example.premium',
+  /// );
+  ///
+  /// if (result.isValid) {
+  ///   print('✅ Local validation passed (TEST ONLY)');
+  ///
+  ///   // Step 2: Send to your server for PRODUCTION validation
+  ///   final serverPayload = {
+  ///     'purchaseToken': result.purchaseToken,  // Unified field (JWS for iOS)
+  ///     'productId': 'com.example.premium',
+  ///   };
+  ///
+  ///   // await yourApi.validateOnServer(serverPayload);
+  ///   print('📤 Send purchaseToken to your server for production validation');
+  /// }
+  /// ```
+  ///
+  /// Note: This method requires iOS 15.0+ for StoreKit 2 support.
+  /// For older iOS versions, the method will return an error.
+  Future<iap_types.ReceiptValidationResult> validateReceiptIOS({
+    required String sku,
   }) async {
-    if (!_platform.isAndroid) {
-      return null;
+    if (!_platform.isIOS) {
+      return iap_types.ReceiptValidationResult(
+        isValid: false,
+        errorMessage: 'Receipt validation is only available on iOS',
+        platform: iap_types.IapPlatform.android,
+      );
+    }
+
+    if (!_isInitialized) {
+      return iap_types.ReceiptValidationResult(
+        isValid: false,
+        errorMessage: 'IAP connection not initialized',
+        platform: iap_types.IapPlatform.ios,
+      );
     }
 
     try {
-      final result = await channel
-          .invokeMethod<Map<dynamic, dynamic>>('validateReceiptAndroid', {
-        'packageName': packageName,
-        'productId': productId,
-        'productToken': productToken,
-        'accessToken': accessToken,
-        'isSub': isSub,
-      });
-      return result?.cast<String, dynamic>();
-    } catch (error) {
-      debugPrint('Error validating receipt: $error');
-      return null;
+      final result = await _channel.invokeMethod<Map<dynamic, dynamic>>(
+        'validateReceiptIOS',
+        {'sku': sku}, // iOS only needs the SKU
+      );
+
+      if (result == null) {
+        return iap_types.ReceiptValidationResult(
+          isValid: false,
+          errorMessage: 'No validation result received from native platform',
+          platform: iap_types.IapPlatform.ios,
+        );
+      }
+
+      // Convert Map<dynamic, dynamic> to Map<String, dynamic>
+      final Map<String, dynamic> validationResult =
+          Map<String, dynamic>.from(result);
+
+      // Parse latestTransaction if present
+      Map<String, dynamic>? latestTransaction;
+      if (validationResult['latestTransaction'] != null) {
+        latestTransaction = Map<String, dynamic>.from(
+          validationResult['latestTransaction'] as Map,
+        );
+      }
+
+      return iap_types.ReceiptValidationResult(
+        isValid: validationResult['isValid'] as bool? ?? false,
+        errorMessage: validationResult['errorMessage'] as String?,
+        receiptData: validationResult['receiptData'] as String?,
+        purchaseToken:
+            validationResult['purchaseToken'] as String?, // Unified field
+        jwsRepresentation: validationResult['jwsRepresentation']
+            as String?, // Deprecated, for backward compatibility
+        latestTransaction: latestTransaction,
+        rawResponse: validationResult,
+        platform: iap_types.IapPlatform.ios,
+      );
+    } catch (e) {
+      return iap_types.ReceiptValidationResult(
+        isValid: false,
+        errorMessage: 'Failed to validate receipt: ${e.toString()}',
+        platform: iap_types.IapPlatform.ios,
+      );
+    }
+  }
+
+  /// Validate receipt (OpenIAP compliant) - LOCAL TESTING ONLY
+  ///
+  /// ⚠️ WARNING: This is for LOCAL TESTING and DEVELOPMENT only!
+  /// For production, implement server-side validation.
+  ///
+  /// iOS: Local StoreKit 2 validation (iOS 15.0+)
+  /// - Returns JWS representation → Send to your server
+  /// - Local validation for testing only
+  ///
+  /// Android: Google Play Developer API
+  /// - ⚠️ NEVER include access token in production apps
+  /// - For production: Send purchase token to your server
+  /// - Server validates with Google Play API
+  ///
+  /// Example iOS (LOCAL TEST):
+  /// ```dart
+  /// // Local validation for testing
+  /// final result = await FlutterInappPurchase.instance.validateReceipt(
+  ///   options: ReceiptValidationProps(
+  ///     sku: 'com.example.premium',
+  ///   ),
+  /// );
+  ///
+  /// // For production: Send to server
+  /// if (result.isValid) {
+  ///   await yourServer.validate(result.purchaseToken);  // Unified field
+  /// }
+  /// ```
+  ///
+  /// Example Android (LOCAL TEST - NEVER USE IN PRODUCTION):
+  /// ```dart
+  /// // ⚠️ LOCAL TESTING ONLY - Access token exposed!
+  /// final result = await FlutterInappPurchase.instance.validateReceipt(
+  ///   options: ReceiptValidationProps(
+  ///     sku: 'com.example.premium',
+  ///     androidOptions: AndroidValidationOptions(
+  ///       packageName: 'com.example.app',
+  ///       productToken: purchaseToken,
+  ///       accessToken: debugAccessToken, // ⚠️ NEVER in production!
+  ///       isSub: false,
+  ///     ),
+  ///   ),
+  /// );
+  ///
+  /// - For PRODUCTION: Send to your server
+  /// - await yourServer.validateAndroid(purchaseToken);
+  /// ```
+  Future<iap_types.ReceiptValidationResult> validateReceipt({
+    required iap_types.ReceiptValidationProps options,
+  }) async {
+    // Route to platform-specific implementation
+    if (_platform.isIOS) {
+      return validateReceiptIOS(sku: options.sku);
+    } else if (_platform.isAndroid) {
+      return _validateReceiptAndroid(options: options);
+    } else {
+      return iap_types.ReceiptValidationResult(
+        isValid: false,
+        errorMessage: 'Platform not supported for receipt validation',
+        platform: null,
+      );
+    }
+  }
+
+  /// Internal Android validation implementation
+  Future<iap_types.ReceiptValidationResult> _validateReceiptAndroid({
+    required iap_types.ReceiptValidationProps options,
+  }) async {
+    if (!_platform.isAndroid) {
+      return iap_types.ReceiptValidationResult(
+        isValid: false,
+        errorMessage: 'Receipt validation is only available on Android',
+        platform: iap_types.IapPlatform.ios,
+      );
+    }
+
+    // Extract Android-specific options
+    final androidOptions = options.androidOptions;
+    if (androidOptions == null) {
+      return iap_types.ReceiptValidationResult(
+        isValid: false,
+        errorMessage: 'Android options required for Android validation',
+        platform: iap_types.IapPlatform.android,
+      );
+    }
+
+    final packageName = androidOptions.packageName;
+    final productToken = androidOptions.productToken;
+    final accessToken = androidOptions.accessToken;
+    final isSub = androidOptions.isSub;
+
+    if (packageName.isEmpty || productToken.isEmpty || accessToken.isEmpty) {
+      return iap_types.ReceiptValidationResult(
+        isValid: false,
+        errorMessage:
+            'Invalid parameters: packageName, productToken, and accessToken cannot be empty',
+        platform: iap_types.IapPlatform.android,
+      );
+    }
+
+    try {
+      final type = isSub ? 'subscriptions' : 'products';
+      final url =
+          'https://androidpublisher.googleapis.com/androidpublisher/v3/applications'
+          '/$packageName/purchases/$type/${options.sku}'
+          '/tokens/$productToken';
+
+      final response = await _client.get(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body) as Map<String, dynamic>;
+
+        // Check purchase state for validation
+        // 0 = Purchased, 1 = Canceled
+        final purchaseState = responseData['purchaseState'] as int?;
+        final isValid = purchaseState == 0;
+
+        return iap_types.ReceiptValidationResult(
+          isValid: isValid,
+          errorMessage: isValid ? null : 'Purchase state is not valid',
+          rawResponse: responseData,
+          platform: iap_types.IapPlatform.android,
+        );
+      } else {
+        return iap_types.ReceiptValidationResult(
+          isValid: false,
+          errorMessage:
+              'API returned status ${response.statusCode}: ${response.body}',
+          platform: iap_types.IapPlatform.android,
+        );
+      }
+    } catch (e) {
+      return iap_types.ReceiptValidationResult(
+        isValid: false,
+        errorMessage: 'Failed to validate receipt: ${e.toString()}',
+        platform: iap_types.IapPlatform.android,
+      );
     }
   }
 
