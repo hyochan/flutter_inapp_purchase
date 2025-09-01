@@ -20,6 +20,27 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
   bool _connected = false;
   String? _error;
 
+  /// Convert various date formats to milliseconds timestamp
+  int _parseTimestamp(dynamic date) {
+    if (date == null) return 0;
+
+    if (date is String) {
+      // Try to parse as ISO date string first
+      final dateTime = DateTime.tryParse(date);
+      if (dateTime != null) {
+        return dateTime.millisecondsSinceEpoch;
+      }
+      // Try to parse as milliseconds string
+      return int.tryParse(date) ?? 0;
+    } else if (date is num) {
+      return date.toInt();
+    } else if (date is DateTime) {
+      return date.millisecondsSinceEpoch;
+    }
+
+    return 0;
+  }
+
   /// Remove duplicate purchases by productId, keeping the most recent transaction
   List<Purchase> _deduplicatePurchases(List<Purchase> purchases) {
     final Map<String, Purchase> uniquePurchases = {};
@@ -30,43 +51,9 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
         uniquePurchases[purchase.productId] = purchase;
       } else {
         // Keep the most recent transaction
-        final existingDate = existingPurchase.transactionDate;
-        final newDate = purchase.transactionDate;
-
-        int existingTimestamp = 0;
-        int newTimestamp = 0;
-
-        // Handle different types of date values
-        if (existingDate != null) {
-          if (existingDate is String) {
-            // Try to parse as ISO date string first
-            final dateStr = existingDate as String;
-            final dateTime = DateTime.tryParse(dateStr);
-            if (dateTime != null) {
-              existingTimestamp = dateTime.millisecondsSinceEpoch;
-            } else {
-              // Try to parse as milliseconds string
-              existingTimestamp = int.tryParse(dateStr) ?? 0;
-            }
-          } else
-            existingTimestamp = existingDate.toInt();
-        }
-
-        if (newDate != null) {
-          if (newDate is String) {
-            // Try to parse as ISO date string first
-            final dateStr = newDate as String;
-            final dateTime = DateTime.tryParse(dateStr);
-            if (dateTime != null) {
-              newTimestamp = dateTime.millisecondsSinceEpoch;
-            } else {
-              // Try to parse as milliseconds string
-              newTimestamp = int.tryParse(dateStr) ?? 0;
-            }
-          } else {
-            newTimestamp = newDate.toInt();
-          }
-        }
+        final existingTimestamp =
+            _parseTimestamp(existingPurchase.transactionDate);
+        final newTimestamp = _parseTimestamp(purchase.transactionDate);
 
         if (newTimestamp > existingTimestamp) {
           uniquePurchases[purchase.productId] = purchase;

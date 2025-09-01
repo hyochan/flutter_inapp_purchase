@@ -186,9 +186,9 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
         processedTransactionIds.insert(transactionId)
         
         var event: [String: Any] = [
-            "id": transactionId as String,  // Ensure String type for OpenIAP compliance
+            "id": transactionId,  // OpenIAP compliance
             "productId": transaction.productID,
-            "transactionId": transactionId as String,  // Ensure String type
+            "transactionId": transactionId,
             "transactionDate": transaction.purchaseDate.timeIntervalSince1970 * 1000,
             "transactionReceipt": transaction.jsonRepresentation.base64EncodedString(),
             "purchaseToken": jwsRepresentation,  // Unified field for iOS JWS and Android purchaseToken
@@ -397,9 +397,9 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                     print("\(FlutterInappPurchasePlugin.TAG) getAvailableItems - String transactionId: '\(transactionId)'")
                     
                     var purchase: [String: Any] = [
-                        "id": transactionId as String,  // Ensure String type
+                        "id": transactionId,
                         "productId": transaction.productID,
-                        "transactionId": transactionId as String,  // Ensure String type
+                        "transactionId": transactionId,
                         "transactionDate": transaction.purchaseDate.timeIntervalSince1970 * 1000,
                         "transactionReceipt": transaction.jsonRepresentation.base64EncodedString(),
                         "purchaseToken": verificationResult.jwsRepresentation,  // JWS for server validation (iOS 15+)
