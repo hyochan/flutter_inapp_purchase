@@ -195,7 +195,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
             // TODO(v6.4.0): Remove deprecated jwsRepresentationIOS
             "jwsRepresentationIOS": jwsRepresentation,  // Deprecated - use purchaseToken - will be removed in v6.4.0
             "platform": "ios",
-            "transactionState": getTransactionState(transaction),
+            "transactionStateIOS": getTransactionState(transaction), // iOS-specific field
             "quantityIOS": transaction.purchasedQuantity,
             "originalTransactionDateIOS": transaction.originalPurchaseDate.timeIntervalSince1970 * 1000,
             "originalTransactionIdentifierIOS": String(transaction.originalID),
@@ -406,6 +406,8 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                         // TODO(v6.4.0): Remove deprecated jwsRepresentationIOS
                         "jwsRepresentationIOS": verificationResult.jwsRepresentation,  // Deprecated - use purchaseToken - will be removed in v6.4.0
                         "platform": "ios",
+                        "transactionState": getTransactionState(transaction), // Generic field
+                        "transactionStateIOS": getTransactionState(transaction), // iOS-specific field
                         
                         // Add iOS-specific fields
                         "quantityIOS": transaction.purchasedQuantity,
