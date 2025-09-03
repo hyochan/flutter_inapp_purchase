@@ -2,9 +2,26 @@
 
 ## 6.4.5
 
+### Changed
+- **BREAKING**: Updated `getAvailablePurchases()` to support `PurchaseOptions` parameter (OpenIAP compliant)
+  - Now accepts optional `PurchaseOptions` parameter for platform-specific configuration
+  - iOS: Added `onlyIncludeActiveItemsIOS` option (default: true) to control whether expired subscriptions are included
+
+### Added
+- Added `PurchaseOptions` class with iOS-specific options:
+  - `alsoPublishToEventListenerIOS`: Whether to also publish purchase events to the event listener when fetching available purchases
+  - `onlyIncludeActiveItemsIOS`: Whether to only include active items (set to false to get expired subscriptions)
+- **iOS**: Added `getPurchaseHistoriesIOS()` platform-specific method that retrieves all transactions including expired subscriptions
+
+### Deprecated
+- `getPurchaseHistories()` - Use `getAvailablePurchases(PurchaseOptions(onlyIncludeActiveItemsIOS: false))` instead (will be removed in v7.0.0)
+
 ### Bug Fixes
 
 - **iOS**: Fixed missing transactionStateIOS field in getAvailableItems method ([#538](https://github.com/hyochan/flutter_inapp_purchase/issues/538))
+- **iOS**: Fixed expired subscriptions not being returned in purchase history ([#543](https://github.com/hyochan/flutter_inapp_purchase/issues/543))
+  - Added new iOS native method using `Transaction.all` instead of `Transaction.currentEntitlements`
+  - This ensures all historical purchases including expired subscriptions are returned correctly
 
 ## 6.4.4
 
