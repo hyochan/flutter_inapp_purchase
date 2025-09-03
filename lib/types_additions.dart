@@ -205,7 +205,5 @@ class PurchaseIOS extends Purchase {
     super.originalTransactionIdentifierIOS,
     super.originalTransactionDateIOS,
     super.quantityIOS,
-  }) : super(
-          platform: IapPlatform.ios,
-        );
+  }) : super(platform: IapPlatform.ios);
 }

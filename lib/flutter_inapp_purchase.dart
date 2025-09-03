@@ -206,9 +206,7 @@ class FlutterInappPurchase
       final dynamic rawResult;
       if (_platform.isIOS) {
         // iOS uses unified getItems method for both products and subscriptions
-        rawResult = await _channel.invokeMethod('getItems', {
-          'skus': skus,
-        });
+        rawResult = await _channel.invokeMethod('getItems', {'skus': skus});
       } else if (type == iap_types.ProductType.inapp) {
         rawResult = await _channel.invokeMethod('getProducts', {
           'productIds': skus,
@@ -494,7 +492,13 @@ class FlutterInappPurchase
 
   /// Get all available purchases (OpenIAP standard)
   /// Returns non-consumed purchases that are still pending acknowledgment or consumption
-  Future<List<iap_types.Purchase>> getAvailablePurchases() async {
+  ///
+  /// [options] - Optional configuration for the method behavior
+  /// - onlyIncludeActiveItemsIOS: Whether to only include active items (default: true)
+  ///   Set to false to include expired subscriptions
+  Future<List<iap_types.Purchase>> getAvailablePurchases([
+    iap_types.PurchaseOptions? options,
+  ]) async {
     if (!_isInitialized) {
       throw iap_types.PurchaseError(
         code: iap_types.ErrorCode.eNotInitialized,
@@ -528,8 +532,12 @@ class FlutterInappPurchase
 
         return allPurchases;
       } else if (_platform.isIOS) {
-        // On iOS, use the internal method to get available items
-        return await _getAvailableItems();
+        // On iOS, pass both iOS-specific options to native method
+        final args = options?.toMap() ?? <String, dynamic>{};
+
+        dynamic result = await _channel.invokeMethod('getAvailableItems', args);
+        final items = extractPurchases(json.encode(result)) ?? [];
+        return items;
       }
       return [];
     } catch (e) {
@@ -545,6 +553,16 @@ class FlutterInappPurchase
 
   /// Get complete purchase histories
   /// Returns all purchases including consumed and finished ones
+  ///
+  /// @deprecated - Use getAvailablePurchases with PurchaseOptions instead
+  /// To get expired subscriptions on iOS, use:
+  /// ```dart
+  /// getAvailablePurchases(PurchaseOptions(onlyIncludeActiveItemsIOS: false))
+  /// ```
+  @Deprecated(
+    'Use getAvailablePurchases with PurchaseOptions instead. '
+    'Will be removed in v7.0.0',
+  )
   Future<List<iap_types.Purchase>> getPurchaseHistories() async {
     if (!_isInitialized) {
       throw iap_types.PurchaseError(
@@ -576,8 +594,8 @@ class FlutterInappPurchase
         final subsItems = extractPurchases(subsHistory) ?? [];
         history.addAll(subsItems);
       } else if (_platform.isIOS) {
-        // On iOS, getAvailableItems returns the purchase history
-        dynamic result = await _channel.invokeMethod('getAvailableItems');
+        // On iOS, use getPurchaseHistoriesIOS to get ALL transactions including expired ones
+        dynamic result = await _channel.invokeMethod('getPurchaseHistoriesIOS');
         final items = extractPurchases(json.encode(result)) ?? [];
         history.addAll(items);
       }
@@ -1049,8 +1067,9 @@ class FlutterInappPurchase
     if (originalTransactionDateIOSValue != null) {
       try {
         // Try parsing as ISO string first
-        final date =
-            DateTime.tryParse(originalTransactionDateIOSValue.toString());
+        final date = DateTime.tryParse(
+          originalTransactionDateIOSValue.toString(),
+        );
         if (date != null) {
           originalTransactionDateIOS = date.millisecondsSinceEpoch;
         } else {
@@ -1146,10 +1165,12 @@ class FlutterInappPurchase
       isAcknowledgedAndroid: _platform.isAndroid
           ? itemJson['isAcknowledgedAndroid'] as bool?
           : null,
-      purchaseState: _platform.isAndroid &&
-              itemJson['purchaseStateAndroid'] != null
-          ? _mapAndroidPurchaseState(itemJson['purchaseStateAndroid'] as int)
-          : null,
+      purchaseState:
+          _platform.isAndroid && itemJson['purchaseStateAndroid'] != null
+              ? _mapAndroidPurchaseState(
+                  itemJson['purchaseStateAndroid'] as int,
+                )
+              : null,
       purchaseStateAndroid:
           _platform.isAndroid ? itemJson['purchaseStateAndroid'] as int? : null,
       originalJson: _platform.isAndroid
@@ -1423,10 +1444,10 @@ class FlutterInappPurchase
         debugPrint(
           '[FlutterInappPurchase] Android: Consuming product with token: ${purchase.purchaseToken}',
         );
-        final result =
-            await _channel.invokeMethod('consumeProduct', <String, dynamic>{
-          'purchaseToken': purchase.purchaseToken,
-        });
+        final result = await _channel.invokeMethod(
+          'consumeProduct',
+          <String, dynamic>{'purchaseToken': purchase.purchaseToken},
+        );
         parseAndLogAndroidResponse(
           result,
           successLog:
@@ -1453,10 +1474,10 @@ class FlutterInappPurchase
               '[FlutterInappPurchase] Android: Acknowledging purchase with token: $maskedToken',
             );
           }
-          final result = await _channel
-              .invokeMethod('acknowledgePurchase', <String, dynamic>{
-            'purchaseToken': purchase.purchaseToken,
-          });
+          final result = await _channel.invokeMethod(
+            'acknowledgePurchase',
+            <String, dynamic>{'purchaseToken': purchase.purchaseToken},
+          );
           parseAndLogAndroidResponse(
             result,
             successLog:
@@ -1600,8 +1621,9 @@ class FlutterInappPurchase
       }
 
       // Convert Map<dynamic, dynamic> to Map<String, dynamic>
-      final Map<String, dynamic> validationResult =
-          Map<String, dynamic>.from(result);
+      final Map<String, dynamic> validationResult = Map<String, dynamic>.from(
+        result,
+      );
 
       // Parse latestTransaction if present
       Map<String, dynamic>? latestTransaction;
@@ -2148,7 +2170,9 @@ class FlutterInappPurchase
         .map<iap_types.Purchase>(
           (dynamic product) => _convertFromLegacyPurchase(
             Map<String, dynamic>.from(product as Map),
-            Map<String, dynamic>.from(product), // Pass original JSON as well
+            Map<String, dynamic>.from(
+              product,
+            ), // Pass original JSON as well
           ),
         )
         .toList();

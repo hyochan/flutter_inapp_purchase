@@ -46,12 +46,16 @@ void main() {
 
     test('ConnectionStateEvent should create correctly', () {
       final connectedEvent = ConnectionStateEvent(
-          isConnected: true, message: 'Connected successfully');
+        isConnected: true,
+        message: 'Connected successfully',
+      );
       expect(connectedEvent.isConnected, true);
       expect(connectedEvent.message, 'Connected successfully');
 
       final disconnectedEvent = ConnectionStateEvent(
-          isConnected: false, message: 'Connection failed');
+        isConnected: false,
+        message: 'Connection failed',
+      );
       expect(disconnectedEvent.isConnected, false);
       expect(disconnectedEvent.message, 'Connection failed');
     });

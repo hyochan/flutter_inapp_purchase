@@ -34,7 +34,9 @@ void main() {
             final allSubs = _getMockSubscriptions();
             final filteredSubs = productIds != null
                 ? allSubs
-                    .where((sub) => productIds.contains(sub['productId']))
+                    .where(
+                      (sub) => productIds.contains(sub['productId']),
+                    )
                     .toList()
                 : allSubs;
             return filteredSubs
@@ -85,7 +87,9 @@ void main() {
             final allSubs = _getMockSubscriptions();
             final filteredSubs = productIds != null
                 ? allSubs
-                    .where((sub) => productIds.contains(sub['productId']))
+                    .where(
+                      (sub) => productIds.contains(sub['productId']),
+                    )
                     .toList()
                 : allSubs;
             return filteredSubs
@@ -513,8 +517,8 @@ List<Map<String, dynamic>> _getMockSubscriptions() {
                 'priceAmountMicros': 19990000,
                 'billingPeriod': 'P1M',
                 'recurrenceMode': 1,
-              }
-            ]
+              },
+            ],
           },
         },
       ],

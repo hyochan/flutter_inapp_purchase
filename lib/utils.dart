@@ -14,9 +14,7 @@ void parseAndLogAndroidResponse(
   try {
     final response = jsonDecode(result) as Map<String, dynamic>;
     if (kDebugMode) {
-      debugPrint(
-        '$successLog. Response code: ${response['responseCode']}',
-      );
+      debugPrint('$successLog. Response code: ${response['responseCode']}');
     }
   } catch (e) {
     if (kDebugMode) {

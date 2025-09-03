@@ -46,21 +46,27 @@
       "name": "Flutter: Run Example App",
       "type": "dart",
       "request": "launch",
-      "program": "${workspaceFolder}/example/lib/main.dart"
+      "program": "lib/main.dart",
+      "cwd": "${workspaceFolder}/example",
+      "args": []
     },
     {
       "name": "Flutter: Run Example App (Profile Mode)",
       "type": "dart",
       "request": "launch",
-      "program": "${workspaceFolder}/example/lib/main.dart",
-      "flutterMode": "profile"
+      "program": "lib/main.dart",
+      "cwd": "${workspaceFolder}/example",
+      "flutterMode": "profile",
+      "args": []
     },
     {
       "name": "Flutter: Run Example App (Release Mode)",
       "type": "dart",
       "request": "launch",
-      "program": "${workspaceFolder}/example/lib/main.dart",
-      "flutterMode": "release"
+      "program": "lib/main.dart",
+      "cwd": "${workspaceFolder}/example",
+      "flutterMode": "release",
+      "args": []
     }
   ],
   "compounds": []

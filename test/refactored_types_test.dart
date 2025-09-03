@@ -191,11 +191,15 @@ void main() {
 
     test('AndroidPurchaseState fromValue should work correctly', () {
       expect(
-          AndroidPurchaseState.fromValue(0), AndroidPurchaseState.unspecified);
+        AndroidPurchaseState.fromValue(0),
+        AndroidPurchaseState.unspecified,
+      );
       expect(AndroidPurchaseState.fromValue(1), AndroidPurchaseState.purchased);
       expect(AndroidPurchaseState.fromValue(2), AndroidPurchaseState.pending);
       expect(
-          AndroidPurchaseState.fromValue(99), AndroidPurchaseState.unspecified);
+        AndroidPurchaseState.fromValue(99),
+        AndroidPurchaseState.unspecified,
+      );
     });
   });
 

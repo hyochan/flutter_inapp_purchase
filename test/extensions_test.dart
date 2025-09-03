@@ -125,15 +125,16 @@ void main() {
       });
 
       test(
-          'Purchase id getter should return empty string when transactionId is null',
-          () {
-        final purchase = Purchase(
-          productId: 'test_product',
-          platform: IapPlatform.android,
-        );
+        'Purchase id getter should return empty string when transactionId is null',
+        () {
+          final purchase = Purchase(
+            productId: 'test_product',
+            platform: IapPlatform.android,
+          );
 
-        expect(purchase.id, '');
-      });
+          expect(purchase.id, '');
+        },
+      );
     });
 
     group('SubscriptionPurchase Tests', () {

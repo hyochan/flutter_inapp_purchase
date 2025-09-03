@@ -166,7 +166,7 @@ void main() {
               'currency': 'CAD',
               'billingPeriod': 'P1Y',
               'billingCycleCount': 1,
-            }
+            },
           ],
         };
 

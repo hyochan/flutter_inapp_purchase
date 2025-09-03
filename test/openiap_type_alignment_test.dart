@@ -51,8 +51,10 @@ void main() {
         );
 
         expect(product.nameAndroid, isA<String?>());
-        expect(product.oneTimePurchaseOfferDetailsAndroid,
-            isA<Map<String, dynamic>?>());
+        expect(
+          product.oneTimePurchaseOfferDetailsAndroid,
+          isA<Map<String, dynamic>?>(),
+        );
         expect(product.platformEnum, IapPlatform.android);
       });
 
@@ -109,8 +111,10 @@ void main() {
           ],
         );
 
-        expect(subscription.subscriptionOfferDetailsAndroid,
-            isA<List<OfferDetail>?>());
+        expect(
+          subscription.subscriptionOfferDetailsAndroid,
+          isA<List<OfferDetail>?>(),
+        );
         final offer = subscription.subscriptionOfferDetailsAndroid!.first;
         expect(offer.basePlanId, 'monthly');
         expect(offer.offerId, 'intro_offer');
