@@ -23,6 +23,24 @@ final products = await iap.requestProducts(
 
 The `RequestProductsParams` class has been removed to simplify the API.
 
+### getAvailablePurchases API (v6.4.6+)
+The `getAvailablePurchases` method now supports `PurchaseOptions` for OpenIAP compliance:
+
+```dart
+// Get active purchases only (default behavior)
+final activePurchases = await iap.getAvailablePurchases();
+
+// Get all purchases including expired subscriptions (iOS)
+final allPurchases = await iap.getAvailablePurchases(
+  PurchaseOptions(
+    onlyIncludeActiveItemsIOS: false,  // Include expired subscriptions
+    alsoPublishToEventListenerIOS: true,  // Optional: publish to event listener
+  ),
+);
+```
+
+**Note**: `getPurchaseHistories()` is deprecated. Use `getAvailablePurchases()` with options instead.
+
 ## Flutter-Specific Guidelines
 
 ### Documentation Style

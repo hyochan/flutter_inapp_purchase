@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 6.4.6
+
+### Fixed
+- **iOS**: Retrieve expired subscriptions in StoreKit 2 sandbox ([#543](https://github.com/hyochan/flutter_inapp_purchase/issues/543))
+  - Added `PurchaseOptions` parameter to `getAvailablePurchases()` for OpenIAP compliance
+  - Use `onlyIncludeActiveItemsIOS: false` to include expired subscriptions
+
+### Deprecated
+- `getPurchaseHistories()` → Use `getAvailablePurchases()` with options (removed in v7.0.0)
+
 ## 6.4.5
 
 ### Changed
