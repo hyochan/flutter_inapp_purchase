@@ -14,8 +14,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_inapp_purchase/ios"
 
 SPEC CHECKSUMS:
-  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
-  flutter_inapp_purchase: 8e33be0a25dcb72864af4405a035358fd7843689
+  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  flutter_inapp_purchase: b1b37418eb3ef7070a998350cd4e19b4c71d1b46
 
 PODFILE CHECKSUM: 306f93546563c7e42fc04f6eb74037add2119f17
 
