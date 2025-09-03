@@ -494,7 +494,13 @@ class FlutterInappPurchase
 
   /// Get all available purchases (OpenIAP standard)
   /// Returns non-consumed purchases that are still pending acknowledgment or consumption
-  Future<List<iap_types.Purchase>> getAvailablePurchases() async {
+  /// 
+  /// [options] - Optional configuration for the method behavior
+  /// - onlyIncludeActiveItemsIOS: Whether to only include active items (default: true)
+  ///   Set to false to include expired subscriptions
+  Future<List<iap_types.Purchase>> getAvailablePurchases([
+    iap_types.PurchaseOptions? options,
+  ]) async {
     if (!_isInitialized) {
       throw iap_types.PurchaseError(
         code: iap_types.ErrorCode.eNotInitialized,
@@ -528,8 +534,20 @@ class FlutterInappPurchase
 
         return allPurchases;
       } else if (_platform.isIOS) {
-        // On iOS, use the internal method to get available items
-        return await _getAvailableItems();
+        // On iOS, pass both iOS-specific options to native method
+        final args = <String, dynamic>{};
+        if (options != null) {
+          if (options.onlyIncludeActiveItemsIOS != null) {
+            args['onlyIncludeActiveItemsIOS'] = options.onlyIncludeActiveItemsIOS;
+          }
+          if (options.alsoPublishToEventListenerIOS != null) {
+            args['alsoPublishToEventListenerIOS'] = options.alsoPublishToEventListenerIOS;
+          }
+        }
+        
+        dynamic result = await _channel.invokeMethod('getAvailableItems', args);
+        final items = extractPurchases(json.encode(result)) ?? [];
+        return items;
       }
       return [];
     } catch (e) {
@@ -545,6 +563,16 @@ class FlutterInappPurchase
 
   /// Get complete purchase histories
   /// Returns all purchases including consumed and finished ones
+  /// 
+  /// @deprecated - Use getAvailablePurchases with PurchaseOptions instead
+  /// To get expired subscriptions on iOS, use:
+  /// ```dart
+  /// getAvailablePurchases(PurchaseOptions(onlyIncludeActiveItemsIOS: false))
+  /// ```
+  @Deprecated(
+    'Use getAvailablePurchases with PurchaseOptions instead. '
+    'Will be removed in v2.9.0',
+  )
   Future<List<iap_types.Purchase>> getPurchaseHistories() async {
     if (!_isInitialized) {
       throw iap_types.PurchaseError(
@@ -576,8 +604,8 @@ class FlutterInappPurchase
         final subsItems = extractPurchases(subsHistory) ?? [];
         history.addAll(subsItems);
       } else if (_platform.isIOS) {
-        // On iOS, getAvailableItems returns the purchase history
-        dynamic result = await _channel.invokeMethod('getAvailableItems');
+        // On iOS, use getPurchaseHistoriesIOS to get ALL transactions including expired ones
+        dynamic result = await _channel.invokeMethod('getPurchaseHistoriesIOS');
         final items = extractPurchases(json.encode(result)) ?? [];
         history.addAll(items);
       }

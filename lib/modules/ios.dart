@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +10,9 @@ mixin FlutterInappPurchaseIOS {
   MethodChannel get channel;
   bool get _isIOS;
   String get _operatingSystem;
+  
+  /// Abstract method that needs to be implemented by the class using this mixin
+  List<Purchase>? extractPurchasedItems(dynamic result);
 
   /// Sync purchases that are not finished yet to be finished.
   /// Returns true if successful, false if running on Android
@@ -167,8 +171,49 @@ mixin FlutterInappPurchaseIOS {
     return null;
   }
 
-  /// iOS-specific utility function
-  List<Purchase>? extractPurchasedItems(dynamic result);
+  /// Gets all purchase histories including expired subscriptions (iOS only)
+  /// Uses Transaction.all to retrieve complete transaction history
+  Future<List<Purchase>> getPurchaseHistoriesIOS() async {
+    if (!_isIOS) {
+      throw PurchaseError(
+        code: ErrorCode.eIapNotAvailable,
+        message: 'getPurchaseHistoriesIOS is only available on iOS',
+        platform: IapPlatform.ios,
+      );
+    }
+
+    try {
+      dynamic result = await channel.invokeMethod('getPurchaseHistoriesIOS');
+      // Parse the result into a list of purchases
+      List<dynamic> list;
+      if (result is String) {
+        list = json.decode(result) as List<dynamic>;
+      } else if (result is List) {
+        list = result;
+      } else {
+        return [];
+      }
+      
+      final purchases = <Purchase>[];
+      for (final item in list) {
+        try {
+          final purchase = Purchase.fromJson(item as Map<String, dynamic>);
+          purchases.add(purchase);
+        } catch (e) {
+          debugPrint('Error parsing purchase: $e');
+          continue;
+        }
+      }
+      
+      return purchases;
+    } catch (e) {
+      throw PurchaseError(
+        code: ErrorCode.eServiceError,
+        message: 'Failed to get iOS purchase histories: ${e.toString()}',
+        platform: IapPlatform.ios,
+      );
+    }
+  }
 }
 
 /// iOS App Transaction model (iOS 18.4+)
