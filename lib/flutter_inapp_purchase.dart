@@ -535,15 +535,7 @@ class FlutterInappPurchase
         return allPurchases;
       } else if (_platform.isIOS) {
         // On iOS, pass both iOS-specific options to native method
-        final args = <String, dynamic>{};
-        if (options != null) {
-          if (options.onlyIncludeActiveItemsIOS != null) {
-            args['onlyIncludeActiveItemsIOS'] = options.onlyIncludeActiveItemsIOS;
-          }
-          if (options.alsoPublishToEventListenerIOS != null) {
-            args['alsoPublishToEventListenerIOS'] = options.alsoPublishToEventListenerIOS;
-          }
-        }
+        final args = options?.toMap() ?? <String, dynamic>{};
         
         dynamic result = await _channel.invokeMethod('getAvailableItems', args);
         final items = extractPurchases(json.encode(result)) ?? [];
@@ -571,7 +563,7 @@ class FlutterInappPurchase
   /// ```
   @Deprecated(
     'Use getAvailablePurchases with PurchaseOptions instead. '
-    'Will be removed in v2.9.0',
+    'Will be removed in v7.0.0',
   )
   Future<List<iap_types.Purchase>> getPurchaseHistories() async {
     if (!_isInitialized) {
