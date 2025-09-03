@@ -40,21 +40,21 @@ class ProductType {
 class PurchaseOptions {
   /// iOS only: Whether to also publish to event listener
   final bool? alsoPublishToEventListenerIOS;
-  
+
   /// iOS only: Whether to only include active items (default: true)
   /// Set to false to include expired subscriptions
   final bool? onlyIncludeActiveItemsIOS;
-  
+
   PurchaseOptions({
     this.alsoPublishToEventListenerIOS,
     this.onlyIncludeActiveItemsIOS,
   });
-  
+
   Map<String, dynamic> toMap() {
     return {
-      if (alsoPublishToEventListenerIOS != null) 
+      if (alsoPublishToEventListenerIOS != null)
         'alsoPublishToEventListenerIOS': alsoPublishToEventListenerIOS,
-      if (onlyIncludeActiveItemsIOS != null) 
+      if (onlyIncludeActiveItemsIOS != null)
         'onlyIncludeActiveItemsIOS': onlyIncludeActiveItemsIOS,
     };
   }
@@ -2671,10 +2671,7 @@ class ReceiptValidationProps {
   /// Android-specific validation options
   final AndroidValidationOptions? androidOptions;
 
-  ReceiptValidationProps({
-    required this.sku,
-    this.androidOptions,
-  });
+  ReceiptValidationProps({required this.sku, this.androidOptions});
 
   Map<String, dynamic> toJson() {
     return {

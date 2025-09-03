@@ -50,29 +50,25 @@ void main() {
       });
     });
 
-    group(
-      'requestProducts',
-      () {
-        group('for Android', () {
-          final List<MethodCall> log = <MethodCall>[];
-          late FlutterInappPurchase testIap;
-          setUp(() async {
-            testIap = FlutterInappPurchase.private(
-              FakePlatform(operatingSystem: 'android'),
-            );
+    group('requestProducts', () {
+      group('for Android', () {
+        final List<MethodCall> log = <MethodCall>[];
+        late FlutterInappPurchase testIap;
+        setUp(() async {
+          testIap = FlutterInappPurchase.private(
+            FakePlatform(operatingSystem: 'android'),
+          );
 
-            TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-                .setMockMethodCallHandler(channel, (
-              MethodCall methodCall,
-            ) async {
-              log.add(methodCall);
-              if (methodCall.method == 'initConnection') {
-                return true;
-              }
-              // For requestProducts, Android expects parsed JSON list
-              if (methodCall.method == 'getProducts' ||
-                  methodCall.method == 'getSubscriptions') {
-                return '''[
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+              .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+            log.add(methodCall);
+            if (methodCall.method == 'initConnection') {
+              return true;
+            }
+            // For requestProducts, Android expects parsed JSON list
+            if (methodCall.method == 'getProducts' ||
+                methodCall.method == 'getSubscriptions') {
+              return '''[
                 {
                   "productId": "com.example.product1",
                   "price": "0.99",
@@ -90,136 +86,121 @@ void main() {
                   "description": "Description 2"
                 }
               ]''';
-              }
-              return null;
-            });
-          });
-
-          tearDown(() {
-            channel.setMethodCallHandler(null);
-          });
-
-          test('invokes correct method', () async {
-            // Initialize connection first
-            await testIap.initConnection();
-            log.clear(); // Clear init log
-
-            await testIap.requestProducts(
-              skus: [
-                'com.example.product1',
-                'com.example.product2',
-              ],
-              type: ProductType.inapp,
-            );
-            // Since getProducts is deprecated and redirects to requestProducts,
-            // it now passes productIds directly as List, not wrapped in a Map
-            expect(log, <Matcher>[
-              isMethodCall(
-                'getProducts',
-                arguments: {
-                  'productIds': [
-                    'com.example.product1',
-                    'com.example.product2'
-                  ],
-                },
-              ),
-            ]);
-          });
-
-          test('returns correct products', () async {
-            // Initialize connection first
-            await testIap.initConnection();
-
-            final products = await testIap.requestProducts<Product>(
-              skus: [
-                'com.example.product1',
-                'com.example.product2',
-              ],
-              type: ProductType.inapp,
-            );
-            expect(products.length, 2);
-            expect(products[0].productId, 'com.example.product1');
-            expect(products[0].price, 0.99);
-            expect(products[0].currency, 'USD');
-            expect(products[1].productId, 'com.example.product2');
+            }
+            return null;
           });
         });
-      },
-    );
 
-    group(
-      'requestProducts for subscriptions',
-      () {
-        group('for iOS', () {
-          final List<MethodCall> log = <MethodCall>[];
-          late FlutterInappPurchase testIap;
-          setUp(() async {
-            testIap = FlutterInappPurchase.private(
-              FakePlatform(operatingSystem: 'ios'),
-            );
+        tearDown(() {
+          channel.setMethodCallHandler(null);
+        });
 
-            TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-                .setMockMethodCallHandler(channel, (
-              MethodCall methodCall,
-            ) async {
-              log.add(methodCall);
-              if (methodCall.method == 'initConnection') {
-                return true;
-              }
-              return [
-                {
-                  'productId': 'com.example.subscription1',
-                  'price': '9.99',
-                  'currency': 'USD',
-                  'localizedPrice': r'$9.99',
-                  'title': 'Subscription 1',
-                  'description': 'Monthly subscription',
-                  'subscriptionPeriodUnitIOS': 'MONTH',
-                  'subscriptionPeriodNumberIOS': '1',
-                },
-              ];
-            });
-          });
+        test('invokes correct method', () async {
+          // Initialize connection first
+          await testIap.initConnection();
+          log.clear(); // Clear init log
 
-          tearDown(() {
-            channel.setMethodCallHandler(null);
-          });
+          await testIap.requestProducts(
+            skus: ['com.example.product1', 'com.example.product2'],
+            type: ProductType.inapp,
+          );
+          // Since getProducts is deprecated and redirects to requestProducts,
+          // it now passes productIds directly as List, not wrapped in a Map
+          expect(log, <Matcher>[
+            isMethodCall(
+              'getProducts',
+              arguments: {
+                'productIds': ['com.example.product1', 'com.example.product2'],
+              },
+            ),
+          ]);
+        });
 
-          test('invokes correct method', () async {
-            // Initialize connection first
-            await testIap.initConnection();
-            log.clear(); // Clear init log
+        test('returns correct products', () async {
+          // Initialize connection first
+          await testIap.initConnection();
 
-            await testIap.requestProducts(
-              skus: ['com.example.subscription1'],
-              type: ProductType.subs,
-            );
-            expect(log, <Matcher>[
-              isMethodCall(
-                'getItems',
-                arguments: <String, dynamic>{
-                  'skus': ['com.example.subscription1'],
-                },
-              ),
-            ]);
-          });
+          final products = await testIap.requestProducts<Product>(
+            skus: ['com.example.product1', 'com.example.product2'],
+            type: ProductType.inapp,
+          );
+          expect(products.length, 2);
+          expect(products[0].productId, 'com.example.product1');
+          expect(products[0].price, 0.99);
+          expect(products[0].currency, 'USD');
+          expect(products[1].productId, 'com.example.product2');
+        });
+      });
+    });
 
-          test('returns correct subscriptions', () async {
-            // Initialize connection first
-            await testIap.initConnection();
+    group('requestProducts for subscriptions', () {
+      group('for iOS', () {
+        final List<MethodCall> log = <MethodCall>[];
+        late FlutterInappPurchase testIap;
+        setUp(() async {
+          testIap = FlutterInappPurchase.private(
+            FakePlatform(operatingSystem: 'ios'),
+          );
 
-            final subscriptions = await testIap.requestProducts<Subscription>(
-              skus: ['com.example.subscription1'],
-              type: ProductType.subs,
-            );
-            expect(subscriptions.length, 1);
-            expect(subscriptions[0].productId, 'com.example.subscription1');
-            // Now we can directly access Subscription properties
-            expect(subscriptions[0].subscriptionPeriodUnitIOS, 'MONTH');
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+              .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+            log.add(methodCall);
+            if (methodCall.method == 'initConnection') {
+              return true;
+            }
+            return [
+              {
+                'productId': 'com.example.subscription1',
+                'price': '9.99',
+                'currency': 'USD',
+                'localizedPrice': r'$9.99',
+                'title': 'Subscription 1',
+                'description': 'Monthly subscription',
+                'subscriptionPeriodUnitIOS': 'MONTH',
+                'subscriptionPeriodNumberIOS': '1',
+              },
+            ];
           });
         });
-      },
-    );
+
+        tearDown(() {
+          channel.setMethodCallHandler(null);
+        });
+
+        test('invokes correct method', () async {
+          // Initialize connection first
+          await testIap.initConnection();
+          log.clear(); // Clear init log
+
+          await testIap.requestProducts(
+            skus: ['com.example.subscription1'],
+            type: ProductType.subs,
+          );
+          expect(log, <Matcher>[
+            isMethodCall(
+              'getItems',
+              arguments: <String, dynamic>{
+                'skus': ['com.example.subscription1'],
+              },
+            ),
+          ]);
+        });
+
+        test('returns correct subscriptions', () async {
+          // Initialize connection first
+          await testIap.initConnection();
+
+          final subscriptions = await testIap.requestProducts<Subscription>(
+            skus: ['com.example.subscription1'],
+            type: ProductType.subs,
+          );
+          expect(subscriptions.length, 1);
+          expect(subscriptions[0].productId, 'com.example.subscription1');
+          // Now we can directly access Subscription properties
+          expect(subscriptions[0].subscriptionPeriodUnitIOS, 'MONTH');
+        });
+      });
+    });
 
     group('Error Handling', () {
       test('PurchaseError creation from platform error', () {

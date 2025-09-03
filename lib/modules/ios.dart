@@ -10,7 +10,7 @@ mixin FlutterInappPurchaseIOS {
   MethodChannel get channel;
   bool get _isIOS;
   String get _operatingSystem;
-  
+
   /// Abstract method that needs to be implemented by the class using this mixin
   List<Purchase>? extractPurchasedItems(dynamic result);
 
@@ -193,7 +193,7 @@ mixin FlutterInappPurchaseIOS {
       } else {
         return [];
       }
-      
+
       final purchases = <Purchase>[];
       for (final item in list) {
         try {
@@ -204,7 +204,7 @@ mixin FlutterInappPurchaseIOS {
           continue;
         }
       }
-      
+
       return purchases;
     } catch (e) {
       throw PurchaseError(
