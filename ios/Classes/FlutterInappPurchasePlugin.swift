@@ -48,7 +48,20 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
             getItems(skus: skus, result: result)
             
         case "getAvailableItems":
-            getAvailableItems(result: result)
+            if let args = call.arguments as? [String: Any] {
+                let onlyIncludeActiveItems = args["onlyIncludeActiveItemsIOS"] as? Bool ?? true
+                let alsoPublishToEventListener = args["alsoPublishToEventListenerIOS"] as? Bool ?? false
+                getAvailableItems(
+                    result: result, 
+                    onlyIncludeActiveItems: onlyIncludeActiveItems,
+                    alsoPublishToEventListener: alsoPublishToEventListener
+                )
+            } else {
+                getAvailableItems(result: result)
+            }
+            
+        case "getPurchaseHistoriesIOS":
+            getPurchaseHistoriesIOS(result: result)
             
         case "buyProduct":
             // Support both old and new API
@@ -383,13 +396,21 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
     
     // MARK: - Available Items
     
-    private func getAvailableItems(result: @escaping FlutterResult) {
-        print("\(FlutterInappPurchasePlugin.TAG) getAvailableItems called")
+    private func getAvailableItems(
+        result: @escaping FlutterResult, 
+        onlyIncludeActiveItems: Bool = true,
+        alsoPublishToEventListener: Bool = false
+    ) {
+        print("\(FlutterInappPurchasePlugin.TAG) getAvailableItems called with onlyIncludeActiveItems: \(onlyIncludeActiveItems), alsoPublishToEventListener: \(alsoPublishToEventListener)")
         
         Task {
             var purchases: [[String: Any]] = []
             
-            for await verificationResult in Transaction.currentEntitlements {
+            // Use Transaction.all when we want ALL transactions (including expired)
+            // Use Transaction.currentEntitlements when we only want active items
+            let transactionSequence = onlyIncludeActiveItems ? Transaction.currentEntitlements : Transaction.all
+            
+            for await verificationResult in transactionSequence {
                 do {
                     let transaction = try checkVerified(verificationResult)
                     print("\(FlutterInappPurchasePlugin.TAG) getAvailableItems - Raw transaction.id: \(transaction.id)")
@@ -455,6 +476,16 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                         purchase["revocationReasonIOS"] = transaction.revocationReason?.rawValue
                     }
                     purchases.append(purchase)
+                    
+                    // If alsoPublishToEventListener is true, send each purchase as an event
+                    if alsoPublishToEventListener {
+                        if let jsonData = try? JSONSerialization.data(withJSONObject: purchase),
+                           let jsonString = String(data: jsonData, encoding: .utf8) {
+                            await MainActor.run {
+                                self.channel?.invokeMethod("purchase-updated", arguments: jsonString)
+                            }
+                        }
+                    }
                 } catch {
                     print("\(FlutterInappPurchasePlugin.TAG) Failed to verify transaction: \(error)")
                 }
@@ -464,6 +495,15 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 result(purchases)
             }
         }
+    }
+    
+    // MARK: - Purchase History
+    
+    private func getPurchaseHistoriesIOS(result: @escaping FlutterResult) {
+        print("\(FlutterInappPurchasePlugin.TAG) getPurchaseHistoriesIOS called")
+        // Simply delegate to getAvailableItems with onlyIncludeActiveItems = false
+        // to get ALL transactions including expired ones
+        getAvailableItems(result: result, onlyIncludeActiveItems: false)
     }
     
     // MARK: - Purchase
