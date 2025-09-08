@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/services.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -20,39 +18,46 @@ void main() {
       channel = iap.channel;
 
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-        calls.add(methodCall);
-        switch (methodCall.method) {
-          case 'presentCodeRedemptionSheetIOS':
-            return null;
-          case 'showManageSubscriptionsIOS':
-            return null;
-          case 'getStorefrontIOS':
-            return 'US';
-          case 'getPromotedProductIOS':
-            return {
-              'productIdentifier': 'com.example.prod1',
-              'localizedTitle': 'Prod 1',
-              'localizedDescription': 'Desc',
-              'price': 0.99,
-              'priceLocale': {'currencyCode': 'USD', 'currencySymbol': '\$'},
-            };
-          case 'getPendingTransactionsIOS':
-            // Return a list of purchases (as native would), we'll let the wrapper re-encode
-            return [
-              {
-                'id': '1000001',
-                'productId': 'com.example.prod1',
-                'transactionDate': DateTime.now().millisecondsSinceEpoch,
-                'transactionReceipt': 'xyz',
-                'purchaseToken': 'jwt-token',
-                'platform': 'ios',
-              }
-            ];
-          default:
-            return null;
-        }
-      });
+          .setMockMethodCallHandler(
+        channel,
+        (MethodCall methodCall) async {
+          calls.add(methodCall);
+          switch (methodCall.method) {
+            case 'presentCodeRedemptionSheetIOS':
+              return null;
+            case 'showManageSubscriptionsIOS':
+              return null;
+            case 'getStorefrontIOS':
+              return 'US';
+            case 'getPromotedProductIOS':
+              return <String, dynamic>{
+                'productIdentifier': 'com.example.prod1',
+                'localizedTitle': 'Prod 1',
+                'localizedDescription': 'Desc',
+                'price': 0.99,
+                'priceLocale': <String, dynamic>{
+                  'currencyCode': 'USD',
+                  'currencySymbol': '\$',
+                },
+              };
+            case 'getPendingTransactionsIOS':
+              // Return a list of purchases (as native would)
+              return <Map<String, dynamic>>[
+                <String, dynamic>{
+                  'id': '1000001',
+                  'productId': 'com.example.prod1',
+                  'transactionDate':
+                      DateTime.now().millisecondsSinceEpoch,
+                  'transactionReceipt': 'xyz',
+                  'purchaseToken': 'jwt-token',
+                  'platform': 'ios',
+                },
+              ];
+            default:
+              return null;
+          }
+        },
+      );
     });
 
     tearDown(() {
