@@ -133,7 +133,8 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
             showManageSubscriptionsIOS(result: result)
             
         case "clearTransactionCache":
-            result(FlutterMethodNotImplemented)
+            // No-op on iOS/OpenIAP to avoid spurious exceptions from Dart side
+            result(nil)
             
         case "validateReceiptIOS":
             guard let args = call.arguments as? [String: Any],
@@ -229,10 +230,8 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 guard let self = self else { return }
                 print("\(FlutterInappPurchasePlugin.TAG) 📱 promotedProductListenerIOS fired for: \(productId)")
                 let payload: [String: Any] = ["productId": productId]
-                if let jsonData = try? JSONSerialization.data(withJSONObject: payload),
-                   let jsonString = String(data: jsonData, encoding: .utf8) {
-                    self.channel?.invokeMethod("promoted-product-ios", arguments: jsonString)
-                }
+                // Emit event that Dart expects: name 'iap-promoted-product' with String payload
+                self.channel?.invokeMethod("iap-promoted-product", arguments: productId)
             }
         }
     }
@@ -399,7 +398,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
         Task { @MainActor in
             do {
                 let code = try await OpenIapModule.shared.getStorefrontIOS()
-                result(code)
+                result(["countryCode": code])
             } catch {
                 await MainActor.run {
                     result(FlutterError(code: "E_STORE_FRONT_FAILED", message: error.localizedDescription, details: nil))
