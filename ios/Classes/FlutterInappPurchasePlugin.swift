@@ -190,7 +190,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
         purchaseUpdatedToken = OpenIapModule.shared.purchaseUpdatedListener { [weak self] purchase in
             Task { @MainActor in
                 guard let self = self else { return }
-                print("\\(FlutterInappPurchasePlugin.TAG) ✅ purchaseUpdatedListener fired")
+                print("\(FlutterInappPurchasePlugin.TAG) ✅ purchaseUpdatedListener fired")
                 let payload = OpenIapSerialization.purchase(purchase)
                 var sanitized = self.sanitize(dict: payload)
                 // Coerce iOS fields that Dart expects as String
@@ -200,7 +200,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 if let n = sanitized["reasonIOS"] as? NSNumber { sanitized["reasonIOS"] = n.stringValue }
                 if let jsonData = try? JSONSerialization.data(withJSONObject: sanitized),
                    let jsonString = String(data: jsonData, encoding: .utf8) {
-                    print("\\(FlutterInappPurchasePlugin.TAG) Emitting purchase-updated to Flutter")
+                    print("\(FlutterInappPurchasePlugin.TAG) Emitting purchase-updated to Flutter")
                     self.channel?.invokeMethod("purchase-updated", arguments: jsonString)
                 }
             }
@@ -209,7 +209,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
         purchaseErrorToken = OpenIapModule.shared.purchaseErrorListener { [weak self] error in
             Task { @MainActor in
                 guard let self = self else { return }
-                print("\\(FlutterInappPurchasePlugin.TAG) ❌ purchaseErrorListener fired")
+                print("\(FlutterInappPurchasePlugin.TAG) ❌ purchaseErrorListener fired")
                 let errorData: [String: Any?] = [
                     "code": error.code,
                     "message": error.message,
@@ -218,7 +218,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 let sanitized = self.sanitize(dict: errorData)
                 if let jsonData = try? JSONSerialization.data(withJSONObject: sanitized),
                    let jsonString = String(data: jsonData, encoding: .utf8) {
-                    print("\\(FlutterInappPurchasePlugin.TAG) Emitting purchase-error to Flutter")
+                    print("\(FlutterInappPurchasePlugin.TAG) Emitting purchase-error to Flutter")
                     self.channel?.invokeMethod("purchase-error", arguments: jsonString)
                 }
             }
@@ -227,7 +227,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
         promotedProductToken = OpenIapModule.shared.promotedProductListenerIOS { [weak self] productId in
             Task { @MainActor in
                 guard let self = self else { return }
-                print("\\(FlutterInappPurchasePlugin.TAG) 📱 promotedProductListenerIOS fired for: \(productId)")
+                print("\(FlutterInappPurchasePlugin.TAG) 📱 promotedProductListenerIOS fired for: \(productId)")
                 let payload: [String: Any] = ["productId": productId]
                 if let jsonData = try? JSONSerialization.data(withJSONObject: payload),
                    let jsonString = String(data: jsonData, encoding: .utf8) {

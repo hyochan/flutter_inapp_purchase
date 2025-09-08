@@ -2018,9 +2018,15 @@ class FlutterInappPurchase
   }
 
   /// Get promoted product (App Store promoted purchase)
-  Future<String?> getPromotedProduct() async {
+  /// Returns a map with product information on iOS or null if unavailable.
+  Future<Map<String, dynamic>?> getPromotedProduct() async {
     if (_platform.isIOS) {
-      return await _channel.invokeMethod('getPromotedProductIOS');
+      final result = await _channel.invokeMethod('getPromotedProductIOS');
+      if (result == null) return null;
+      if (result is Map) return Map<String, dynamic>.from(result);
+      // Backward compatibility: if native returns string id, wrap it
+      if (result is String) return {'productIdentifier': result};
+      return null;
     }
     return null;
   }

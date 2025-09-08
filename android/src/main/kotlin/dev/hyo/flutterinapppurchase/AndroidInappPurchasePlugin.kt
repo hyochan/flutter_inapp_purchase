@@ -554,7 +554,8 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
             val obfuscatedAccountId = call.argument<String>("obfuscatedAccountId")
             val obfuscatedProfileId = call.argument<String>("obfuscatedProfileId")
             val productId = call.argument<String>("productId")
-            val replacementMode = call.argument<Int>("replacementMode") ?: -1
+            val replacementMode = call.argument<Int>("replacementModeAndroid")
+                ?: call.argument<Int>("replacementMode") ?: -1
             val purchaseToken = call.argument<String>("purchaseToken")
             val offerTokenIndex = call.argument<Int>("offerTokenIndex")
             
