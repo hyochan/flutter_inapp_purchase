@@ -14,7 +14,9 @@ void main() {
     final calls = <MethodCall>[];
 
     setUp(() {
-      iap = FlutterInappPurchase.private(const FakePlatform(operatingSystem: 'ios'));
+      iap = FlutterInappPurchase.private(
+        const FakePlatform(operatingSystem: 'ios'),
+      );
       channel = iap.channel;
 
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -91,4 +93,3 @@ void main() {
     });
   });
 }
-

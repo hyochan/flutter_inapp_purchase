@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "[pre-commit] Running flutter pub get..."
+flutter pub get >/dev/null
+
+echo "[pre-commit] Checking dart format..."
+dart format --set-exit-if-changed .
+
+echo "[pre-commit] Running tests..."
+flutter test
+
+echo "[pre-commit] OK"
+
