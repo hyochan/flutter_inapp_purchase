@@ -80,8 +80,8 @@ void main() {
               ).map((item) => Map<String, dynamic>.from(item)).toList();
             }
             return <Map<String, dynamic>>[];
-          case 'getItems':
-            // iOS uses unified getItems method for both products and subscriptions
+          case 'fetchProducts':
+            // iOS uses fetchProducts with { skus, type }
             final args = methodCall.arguments as Map<dynamic, dynamic>?;
             final productIds = args?['skus'] as List<dynamic>?;
             final allSubs = _getMockSubscriptions();

@@ -178,9 +178,10 @@ void main() {
           );
           expect(log, <Matcher>[
             isMethodCall(
-              'getItems',
+              'fetchProducts',
               arguments: <String, dynamic>{
                 'skus': ['com.example.subscription1'],
+                'type': ProductType.subs,
               },
             ),
           ]);
