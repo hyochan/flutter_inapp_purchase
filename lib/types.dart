@@ -45,7 +45,7 @@ class PurchaseOptions {
   /// Set to false to include expired subscriptions
   final bool? onlyIncludeActiveItemsIOS;
 
-  PurchaseOptions({
+  const PurchaseOptions({
     this.alsoPublishToEventListenerIOS,
     this.onlyIncludeActiveItemsIOS,
   });
@@ -211,11 +211,6 @@ class Product extends ProductCommon {
   final double? originalPriceAmount;
   final String? freeTrialPeriod;
   final String? iconUrl;
-  // TODO(v6.4.0): Remove deprecated subscriptionOfferDetails
-  @Deprecated(
-    'Use subscriptionOfferDetailsAndroid instead - will be removed in v6.4.0',
-  )
-  final List<OfferDetail>? subscriptionOfferDetails;
   final List<OfferDetail>? subscriptionOfferDetailsAndroid;
   final String? subscriptionPeriodAndroid;
   final String? introductoryPriceCyclesAndroid;
@@ -259,11 +254,6 @@ class Product extends ProductCommon {
     this.originalPriceAmount,
     this.freeTrialPeriod,
     this.iconUrl,
-    // TODO(v6.4.0): Remove deprecated subscriptionOfferDetails
-    @Deprecated(
-      'Use subscriptionOfferDetailsAndroid instead - will be removed in v6.4.0',
-    )
-    this.subscriptionOfferDetails,
     this.subscriptionOfferDetailsAndroid,
     this.subscriptionPeriodAndroid,
     this.introductoryPriceCyclesAndroid,
@@ -346,16 +336,6 @@ class Product extends ProductCommon {
       originalPriceAmount: (json['originalPriceAmount'] as num?)?.toDouble(),
       freeTrialPeriod: json['freeTrialPeriod'] as String?,
       iconUrl: json['iconUrl'] as String?,
-      // TODO(v6.4.0): Remove deprecated subscriptionOfferDetails
-      subscriptionOfferDetails: json['subscriptionOfferDetails'] != null
-          ? (json['subscriptionOfferDetails'] as List)
-              .map((item) {
-                final map = _safeJsonMap(item);
-                return map != null ? OfferDetail.fromJson(map) : null;
-              })
-              .whereType<OfferDetail>()
-              .toList()
-          : null,
       // Use new Android suffix field if available, fallback to old field for compatibility
       subscriptionOfferDetailsAndroid:
           json['subscriptionOfferDetailsAndroid'] != null
@@ -366,12 +346,7 @@ class Product extends ProductCommon {
                   })
                   .whereType<OfferDetail>()
                   .toList()
-              : json['subscriptionOfferDetails'] != null
-                  ? (json['subscriptionOfferDetails'] as List)
-                      .map((o) =>
-                          OfferDetail.fromJson(o as Map<String, dynamic>))
-                      .toList()
-                  : null,
+              : null,
       subscriptionPeriodAndroid: json['subscriptionPeriodAndroid'] as String?,
       introductoryPriceCyclesAndroid:
           json['introductoryPriceCyclesAndroid'] as String?,
@@ -448,17 +423,10 @@ class Product extends ProductCommon {
       buffer.writeln(
         '  subscriptionPeriodAndroid: $subscriptionPeriodAndroid,',
       );
-    // TODO(v6.4.0): Remove deprecated subscriptionOfferDetails
     if (subscriptionOfferDetailsAndroid != null &&
         subscriptionOfferDetailsAndroid!.isNotEmpty) {
       buffer.writeln(
         '  subscriptionOfferDetailsAndroid: ${subscriptionOfferDetailsAndroid!.length} offer(s),',
-      );
-    }
-    if (subscriptionOfferDetails != null &&
-        subscriptionOfferDetails!.isNotEmpty) {
-      buffer.writeln(
-        '  subscriptionOfferDetails: ${subscriptionOfferDetails!.length} offer(s),',
       );
     }
 
@@ -640,17 +608,6 @@ class Product extends ProductCommon {
           subscriptionOfferDetailsAndroid!.isNotEmpty) {
         json['subscriptionOfferDetailsAndroid'] =
             subscriptionOfferDetailsAndroid!.map((o) => o.toJson()).toList();
-      } else if (subscriptionOfferDetails != null &&
-          subscriptionOfferDetails!.isNotEmpty) {
-        // Use old field data but new field name for TypeScript compatibility
-        json['subscriptionOfferDetailsAndroid'] =
-            subscriptionOfferDetails!.map((o) => o.toJson()).toList();
-      }
-      // TODO(v6.4.0): Remove deprecated subscriptionOfferDetails field completely - kept for backward compatibility until v6.4.0
-      if (subscriptionOfferDetails != null &&
-          subscriptionOfferDetails!.isNotEmpty) {
-        json['subscriptionOfferDetails'] =
-            subscriptionOfferDetails!.map((o) => o.toJson()).toList();
       }
       if (subscriptionOffersAndroid != null &&
           subscriptionOffersAndroid!.isNotEmpty) {
@@ -750,11 +707,6 @@ class Subscription extends ProductCommon {
   final double? originalPriceAmount;
   final String? freeTrialPeriod;
   final String? iconUrl;
-  // TODO(v6.4.0): Remove deprecated subscriptionOfferDetails
-  @Deprecated(
-    'Use subscriptionOfferDetailsAndroid instead - will be removed in v6.4.0',
-  )
-  final List<OfferDetail>? subscriptionOfferDetails;
   final List<OfferDetail>? subscriptionOfferDetailsAndroid;
   final String? subscriptionPeriodAndroid;
   final String? introductoryPriceCyclesAndroid;
@@ -794,11 +746,6 @@ class Subscription extends ProductCommon {
     this.originalPriceAmount,
     this.freeTrialPeriod,
     this.iconUrl,
-    // TODO(v6.4.0): Remove deprecated subscriptionOfferDetails
-    @Deprecated(
-      'Use subscriptionOfferDetailsAndroid instead - will be removed in v6.4.0',
-    )
-    this.subscriptionOfferDetails,
     this.subscriptionOfferDetailsAndroid,
     this.subscriptionPeriodAndroid,
     this.introductoryPriceCyclesAndroid,
@@ -869,16 +816,6 @@ class Subscription extends ProductCommon {
       originalPriceAmount: (json['originalPriceAmount'] as num?)?.toDouble(),
       freeTrialPeriod: json['freeTrialPeriod'] as String?,
       iconUrl: json['iconUrl'] as String?,
-      // TODO(v6.4.0): Remove deprecated subscriptionOfferDetails
-      subscriptionOfferDetails: json['subscriptionOfferDetails'] != null
-          ? (json['subscriptionOfferDetails'] as List)
-              .map((item) {
-                final map = _safeJsonMap(item);
-                return map != null ? OfferDetail.fromJson(map) : null;
-              })
-              .whereType<OfferDetail>()
-              .toList()
-          : null,
       // Use new Android suffix field if available, fallback to old field for compatibility
       subscriptionOfferDetailsAndroid:
           json['subscriptionOfferDetailsAndroid'] != null
@@ -889,12 +826,7 @@ class Subscription extends ProductCommon {
                   })
                   .whereType<OfferDetail>()
                   .toList()
-              : json['subscriptionOfferDetails'] != null
-                  ? (json['subscriptionOfferDetails'] as List)
-                      .map((o) =>
-                          OfferDetail.fromJson(o as Map<String, dynamic>))
-                      .toList()
-                  : null,
+              : null,
       subscriptionPeriodAndroid: json['subscriptionPeriodAndroid'] as String?,
       introductoryPriceCyclesAndroid:
           json['introductoryPriceCyclesAndroid'] as String?,
@@ -982,11 +914,6 @@ class Subscription extends ProductCommon {
     if (subscriptionPeriodAndroid != null)
       buffer.writeln(
         '  subscriptionPeriodAndroid: $subscriptionPeriodAndroid,',
-      );
-    if (subscriptionOfferDetails != null &&
-        subscriptionOfferDetails!.isNotEmpty)
-      buffer.writeln(
-        '  subscriptionOfferDetails: ${subscriptionOfferDetails!.length} offer(s),',
       );
     if (subscriptionOffersAndroid != null &&
         subscriptionOffersAndroid!.isNotEmpty)
@@ -1151,17 +1078,6 @@ class Subscription extends ProductCommon {
           subscriptionOfferDetailsAndroid!.isNotEmpty) {
         json['subscriptionOfferDetailsAndroid'] =
             subscriptionOfferDetailsAndroid!.map((o) => o.toJson()).toList();
-      } else if (subscriptionOfferDetails != null &&
-          subscriptionOfferDetails!.isNotEmpty) {
-        // Use old field data but new field name for TypeScript compatibility
-        json['subscriptionOfferDetailsAndroid'] =
-            subscriptionOfferDetails!.map((o) => o.toJson()).toList();
-      }
-      // TODO(v6.4.0): Remove deprecated subscriptionOfferDetails field completely - kept for backward compatibility until v6.4.0
-      if (subscriptionOfferDetails != null &&
-          subscriptionOfferDetails!.isNotEmpty) {
-        json['subscriptionOfferDetails'] =
-            subscriptionOfferDetails!.map((o) => o.toJson()).toList();
       }
       if (subscriptionOffersAndroid != null &&
           subscriptionOffersAndroid!.isNotEmpty) {
@@ -1284,7 +1200,7 @@ class ProductAndroid extends Product {
     super.originalPriceAmount,
     super.iconUrl,
     super.freeTrialPeriod,
-    super.subscriptionOfferDetails,
+    super.subscriptionOfferDetailsAndroid,
     this.subscriptionPeriod,
     this.introductoryPriceCycles,
     this.introductoryPricePeriod,
@@ -1327,18 +1243,7 @@ class ProductAndroid extends Product {
           : null,
       originalPriceAmount: (json['originalPriceAmount'] as num?)?.toDouble(),
       iconUrl: json['iconUrl'] as String?,
-      // TODO(v6.4.0): Remove deprecated subscriptionOfferDetails
-      subscriptionOfferDetails: json['subscriptionOfferDetails'] != null
-          ? (json['subscriptionOfferDetails'] as List)
-              .map((item) {
-                final map = _safeJsonMap(item);
-                return map != null ? OfferDetail.fromJson(map) : null;
-              })
-              .whereType<OfferDetail>()
-              .toList()
-          : null,
-      // Note: subscriptionOfferDetailsAndroid is not part of Subscription class
-      // It's only in Product class
+      // Note: subscriptionOfferDetailsAndroid is only in Product class
     );
   }
 }
@@ -2407,9 +2312,6 @@ class UnifiedRequestSubscriptionProps extends UnifiedRequestPurchaseProps {
   final String? replacementMode;
   final String? replacementProductId;
   final String? replacementPurchaseToken;
-  // TODO(v6.4.0): Remove deprecated prorationMode
-  @Deprecated('Use replacementModeAndroid instead - will be removed in v6.4.0')
-  final int? prorationMode;
   final int? replacementModeAndroid;
 
   UnifiedRequestSubscriptionProps({
@@ -2426,11 +2328,6 @@ class UnifiedRequestSubscriptionProps extends UnifiedRequestPurchaseProps {
     this.replacementMode,
     this.replacementProductId,
     this.replacementPurchaseToken,
-    // TODO(v6.4.0): Remove deprecated prorationMode
-    @Deprecated(
-      'Use replacementModeAndroid instead - will be removed in v6.4.0',
-    )
-    this.prorationMode,
     this.replacementModeAndroid,
   });
 
@@ -2444,15 +2341,8 @@ class UnifiedRequestSubscriptionProps extends UnifiedRequestPurchaseProps {
       map['replacementProductId'] = replacementProductId;
     if (replacementPurchaseToken != null)
       map['replacementPurchaseToken'] = replacementPurchaseToken;
-    // TODO(v6.4.0): Remove deprecated prorationMode
-    // Keep prorationMode for backward compatibility
-    if (prorationMode != null) map['prorationMode'] = prorationMode;
     if (replacementModeAndroid != null)
       map['replacementMode'] = replacementModeAndroid;
-    // Also set prorationMode for backward compatibility if replacementModeAndroid is set
-    if (replacementModeAndroid != null && prorationMode == null) {
-      map['prorationMode'] = replacementModeAndroid;
-    }
     return map;
   }
 }
@@ -2531,9 +2421,6 @@ class AndroidPurchaseOptions {
   final ReplacementMode? replacementMode;
   final String? replacementProductId;
   final String? replacementPurchaseToken;
-  // TODO(v6.4.0): Remove deprecated prorationMode
-  @Deprecated('Use replacementModeAndroid instead - will be removed in v6.4.0')
-  final int? prorationMode;
   final int? replacementModeAndroid;
 
   AndroidPurchaseOptions({
@@ -2544,11 +2431,6 @@ class AndroidPurchaseOptions {
     this.replacementMode,
     this.replacementProductId,
     this.replacementPurchaseToken,
-    // TODO(v6.4.0): Remove deprecated prorationMode
-    @Deprecated(
-      'Use replacementModeAndroid instead - will be removed in v6.4.0',
-    )
-    this.prorationMode,
     this.replacementModeAndroid,
   });
 
@@ -2564,13 +2446,8 @@ class AndroidPurchaseOptions {
         'replacementProductId': replacementProductId,
       if (replacementPurchaseToken != null)
         'replacementPurchaseToken': replacementPurchaseToken,
-      // Keep prorationMode for backward compatibility
-      if (prorationMode != null) 'prorationMode': prorationMode,
       if (replacementModeAndroid != null)
         'replacementMode': replacementModeAndroid,
-      // Also set prorationMode for backward compatibility if replacementModeAndroid is set
-      if (replacementModeAndroid != null && prorationMode == null)
-        'prorationMode': replacementModeAndroid,
     };
   }
 }

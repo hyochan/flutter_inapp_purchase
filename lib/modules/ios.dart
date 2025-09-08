@@ -108,7 +108,7 @@ mixin FlutterInappPurchaseIOS {
       );
     }
 
-    await channel.invokeMethod('presentCodeRedemptionSheet');
+    await channel.invokeMethod('presentCodeRedemptionSheetIOS');
   }
 
   /// Shows manage subscriptions screen (iOS)
@@ -120,7 +120,7 @@ mixin FlutterInappPurchaseIOS {
       );
     }
 
-    await channel.invokeMethod('showManageSubscriptions');
+    await channel.invokeMethod('showManageSubscriptionsIOS');
   }
 
   /// Gets available items (iOS)

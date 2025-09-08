@@ -527,8 +527,6 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
                         }
                         // Use Android suffix for platform-specific field
                         item.put("subscriptionOfferDetailsAndroid", subsOffers)
-                        // TODO(v6.4.0): Remove deprecated subscriptionOfferDetails
-                        item.put("subscriptionOfferDetails", subsOffers) // Keep for backward compatibility
                         Log.d("InappPurchase", "subscriptionOfferDetailsAndroid: $subsOffers")
                     }
 
@@ -556,9 +554,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
             val obfuscatedAccountId = call.argument<String>("obfuscatedAccountId")
             val obfuscatedProfileId = call.argument<String>("obfuscatedProfileId")
             val productId = call.argument<String>("productId")
-            // TODO(v6.4.0): Remove prorationMode parameter support
-            // Support both old and new parameter names for backward compatibility
-            val replacementMode = call.argument<Int>("replacementMode") ?: call.argument<Int>("prorationMode") ?: -1
+            val replacementMode = call.argument<Int>("replacementMode") ?: -1
             val purchaseToken = call.argument<String>("purchaseToken")
             val offerTokenIndex = call.argument<Int>("offerTokenIndex")
             

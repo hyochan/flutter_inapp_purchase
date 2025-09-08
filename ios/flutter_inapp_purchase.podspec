@@ -14,6 +14,8 @@ In App Purchase plugin for flutter. This project has been forked by react-native
   s.source           = { :path => '.' }
   s.source_files = 'Classes/**/*.swift'
   s.dependency 'Flutter'
+  # Use OpenIAP Apple native module (via CocoaPods)
+  s.dependency 'openiap', '~> 1.1.6'
   
   s.ios.deployment_target = '15.0'
   s.swift_version = '5.5'
@@ -26,4 +28,3 @@ In App Purchase plugin for flutter. This project has been forked by react-native
     'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386'
   }
 end
-

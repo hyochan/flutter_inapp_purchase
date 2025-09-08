@@ -205,8 +205,11 @@ class FlutterInappPurchase
       // Get raw data from native platform
       final dynamic rawResult;
       if (_platform.isIOS) {
-        // iOS uses unified getItems method for both products and subscriptions
-        rawResult = await _channel.invokeMethod('getItems', {'skus': skus});
+        // iOS (OpenIAP): use fetchProducts with explicit type
+        rawResult = await _channel.invokeMethod('fetchProducts', {
+          'skus': skus,
+          'type': type,
+        });
       } else if (type == iap_types.ProductType.inapp) {
         rawResult = await _channel.invokeMethod('getProducts', {
           'productIds': skus,
@@ -626,7 +629,7 @@ class FlutterInappPurchase
 
     try {
       final result = await channel.invokeMethod<Map<dynamic, dynamic>>(
-        'getStorefront',
+        'getStorefrontIOS',
       );
       if (result != null && result['countryCode'] != null) {
         return result['countryCode'] as String;
@@ -666,7 +669,7 @@ class FlutterInappPurchase
     }
 
     try {
-      await channel.invokeMethod('presentCodeRedemptionSheet');
+      await channel.invokeMethod('presentCodeRedemptionSheetIOS');
     } catch (e) {
       throw iap_types.PurchaseError(
         code: iap_types.ErrorCode.eServiceError,
@@ -692,7 +695,7 @@ class FlutterInappPurchase
     }
 
     try {
-      await channel.invokeMethod('showManageSubscriptions');
+      await channel.invokeMethod('showManageSubscriptionsIOS');
     } catch (e) {
       throw iap_types.PurchaseError(
         code: iap_types.ErrorCode.eServiceError,
@@ -1334,11 +1337,6 @@ class FlutterInappPurchase
   /// ```
   Future<dynamic> requestSubscription(
     String productId, {
-    // TODO(v6.4.0): Remove deprecated prorationModeAndroid parameter
-    @Deprecated(
-      'Use replacementModeAndroid instead - will be removed in v6.4.0',
-    )
-    int? prorationModeAndroid,
     int? replacementModeAndroid,
     String? obfuscatedAccountIdAndroid,
     String? obfuscatedProfileIdAndroid,
@@ -1346,10 +1344,7 @@ class FlutterInappPurchase
     int? offerTokenIndex,
   }) async {
     if (_platform.isAndroid) {
-      // TODO(v6.4.0): Remove prorationModeAndroid backward compatibility
-      // Handle backward compatibility: use prorationModeAndroid if replacementModeAndroid is not set
-      final int? effectiveReplacementMode =
-          replacementModeAndroid ?? prorationModeAndroid;
+      final int? effectiveReplacementMode = replacementModeAndroid;
 
       // Validate that purchaseToken is provided when using replacement mode
       // Replacement mode -1 means no replacement (new subscription)
@@ -1389,7 +1384,7 @@ class FlutterInappPurchase
 
   Future<List<iap_types.Purchase>?> getPendingTransactionsIOS() async {
     if (_platform.isIOS) {
-      dynamic result = await _channel.invokeMethod('getPendingTransactions');
+      dynamic result = await _channel.invokeMethod('getPendingTransactionsIOS');
 
       return extractPurchases(json.encode(result));
     }
@@ -1982,7 +1977,9 @@ class FlutterInappPurchase
   /// Restore completed transactions (StoreKit 2)
   Future<void> restorePurchases() async {
     if (_platform.isIOS) {
-      await _channel.invokeMethod('restorePurchases');
+      // OpenIAP: no explicit restore; perform a sync to refresh transactions
+      await _channel.invokeMethod('endConnection');
+      await _channel.invokeMethod('initConnection');
     } else if (_platform.isAndroid) {
       // Android handles this automatically when querying purchases
       await _getAvailableItems();
@@ -1992,7 +1989,7 @@ class FlutterInappPurchase
   /// Present offer code redemption sheet (iOS 16+)
   Future<void> presentCodeRedemptionSheet() async {
     if (_platform.isIOS) {
-      await _channel.invokeMethod('presentCodeRedemptionSheet');
+      await _channel.invokeMethod('presentCodeRedemptionSheetIOS');
     } else {
       throw PlatformException(
         code: 'UNSUPPORTED',
@@ -2004,7 +2001,7 @@ class FlutterInappPurchase
   /// Show manage subscriptions screen (iOS 15+)
   Future<void> showManageSubscriptions() async {
     if (_platform.isIOS) {
-      await _channel.invokeMethod('showManageSubscriptions');
+      await _channel.invokeMethod('showManageSubscriptionsIOS');
     } else if (_platform.isAndroid) {
       // For Android, use deepLinkToSubscriptionsAndroid
       await deepLinkToSubscriptionsAndroid();
@@ -2022,7 +2019,7 @@ class FlutterInappPurchase
   /// Get promoted product (App Store promoted purchase)
   Future<String?> getPromotedProduct() async {
     if (_platform.isIOS) {
-      return await _channel.invokeMethod('getPromotedProduct');
+      return await _channel.invokeMethod('getPromotedProductIOS');
     }
     return null;
   }

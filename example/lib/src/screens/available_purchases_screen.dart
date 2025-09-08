@@ -109,8 +109,10 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
     });
 
     try {
-      // Load available purchases (non-consumed)
-      final availablePurchases = await _iap.getAvailablePurchases();
+      // Load available purchases (non-consumed / active)
+      final availablePurchases = await _iap.getAvailablePurchases(
+        const PurchaseOptions(onlyIncludeActiveItemsIOS: true),
+      );
       debugPrint(
           'Loaded ${availablePurchases.length} available purchases (non-consumed/non-acknowledged)');
 
@@ -118,7 +120,16 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
       final deduplicatedPurchases = _deduplicatePurchases(availablePurchases);
 
       // Load purchase history
-      final purchaseHistory = await _iap.getPurchaseHistories();
+      List<Purchase> purchaseHistory = [];
+      if (getCurrentPlatform() == IapPlatform.ios) {
+        // iOS: use getAvailablePurchases with onlyIncludeActiveItemsIOS = false to include expired
+        purchaseHistory = await _iap.getAvailablePurchases(
+          const PurchaseOptions(onlyIncludeActiveItemsIOS: false),
+        );
+      } else {
+        // Android: keep using history API for consumed/expired items
+        purchaseHistory = await _iap.getPurchaseHistories();
+      }
       debugPrint('Loaded ${purchaseHistory.length} purchases from history');
 
       setState(() {

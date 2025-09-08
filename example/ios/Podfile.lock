@@ -2,10 +2,16 @@ PODS:
   - Flutter (1.0.0)
   - flutter_inapp_purchase (0.0.1):
     - Flutter
+    - openiap (~> 1.1.6)
+  - openiap (1.1.6)
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
   - flutter_inapp_purchase (from `.symlinks/plugins/flutter_inapp_purchase/ios`)
+
+SPEC REPOS:
+  trunk:
+    - openiap
 
 EXTERNAL SOURCES:
   Flutter:
@@ -14,8 +20,9 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_inapp_purchase/ios"
 
 SPEC CHECKSUMS:
-  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
-  flutter_inapp_purchase: b1b37418eb3ef7070a998350cd4e19b4c71d1b46
+  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
+  flutter_inapp_purchase: e7e4056230ab935689481c2697b0ef595536fc98
+  openiap: 973491c3db7a77a827e99a3483009760c1caf714
 
 PODFILE CHECKSUM: 306f93546563c7e42fc04f6eb74037add2119f17
 
