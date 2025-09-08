@@ -1,0 +1,94 @@
+import 'dart:convert';
+
+import 'package:flutter/services.dart';
+import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:platform/platform.dart';
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  group('iOS specific channel methods', () {
+    late FlutterInappPurchase iap;
+    late MethodChannel channel;
+    final calls = <MethodCall>[];
+
+    setUp(() {
+      iap = FlutterInappPurchase.private(const FakePlatform(operatingSystem: 'ios'));
+      channel = iap.channel;
+
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+        calls.add(methodCall);
+        switch (methodCall.method) {
+          case 'presentCodeRedemptionSheetIOS':
+            return null;
+          case 'showManageSubscriptionsIOS':
+            return null;
+          case 'getStorefrontIOS':
+            return 'US';
+          case 'getPromotedProductIOS':
+            return {
+              'productIdentifier': 'com.example.prod1',
+              'localizedTitle': 'Prod 1',
+              'localizedDescription': 'Desc',
+              'price': 0.99,
+              'priceLocale': {'currencyCode': 'USD', 'currencySymbol': '\$'},
+            };
+          case 'getPendingTransactionsIOS':
+            // Return a list of purchases (as native would), we'll let the wrapper re-encode
+            return [
+              {
+                'id': '1000001',
+                'productId': 'com.example.prod1',
+                'transactionDate': DateTime.now().millisecondsSinceEpoch,
+                'transactionReceipt': 'xyz',
+                'purchaseToken': 'jwt-token',
+                'platform': 'ios',
+              }
+            ];
+          default:
+            return null;
+        }
+      });
+    });
+
+    tearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+      calls.clear();
+    });
+
+    test('presentCodeRedemptionSheetIOS calls correct channel method', () async {
+      await iap.presentCodeRedemptionSheetIOS();
+      expect(calls.last.method, 'presentCodeRedemptionSheetIOS');
+    });
+
+    test('showManageSubscriptionsIOS calls correct channel method', () async {
+      await iap.showManageSubscriptionsIOS();
+      expect(calls.last.method, 'showManageSubscriptionsIOS');
+    });
+
+    test('getStorefrontIOS returns storefront country code', () async {
+      final code = await iap.getStorefrontIOS();
+      expect(code, 'US');
+      expect(calls.last.method, 'getStorefrontIOS');
+    });
+
+    test('getPromotedProduct returns structured map', () async {
+      final data = await iap.getPromotedProduct();
+      expect(data, isA<Map<String, dynamic>>());
+      expect(data!['productIdentifier'], 'com.example.prod1');
+      expect(calls.last.method, 'getPromotedProductIOS');
+    });
+
+    test('getPendingTransactionsIOS returns purchases list', () async {
+      final list = await iap.getPendingTransactionsIOS();
+      expect(list, isNotNull);
+      expect(list!.length, 1);
+      expect(list.first.productId, 'com.example.prod1');
+      expect(calls.last.method, 'getPendingTransactionsIOS');
+    });
+  });
+}
+
