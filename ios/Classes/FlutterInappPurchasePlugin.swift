@@ -290,63 +290,9 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                     }
                 }()
                 let request = OpenIapProductRequest(skus: skus, type: reqType)
-                let openIapProducts: [OpenIapProduct] = try await OpenIapModule.shared.fetchProducts(request)
-                let serialized = OpenIapSerialization.products(openIapProducts)
-                // Convert to Flutter-inapp-purchase compatible shapes
-                let compat: [[String: Any]] = serialized.map { item in
-                    var dict = self.sanitize(dict: item)
-                    // price should be String for iOS ProductIOS mapping
-                    if let priceNum = dict["price"] as? NSNumber {
-                        dict["price"] = priceNum.stringValue
-                    } else if let priceDouble = dict["price"] as? Double {
-                        dict["price"] = String(priceDouble)
-                    }
-                    // Coerce some numerics to String (Dart expects String?)
-                    let stringKeys = [
-                        "introductoryPriceNumberOfPeriodsIOS",
-                        "subscriptionPeriodNumberIOS",
-                        "subscriptionGroupIdIOS",
-                        "type",
-                        "title",
-                        "description",
-                        "displayName",
-                        "currency",
-                        "displayPrice",
-                        "localizedPrice"
-                    ]
-                    for key in stringKeys {
-                        if let n = dict[key] as? NSNumber {
-                            dict[key] = n.stringValue
-                        }
-                    }
-                    // Ensure discounts fields have price/localizedPrice as String
-                    if var discounts = dict["discounts"] as? [[String: Any]] {
-                        for i in 0..<discounts.count {
-                            if let n = discounts[i]["price"] as? NSNumber {
-                                discounts[i]["price"] = n.stringValue
-                            }
-                            if let d = discounts[i]["price"] as? Double {
-                                discounts[i]["price"] = String(d)
-                            }
-                            if let n = discounts[i]["localizedPrice"] as? NSNumber {
-                                discounts[i]["localizedPrice"] = n.stringValue
-                            }
-                        }
-                        dict["discounts"] = discounts
-                    }
-                    // Ensure platform present
-                    if dict["platform"] == nil { dict["platform"] = "ios" }
-                    // Ensure productId field present (legacy compat)
-                    if dict["productId"] == nil, let id = dict["id"] as? String {
-                        dict["productId"] = id
-                    }
-                    // Ensure localizedPrice exists (fallback to displayPrice)
-                    if dict["localizedPrice"] == nil, let dp = dict["displayPrice"] as? String {
-                        dict["localizedPrice"] = dp
-                    }
-                    return dict
-                }
-                result(compat)
+                let products: [OpenIapProduct] = try await OpenIapModule.shared.fetchProducts(request)
+                let serialized = OpenIapSerialization.products(products)
+                result(serialized)
             } catch {
                 result(FlutterError(code: "E_PRODUCT_LOAD_FAILED", message: error.localizedDescription, details: nil))
             }

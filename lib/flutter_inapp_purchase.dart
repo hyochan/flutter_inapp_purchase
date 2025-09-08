@@ -818,9 +818,10 @@ class FlutterInappPurchase
       // For iOS platform, create ProductIOS instance to capture iOS-specific fields
       if (platform == iap_types.IapPlatform.ios) {
         return iap_types.ProductIOS(
-          productId: json['productId'] as String? ?? '',
-          price: json['price'] as String? ?? '0',
-          currency: json['currency'] as String?,
+          productId:
+              json['productId']?.toString() ?? json['id']?.toString() ?? '',
+          price: json['price']?.toString() ?? '0',
+          currency: json['currency']?.toString(),
           localizedPrice: json['localizedPrice'] as String?,
           title: json['title'] as String?,
           description: json['description'] as String?,
