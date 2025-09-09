@@ -108,7 +108,29 @@ mixin FlutterInappPurchaseIOS {
       );
     }
 
-    await channel.invokeMethod('presentCodeRedemptionSheet');
+    await channel.invokeMethod('presentCodeRedemptionSheetIOS');
+  }
+
+  /// Clear pending transactions (iOS only)
+  Future<void> clearTransactionIOS() async {
+    if (!_isIOS) return;
+    await channel.invokeMethod('clearTransactionIOS');
+  }
+
+  /// Get the currently promoted product (iOS 11+)
+  Future<Map<String, dynamic>?> getPromotedProductIOS() async {
+    if (!_isIOS) return null;
+    final result = await channel.invokeMethod('getPromotedProductIOS');
+    if (result == null) return null;
+    if (result is Map) return Map<String, dynamic>.from(result);
+    if (result is String) return {'productIdentifier': result};
+    return null;
+  }
+
+  /// Request purchase on promoted product (iOS 11+)
+  Future<void> requestPurchaseOnPromotedProductIOS() async {
+    if (!_isIOS) return;
+    await channel.invokeMethod('requestPurchaseOnPromotedProductIOS');
   }
 
   /// Shows manage subscriptions screen (iOS)
@@ -120,7 +142,7 @@ mixin FlutterInappPurchaseIOS {
       );
     }
 
-    await channel.invokeMethod('showManageSubscriptions');
+    await channel.invokeMethod('showManageSubscriptionsIOS');
   }
 
   /// Gets available items (iOS)

@@ -133,7 +133,7 @@ class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
       } else if (Platform.isIOS) {
         // For iOS, try App Store subscription management
         try {
-          await _iap.showManageSubscriptions();
+          await _iap.showManageSubscriptionsIOS();
           setState(() {
             _debugInfo =
                 'App Store subscription management opened successfully';

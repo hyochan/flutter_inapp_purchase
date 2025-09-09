@@ -51,6 +51,22 @@ await iap.requestPurchase(
 );
 ```
 
+### iOS Notes
+
+- This plugin uses the OpenIAP Apple native module via CocoaPods (`openiap ~> 1.1.7`).
+- After upgrading, run `pod install` in your iOS project (e.g., `example/ios`).
+- Minimum iOS deployment target is `15.0` for StoreKit 2 support.
+
+## 🛠️ Development
+
+- Install dependencies: `flutter pub get`
+- Run lints: `dart analyze`
+- Run tests: `flutter test`
+- Enable Git hooks (recommended): `git config core.hooksPath .githooks`
+  - The pre-commit hook auto-formats staged Dart files and fails if any file remains unformatted. It also runs tests.
+  - To run tests in the hook, set `RUN_PRECOMMIT_TESTS=1` in your environment.
+  - To make analyzer failures block commits, set `ENFORCE_ANALYZE=1`.
+
 ### Singleton Usage
 
 For global state management or when you need a shared instance:

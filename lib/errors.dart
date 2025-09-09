@@ -82,6 +82,60 @@ class ErrorCodeMapping {
   };
 }
 
+ErrorCode _normalizeToErrorCode(dynamic error) {
+  if (error is PurchaseError && error.code != null) return error.code!;
+  if (error is ErrorCode) return error;
+  final dynamic code =
+      error is String ? error : (error is Map ? error['code'] : null);
+  if (code is ErrorCode) return code;
+  if (code is String) {
+    // OpenIAP uses normalized string codes across platforms; reuse mapping
+    // used for Android since codes are identical.
+    return ErrorCodeUtils.fromPlatformCode(code, IapPlatform.android);
+  }
+  if (code is int) {
+    // Legacy iOS numeric codes
+    return ErrorCodeUtils.fromPlatformCode(code, IapPlatform.ios);
+  }
+  return ErrorCode.eUnknown;
+}
+
+/// Returns a user-friendly message for the given error or error code
+String getUserFriendlyErrorMessage(dynamic error) {
+  final ErrorCode code = _normalizeToErrorCode(error);
+  switch (code) {
+    case ErrorCode.eUserCancelled:
+      return 'Purchase was cancelled by user';
+    case ErrorCode.eNetworkError:
+      return 'Network connection error. Please check your internet connection and try again.';
+    case ErrorCode.eItemUnavailable:
+    case ErrorCode.eProductNotAvailable:
+      return 'This item is not available for purchase';
+    case ErrorCode.eAlreadyOwned:
+    case ErrorCode.eProductAlreadyOwned:
+      return 'You already own this item';
+    case ErrorCode.eDeferredPayment:
+      return 'Payment is pending approval';
+    case ErrorCode.eNotPrepared:
+      return 'In-app purchase is not ready. Please try again later.';
+    case ErrorCode.eServiceError:
+      return 'Store service error. Please try again later.';
+    case ErrorCode.eTransactionValidationFailed:
+      return 'Transaction could not be verified';
+    case ErrorCode.eReceiptFailed:
+      return 'Receipt processing failed';
+    default:
+      // Try to surface message from PurchaseError if available
+      if (error is PurchaseError && error.message.isNotEmpty) {
+        return error.message;
+      }
+      if (error is Map && error['message'] is String) {
+        return error['message'] as String;
+      }
+      return 'An unexpected error occurred';
+  }
+}
+
 /// Purchase error class (OpenIAP compliant)
 class PurchaseError implements Exception {
   final String name;
@@ -178,21 +232,27 @@ class ErrorCodeUtils {
     dynamic platformCode,
     IapPlatform platform,
   ) {
-    if (platform == IapPlatform.ios) {
+    // Handle modern OpenIAP string codes regardless of platform
+    if (platformCode is String) {
+      const mapping = ErrorCodeMapping.android; // string codes live here
+      for (final entry in mapping.entries) {
+        if (entry.value == platformCode) {
+          return entry.key;
+        }
+      }
+      return ErrorCode.eUnknown;
+    }
+
+    // Handle legacy/numeric iOS codes
+    if (platformCode is int) {
       const mapping = ErrorCodeMapping.ios;
       for (final entry in mapping.entries) {
         if (entry.value == platformCode) {
           return entry.key;
         }
       }
-    } else {
-      const mapping = ErrorCodeMapping.android;
-      for (final entry in mapping.entries) {
-        if (entry.value == platformCode) {
-          return entry.key;
-        }
-      }
     }
+
     return ErrorCode.eUnknown;
   }
 

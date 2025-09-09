@@ -186,8 +186,3 @@ enum AndroidReplacementMode {
   final int value;
   const AndroidReplacementMode(this.value);
 }
-
-// TODO(v6.4.0): Remove deprecated AndroidProrationMode typedef
-/// @deprecated Use AndroidReplacementMode instead - will be removed in v6.4.0
-@Deprecated('Use AndroidReplacementMode instead - will be removed in v6.4.0')
-typedef AndroidProrationMode = AndroidReplacementMode;
