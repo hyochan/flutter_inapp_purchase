@@ -46,8 +46,7 @@ void main() {
                 <String, dynamic>{
                   'id': '1000001',
                   'productId': 'com.example.prod1',
-                  'transactionDate':
-                      DateTime.now().millisecondsSinceEpoch,
+                  'transactionDate': DateTime.now().millisecondsSinceEpoch,
                   'transactionReceipt': 'xyz',
                   'purchaseToken': 'jwt-token',
                   'platform': 'ios',
@@ -66,7 +65,8 @@ void main() {
       calls.clear();
     });
 
-    test('presentCodeRedemptionSheetIOS calls correct channel method', () async {
+    test('presentCodeRedemptionSheetIOS calls correct channel method',
+        () async {
       await iap.presentCodeRedemptionSheetIOS();
       expect(calls.last.method, 'presentCodeRedemptionSheetIOS');
     });
