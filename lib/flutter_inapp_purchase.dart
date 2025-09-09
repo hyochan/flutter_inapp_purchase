@@ -1666,13 +1666,13 @@ class FlutterInappPurchase
         isValid: false,
         errorMessage:
             'Failed to validate receipt [${e.code}]: ${e.message ?? e.details}',
-        platform: iap_types.IapPlatform.ios,
+        platform: iap_err.getCurrentPlatform(),
       );
     } catch (e) {
       return iap_types.ReceiptValidationResult(
         isValid: false,
         errorMessage: 'Failed to validate receipt: ${e.toString()}',
-        platform: iap_types.IapPlatform.ios,
+        platform: iap_err.getCurrentPlatform(),
       );
     }
   }
@@ -1816,39 +1816,39 @@ class FlutterInappPurchase
           isValid: isValid,
           errorMessage: isValid ? null : 'Purchase is not active/valid',
           rawResponse: responseData,
-          platform: iap_types.IapPlatform.android,
+          platform: iap_err.getCurrentPlatform(),
         );
       } else if (response.statusCode == 401 || response.statusCode == 403) {
         return iap_types.ReceiptValidationResult(
           isValid: false,
           errorMessage: 'Unauthorized/forbidden (check access token/scopes)',
-          platform: iap_types.IapPlatform.android,
+          platform: iap_err.getCurrentPlatform(),
         );
       } else if (response.statusCode == 404) {
         return iap_types.ReceiptValidationResult(
           isValid: false,
           errorMessage: 'Token or SKU not found',
-          platform: iap_types.IapPlatform.android,
+          platform: iap_err.getCurrentPlatform(),
         );
       } else {
         return iap_types.ReceiptValidationResult(
           isValid: false,
           errorMessage:
               'API returned status ${response.statusCode}: ${response.body}',
-          platform: iap_types.IapPlatform.android,
+          platform: iap_err.getCurrentPlatform(),
         );
       }
     } on TimeoutException {
       return iap_types.ReceiptValidationResult(
         isValid: false,
         errorMessage: 'Request to Google Play API timed out',
-        platform: iap_types.IapPlatform.android,
+        platform: iap_err.getCurrentPlatform(),
       );
     } catch (e) {
       return iap_types.ReceiptValidationResult(
         isValid: false,
         errorMessage: 'Failed to validate receipt: ${e.toString()}',
-        platform: iap_types.IapPlatform.android,
+        platform: iap_err.getCurrentPlatform(),
       );
     }
   }
