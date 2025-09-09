@@ -929,11 +929,13 @@ class FlutterInappPurchase
           }
 
           return iap_types.OfferDetail(
-            offerId: e['offerId'] as String?,
-            basePlanId: e['basePlanId'] as String? ?? '',
-            offerToken: e['offerToken'] as String?,
+            offerId: e['offerId']?.toString(),
+            basePlanId: e['basePlanId']?.toString() ?? '',
+            offerToken: e['offerToken']?.toString(),
             pricingPhases: _parsePricingPhases(e['pricingPhases']) ?? [],
-            offerTags: (e['offerTags'] as List<dynamic>?)?.cast<String>(),
+            offerTags: (e['offerTags'] as List<dynamic>?)
+                ?.map((tag) => tag.toString())
+                .toList(),
           );
         })
         .whereType<iap_types.OfferDetail>()
@@ -1000,9 +1002,9 @@ class FlutterInappPurchase
 
           return iap_types.PricingPhase(
             priceAmount: priceAmount,
-            price: e['formattedPrice'] as String? ?? '0',
-            currency: e['priceCurrencyCode'] as String? ?? 'USD',
-            billingPeriod: e['billingPeriod'] as String?,
+            price: e['formattedPrice']?.toString() ?? '0',
+            currency: e['priceCurrencyCode']?.toString() ?? 'USD',
+            billingPeriod: e['billingPeriod']?.toString(),
             billingCycleCount: e['billingCycleCount'] as int?,
             recurrenceMode: recurrenceMode,
           );

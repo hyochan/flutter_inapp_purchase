@@ -1,0 +1,28 @@
+{
+  "tools": [
+    {
+      "name": "gh",
+      "description": "GitHub CLI for creating branches and PRs"
+    },
+    {
+      "name": "git",
+      "description": "Git commands for version control"
+    },
+    {
+      "name": "flutter",
+      "description": "Flutter CLI for testing and analysis"
+    },
+    {
+      "name": "dart",
+      "description": "Dart CLI for formatting and analysis"
+    }
+  ],
+  "repositories": [
+    {
+      "path": ".",
+      "instructions": "file://CLAUDE.md"
+    }
+  ],
+  "model": "gemini-2.5-pro"
+}
+
