@@ -1904,7 +1904,9 @@ class FlutterInappPurchase
   Future<void> purchaseAsync(String productId) async {
     try {
       if (_platform.isIOS) {
-        await _channel.invokeMethod('buyProduct', productId);
+        await _channel.invokeMethod('requestPurchase', <String, dynamic>{
+          'sku': productId,
+        });
       } else if (_platform.isAndroid) {
         await _channel.invokeMethod('buyItemByType', <String, dynamic>{
           'type': TypeInApp.inapp.name,

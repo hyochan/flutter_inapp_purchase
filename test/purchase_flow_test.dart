@@ -45,7 +45,7 @@ void main() {
                 .toList();
           case 'buyItemByType':
             return _getMockPurchase(methodCall.arguments);
-          case 'buyProduct':
+          case 'requestPurchase':
             return _getMockPurchase(methodCall.arguments);
           case 'requestSubscription':
             return _getMockSubscription(methodCall.arguments);
@@ -416,7 +416,7 @@ void main() {
         ) async {
           if (methodCall.method == 'initConnection') return true;
           if (methodCall.method == 'buyItemByType' ||
-              methodCall.method == 'buyProduct') {
+              methodCall.method == 'requestPurchase') {
             throw PlatformException(
               code: 'E_USER_CANCELLED',
               message: 'User cancelled the purchase',
