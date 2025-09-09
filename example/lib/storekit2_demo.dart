@@ -202,7 +202,7 @@ class _StoreKit2DemoState extends State<StoreKit2Demo> {
     }
 
     try {
-      await _iap.presentCodeRedemptionSheet();
+      await _iap.presentCodeRedemptionSheetIOS();
     } catch (e) {
       setState(() {
         _error = e.toString();
@@ -222,7 +222,7 @@ class _StoreKit2DemoState extends State<StoreKit2Demo> {
     }
 
     try {
-      await _iap.showManageSubscriptions();
+      await _iap.showManageSubscriptionsIOS();
     } catch (e) {
       setState(() {
         _error = e.toString();

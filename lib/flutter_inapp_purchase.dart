@@ -163,11 +163,8 @@ class FlutterInappPurchase
 
     try {
       // For flutter IAP compatibility, call endConnection directly
-      if (_platform.isIOS) {
-        await _channel.invokeMethod('endConnection');
-      } else if (_platform.isAndroid) {
-        await _channel.invokeMethod('endConnection');
-      }
+      await _channel.invokeMethod('endConnection');
+
       _isInitialized = false;
       return true;
     } catch (e) {
@@ -1400,9 +1397,6 @@ class FlutterInappPurchase
   /// End connection
   Future<String?> finalize() async {
     if (_platform.isAndroid) {
-      final String? result = await _channel.invokeMethod('endConnection');
-      _removePurchaseListener();
-      return result;
     } else if (_platform.isIOS) {
       final String? result = await _channel.invokeMethod('endConnection');
       _removePurchaseListener();

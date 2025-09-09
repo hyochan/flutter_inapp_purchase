@@ -70,7 +70,7 @@ class _OfferCodeScreenState extends State<OfferCodeScreen> {
     });
 
     try {
-      await _iap.presentCodeRedemptionSheet();
+      await _iap.presentCodeRedemptionSheetIOS();
       setState(() {
         _statusMessage =
             'Redemption sheet presented. Complete the redemption in the system dialog.';
