@@ -127,6 +127,12 @@ mixin FlutterInappPurchaseIOS {
     return null;
   }
 
+  /// Request purchase on promoted product (iOS 11+)
+  Future<void> requestPurchaseOnPromotedProductIOS() async {
+    if (!_isIOS) return;
+    await channel.invokeMethod('requestPurchaseOnPromotedProductIOS');
+  }
+
   /// Shows manage subscriptions screen (iOS)
   Future<void> showManageSubscriptionsIOS() async {
     if (!_isIOS) {
