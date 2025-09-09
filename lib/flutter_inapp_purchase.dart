@@ -1298,38 +1298,6 @@ class FlutterInappPurchase
     return Future.value(Store.none);
   }
 
-  /// Internal method to get available items from native platforms
-  Future<List<iap_types.Purchase>> _getAvailableItems() async {
-    final List<iap_types.Purchase> items = [];
-
-    if (_platform.isAndroid) {
-      dynamic result1 = await _channel.invokeMethod(
-        'getAvailableItemsByType',
-        <String, dynamic>{'type': TypeInApp.inapp.name},
-      );
-
-      dynamic result2 = await _channel.invokeMethod(
-        'getAvailableItemsByType',
-        <String, dynamic>{'type': TypeInApp.subs.name},
-      );
-      final consumables = extractPurchases(result1) ?? [];
-      final subscriptions = extractPurchases(result2) ?? [];
-      items.addAll(consumables);
-      items.addAll(subscriptions);
-    } else if (_platform.isIOS) {
-      dynamic result = await _channel.invokeMethod('getAvailableItems');
-      final iosItems = extractPurchases(json.encode(result)) ?? [];
-      items.addAll(iosItems);
-    } else {
-      throw PlatformException(
-        code: _platform.operatingSystem,
-        message: 'platform not supported',
-      );
-    }
-
-    return items;
-  }
-
   /// Request a subscription
   ///
   /// For NEW subscriptions:
@@ -1930,19 +1898,12 @@ class FlutterInappPurchase
 
   // flutter IAP compatible methods
 
-  /// flutter IAP compatible method to get products
-  @Deprecated(
-    'Use requestProducts with type: ProductType.inapp instead. '
-    'This method will be removed in the next major version.',
-  )
-  Future<List<iap_types.Product>> getProductsAsync(
-    List<String> productIds,
-  ) async {
-    final products = await requestProducts(
-      skus: productIds,
-      type: iap_types.ProductType.inapp,
-    );
-    return products.whereType<iap_types.Product>().toList();
+  /// OpenIAP: fetch products or subscriptions
+  Future<List<T>> fetchProducts<T extends iap_types.ProductCommon>({
+    required List<String> skus,
+    String type = iap_types.ProductType.inapp,
+  }) async {
+    return requestProducts<T>(skus: skus, type: type);
   }
 
   /// flutter IAP compatible purchase method
@@ -1968,26 +1929,7 @@ class FlutterInappPurchase
     }
   }
 
-  /// flutter IAP compatible finish transaction method
-  Future<void> finishTransactionAsync({
-    required String transactionId,
-    required bool consume,
-  }) async {
-    if (_platform.isIOS) {
-      await _channel.invokeMethod('finishTransaction', transactionId);
-    } else if (_platform.isAndroid) {
-      // For Android, the transactionId is actually the purchaseToken
-      if (consume) {
-        await _channel.invokeMethod('consumeProduct', <String, dynamic>{
-          'purchaseToken': transactionId,
-        });
-      } else {
-        await _channel.invokeMethod('acknowledgePurchase', <String, dynamic>{
-          'purchaseToken': transactionId,
-        });
-      }
-    }
-  }
+  // finishTransactionAsync removed in favor of finishTransaction(Purchase).
 
   // MARK: - StoreKit 2 specific methods
 
@@ -2015,35 +1957,12 @@ class FlutterInappPurchase
     }
   }
 
-  /// Present offer code redemption sheet (iOS 16+)
-  Future<void> presentCodeRedemptionSheet() async {
-    if (_platform.isIOS) {
-      await _channel.invokeMethod('presentCodeRedemptionSheetIOS');
-    } else {
-      throw PlatformException(
-        code: 'UNSUPPORTED',
-        message: 'Code redemption sheet is only available on iOS',
-      );
-    }
-  }
+  // presentCodeRedemptionSheet removed; use presentCodeRedemptionSheetIOS()
 
-  /// Show manage subscriptions screen (iOS 15+)
-  Future<void> showManageSubscriptions() async {
-    if (_platform.isIOS) {
-      await _channel.invokeMethod('showManageSubscriptionsIOS');
-    } else if (_platform.isAndroid) {
-      // For Android, use deepLinkToSubscriptionsAndroid
-      await deepLinkToSubscriptionsAndroid();
-    }
-  }
+  // showManageSubscriptions removed; use showManageSubscriptionsIOS() on iOS
+  // and deepLinkToSubscriptionsAndroid() on Android.
 
-  /// Clear transaction cache
-  Future<void> clearTransactionCache() async {
-    if (_platform.isIOS) {
-      await _channel.invokeMethod('clearTransactionCache');
-    }
-    // Android doesn't need transaction cache clearing
-  }
+  // clearTransactionCache removed; use clearTransactionIOS() on iOS.
 
   /// Get promoted product (App Store promoted purchase)
   /// Returns a map with product information on iOS or null if unavailable.
@@ -2059,38 +1978,9 @@ class FlutterInappPurchase
     return null;
   }
 
-  /// Get the app transaction (iOS 16.0+)
-  /// Returns app-level transaction information including device verification
-  Future<Map<String, dynamic>?> getAppTransaction() async {
-    if (_platform.isIOS) {
-      try {
-        final result = await _channel.invokeMethod('getAppTransaction');
-        if (result != null) {
-          return Map<String, dynamic>.from(result as Map<dynamic, dynamic>);
-        }
-        return null;
-      } catch (e) {
-        debugPrint('getAppTransaction error: $e');
-        return null;
-      }
-    }
-    return null;
-  }
+  // Removed getAppTransaction(); use getAppTransactionIOS() instead.
 
-  /// Get the app transaction as typed object (iOS 16.0+)
-  /// Returns app-level transaction information including device verification
-  Future<iap_types.AppTransaction?> getAppTransactionTyped() async {
-    final result = await getAppTransaction();
-    if (result != null) {
-      try {
-        return iap_types.AppTransaction.fromJson(result);
-      } catch (e) {
-        debugPrint('getAppTransactionTyped parsing error: $e');
-        return null;
-      }
-    }
-    return null;
-  }
+  // getAppTransactionTyped removed; use getAppTransactionIOS() and map as needed.
 
   /// Get all active subscriptions with detailed information (OpenIAP compliant)
   /// Returns an array of active subscriptions. If subscriptionIds is not provided,

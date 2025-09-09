@@ -111,6 +111,22 @@ mixin FlutterInappPurchaseIOS {
     await channel.invokeMethod('presentCodeRedemptionSheetIOS');
   }
 
+  /// Clear pending transactions (iOS only)
+  Future<void> clearTransactionIOS() async {
+    if (!_isIOS) return;
+    await channel.invokeMethod('clearTransactionIOS');
+  }
+
+  /// Get the currently promoted product (iOS 11+)
+  Future<Map<String, dynamic>?> getPromotedProductIOS() async {
+    if (!_isIOS) return null;
+    final result = await channel.invokeMethod('getPromotedProductIOS');
+    if (result == null) return null;
+    if (result is Map) return Map<String, dynamic>.from(result);
+    if (result is String) return {'productIdentifier': result};
+    return null;
+  }
+
   /// Shows manage subscriptions screen (iOS)
   Future<void> showManageSubscriptionsIOS() async {
     if (!_isIOS) {
