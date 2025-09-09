@@ -3,27 +3,32 @@
 ## 6.4.6
 
 ### Fixed
+
 - **iOS**: Retrieve expired subscriptions in StoreKit 2 sandbox ([#543](https://github.com/hyochan/flutter_inapp_purchase/issues/543))
   - Added `PurchaseOptions` parameter to `getAvailablePurchases()` for OpenIAP compliance
   - Use `onlyIncludeActiveItemsIOS: false` to include expired subscriptions
 
 ### Deprecated
+
 - `getPurchaseHistories()` → Use `getAvailablePurchases()` with options (removed in v7.0.0)
 
 ## 6.4.5
 
 ### Changed
+
 - **BREAKING**: Updated `getAvailablePurchases()` to support `PurchaseOptions` parameter (OpenIAP compliant)
   - Now accepts optional `PurchaseOptions` parameter for platform-specific configuration
   - iOS: Added `onlyIncludeActiveItemsIOS` option (default: true) to control whether expired subscriptions are included
 
 ### Added
+
 - Added `PurchaseOptions` class with iOS-specific options:
   - `alsoPublishToEventListenerIOS`: Whether to also publish purchase events to the event listener when fetching available purchases
   - `onlyIncludeActiveItemsIOS`: Whether to only include active items (set to false to get expired subscriptions)
 - **iOS**: Added `getPurchaseHistoriesIOS()` platform-specific method that retrieves all transactions including expired subscriptions
 
 ### Deprecated
+
 - `getPurchaseHistories()` - Use `getAvailablePurchases(PurchaseOptions(onlyIncludeActiveItemsIOS: false))` instead (will be removed in v7.0.0)
 
 ### Bug Fixes
@@ -103,7 +108,7 @@
 ### New Features
 
 - **DSL-like Builder Pattern for Purchase Requests**: Added a builder pattern API for more intuitive and type-safe purchase request construction
-  
+
   ```dart
   // New builder pattern approach
   await iap.requestPurchaseWithBuilder(
@@ -116,7 +121,7 @@
         ..skus = ['product_id']),
   );
   ```
-  
+
   - Provides better type safety with platform-specific configurations
   - Supports cascade notation for cleaner code
   - Separate builders for iOS and Android parameters
@@ -387,7 +392,7 @@ final iap = FlutterInappPurchase.instance;
 await iap.initConnection();
 ```
 
-For complete migration details, see the [documentation](https://flutter-inapp-purchase.hyo.dev).
+For complete migration details, see the [documentation](https://hyochan.github.io/flutter_inapp_purchase).
 
 ## 5.6.2
 

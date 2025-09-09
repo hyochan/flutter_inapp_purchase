@@ -1,13 +1,13 @@
-import {themes as prismThemes} from 'prism-react-renderer';
-import type {Config} from '@docusaurus/types';
-import type * as Preset from '@docusaurus/preset-classic';
+import { themes as prismThemes } from "prism-react-renderer";
+import type { Config } from "@docusaurus/types";
+import type * as Preset from "@docusaurus/preset-classic";
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config: Config = {
-  title: 'Flutter In-App Purchase',
-  tagline: 'A Flutter plugin for in-app purchases on iOS and Android',
-  favicon: 'img/favicon.ico',
+  title: "Flutter In-App Purchase",
+  tagline: "A Flutter plugin for in-app purchases on iOS and Android",
+  favicon: "img/favicon.ico",
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
   future: {
@@ -15,63 +15,63 @@ const config: Config = {
   },
 
   // Set the production url of your site here
-  url: 'https://flutter-iap.hyo.dev',
+  url: "https://hyochan.github.io",
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/',
+  baseUrl: "/flutter_inapp_purchase/",
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'hyochan', // Usually your GitHub org/user name.
-  projectName: 'flutter_inapp_purchase', // Usually your repo name.
+  organizationName: "hyochan", // Usually your GitHub org/user name.
+  projectName: "flutter_inapp_purchase", // Usually your repo name.
 
-  onBrokenLinks: 'warn',
-  onBrokenMarkdownLinks: 'warn',
+  onBrokenLinks: "warn",
+  onBrokenMarkdownLinks: "warn",
 
   // Even if you don't use internationalization, you can use this field to set
   // useful metadata like html lang. For example, if your site is Chinese, you
   // may want to replace "en" with "zh-Hans".
   i18n: {
-    defaultLocale: 'en',
-    locales: ['en'],
+    defaultLocale: "en",
+    locales: ["en"],
   },
 
   presets: [
     [
-      'classic',
+      "classic",
       {
         docs: {
-          sidebarPath: './sidebars.ts',
+          sidebarPath: "./sidebars.ts",
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/',
+            "https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/",
           versions: {
             current: {
-              label: '6.4 (Current)',
-              path: '',
+              label: "6.4 (Current)",
+              path: "",
             },
-            '6.3': {
-              label: '6.3',
-              path: '6.3',
+            "6.3": {
+              label: "6.3",
+              path: "6.3",
             },
           },
-          lastVersion: 'current',
+          lastVersion: "current",
         },
         blog: {
           showReadingTime: true,
           feedOptions: {
-            type: ['rss', 'atom'],
+            type: ["rss", "atom"],
             xslt: true,
           },
           editUrl:
-            'https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/',
-          onInlineTags: 'warn',
-          onInlineAuthors: 'warn',
-          onUntruncatedBlogPosts: 'warn',
+            "https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/",
+          onInlineTags: "warn",
+          onInlineAuthors: "warn",
+          onUntruncatedBlogPosts: "warn",
         },
         theme: {
-          customCss: './src/css/custom.css',
+          customCss: "./src/css/custom.css",
         },
       } satisfies Preset.Options,
     ],
@@ -79,86 +79,86 @@ const config: Config = {
 
   themeConfig: {
     // Replace with your project's social card
-    image: 'img/logo.png',
+    image: "img/logo.png",
     navbar: {
-      title: 'flutter_inapp_purchase',
+      title: "flutter_inapp_purchase",
       logo: {
-        alt: 'flutter_inapp_purchase Logo',
-        src: 'img/logo.png',
+        alt: "flutter_inapp_purchase Logo",
+        src: "img/logo.png",
       },
       items: [
         {
-          type: 'docSidebar',
-          sidebarId: 'docsSidebar',
-          position: 'left',
-          label: 'Docs',
+          type: "docSidebar",
+          sidebarId: "docsSidebar",
+          position: "left",
+          label: "Docs",
         },
         {
-          type: 'docsVersionDropdown',
-          position: 'left',
+          type: "docsVersionDropdown",
+          position: "left",
           dropdownActiveClassDisabled: true,
         },
-        {to: '/blog', label: 'Blog', position: 'left'},
+        { to: "/blog", label: "Blog", position: "left" },
         {
-          href: 'https://github.com/hyochan/flutter_inapp_purchase',
-          label: 'GitHub',
-          position: 'right',
+          href: "https://github.com/hyochan/flutter_inapp_purchase",
+          label: "GitHub",
+          position: "right",
         },
         {
-          href: 'https://pub.dev/packages/flutter_inapp_purchase',
-          label: 'Pub',
-          position: 'right',
+          href: "https://pub.dev/packages/flutter_inapp_purchase",
+          label: "Pub",
+          position: "right",
         },
         {
-          href: 'https://x.com/hyochan',
-          label: 'X',
-          position: 'right',
+          href: "https://x.com/hyochan",
+          label: "X",
+          position: "right",
         },
       ],
     },
     footer: {
-      style: 'dark',
+      style: "dark",
       links: [
         {
-          title: 'Docs',
+          title: "Docs",
           items: [
             {
-              label: 'Getting Started',
-              to: '/docs/getting-started/installation',
+              label: "Getting Started",
+              to: "/docs/getting-started/installation",
             },
             {
-              label: 'API Reference',
-              to: '/docs/api/',
+              label: "API Reference",
+              to: "/docs/api/",
             },
           ],
         },
         {
-          title: 'Community',
+          title: "Community",
           items: [
             {
-              label: 'Stack Overflow',
-              href: 'https://stackoverflow.com/questions/tagged/flutter-inapp-purchase',
+              label: "Stack Overflow",
+              href: "https://stackoverflow.com/questions/tagged/flutter-inapp-purchase",
             },
             {
-              label: 'GitHub Issues',
-              href: 'https://github.com/hyochan/flutter_inapp_purchase/issues',
+              label: "GitHub Issues",
+              href: "https://github.com/hyochan/flutter_inapp_purchase/issues",
             },
             {
-              label: 'Slack',
-              href: 'https://hyo.dev/joinSlack',
+              label: "Slack",
+              href: "https://hyo.dev/joinSlack",
             },
           ],
         },
         {
-          title: 'More',
+          title: "More",
           items: [
             {
-              label: 'GitHub',
-              href: 'https://github.com/hyochan/flutter_inapp_purchase',
+              label: "GitHub",
+              href: "https://github.com/hyochan/flutter_inapp_purchase",
             },
             {
-              label: 'Pub.dev',
-              href: 'https://pub.dev/packages/flutter_inapp_purchase',
+              label: "Pub.dev",
+              href: "https://pub.dev/packages/flutter_inapp_purchase",
             },
           ],
         },
@@ -168,7 +168,7 @@ const config: Config = {
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
-      additionalLanguages: ['dart', 'kotlin', 'swift'],
+      additionalLanguages: ["dart", "kotlin", "swift"],
     },
   } satisfies Preset.ThemeConfig,
 };
