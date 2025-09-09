@@ -1991,15 +1991,27 @@ class FlutterInappPurchase
 
   // MARK: - StoreKit 2 specific methods
 
-  /// Restore completed transactions (StoreKit 2)
+  /// Restore completed transactions (cross-platform behavior)
+  ///
+  /// iOS: perform a lightweight sync to refresh transactions and ignore sync errors.
+  /// Then, fetch available purchases to surface restored items to the app.
+  /// Android: simply fetch available purchases (restoration happens via query).
   Future<void> restorePurchases() async {
-    if (_platform.isIOS) {
-      // OpenIAP: no explicit restore; perform a sync to refresh transactions
-      await _channel.invokeMethod('endConnection');
-      await _channel.invokeMethod('initConnection');
-    } else if (_platform.isAndroid) {
-      // Android handles this automatically when querying purchases
-      await _getAvailableItems();
+    try {
+      if (_platform.isIOS) {
+        try {
+          await syncIOS();
+        } catch (error) {
+          // Soft-fail on sync error; apps can handle via logs
+          debugPrint(
+              '[flutter_inapp_purchase] Error restoring purchases (iOS sync): $error');
+        }
+      }
+      // Fetch available purchases using the public API
+      await getAvailablePurchases();
+    } catch (error) {
+      debugPrint(
+          '[flutter_inapp_purchase] Failed to restore purchases: $error');
     }
   }
 
