@@ -764,7 +764,8 @@ class FlutterInappPurchase
                   )
                 : null,
         subscriptionGroupIdIOS: json['subscriptionGroupIdIOS']?.toString(),
-        subscriptionPeriodUnitIOS: json['subscriptionPeriodUnitIOS']?.toString(),
+        subscriptionPeriodUnitIOS:
+            json['subscriptionPeriodUnitIOS']?.toString(),
         subscriptionPeriodNumberIOS:
             json['subscriptionPeriodNumberIOS']?.toString(),
         introductoryPricePaymentModeIOS:
@@ -775,7 +776,9 @@ class FlutterInappPurchase
             json['introductoryPriceSubscriptionPeriodIOS']?.toString(),
         environmentIOS: json['environmentIOS']?.toString(),
         promotionalOfferIdsIOS: json['promotionalOfferIdsIOS'] != null
-            ? (json['promotionalOfferIdsIOS'] as List).map((e) => e.toString()).toList()
+            ? (json['promotionalOfferIdsIOS'] as List)
+                .map((e) => e.toString())
+                .toList()
             : null,
         // OpenIAP compliant iOS fields
         isFamilyShareableIOS: json['isFamilyShareableIOS'] as bool? ??
@@ -874,7 +877,8 @@ class FlutterInappPurchase
                     )
                   : null,
           originalPrice: json['originalPrice']?.toString(),
-          originalPriceAmount: (json['originalPriceAmount'] as num?)?.toDouble(),
+          originalPriceAmount:
+              (json['originalPriceAmount'] as num?)?.toDouble(),
           freeTrialPeriod: json['freeTrialPeriod']?.toString(),
           iconUrl: json['iconUrl']?.toString(),
         );
@@ -1226,33 +1230,33 @@ class FlutterInappPurchase
     // Fallback to legacy numeric response codes when string code is absent
     if (code == iap_types.ErrorCode.eUnknown) {
       switch (result.responseCode) {
-      case 0:
-        code = iap_types.ErrorCode.eUnknown;
-        break;
-      case 1:
-        code = iap_types.ErrorCode.eUserCancelled;
-        break;
-      case 2:
-        code = iap_types.ErrorCode.eServiceError;
-        break;
-      case 3:
-        code = iap_types.ErrorCode.eBillingUnavailable;
-        break;
-      case 4:
-        code = iap_types.ErrorCode.eItemUnavailable;
-        break;
-      case 5:
-        code = iap_types.ErrorCode.eDeveloperError;
-        break;
-      case 6:
-        code = iap_types.ErrorCode.eUnknown;
-        break;
-      case 7:
-        code = iap_types.ErrorCode.eProductAlreadyOwned;
-        break;
-      case 8:
-        code = iap_types.ErrorCode.ePurchaseNotAllowed;
-        break;
+        case 0:
+          code = iap_types.ErrorCode.eUnknown;
+          break;
+        case 1:
+          code = iap_types.ErrorCode.eUserCancelled;
+          break;
+        case 2:
+          code = iap_types.ErrorCode.eServiceError;
+          break;
+        case 3:
+          code = iap_types.ErrorCode.eBillingUnavailable;
+          break;
+        case 4:
+          code = iap_types.ErrorCode.eItemUnavailable;
+          break;
+        case 5:
+          code = iap_types.ErrorCode.eDeveloperError;
+          break;
+        case 6:
+          code = iap_types.ErrorCode.eUnknown;
+          break;
+        case 7:
+          code = iap_types.ErrorCode.eProductAlreadyOwned;
+          break;
+        case 8:
+          code = iap_types.ErrorCode.ePurchaseNotAllowed;
+          break;
       }
     }
 
@@ -1662,13 +1666,13 @@ class FlutterInappPurchase
         isValid: false,
         errorMessage:
             'Failed to validate receipt [${e.code}]: ${e.message ?? e.details}',
-        platform: iap_err.getCurrentPlatform(), // Show actual platform when exception occurs
+        platform: iap_types.IapPlatform.ios,
       );
     } catch (e) {
       return iap_types.ReceiptValidationResult(
         isValid: false,
         errorMessage: 'Failed to validate receipt: ${e.toString()}',
-        platform: iap_err.getCurrentPlatform(), // Show actual platform when exception occurs
+        platform: iap_types.IapPlatform.ios,
       );
     }
   }
@@ -1838,13 +1842,13 @@ class FlutterInappPurchase
       return iap_types.ReceiptValidationResult(
         isValid: false,
         errorMessage: 'Request to Google Play API timed out',
-        platform: iap_err.getCurrentPlatform(), // Show actual platform when exception occurs
+        platform: iap_types.IapPlatform.android,
       );
     } catch (e) {
       return iap_types.ReceiptValidationResult(
         isValid: false,
         errorMessage: 'Failed to validate receipt: ${e.toString()}',
-        platform: iap_err.getCurrentPlatform(), // Show actual platform when exception occurs
+        platform: iap_types.IapPlatform.android,
       );
     }
   }

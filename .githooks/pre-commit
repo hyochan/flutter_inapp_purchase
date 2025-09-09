@@ -18,6 +18,14 @@ if [ -n "$STAGED_DART_FILES" ]; then
   dart format --output=none --set-exit-if-changed $STAGED_DART_FILES
 fi
 
+echo "[pre-commit] Running analyzer..."
+if [ "${ENFORCE_ANALYZE:-0}" = "1" ]; then
+  flutter analyze
+else
+  # Do not fail commit on analyzer warnings by default
+  flutter analyze || true
+fi
+
 if [ "${RUN_PRECOMMIT_TESTS:-0}" = "1" ]; then
   echo "[pre-commit] Running tests (fast fail)..."
   flutter test --concurrency=4
