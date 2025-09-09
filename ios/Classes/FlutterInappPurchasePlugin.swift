@@ -18,7 +18,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
     
     // Produce standardized message from OpenIAP error catalog
     private func defaultMessage(for code: String) -> String {
-        return OpenIapErrorEvent.defaultMessage(for: code)
+        return OpenIapError.defaultMessage(for: code)
     }
     
     public static func register(with registrar: FlutterPluginRegistrar) {

@@ -1,5 +1,43 @@
 # CHANGELOG
 
+## 6.5.1
+
+### Changed
+
+- iOS: bump OpenIAP Apple native module to `openiap ~> 1.1.8` (no breaking changes)
+- iOS: unified error helper to `OpenIapError.defaultMessage` (OpenIAP 1.1.8 consolidation)
+
+### Notes
+
+- Example iOS Podfile pins tag `1.1.8`; run `cd example/ios && pod install` to refresh lockfile.
+
+## 6.5.0
+
+### Changed
+
+- iOS: rename native channel method `buyProduct` to `requestPurchase` and update Dart to call `requestPurchase` (tests adjusted).
+- iOS: standardize error codes/messages using OpenIAP (`OpenIapError.defaultMessage`) instead of ad‑hoc reason strings.
+- Dart: make product parsing tolerant of numeric fields (e.g., price, subscriptionPeriodNumberIOS) to avoid type cast crashes.
+- Restore flow: on iOS run `syncIOS()` (soft‑fail) then `getAvailablePurchases()`; on Android call `getAvailablePurchases()`.
+
+### Added
+
+- iOS mixin: `clearTransactionIOS`, `getPromotedProductIOS`, `requestPurchaseOnPromotedProductIOS` helpers.
+
+### Removed
+
+- iOS: remove no‑op `clearTransactionCache` channel case.
+- Deprecated/legacy convenience methods: internal `getAppTransactionTyped`, `getProductsAsync`, `finishTransactionAsync`, non‑suffixed `presentCodeRedemptionSheet`/`showManageSubscriptions`.
+
+### iOS Native
+
+- Use OpenIAP error codes for `initConnection`, `fetchProducts`, `finishTransaction`, receipt validation and system UI calls.
+- Purchase error event now emits `E_PURCHASE_ERROR` with standard message.
+
+### CocoaPods
+
+- Podspec requires `openiap ~> 1.1.7`. Example Podfile uses CDN and pins git tag when needed.
+
 ## 6.4.6
 
 ### Fixed
