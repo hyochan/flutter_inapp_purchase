@@ -46,7 +46,7 @@ void main() {
             return _getMockSubscriptionPurchase(methodCall.arguments);
           case 'buyItemByType':
             return _getMockSubscriptionPurchase(methodCall.arguments);
-          case 'buyProduct':
+          case 'requestPurchase':
             return _getMockSubscriptionPurchase(methodCall.arguments);
           case 'requestProductWithOfferIOS':
             return _getMockSubscriptionPurchase(methodCall.arguments);
@@ -329,7 +329,7 @@ void main() {
           type: ProductType.subs,
         );
 
-        expect(methodChannelLog.last.method, 'buyProduct');
+        expect(methodChannelLog.last.method, 'requestPurchase');
         expect(methodChannelLog.last.arguments['sku'], 'ios_monthly_sub');
       });
 

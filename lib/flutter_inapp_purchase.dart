@@ -305,9 +305,9 @@ class FlutterInappPurchase
           if (type == iap_types.ProductType.subs) {
             await requestSubscription(iosRequest.sku);
           } else {
-            await _channel.invokeMethod('buyProduct', <String, dynamic>{
+            await _channel.invokeMethod('requestPurchase', <String, dynamic>{
               'sku': iosRequest.sku,
-              'forUser': iosRequest.appAccountToken,
+              'appAccountToken': iosRequest.appAccountToken,
             });
           }
         }
@@ -1358,7 +1358,7 @@ class FlutterInappPurchase
         'offerTokenIndex': offerTokenIndex,
       });
     } else if (_platform.isIOS) {
-      return await _channel.invokeMethod('buyProduct', <String, dynamic>{
+      return await _channel.invokeMethod('requestPurchase', <String, dynamic>{
         'sku': productId,
       });
     }

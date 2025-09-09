@@ -300,7 +300,7 @@ void main() {
           type: ProductType.inapp,
         );
 
-        expect(methodChannelLog.last.method, 'buyProduct');
+        expect(methodChannelLog.last.method, 'requestPurchase');
       });
     });
 

@@ -16,6 +16,11 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
     // No local StoreKit caches; OpenIAP handles state internally
     private var processedTransactionIds: Set<String> = []
     
+    // Produce standardized message from OpenIAP error catalog
+    private func defaultMessage(for code: String) -> String {
+        return OpenIapErrorEvent.defaultMessage(for: code)
+    }
+    
     public static func register(with registrar: FlutterPluginRegistrar) {
         print("\(TAG) Swift register called")
         if #available(iOS 15.0, *) {
@@ -69,21 +74,15 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 getAvailableItems(result: result)
             }
             
-        case "buyProduct":
-            // Support both old and new API
-            var productId: String?
-            
+        case "requestPurchase":
+            // OpenIAP requestPurchase expects structured props
             if let args = call.arguments as? [String: Any] {
-                productId = args["productId"] as? String ?? args["sku"] as? String
-            } else if let id = call.arguments as? String {
-                productId = id
+                requestPurchase(args: args, result: result)
+            } else if let sku = call.arguments as? String {
+                requestPurchase(args: ["sku": sku], result: result)
+            } else {
+                result(FlutterError(code: OpenIapError.E_DEVELOPER_ERROR, message: "Invalid params for requestPurchase", details: nil))
             }
-            
-            guard let id = productId else {
-                result(FlutterError(code: OpenIapError.E_DEVELOPER_ERROR, message: "productId required", details: nil))
-                return
-            }
-            buyProduct(productId: id, result: result)
             
         case "finishTransaction":
             // Support both old and new API
@@ -132,9 +131,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
         case "showManageSubscriptionsIOS":
             showManageSubscriptionsIOS(result: result)
             
-        case "clearTransactionCache":
-            // No-op on iOS/OpenIAP to avoid spurious exceptions from Dart side
-            result(nil)
+            
             
         case "validateReceiptIOS":
             guard let args = call.arguments as? [String: Any],
@@ -161,7 +158,8 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 result(nil)
             } catch {
                 await MainActor.run {
-                result(FlutterError(code: OpenIapError.E_INIT_CONNECTION, message: error.localizedDescription, details: nil))
+                    let code = OpenIapError.E_INIT_CONNECTION
+                    result(FlutterError(code: code, message: defaultMessage(for: code), details: nil))
                 }
             }
         }
@@ -293,7 +291,8 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 let serialized = OpenIapSerialization.products(products)
                 result(serialized)
             } catch {
-                result(FlutterError(code: OpenIapError.E_QUERY_PRODUCT, message: error.localizedDescription, details: nil))
+                let code = OpenIapError.E_QUERY_PRODUCT
+                result(FlutterError(code: code, message: defaultMessage(for: code), details: nil))
             }
         }
     }
@@ -339,38 +338,61 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 await MainActor.run { result(sanitized) }
             } catch {
                 await MainActor.run {
-                result(FlutterError(code: OpenIapError.E_SERVICE_ERROR, message: error.localizedDescription, details: nil))
+                    let code = OpenIapError.E_SERVICE_ERROR
+                    result(FlutterError(code: code, message: defaultMessage(for: code), details: nil))
                 }
             }
         }
     }
     
     // MARK: - Purchase
-    
-    private func buyProduct(productId: String, result: @escaping FlutterResult) {
-        print("\(FlutterInappPurchasePlugin.TAG) buyProduct called with productId: \(productId)")
+    private func requestPurchase(args: [String: Any], result: @escaping FlutterResult) {
+        let sku = (args["sku"] as? String) ?? (args["productId"] as? String)
+        guard let sku else {
+            result(FlutterError(code: OpenIapError.E_DEVELOPER_ERROR, message: "sku required", details: nil))
+            return
+        }
+        let autoFinish = (args["andDangerouslyFinishTransactionAutomatically"] as? Bool) ?? false
+        let appAccountToken = args["appAccountToken"] as? String
+        let quantity: Int? = {
+            if let q = args["quantity"] as? Int { return q }
+            if let qs = args["quantity"] as? String, let q = Int(qs) { return q }
+            return nil
+        }()
+        var withOffer: OpenIapDiscountOffer? = nil
+        if let offer = args["withOffer"] as? [String: Any] {
+            if let id = offer["identifier"] as? String,
+               let key = offer["keyIdentifier"] as? String,
+               let nonce = offer["nonce"] as? String,
+               let sig = offer["signature"] as? String,
+               let ts = offer["timestamp"] as? String {
+                withOffer = OpenIapDiscountOffer(identifier: id, keyIdentifier: key, nonce: nonce, signature: sig, timestamp: ts)
+            }
+        }
+        print("\(FlutterInappPurchasePlugin.TAG) requestPurchase called with sku: \(sku)")
         Task { @MainActor in
             do {
                 let props = OpenIapRequestPurchaseProps(
-                    sku: productId,
-                    andDangerouslyFinishTransactionAutomatically: false,
-                    appAccountToken: nil,
-                    quantity: nil,
-                    withOffer: nil
+                    sku: sku,
+                    andDangerouslyFinishTransactionAutomatically: autoFinish,
+                    appAccountToken: appAccountToken,
+                    quantity: quantity,
+                    withOffer: withOffer
                 )
                 _ = try await OpenIapModule.shared.requestPurchase(props)
                 result(nil)
             } catch {
                 let errorData: [String: Any] = [
-                    "code": "E_PURCHASE_FAILED",
-                    "message": error.localizedDescription,
-                    "productId": productId
+                    "code": OpenIapError.E_PURCHASE_ERROR,
+                    "message": defaultMessage(for: OpenIapError.E_PURCHASE_ERROR),
+                    "productId": sku
                 ]
                 if let jsonData = try? JSONSerialization.data(withJSONObject: errorData),
                    let jsonString = String(data: jsonData, encoding: .utf8) {
                     channel?.invokeMethod("purchase-error", arguments: jsonString)
                 }
-                result(FlutterError(code: OpenIapError.E_PURCHASE_ERROR, message: error.localizedDescription, details: nil))
+                let code = OpenIapError.E_PURCHASE_ERROR
+                result(FlutterError(code: code, message: defaultMessage(for: code), details: nil))
             }
         }
     }
@@ -386,7 +408,8 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 result(nil)
             } catch {
                 await MainActor.run {
-                    result(FlutterError(code: OpenIapError.E_SERVICE_ERROR, message: error.localizedDescription, details: nil))
+                    let code = OpenIapError.E_SERVICE_ERROR
+                    result(FlutterError(code: code, message: defaultMessage(for: code), details: nil))
                 }
             }
         }
@@ -404,7 +427,8 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 result(nil)
             } catch {
                 await MainActor.run {
-                    result(FlutterError(code: OpenIapError.E_SERVICE_ERROR, message: error.localizedDescription, details: nil))
+                    let code = OpenIapError.E_SERVICE_ERROR
+                    result(FlutterError(code: code, message: defaultMessage(for: code), details: nil))
                 }
             }
         }
@@ -419,7 +443,8 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 result(nil)
             } catch {
                 await MainActor.run {
-                    result(FlutterError(code: OpenIapError.E_ACTIVITY_UNAVAILABLE, message: error.localizedDescription, details: nil))
+                    let code = OpenIapError.E_ACTIVITY_UNAVAILABLE
+                    result(FlutterError(code: code, message: defaultMessage(for: code), details: nil))
                 }
             }
         }
@@ -432,7 +457,8 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 result(nil)
             } catch {
                 await MainActor.run {
-                    result(FlutterError(code: OpenIapError.E_SERVICE_ERROR, message: error.localizedDescription, details: nil))
+                    let code = OpenIapError.E_SERVICE_ERROR
+                    result(FlutterError(code: code, message: defaultMessage(for: code), details: nil))
                 }
             }
         }
@@ -459,7 +485,8 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 }
             } catch {
                 await MainActor.run {
-                    result(FlutterError(code: OpenIapError.E_SERVICE_ERROR, message: error.localizedDescription, details: nil))
+                    let code = OpenIapError.E_SERVICE_ERROR
+                    result(FlutterError(code: code, message: defaultMessage(for: code), details: nil))
                 }
             }
         }
@@ -472,7 +499,8 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 result(["countryCode": code])
             } catch {
                 await MainActor.run {
-                    result(FlutterError(code: OpenIapError.E_SERVICE_ERROR, message: error.localizedDescription, details: nil))
+                    let code = OpenIapError.E_SERVICE_ERROR
+                    result(FlutterError(code: code, message: defaultMessage(for: code), details: nil))
                 }
             }
         }
@@ -487,7 +515,8 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 result(sanitized)
             } catch {
                 await MainActor.run {
-                    result(FlutterError(code: OpenIapError.E_SERVICE_ERROR, message: error.localizedDescription, details: nil))
+                    let code = OpenIapError.E_SERVICE_ERROR
+                    result(FlutterError(code: code, message: defaultMessage(for: code), details: nil))
                 }
             }
         }
@@ -528,7 +557,8 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 await MainActor.run { result(payload) }
             } catch {
                 await MainActor.run {
-                    result(FlutterError(code: OpenIapError.E_TRANSACTION_VALIDATION_FAILED, message: error.localizedDescription, details: nil))
+                    let code = OpenIapError.E_TRANSACTION_VALIDATION_FAILED
+                    result(FlutterError(code: code, message: defaultMessage(for: code), details: nil))
                 }
             }
         }
