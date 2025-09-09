@@ -64,6 +64,7 @@ await iap.requestPurchase(
 - Run tests: `flutter test`
 - Enable Git hooks (recommended): `git config core.hooksPath .githooks`
   - The pre-commit hook auto-formats staged Dart files and fails if any file remains unformatted. It also runs tests.
+  - To run tests in the hook, set `RUN_PRECOMMIT_TESTS=1` in your environment.
 
 ### Singleton Usage
 

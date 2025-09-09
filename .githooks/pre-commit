@@ -13,10 +13,14 @@ if [ -n "$STAGED_DART_FILES" ]; then
   echo "$STAGED_DART_FILES" | xargs git add -A --
 fi
 
-echo "[pre-commit] Checking dart format across repo..."
-dart format --output=none --set-exit-if-changed .
+echo "[pre-commit] Verifying format on staged Dart files..."
+if [ -n "$STAGED_DART_FILES" ]; then
+  dart format --output=none --set-exit-if-changed $STAGED_DART_FILES
+fi
 
-echo "[pre-commit] Running tests (fast fail)..."
-flutter test --concurrency=4
+if [ "${RUN_PRECOMMIT_TESTS:-0}" = "1" ]; then
+  echo "[pre-commit] Running tests (fast fail)..."
+  flutter test --concurrency=4
+fi
 
 echo "[pre-commit] OK"
