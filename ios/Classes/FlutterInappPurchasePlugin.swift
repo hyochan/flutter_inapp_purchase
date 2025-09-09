@@ -53,7 +53,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 let params: [String: Any] = ["skus": skus, "type": "all"]
                 fetchProducts(params: params, result: result)
             } else {
-                result(FlutterError(code: "INVALID_ARGUMENTS", message: "Invalid params for fetchProducts", details: nil))
+                result(FlutterError(code: OpenIapError.E_DEVELOPER_ERROR, message: "Invalid params for fetchProducts", details: nil))
             }
             
         case "getAvailableItems":
@@ -80,7 +80,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
             }
             
             guard let id = productId else {
-                result(FlutterError(code: "INVALID_ARGUMENTS", message: "productId required", details: nil))
+                result(FlutterError(code: OpenIapError.E_DEVELOPER_ERROR, message: "productId required", details: nil))
                 return
             }
             buyProduct(productId: id, result: result)
@@ -101,7 +101,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
             
             guard let id = transactionId else {
                 print("\(FlutterInappPurchasePlugin.TAG) ERROR: No transactionId found in arguments")
-                result(FlutterError(code: "INVALID_ARGUMENTS", message: "transactionId required", details: nil))
+                result(FlutterError(code: OpenIapError.E_DEVELOPER_ERROR, message: "transactionId required", details: nil))
                 return
             }
             print("\(FlutterInappPurchasePlugin.TAG) Final transactionId to finish: \(id)")
@@ -123,7 +123,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
             if #available(iOS 16.0, *) {
                 presentCodeRedemptionSheetIOS(result: result)
             } else {
-                result(FlutterError(code: "UNSUPPORTED", message: "Code redemption requires iOS 16.0+", details: nil))
+                result(FlutterError(code: OpenIapError.E_FEATURE_NOT_SUPPORTED, message: "Code redemption requires iOS 16.0+", details: nil))
             }
             
         case "getPromotedProductIOS":
@@ -139,7 +139,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
         case "validateReceiptIOS":
             guard let args = call.arguments as? [String: Any],
                   let sku = args["sku"] as? String else {
-                result(FlutterError(code: "INVALID_ARGUMENTS", message: "sku required", details: nil))
+                result(FlutterError(code: OpenIapError.E_DEVELOPER_ERROR, message: "sku required", details: nil))
                 return
             }
             validateReceiptIOS(productId: sku, result: result)
@@ -161,7 +161,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 result(nil)
             } catch {
                 await MainActor.run {
-                    result(FlutterError(code: "E_INIT_FAILED", message: error.localizedDescription, details: nil))
+                result(FlutterError(code: OpenIapError.E_INIT_CONNECTION, message: error.localizedDescription, details: nil))
                 }
             }
         }
@@ -276,7 +276,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
         let typeStr = (params["type"] as? String) ?? "all"
         print("\(FlutterInappPurchasePlugin.TAG) fetchProducts called with skus: \(skus), type: \(typeStr)")
         guard !skus.isEmpty else {
-            result(FlutterError(code: "E_PRODUCT_LOAD_FAILED", message: "Empty SKU list provided", details: nil))
+            result(FlutterError(code: OpenIapError.E_QUERY_PRODUCT, message: "Empty SKU list provided", details: nil))
             return
         }
         Task { @MainActor in
@@ -293,7 +293,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 let serialized = OpenIapSerialization.products(products)
                 result(serialized)
             } catch {
-                result(FlutterError(code: "E_PRODUCT_LOAD_FAILED", message: error.localizedDescription, details: nil))
+                result(FlutterError(code: OpenIapError.E_QUERY_PRODUCT, message: error.localizedDescription, details: nil))
             }
         }
     }
@@ -339,7 +339,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 await MainActor.run { result(sanitized) }
             } catch {
                 await MainActor.run {
-                    result(FlutterError(code: "E_GET_AVAILABLE_FAILED", message: error.localizedDescription, details: nil))
+                result(FlutterError(code: OpenIapError.E_SERVICE_ERROR, message: error.localizedDescription, details: nil))
                 }
             }
         }
@@ -370,7 +370,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                    let jsonString = String(data: jsonData, encoding: .utf8) {
                     channel?.invokeMethod("purchase-error", arguments: jsonString)
                 }
-                result(FlutterError(code: "E_PURCHASE_FAILED", message: error.localizedDescription, details: nil))
+                result(FlutterError(code: OpenIapError.E_PURCHASE_ERROR, message: error.localizedDescription, details: nil))
             }
         }
     }
@@ -386,7 +386,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 result(nil)
             } catch {
                 await MainActor.run {
-                    result(FlutterError(code: "E_FINISH_FAILED", message: error.localizedDescription, details: nil))
+                    result(FlutterError(code: OpenIapError.E_SERVICE_ERROR, message: error.localizedDescription, details: nil))
                 }
             }
         }
@@ -394,59 +394,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
     
     // MARK: - Additional iOS Features
     
-    private func getStorefrontIOS(result: @escaping FlutterResult) {
-        Task { @MainActor in
-            do {
-                let code = try await OpenIapModule.shared.getStorefrontIOS()
-                result(["countryCode": code])
-            } catch {
-                await MainActor.run {
-                    result(FlutterError(code: "E_STORE_FRONT_FAILED", message: error.localizedDescription, details: nil))
-                }
-            }
-        }
-    }
-
-    private func getPendingTransactionsIOS(result: @escaping FlutterResult) {
-        Task { @MainActor in
-            do {
-                let pending = try await OpenIapModule.shared.getPendingTransactionsIOS()
-                let serialized = OpenIapSerialization.purchases(pending)
-                let sanitized = serialized.map { self.sanitize(dict: $0) }
-                result(sanitized)
-            } catch {
-                await MainActor.run {
-                    result(FlutterError(code: "E_PENDING_TX_FAILED", message: error.localizedDescription, details: nil))
-                }
-            }
-        }
-    }
-
-    private func requestPurchaseOnPromotedProductIOS(result: @escaping FlutterResult) {
-        Task { @MainActor in
-            do {
-                try await OpenIapModule.shared.requestPurchaseOnPromotedProductIOS()
-                result(nil)
-            } catch {
-                await MainActor.run {
-                    result(FlutterError(code: "E_PROMOTED_PURCHASE_FAILED", message: error.localizedDescription, details: nil))
-                }
-            }
-        }
-    }
-
-    private func clearTransactionIOS(result: @escaping FlutterResult) {
-        Task { @MainActor in
-            do {
-                try await OpenIapModule.shared.clearTransactionIOS()
-                result(nil)
-            } catch {
-                await MainActor.run {
-                    result(FlutterError(code: "E_CLEAR_TX_FAILED", message: error.localizedDescription, details: nil))
-                }
-            }
-        }
-    }
+    // (Moved below iOS-specific features section to align with Expo ordering)
     @available(iOS 16.0, *)
     private func presentCodeRedemptionSheetIOS(result: @escaping FlutterResult) {
         print("\(FlutterInappPurchasePlugin.TAG) presentCodeRedemptionSheet called")
@@ -456,16 +404,109 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 result(nil)
             } catch {
                 await MainActor.run {
-                    result(FlutterError(code: "E_REDEEM_FAILED", message: error.localizedDescription, details: nil))
+                    result(FlutterError(code: OpenIapError.E_SERVICE_ERROR, message: error.localizedDescription, details: nil))
+                }
+            }
+        }
+    }
+    
+    @available(iOS 15.0, *)
+    private func showManageSubscriptionsIOS(result: @escaping FlutterResult) {
+        print("\(FlutterInappPurchasePlugin.TAG) showManageSubscriptions called")
+        Task { @MainActor in
+            do {
+                _ = try await OpenIapModule.shared.showManageSubscriptionsIOS()
+                result(nil)
+            } catch {
+                await MainActor.run {
+                    result(FlutterError(code: OpenIapError.E_ACTIVITY_UNAVAILABLE, message: error.localizedDescription, details: nil))
+                }
+            }
+        }
+    }
+    
+    private func requestPurchaseOnPromotedProductIOS(result: @escaping FlutterResult) {
+        Task { @MainActor in
+            do {
+                try await OpenIapModule.shared.requestPurchaseOnPromotedProductIOS()
+                result(nil)
+            } catch {
+                await MainActor.run {
+                    result(FlutterError(code: OpenIapError.E_SERVICE_ERROR, message: error.localizedDescription, details: nil))
+                }
+            }
+        }
+    }
+    
+    private func getPromotedProductIOS(result: @escaping FlutterResult) {
+        Task { @MainActor in
+            do {
+                // Try to get the promoted product identifier first
+                if let promoted = try await OpenIapModule.shared.getPromotedProductIOS() {
+                    let sku = promoted.productIdentifier
+                    // Fetch full OpenIAP product serialization for consistent shape
+                    let request = OpenIapProductRequest(skus: [sku], type: .all)
+                    let products: [OpenIapProduct] = try await OpenIapModule.shared.fetchProducts(request)
+                    let serialized = OpenIapSerialization.products(products)
+                    if let first = serialized.first {
+                        let sanitized = self.sanitize(dict: first)
+                        result(sanitized)
+                    } else {
+                        result(nil)
+                    }
+                } else {
+                    result(nil)
+                }
+            } catch {
+                await MainActor.run {
+                    result(FlutterError(code: OpenIapError.E_SERVICE_ERROR, message: error.localizedDescription, details: nil))
+                }
+            }
+        }
+    }
+    
+    private func getStorefrontIOS(result: @escaping FlutterResult) {
+        Task { @MainActor in
+            do {
+                let code = try await OpenIapModule.shared.getStorefrontIOS()
+                result(["countryCode": code])
+            } catch {
+                await MainActor.run {
+                    result(FlutterError(code: OpenIapError.E_SERVICE_ERROR, message: error.localizedDescription, details: nil))
+                }
+            }
+        }
+    }
+    
+    private func getPendingTransactionsIOS(result: @escaping FlutterResult) {
+        Task { @MainActor in
+            do {
+                let pending = try await OpenIapModule.shared.getPendingTransactionsIOS()
+                let serialized = OpenIapSerialization.purchases(pending)
+                let sanitized = serialized.map { self.sanitize(dict: $0) }
+                result(sanitized)
+            } catch {
+                await MainActor.run {
+                    result(FlutterError(code: OpenIapError.E_SERVICE_ERROR, message: error.localizedDescription, details: nil))
+                }
+            }
+        }
+    }
+    
+    private func clearTransactionIOS(result: @escaping FlutterResult) {
+        Task { @MainActor in
+            do {
+                try await OpenIapModule.shared.clearTransactionIOS()
+                result(nil)
+            } catch {
+                await MainActor.run {
+                    result(FlutterError(code: OpenIapError.E_SERVICE_ERROR, message: error.localizedDescription, details: nil))
                 }
             }
         }
     }
     
     // MARK: - Receipt Validation (OpenIAP)
-    
-    // Helper function to process transaction and avoid code duplication
-    // No direct StoreKit verification; validation is via OpenIAP
     
     private func validateReceiptIOS(productId: String, result: @escaping FlutterResult) {
         print("\(FlutterInappPurchasePlugin.TAG) validateReceiptIOS called for product: \(productId)")
@@ -487,52 +528,13 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 await MainActor.run { result(payload) }
             } catch {
                 await MainActor.run {
-                    result(FlutterError(code: "E_RECEIPT_VALIDATE_FAILED", message: error.localizedDescription, details: nil))
+                    result(FlutterError(code: OpenIapError.E_TRANSACTION_VALIDATION_FAILED, message: error.localizedDescription, details: nil))
                 }
             }
         }
     }
     
-    private func getPromotedProductIOS(result: @escaping FlutterResult) {
-        Task { @MainActor in
-            do {
-                if let product = try await OpenIapModule.shared.getPromotedProductIOS() {
-                    let map: [String: Any] = [
-                        "productIdentifier": product.productIdentifier,
-                        "localizedTitle": product.localizedTitle,
-                        "localizedDescription": product.localizedDescription,
-                        "price": product.price,
-                        "priceLocale": [
-                            "currencyCode": product.priceLocale.currencyCode,
-                            "currencySymbol": product.priceLocale.currencySymbol
-                        ]
-                    ]
-                    await MainActor.run { result(map) }
-                } else {
-                    result(nil)
-                }
-            } catch {
-                await MainActor.run {
-                    result(FlutterError(code: "E_PROMOTED_PRODUCT_FAILED", message: error.localizedDescription, details: nil))
-                }
-            }
-        }
-    }
     
-    @available(iOS 15.0, *)
-    private func showManageSubscriptionsIOS(result: @escaping FlutterResult) {
-        print("\(FlutterInappPurchasePlugin.TAG) showManageSubscriptions called")
-        Task { @MainActor in
-            do {
-                _ = try await OpenIapModule.shared.showManageSubscriptionsIOS()
-                result(nil)
-            } catch {
-                await MainActor.run {
-                    result(FlutterError(code: "E_SHOW_SUBSCRIPTIONS_FAILED", message: error.localizedDescription, details: nil))
-                }
-            }
-        }
-    }
     
     // clearTransactionCache removed (no-op)
     
@@ -552,6 +554,6 @@ public class FlutterInappPurchasePluginLegacy: NSObject, FlutterPlugin {
     }
     
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        result(FlutterError(code: "UNSUPPORTED", message: "iOS 15.0+ required", details: nil))
+        result(FlutterError(code: OpenIapError.E_FEATURE_NOT_SUPPORTED, message: "iOS 15.0+ required", details: nil))
     }
 }

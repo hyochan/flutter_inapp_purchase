@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:platform/platform.dart';
 
 import 'enums.dart';
-import 'errors.dart' show getCurrentPlatform;
+import 'errors.dart' as iap_err;
 import 'types.dart' as iap_types;
 import 'modules/ios.dart';
 import 'modules/android.dart';
@@ -741,17 +741,17 @@ class FlutterInappPurchase
 
     if (type == iap_types.ProductType.subs) {
       return iap_types.Subscription(
-        productId: json['productId'] as String? ?? '',
-        price: json['price'] as String? ?? '0',
-        currency: json['currency'] as String?,
-        localizedPrice: json['localizedPrice'] as String?,
-        title: json['title'] as String?,
-        description: json['description'] as String?,
-        type: json['type'] as String? ?? iap_types.ProductType.subs,
+        productId: json['productId']?.toString() ?? '',
+        price: json['price']?.toString() ?? '0',
+        currency: json['currency']?.toString(),
+        localizedPrice: json['localizedPrice']?.toString(),
+        title: json['title']?.toString(),
+        description: json['description']?.toString(),
+        type: json['type']?.toString() ?? iap_types.ProductType.subs,
         platform: platform,
         // iOS fields
-        displayName: json['displayName'] as String?,
-        displayPrice: json['displayPrice'] as String?,
+        displayName: json['displayName']?.toString(),
+        displayPrice: json['displayPrice']?.toString(),
         discountsIOS: _parseDiscountsIOS(json['discounts']),
         subscription: json['subscription'] != null
             ? iap_types.SubscriptionInfo.fromJson(
@@ -760,40 +760,40 @@ class FlutterInappPurchase
             : json['subscriptionGroupIdIOS'] != null
                 ? iap_types.SubscriptionInfo(
                     subscriptionGroupId:
-                        json['subscriptionGroupIdIOS'] as String?,
+                        json['subscriptionGroupIdIOS']?.toString(),
                   )
                 : null,
-        subscriptionGroupIdIOS: json['subscriptionGroupIdIOS'] as String?,
-        subscriptionPeriodUnitIOS: json['subscriptionPeriodUnitIOS'] as String?,
+        subscriptionGroupIdIOS: json['subscriptionGroupIdIOS']?.toString(),
+        subscriptionPeriodUnitIOS: json['subscriptionPeriodUnitIOS']?.toString(),
         subscriptionPeriodNumberIOS:
-            json['subscriptionPeriodNumberIOS'] as String?,
+            json['subscriptionPeriodNumberIOS']?.toString(),
         introductoryPricePaymentModeIOS:
-            json['introductoryPricePaymentModeIOS'] as String?,
+            json['introductoryPricePaymentModeIOS']?.toString(),
         introductoryPriceNumberOfPeriodsIOS:
             json['introductoryPriceNumberOfPeriodsIOS']?.toString(),
         introductoryPriceSubscriptionPeriodIOS:
-            json['introductoryPriceSubscriptionPeriodIOS'] as String?,
-        environmentIOS: json['environmentIOS'] as String?,
+            json['introductoryPriceSubscriptionPeriodIOS']?.toString(),
+        environmentIOS: json['environmentIOS']?.toString(),
         promotionalOfferIdsIOS: json['promotionalOfferIdsIOS'] != null
-            ? (json['promotionalOfferIdsIOS'] as List).cast<String>()
+            ? (json['promotionalOfferIdsIOS'] as List).map((e) => e.toString()).toList()
             : null,
         // OpenIAP compliant iOS fields
         isFamilyShareableIOS: json['isFamilyShareableIOS'] as bool? ??
-            json['isFamilyShareable'] as bool?,
-        jsonRepresentationIOS: json['jsonRepresentationIOS'] as String? ??
-            json['jsonRepresentation'] as String?,
+            (json['isFamilyShareable'] as bool?),
+        jsonRepresentationIOS: json['jsonRepresentationIOS']?.toString() ??
+            json['jsonRepresentation']?.toString(),
         // Android fields
-        nameAndroid: json['nameAndroid'] as String?,
+        nameAndroid: json['nameAndroid']?.toString(),
         oneTimePurchaseOfferDetailsAndroid:
             json['oneTimePurchaseOfferDetailsAndroid'] != null
                 ? Map<String, dynamic>.from(
                     json['oneTimePurchaseOfferDetailsAndroid'] as Map,
                   )
                 : null,
-        originalPrice: json['originalPrice'] as String?,
-        originalPriceAmount: json['originalPriceAmount'] as double?,
-        freeTrialPeriod: json['freeTrialPeriod'] as String?,
-        iconUrl: json['iconUrl'] as String?,
+        originalPrice: json['originalPrice']?.toString(),
+        originalPriceAmount: (json['originalPriceAmount'] as num?)?.toDouble(),
+        freeTrialPeriod: json['freeTrialPeriod']?.toString(),
+        iconUrl: json['iconUrl']?.toString(),
         subscriptionOfferDetailsAndroid: _parseOfferDetails(
           json['subscriptionOfferDetailsAndroid'],
         ),
@@ -822,59 +822,61 @@ class FlutterInappPurchase
               json['productId']?.toString() ?? json['id']?.toString() ?? '',
           price: json['price']?.toString() ?? '0',
           currency: json['currency']?.toString(),
-          localizedPrice: json['localizedPrice'] as String?,
-          title: json['title'] as String?,
-          description: json['description'] as String?,
-          type: json['type'] as String? ?? iap_types.ProductType.inapp,
-          displayName: json['displayName'] as String?,
+          localizedPrice: json['localizedPrice']?.toString(),
+          title: json['title']?.toString(),
+          description: json['description']?.toString(),
+          type: json['type']?.toString() ?? iap_types.ProductType.inapp,
+          displayName: json['displayName']?.toString(),
           // OpenIAP compliant iOS fields
           isFamilyShareableIOS: json['isFamilyShareableIOS'] as bool? ??
-              json['isFamilyShareable'] as bool?,
-          jsonRepresentationIOS: json['jsonRepresentationIOS'] as String? ??
-              json['jsonRepresentation'] as String?,
+              (json['isFamilyShareable'] as bool?),
+          jsonRepresentationIOS: json['jsonRepresentationIOS']?.toString() ??
+              json['jsonRepresentation']?.toString(),
           // Other iOS fields
           discounts: _parseDiscountsIOS(json['discounts']),
           subscriptionGroupIdentifier:
-              json['subscriptionGroupIdIOS'] as String?,
-          subscriptionPeriodUnit: json['subscriptionPeriodUnitIOS'] as String?,
+              json['subscriptionGroupIdIOS']?.toString(),
+          subscriptionPeriodUnit: json['subscriptionPeriodUnitIOS']?.toString(),
           subscriptionPeriodNumber:
-              json['subscriptionPeriodNumberIOS'] as String?,
+              json['subscriptionPeriodNumberIOS']?.toString(),
           introductoryPricePaymentMode:
-              json['introductoryPricePaymentModeIOS'] as String?,
+              json['introductoryPricePaymentModeIOS']?.toString(),
           introductoryPriceNumberOfPeriodsIOS:
-              json['introductoryPriceNumberOfPeriodsIOS'] as String?,
+              json['introductoryPriceNumberOfPeriodsIOS']?.toString(),
           introductoryPriceSubscriptionPeriodIOS:
-              json['introductoryPriceSubscriptionPeriodIOS'] as String?,
-          environment: json['environmentIOS'] as String?,
+              json['introductoryPriceSubscriptionPeriodIOS']?.toString(),
+          environment: json['environmentIOS']?.toString(),
           promotionalOfferIds: json['promotionalOfferIdsIOS'] != null
-              ? (json['promotionalOfferIdsIOS'] as List).cast<String>()
+              ? (json['promotionalOfferIdsIOS'] as List)
+                  .map((e) => e.toString())
+                  .toList()
               : null,
         );
       } else {
         // For Android platform, create regular Product
         return iap_types.Product(
-          productId: json['productId'] as String? ?? '',
-          priceString: json['price'] as String? ?? '0',
-          currency: json['currency'] as String?,
-          localizedPrice: json['localizedPrice'] as String?,
-          title: json['title'] as String?,
-          description: json['description'] as String?,
-          type: json['type'] as String? ?? iap_types.ProductType.inapp,
+          productId: json['productId']?.toString() ?? '',
+          priceString: json['price']?.toString() ?? '0',
+          currency: json['currency']?.toString(),
+          localizedPrice: json['localizedPrice']?.toString(),
+          title: json['title']?.toString(),
+          description: json['description']?.toString(),
+          type: json['type']?.toString() ?? iap_types.ProductType.inapp,
           platformEnum: platform,
           // Android fields
-          displayName: json['displayName'] as String?,
-          displayPrice: json['displayPrice'] as String?,
-          nameAndroid: json['nameAndroid'] as String?,
+          displayName: json['displayName']?.toString(),
+          displayPrice: json['displayPrice']?.toString(),
+          nameAndroid: json['nameAndroid']?.toString(),
           oneTimePurchaseOfferDetailsAndroid:
               json['oneTimePurchaseOfferDetailsAndroid'] != null
                   ? Map<String, dynamic>.from(
                       json['oneTimePurchaseOfferDetailsAndroid'] as Map,
                     )
                   : null,
-          originalPrice: json['originalPrice'] as String?,
-          originalPriceAmount: json['originalPriceAmount'] as double?,
-          freeTrialPeriod: json['freeTrialPeriod'] as String?,
-          iconUrl: json['iconUrl'] as String?,
+          originalPrice: json['originalPrice']?.toString(),
+          originalPriceAmount: (json['originalPriceAmount'] as num?)?.toDouble(),
+          freeTrialPeriod: json['freeTrialPeriod']?.toString(),
+          iconUrl: json['iconUrl']?.toString(),
         );
       }
     }
@@ -1209,8 +1211,21 @@ class FlutterInappPurchase
   ) {
     iap_types.ErrorCode code = iap_types.ErrorCode.eUnknown;
 
+    // Prefer OpenIAP string codes when present (works cross-platform)
+    if (result.code != null && result.code!.isNotEmpty) {
+      final detected = iap_err.ErrorCodeUtils.fromPlatformCode(
+        result.code!,
+        _platform.isIOS ? IapPlatform.ios : IapPlatform.android,
+      );
+      if (detected != iap_types.ErrorCode.eUnknown) {
+        code = detected;
+      }
+    }
+
     // Map error codes
-    switch (result.responseCode) {
+    // Fallback to legacy numeric response codes when string code is absent
+    if (code == iap_types.ErrorCode.eUnknown) {
+      switch (result.responseCode) {
       case 0:
         code = iap_types.ErrorCode.eUnknown;
         break;
@@ -1238,6 +1253,7 @@ class FlutterInappPurchase
       case 8:
         code = iap_types.ErrorCode.ePurchaseNotAllowed;
         break;
+      }
     }
 
     return iap_types.PurchaseError(
@@ -1646,15 +1662,13 @@ class FlutterInappPurchase
         isValid: false,
         errorMessage:
             'Failed to validate receipt [${e.code}]: ${e.message ?? e.details}',
-        platform:
-            getCurrentPlatform(), // Show actual platform when exception occurs
+        platform: iap_err.getCurrentPlatform(), // Show actual platform when exception occurs
       );
     } catch (e) {
       return iap_types.ReceiptValidationResult(
         isValid: false,
         errorMessage: 'Failed to validate receipt: ${e.toString()}',
-        platform:
-            getCurrentPlatform(), // Show actual platform when exception occurs
+        platform: iap_err.getCurrentPlatform(), // Show actual platform when exception occurs
       );
     }
   }
@@ -1824,15 +1838,13 @@ class FlutterInappPurchase
       return iap_types.ReceiptValidationResult(
         isValid: false,
         errorMessage: 'Request to Google Play API timed out',
-        platform:
-            getCurrentPlatform(), // Show actual platform when exception occurs
+        platform: iap_err.getCurrentPlatform(), // Show actual platform when exception occurs
       );
     } catch (e) {
       return iap_types.ReceiptValidationResult(
         isValid: false,
         errorMessage: 'Failed to validate receipt: ${e.toString()}',
-        platform:
-            getCurrentPlatform(), // Show actual platform when exception occurs
+        platform: iap_err.getCurrentPlatform(), // Show actual platform when exception occurs
       );
     }
   }

@@ -90,6 +90,7 @@ class PurchaseError implements Exception {
 ```
 
 **Example Usage**:
+
 ```dart
 try {
   await FlutterInappPurchase.instance.requestPurchase(
@@ -110,6 +111,7 @@ try {
 ### User-Related Errors
 
 #### eUserCancelled
+
 **Meaning**: User cancelled the purchase  
 **When it occurs**: User closes purchase dialog or cancels payment  
 **User action**: No action needed - this is normal behavior  
@@ -124,6 +126,7 @@ if (error.code == ErrorCode.eUserCancelled) {
 ```
 
 #### eUserError
+
 **Meaning**: User made an error during purchase  
 **When it occurs**: Invalid payment method, insufficient funds  
 **User action**: Check payment method and try again  
@@ -136,6 +139,7 @@ if (error.code == ErrorCode.eUserError) {
 ```
 
 #### eAlreadyOwned
+
 **Meaning**: User already owns this product  
 **When it occurs**: Attempting to purchase owned non-consumable  
 **User action**: Product is already available  
@@ -152,6 +156,7 @@ if (error.code == ErrorCode.eAlreadyOwned) {
 ### Network & Service Errors
 
 #### eNetworkError
+
 **Meaning**: Network connectivity issues  
 **When it occurs**: No internet, poor connection, server timeout  
 **User action**: Check internet connection  
@@ -167,6 +172,7 @@ if (error.code == ErrorCode.eNetworkError) {
 ```
 
 #### eServiceError
+
 **Meaning**: Store service unavailable  
 **When it occurs**: App Store/Play Store service issues  
 **User action**: Try again later  
@@ -179,6 +185,7 @@ if (error.code == ErrorCode.eServiceError) {
 ```
 
 #### eRemoteError
+
 **Meaning**: Remote server error  
 **When it occurs**: Store backend issues  
 **User action**: Try again later  
@@ -194,6 +201,7 @@ if (error.code == ErrorCode.eRemoteError) {
 ### Product & Availability Errors
 
 #### eItemUnavailable
+
 **Meaning**: Product not available for purchase  
 **When it occurs**: Product deleted, not in current storefront  
 **User action**: Contact support if expected  
@@ -208,6 +216,7 @@ if (error.code == ErrorCode.eItemUnavailable) {
 ```
 
 #### eProductNotFound
+
 **Meaning**: Product ID not found in store  
 **When it occurs**: Invalid product ID, not published  
 **User action**: Contact support  
@@ -223,6 +232,7 @@ if (error.code == ErrorCode.eProductNotFound) {
 ### Configuration & Developer Errors
 
 #### eDeveloperError
+
 **Meaning**: Developer configuration error  
 **When it occurs**: Invalid parameters, wrong usage  
 **User action**: Contact support  
@@ -236,6 +246,7 @@ if (error.code == ErrorCode.eDeveloperError) {
 ```
 
 #### eNotInitialized
+
 **Meaning**: IAP not initialized  
 **When it occurs**: Calling methods before `initConnection()`  
 **User action**: None  
@@ -249,6 +260,7 @@ if (error.code == ErrorCode.eNotInitialized) {
 ```
 
 #### eAlreadyInitialized
+
 **Meaning**: IAP already initialized  
 **When it occurs**: Calling `initConnection()` multiple times  
 **User action**: None  
@@ -316,43 +328,43 @@ class ErrorHandler {
       case ErrorCode.eUserCancelled:
         // Don't show error for user cancellation
         break;
-        
+
       case ErrorCode.eNetworkError:
         showRetryDialog('Network error. Please check your connection.');
         break;
-        
+
       case ErrorCode.eAlreadyOwned:
         showMessage('You already own this item.');
         restorePurchases();
         break;
-        
+
       case ErrorCode.eItemUnavailable:
         showMessage('This item is currently unavailable.');
         break;
-        
+
       case ErrorCode.eServiceError:
         showMessage('Service temporarily unavailable. Please try again later.');
         break;
-        
+
       default:
         showMessage('Purchase failed: ${error.message}');
         logError('Unhandled purchase error', error);
     }
   }
-  
+
   static void showRetryDialog(String message) {
     // Implementation depends on your UI framework
   }
-  
+
   static void showMessage(String message) {
     // Implementation depends on your UI framework
   }
-  
+
   static void logError(String message, PurchaseError error) {
     // Log to your analytics/monitoring service
     print('$message: ${error.code} - ${error.message}');
   }
-  
+
   static Future<void> restorePurchases() async {
     try {
       await FlutterInappPurchase.instance.restorePurchases();
@@ -376,56 +388,56 @@ class ComprehensiveErrorHandler {
       _handleGenericError(error, context: context);
     }
   }
-  
+
   static void _handlePurchaseError(PurchaseError error, {String? context}) {
     // Log error for analytics
     _logError(error, context: context);
-    
+
     switch (error.code) {
       case ErrorCode.eUserCancelled:
         // Silent handling - user intentionally cancelled
         return;
-        
+
       case ErrorCode.eNetworkError:
         _showNetworkError();
         break;
-        
+
       case ErrorCode.eAlreadyOwned:
         _handleAlreadyOwned(error.productId);
         break;
-        
+
       case ErrorCode.eItemUnavailable:
         _handleItemUnavailable(error.productId);
         break;
-        
+
       case ErrorCode.eServiceError:
       case ErrorCode.eRemoteError:
         _showServiceError();
         break;
-        
+
       case ErrorCode.eDeveloperError:
       case ErrorCode.eNotInitialized:
         _handleConfigurationError(error);
         break;
-        
+
       case ErrorCode.eReceiptFailed:
       case ErrorCode.eTransactionValidationFailed:
         _handleValidationError(error);
         break;
-        
+
       case ErrorCode.eDeferredPayment:
         _handleDeferredPayment();
         break;
-        
+
       case ErrorCode.ePending:
         _handlePendingPurchase();
         break;
-        
+
       default:
         _showGenericError(error.message);
     }
   }
-  
+
   static void _showNetworkError() {
     showDialog(
       title: 'Connection Error',
@@ -436,7 +448,7 @@ class ComprehensiveErrorHandler {
       ],
     );
   }
-  
+
   static void _handleAlreadyOwned(String? productId) {
     showDialog(
       title: 'Already Purchased',
@@ -447,44 +459,44 @@ class ComprehensiveErrorHandler {
       ],
     );
   }
-  
+
   static void _handleItemUnavailable(String? productId) {
     _logError('Product unavailable: $productId');
     showMessage('This item is currently unavailable. Please try again later.');
   }
-  
+
   static void _showServiceError() {
     showMessage('Service temporarily unavailable. Please try again later.');
   }
-  
+
   static void _handleConfigurationError(PurchaseError error) {
     _logError('Configuration error: ${error.message}');
     showMessage('Configuration error. Please contact support.');
   }
-  
+
   static void _handleValidationError(PurchaseError error) {
     _logError('Validation error: ${error.message}');
     showMessage('Purchase validation failed. Please contact support.');
   }
-  
+
   static void _handleDeferredPayment() {
     showMessage(
       'Your purchase is pending approval. You will be notified when it\'s approved.',
     );
   }
-  
+
   static void _handlePendingPurchase() {
     showMessage('Your purchase is being processed. Please wait...');
   }
-  
+
   static void _showGenericError(String message) {
     showMessage('Purchase failed: $message');
   }
-  
+
   static void _logError(dynamic error, {String? context}) {
     final contextStr = context != null ? '[$context] ' : '';
     print('${contextStr}Error: $error');
-    
+
     // Send to analytics/monitoring service
     // Analytics.logError(error, context: context);
   }
@@ -497,29 +509,29 @@ class ComprehensiveErrorHandler {
 class RetryLogic {
   static const int maxRetries = 3;
   static const Duration retryDelay = Duration(seconds: 2);
-  
+
   static Future<T> withRetry<T>(
     Future<T> Function() operation, {
     bool Function(dynamic error)? shouldRetry,
     int maxAttempts = maxRetries,
   }) async {
     int attempts = 0;
-    
+
     while (attempts < maxAttempts) {
       try {
         return await operation();
       } catch (error) {
         attempts++;
-        
+
         if (attempts >= maxAttempts) {
           rethrow;
         }
-        
+
         // Check if we should retry this error
         if (shouldRetry != null && !shouldRetry(error)) {
           rethrow;
         }
-        
+
         // Only retry on specific errors
         if (error is PurchaseError) {
           switch (error.code) {
@@ -534,11 +546,11 @@ class RetryLogic {
               rethrow;
           }
         }
-        
+
         rethrow;
       }
     }
-    
+
     throw Exception('Max retry attempts exceeded');
   }
 }
@@ -551,7 +563,7 @@ Future<void> makePurchaseWithRetry(String productId) async {
         ios: RequestPurchaseIOS(sku: productId, quantity: 1),
         android: RequestPurchaseAndroid(skus: [productId]),
       );
-      
+
       await FlutterInappPurchase.instance.requestPurchase(
         request: request,
         type: PurchaseType.inapp,
@@ -583,7 +595,7 @@ class ValidationHelper {
       if (!FlutterInappPurchase.instance._isInitialized) {
         await FlutterInappPurchase.instance.initConnection();
       }
-      
+
       // Check if product exists
       final products = await FlutterInappPurchase.instance.getProducts([productId]);
       if (products.isEmpty) {
@@ -592,7 +604,7 @@ class ValidationHelper {
           message: 'Product not found: $productId',
         );
       }
-      
+
       // Check if already owned (for non-consumables)
       final availablePurchases = await FlutterInappPurchase.instance.getAvailablePurchases();
       if (availablePurchases.any((p) => p.productId == productId)) {
@@ -601,7 +613,7 @@ class ValidationHelper {
           message: 'Product already owned: $productId',
         );
       }
-      
+
       return true;
     } catch (e) {
       ComprehensiveErrorHandler.handleError(e, context: 'validation');
@@ -638,18 +650,18 @@ class ErrorTesting {
   static Future<void> testErrorScenarios() async {
     // Test network error
     await _testNetworkError();
-    
+
     // Test invalid product
     await _testInvalidProduct();
-    
+
     // Test user cancellation
     await _testUserCancellation();
   }
-  
+
   static Future<void> _testNetworkError() async {
     // Simulate network error conditions
   }
-  
+
   static Future<void> _testInvalidProduct() async {
     try {
       await FlutterInappPurchase.instance.getProducts(['invalid_product_id']);
@@ -657,7 +669,7 @@ class ErrorTesting {
       print('Expected error for invalid product: $e');
     }
   }
-  
+
   static Future<void> _testUserCancellation() async {
     // Test cancellation flow
   }
