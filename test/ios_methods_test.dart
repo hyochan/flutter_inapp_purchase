@@ -13,7 +13,7 @@ void main() {
 
     setUp(() {
       iap = FlutterInappPurchase.private(
-        const FakePlatform(operatingSystem: 'ios'),
+        FakePlatform(operatingSystem: 'ios'),
       );
       channel = iap.channel;
 
@@ -28,7 +28,7 @@ void main() {
             case 'showManageSubscriptionsIOS':
               return null;
             case 'getStorefrontIOS':
-              return 'US';
+              return <String, dynamic>{'countryCode': 'US'};
             case 'getPromotedProductIOS':
               return <String, dynamic>{
                 'productIdentifier': 'com.example.prod1',

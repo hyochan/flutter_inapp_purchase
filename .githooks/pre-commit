@@ -26,9 +26,9 @@ else
   flutter analyze || true
 fi
 
-if [ "${RUN_PRECOMMIT_TESTS:-0}" = "1" ]; then
+if [ "${SKIP_PRECOMMIT_TESTS:-0}" != "1" ]; then
   echo "[pre-commit] Running tests (fast fail)..."
-  flutter test --concurrency=4
+  flutter test --concurrency="${PRECOMMIT_TEST_CONCURRENCY:-4}"
 fi
 
 echo "[pre-commit] OK"
