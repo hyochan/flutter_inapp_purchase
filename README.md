@@ -57,6 +57,14 @@ await iap.requestPurchase(
 - After upgrading, run `pod install` in your iOS project (e.g., `example/ios`).
 - Minimum iOS deployment target is `15.0` for StoreKit 2 support.
 
+## 🛠️ Development
+
+- Install dependencies: `flutter pub get`
+- Run lints: `dart analyze`
+- Run tests: `flutter test`
+- Enable Git hooks (recommended): `git config core.hooksPath .githooks`
+  - The pre-commit hook auto-formats staged Dart files and fails if any file remains unformatted. It also runs tests.
+
 ### Singleton Usage
 
 For global state management or when you need a shared instance:
