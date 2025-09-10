@@ -17,6 +17,21 @@ cd flutter_inapp_purchase
 flutter pub get
 ```
 
+### 3. Enable Git Hooks (recommended)
+
+This repo ships with Git hooks under `.githooks` that auto-format, analyze, and test your changes before committing. Enable them once per clone:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+After this, committing will:
+- Run `flutter pub get`
+- Auto-format staged Dart files
+- Verify repo-wide formatting (same as CI)
+- Run `flutter analyze` (non-blocking by default)
+- Run `flutter test`
+
 ### 3. Run the Example App
 
 Navigate to the example directory and run the app:

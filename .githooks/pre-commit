@@ -18,6 +18,11 @@ if [ -n "$STAGED_DART_FILES" ]; then
   dart format --output=none --set-exit-if-changed $STAGED_DART_FILES
 fi
 
+echo "[pre-commit] Verifying repo-wide formatting (matches CI)..."
+# Ensure the entire repo matches formatter expectations to avoid CI failures.
+# This mirrors .github/workflows/ci.yml
+dart format --output=none --set-exit-if-changed .
+
 echo "[pre-commit] Running analyzer..."
 if [ "${ENFORCE_ANALYZE:-0}" = "1" ]; then
   flutter analyze
