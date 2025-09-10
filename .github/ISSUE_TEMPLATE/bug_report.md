@@ -22,7 +22,7 @@ assignees: ''
 
 **Environment**
 
-- flutter_inapp_purchase: <!-- e.g., 6.5.3 -->
+- flutter_inapp_purchase: <!-- e.g., 6.5.2 -->
 - Flutter: <!-- flutter --version -->
 - Dart: <!-- dart --version (optional) -->
 - Platforms: <!-- iOS / Android; emulator/simulator or real device -->
@@ -49,4 +49,3 @@ Steps to reproduce the behavior:
 **Additional Context**
 
 <!-- Optional: Add any other context about the problem here. -->
-

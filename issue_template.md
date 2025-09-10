@@ -17,7 +17,7 @@ What you expected to happen.
 Optional: Add screenshots to help explain the problem.
 
 ### Environment
-- flutter_inapp_purchase: <!-- e.g., 6.5.3 -->
+- flutter_inapp_purchase: <!-- e.g., 6.5.2 -->
 - Flutter: <!-- flutter --version -->
 - Dart: <!-- dart --version (optional) -->
 - Platforms: <!-- iOS / Android; emulator/simulator or real device -->

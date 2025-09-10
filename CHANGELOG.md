@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 6.5.3
+## 6.5.2
 
 ### Fixed
 
@@ -12,17 +12,7 @@
 
 ### Notes
 
-- Recommend upgrading to 6.5.3. Prior 6.5.0–6.5.2 allowed `~> 1.1.9`; this release enforces exact 1.1.9. No breaking changes.
-
-## 6.5.2
-
-### Changed
-
-- iOS: bump OpenIAP Apple native module to `openiap ~> 1.1.9`.
-
-### Notes
-
-- Example iOS Podfile pins tag `1.1.9`; run `cd example/ios && pod install` to refresh lockfile.
+- Recommend upgrading to 6.5.2. Prior 6.5.0–6.5.1 allowed older constraints; this release enforces exact 1.1.9 for stability. No breaking changes.
 
 ## 6.5.1
 
