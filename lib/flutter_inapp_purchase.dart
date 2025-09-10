@@ -78,13 +78,10 @@ class FlutterInappPurchase
   MethodChannel get channel => _channel;
 
   Platform get _platform => _pf;
-  // These are used by the mixins but analyzer doesn't recognize it
-  // ignore: unused_element
-  bool get _isIOS => _platform.isIOS;
-  // ignore: unused_element
-  bool get _isAndroid => _platform.isAndroid;
-  // ignore: unused_element
-  String get _operatingSystem => _platform.operatingSystem;
+  // Public getters used by platform mixins
+  bool get isIOS => _platform.isIOS;
+  bool get isAndroid => _platform.isAndroid;
+  String get operatingSystem => _platform.operatingSystem;
 
   final Platform _pf;
   late final http.Client _httpClient;
@@ -656,12 +653,9 @@ class FlutterInappPurchase
   @override
   Future<void> presentCodeRedemptionSheetIOS() async {
     if (!_platform.isIOS) {
-      throw iap_types.PurchaseError(
-        code: iap_types.ErrorCode.eNotSupported,
-        message: 'This method is only available on iOS',
-        platform: _platform.isIOS
-            ? iap_types.IapPlatform.ios
-            : iap_types.IapPlatform.android,
+      throw PlatformException(
+        code: 'platform',
+        message: 'presentCodeRedemptionSheetIOS is only supported on iOS',
       );
     }
 
@@ -682,12 +676,9 @@ class FlutterInappPurchase
   @override
   Future<void> showManageSubscriptionsIOS() async {
     if (!_platform.isIOS) {
-      throw iap_types.PurchaseError(
-        code: iap_types.ErrorCode.eNotSupported,
-        message: 'This method is only available on iOS',
-        platform: _platform.isIOS
-            ? iap_types.IapPlatform.ios
-            : iap_types.IapPlatform.android,
+      throw PlatformException(
+        code: 'platform',
+        message: 'showManageSubscriptionsIOS is only supported on iOS',
       );
     }
 

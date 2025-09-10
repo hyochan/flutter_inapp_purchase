@@ -10,12 +10,12 @@ import '../types.dart';
 /// Android-specific IAP functionality as a mixin
 mixin FlutterInappPurchaseAndroid {
   MethodChannel get channel;
-  bool get _isAndroid;
+  bool get isAndroid;
 
   /// Deep links to subscriptions screen on Android devices
   /// @param sku - The SKU of the subscription to deep link to
   Future<void> deepLinkToSubscriptionsAndroid({String? sku}) async {
-    if (!_isAndroid) {
+    if (!isAndroid) {
       debugPrint('deepLinkToSubscriptionsAndroid is only supported on Android');
       return;
     }
@@ -43,7 +43,7 @@ mixin FlutterInappPurchaseAndroid {
     required String accessToken,
     required bool isSub,
   }) async {
-    if (!_isAndroid) {
+    if (!isAndroid) {
       return null;
     }
 
@@ -66,7 +66,7 @@ mixin FlutterInappPurchaseAndroid {
   /// Consumes a purchase on Android (for consumable products)
   /// @param purchaseToken - The purchase token to consume
   Future<bool> consumePurchaseAndroid({required String purchaseToken}) async {
-    if (!_isAndroid) {
+    if (!isAndroid) {
       return false;
     }
 
@@ -83,7 +83,7 @@ mixin FlutterInappPurchaseAndroid {
 
   /// Gets in-app messages for Android
   Future<List<InAppMessage>> getInAppMessagesAndroid() async {
-    if (!_isAndroid) {
+    if (!isAndroid) {
       return [];
     }
 
@@ -108,7 +108,7 @@ mixin FlutterInappPurchaseAndroid {
   Future<bool> showInAppMessagesAndroid({
     InAppMessageType messageType = InAppMessageType.generic,
   }) async {
-    if (!_isAndroid) {
+    if (!isAndroid) {
       return false;
     }
 
@@ -164,7 +164,7 @@ mixin FlutterInappPurchaseAndroid {
 
   /// Gets the Play Store connection state
   Future<BillingClientState> getConnectionStateAndroid() async {
-    if (!_isAndroid) {
+    if (!isAndroid) {
       return BillingClientState.disconnected;
     }
 

@@ -1683,7 +1683,12 @@ class Purchase {
       developerPayload: json['developerPayload'] as String?,
       originalOrderId: json['originalOrderId'] as String?,
       purchaseTime: json['purchaseTime'] as int?,
-      platform: getCurrentPlatform(),
+      // Infer platform from JSON when available to allow tests on non-mobile hosts.
+      platform: (json['platform'] is String)
+          ? ((json['platform'] as String).toLowerCase() == 'android'
+              ? IapPlatform.android
+              : IapPlatform.ios)
+          : getCurrentPlatform(),
       // iOS specific per OpenIAP spec
       originalTransactionDateIOS: json['originalTransactionDateIOS'] as String?,
       originalTransactionIdentifierIOS:

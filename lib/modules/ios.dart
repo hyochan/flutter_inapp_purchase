@@ -8,8 +8,8 @@ import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 /// iOS-specific IAP functionality as a mixin
 mixin FlutterInappPurchaseIOS {
   MethodChannel get channel;
-  bool get _isIOS;
-  String get _operatingSystem;
+  bool get isIOS;
+  String get operatingSystem;
 
   /// Abstract method that needs to be implemented by the class using this mixin
   List<Purchase>? extractPurchasedItems(dynamic result);
@@ -17,7 +17,7 @@ mixin FlutterInappPurchaseIOS {
   /// Sync purchases that are not finished yet to be finished.
   /// Returns true if successful, false if running on Android
   Future<bool> syncIOS() async {
-    if (!_isIOS) {
+    if (!isIOS) {
       debugPrint('syncIOS is only supported on iOS');
       return false;
     }
@@ -35,7 +35,7 @@ mixin FlutterInappPurchaseIOS {
   /// Checks if the current user is eligible for an introductory offer
   /// for a given product ID
   Future<bool> isEligibleForIntroOfferIOS(String productId) async {
-    if (!_isIOS) {
+    if (!isIOS) {
       return false;
     }
 
@@ -53,7 +53,7 @@ mixin FlutterInappPurchaseIOS {
 
   /// Gets the subscription status for a specific SKU
   Future<Map<String, dynamic>?> getSubscriptionStatusIOS(String sku) async {
-    if (!_isIOS) {
+    if (!isIOS) {
       return null;
     }
 
@@ -71,7 +71,7 @@ mixin FlutterInappPurchaseIOS {
 
   /// Gets the subscription group for a given SKU
   Future<String?> getSubscriptionGroupIOS(String sku) async {
-    if (!_isIOS) {
+    if (!isIOS) {
       return null;
     }
 
@@ -87,7 +87,7 @@ mixin FlutterInappPurchaseIOS {
 
   /// Gets the iOS app store country code
   Future<String?> getAppStoreCountryIOS() async {
-    if (!_isIOS) {
+    if (!isIOS) {
       return null;
     }
 
@@ -101,9 +101,9 @@ mixin FlutterInappPurchaseIOS {
 
   /// Presents the code redemption sheet (iOS 14+)
   Future<void> presentCodeRedemptionSheetIOS() async {
-    if (!_isIOS) {
+    if (!isIOS) {
       throw PlatformException(
-        code: _operatingSystem,
+        code: operatingSystem,
         message: 'presentCodeRedemptionSheetIOS is only supported on iOS',
       );
     }
@@ -113,13 +113,13 @@ mixin FlutterInappPurchaseIOS {
 
   /// Clear pending transactions (iOS only)
   Future<void> clearTransactionIOS() async {
-    if (!_isIOS) return;
+    if (!isIOS) return;
     await channel.invokeMethod('clearTransactionIOS');
   }
 
   /// Get the currently promoted product (iOS 11+)
   Future<Map<String, dynamic>?> getPromotedProductIOS() async {
-    if (!_isIOS) return null;
+    if (!isIOS) return null;
     final result = await channel.invokeMethod('getPromotedProductIOS');
     if (result == null) return null;
     if (result is Map) return Map<String, dynamic>.from(result);
@@ -129,15 +129,15 @@ mixin FlutterInappPurchaseIOS {
 
   /// Request purchase on promoted product (iOS 11+)
   Future<void> requestPurchaseOnPromotedProductIOS() async {
-    if (!_isIOS) return;
+    if (!isIOS) return;
     await channel.invokeMethod('requestPurchaseOnPromotedProductIOS');
   }
 
   /// Shows manage subscriptions screen (iOS)
   Future<void> showManageSubscriptionsIOS() async {
-    if (!_isIOS) {
+    if (!isIOS) {
       throw PlatformException(
-        code: _operatingSystem,
+        code: operatingSystem,
         message: 'showManageSubscriptionsIOS is only supported on iOS',
       );
     }
@@ -147,7 +147,7 @@ mixin FlutterInappPurchaseIOS {
 
   /// Gets available items (iOS)
   Future<List<Purchase>?> getAvailableItemsIOS() async {
-    if (!_isIOS) {
+    if (!isIOS) {
       return null;
     }
 
@@ -164,7 +164,7 @@ mixin FlutterInappPurchaseIOS {
 
   /// Gets the iOS app transaction (iOS 18.4+)
   Future<Map<String, dynamic>?> getAppTransactionIOS() async {
-    if (!_isIOS) {
+    if (!isIOS) {
       return null;
     }
 
@@ -196,7 +196,7 @@ mixin FlutterInappPurchaseIOS {
   /// Gets all purchase histories including expired subscriptions (iOS only)
   /// Uses Transaction.all to retrieve complete transaction history
   Future<List<Purchase>> getPurchaseHistoriesIOS() async {
-    if (!_isIOS) {
+    if (!isIOS) {
       throw PurchaseError(
         code: ErrorCode.eIapNotAvailable,
         message: 'getPurchaseHistoriesIOS is only available on iOS',
