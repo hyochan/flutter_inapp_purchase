@@ -2,6 +2,10 @@
 
 ## 6.5.3
 
+### Fixed
+
+- iOS: Fix product/discount price parsing to tolerate numeric values (prevents `type 'double' is not a subtype of type 'String?'`), fixes #547.
+
 ### Changed
 
 - iOS: pin OpenIAP Apple native module to `openiap 1.1.9` (exact version) to avoid unexpected CocoaPods minor updates.
