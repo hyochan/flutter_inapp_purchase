@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 6.5.2
+
+### Changed
+
+- iOS: bump OpenIAP Apple native module to `openiap ~> 1.1.9`.
+
+### Notes
+
+- Example iOS Podfile pins tag `1.1.9`; run `cd example/ios && pod install` to refresh lockfile.
+
 ## 6.5.1
 
 ### Changed

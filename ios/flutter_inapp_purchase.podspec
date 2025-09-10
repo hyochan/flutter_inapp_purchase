@@ -15,8 +15,8 @@ In App Purchase plugin for flutter. This project has been forked by react-native
   s.source_files = 'Classes/**/*.swift'
   s.dependency 'Flutter'
   # Use OpenIAP Apple native module (via CocoaPods)
-  # Require 1.1.8 (and allow 1.1.x updates)
-  s.dependency 'openiap', '~> 1.1.8'
+  # Require 1.1.9 (and allow 1.1.x updates)
+  s.dependency 'openiap', '~> 1.1.9'
   
   s.ios.deployment_target = '15.0'
   s.swift_version = '5.5'
