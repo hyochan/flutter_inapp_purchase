@@ -1,93 +1,52 @@
 ---
-name: Bug Report
-about: Create a report to help us improve
-title: ""
-labels: "bug"
-assignees: ""
+name: 🐛 Bug Report
+about: Report an issue to help us improve flutter_inapp_purchase
+title: ''
+labels: 'bug'
+assignees: ''
 ---
 
-## 🚨 MANDATORY PRE-SUBMISSION CHECKLIST
+> Please use the Discussions board for questions or help. Use Issues strictly to report bugs.
 
-> **IMPORTANT**: You MUST check these items before submitting your issue!
+**Description**
 
-### ✅ Checklist
+<!-- A clear and concise description of the problem. -->
 
-- [ ] **Have you tested the `example/` project?**
-  - This contains all core functionality of the package
-  - Example path: `/example/lib/main.dart`
-- [ ] Does the same issue occur in the example project?
-- [ ] Are you using the latest version of the package?
-- [ ] Have you searched [existing issues](https://github.com/hyochan/flutter_inapp_purchase/issues)?
-- [ ] Have you read the [documentation](https://github.com/hyochan/flutter_inapp_purchase#readme)?
+**Expected Behavior**
 
-## 📱 Example Project Test Results
+<!-- What you expected to happen. -->
 
-### Example Project Behavior
+**Screenshots**
 
-- [ ] Works correctly
-- [ ] Same issue occurs
-- [ ] Not tested (reason: )
+<!-- Optional: screenshots to help explain the problem. -->
 
-### Differences from Example
+**Environment**
 
-> Please explain how your code differs from the example project:
+- flutter_inapp_purchase: <!-- e.g., 6.5.3 -->
+- Flutter: <!-- flutter --version -->
+- Dart: <!-- dart --version (optional) -->
+- Platforms: <!-- iOS / Android; emulator/simulator or real device -->
+- iOS deployment target: <!-- e.g., 15.0 -->
+- Xcode version: <!-- e.g., 15.4 -->
+- Android Gradle Plugin / Play Billing: <!-- optional -->
 
-## 🐛 Bug Description
+**Latest Version Check**
 
-> A clear and concise description of what the bug is.
+- [ ] Confirmed the issue reproduces on the latest flutter_inapp_purchase
+  - The library frequently fixes past issues. Please upgrade to the latest release and re-test before filing: https://pub.dev/packages/flutter_inapp_purchase
 
-## 📋 Steps to Reproduce
+**To Reproduce**
 
-> Steps to reproduce the behavior:
-
+Steps to reproduce the behavior:
 1. Go to '...'
-2. Click on '...'
-3. Scroll down to '...'
-4. See error
+2. Tap '...'
+3. See error '...'
 
-## 💻 Minimal Reproducible Code
+**Logs / Stacktraces**
 
-> If possible, provide a minimal code sample that reproduces the issue:
+<!-- Optional: Paste relevant logs/stacktraces. Redact sensitive data. -->
 
-```dart
-// Paste your code here
-```
+**Additional Context**
 
-## 🎯 Expected Behavior
+<!-- Optional: Add any other context about the problem here. -->
 
-> A clear and concise description of what you expected to happen.
-
-## 📸 Screenshots / Logs
-
-> If applicable, add screenshots or error logs to help explain your problem
-
-## 📱 Environment
-
-**Flutter doctor:**
-
-```
-Paste your flutter doctor -v output here
-```
-
-**Package version:**
-
-- flutter_inapp_purchase: ^x.x.x
-
-**Platform:**
-
-- [ ] iOS
-- [ ] Android
-
-**Device:**
-
-- Device/Emulator:
-- OS version:
-
-## 📝 Additional Context
-
-> Add any other context about the problem here
-
----
-
-⚠️ **NOTE**: Issues submitted without testing the example project may receive lower priority.
-The example project is a core codebase that demonstrates all functionality and is continuously tested and maintained.
