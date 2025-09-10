@@ -267,6 +267,52 @@ void main() {
         expect(product.productId, 'test.product.id');
       });
 
+      test('Price parsing tolerates numeric values in JSON', () {
+        // Subscription.fromJson with numeric price
+        final sub = Subscription.fromJson({
+          'productId': 'com.example.sub',
+          'price': 9.99, // numeric
+          'platform': 'ios',
+        });
+        expect(sub.price, 9.99);
+
+        // ProductIOS.fromJson with numeric price
+        final pios = ProductIOS.fromJson({
+          'productId': 'com.example.inapp',
+          'price': 2.49, // numeric
+          'currency': 'USD',
+          'localizedPrice': r'$2.49',
+          'title': 'Inapp',
+          'description': 'Desc',
+          'type': 'inapp',
+        });
+        expect(pios.price, 2.49);
+
+        // DiscountIOS.fromJson with numeric price
+        final discount = DiscountIOS.fromJson({
+          'identifier': 'offer1',
+          'type': 'PAYASYOUGO',
+          'price': 1.99, // numeric
+          'localizedPrice': r'$1.99',
+          'paymentMode': 'PAYASYOUGO',
+          'numberOfPeriods': '1',
+          'subscriptionPeriod': 'MONTH',
+        });
+        expect(discount.price, '1.99');
+
+        // ProductAndroid.fromJson with numeric price
+        final pand = ProductAndroid.fromJson({
+          'productId': 'com.example.android',
+          'price': 4.5, // numeric
+          'currency': 'USD',
+          'localizedPrice': r'$4.50',
+          'title': 'Android Product',
+          'description': 'Desc',
+          'type': 'inapp',
+        });
+        expect(pand.price, 4.5);
+      });
+
       test('Subscription has OpenIAP compliant id getter', () {
         final subscription = Subscription(
           productId: 'test.subscription.id',
