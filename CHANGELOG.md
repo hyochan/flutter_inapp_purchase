@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 6.5.3
+
+### Changed
+
+- iOS: pin OpenIAP Apple native module to `openiap 1.1.9` (exact version) to avoid unexpected CocoaPods minor updates.
+
+### Notes
+
+- Recommend upgrading to 6.5.3. Prior 6.5.0–6.5.2 allowed `~> 1.1.9`; this release enforces exact 1.1.9. No breaking changes.
+
 ## 6.5.2
 
 ### Changed
