@@ -14,6 +14,15 @@ Map<String, dynamic>? _safeJsonMap(dynamic json) {
   return null;
 }
 
+/// Coerce a JSON value that may be a number or a string into a string.
+/// Returns [fallback] if the value is null or an unsupported type.
+String _stringFromNumOrString(dynamic value, {String fallback = '0'}) {
+  if (value == null) return fallback;
+  if (value is String) return value;
+  if (value is num) return value.toString();
+  return fallback;
+}
+
 // ============================================================================
 // CORE TYPES (OpenIAP compliant)
 // ============================================================================
@@ -645,7 +654,7 @@ class DiscountIOS {
     return DiscountIOS(
       identifier: json['identifier'] as String? ?? '',
       type: json['type'] as String? ?? '',
-      price: json['price'] as String? ?? '0',
+      price: _stringFromNumOrString(json['price']),
       localizedPrice: json['localizedPrice'] as String? ?? '',
       paymentMode: json['paymentMode'] as String? ?? '',
       numberOfPeriods: json['numberOfPeriods']?.toString() ?? '0',
@@ -765,7 +774,7 @@ class Subscription extends ProductCommon {
   factory Subscription.fromJson(Map<String, dynamic> json) {
     return Subscription(
       productId: json['productId'] as String? ?? '',
-      price: json['price'] as String? ?? '0',
+      price: _stringFromNumOrString(json['price']),
       currency: json['currency'] as String?,
       localizedPrice: json['localizedPrice'] as String?,
       title: json['title'] as String?,
@@ -1144,7 +1153,7 @@ class ProductIOS extends Product {
   factory ProductIOS.fromJson(Map<String, dynamic> json) {
     return ProductIOS(
       productId: json['productId'] as String? ?? '',
-      price: json['price'] as String? ?? '0',
+      price: _stringFromNumOrString(json['price']),
       currency: json['currency'] as String?,
       localizedPrice: json['localizedPrice'] as String?,
       title: json['title'] as String?,
@@ -1220,7 +1229,7 @@ class ProductAndroid extends Product {
   factory ProductAndroid.fromJson(Map<String, dynamic> json) {
     return ProductAndroid(
       productId: json['productId'] as String? ?? '',
-      price: json['price'] as String? ?? '0',
+      price: _stringFromNumOrString(json['price']),
       currency: json['currency'] as String?,
       localizedPrice: json['localizedPrice'] as String?,
       title: json['title'] as String?,

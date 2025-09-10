@@ -1,5 +1,29 @@
 # CHANGELOG
 
+## 6.5.3
+
+### Fixed
+
+- iOS: Fix product/discount price parsing to tolerate numeric values (prevents `type 'double' is not a subtype of type 'String?'`), fixes #547.
+
+### Changed
+
+- iOS: pin OpenIAP Apple native module to `openiap 1.1.9` (exact version) to avoid unexpected CocoaPods minor updates.
+
+### Notes
+
+- Recommend upgrading to 6.5.3. Prior 6.5.0–6.5.2 allowed `~> 1.1.9`; this release enforces exact 1.1.9. No breaking changes.
+
+## 6.5.2
+
+### Changed
+
+- iOS: bump OpenIAP Apple native module to `openiap ~> 1.1.9`.
+
+### Notes
+
+- Example iOS Podfile pins tag `1.1.9`; run `cd example/ios && pod install` to refresh lockfile.
+
 ## 6.5.1
 
 ### Changed
