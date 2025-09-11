@@ -143,13 +143,13 @@ void main() {
     });
 
     group('Product Requests', () {
-      test('requestProducts returns products on Android', () async {
+      test('fetchProducts returns products on Android', () async {
         plugin = FlutterInappPurchase.private(
           FakePlatform(operatingSystem: 'android'),
         );
         await plugin.initConnection();
 
-        final products = await plugin.requestProducts(
+        final products = await plugin.fetchProducts(
           skus: ['product1', 'product2'],
           type: ProductType.inapp,
         );
@@ -160,13 +160,13 @@ void main() {
         expect(products[1].productId, 'product2');
       });
 
-      test('requestProducts throws when not initialized', () async {
+      test('fetchProducts throws when not initialized', () async {
         plugin = FlutterInappPurchase.private(
           FakePlatform(operatingSystem: 'android'),
         );
 
         expect(
-          () => plugin.requestProducts(
+          () => plugin.fetchProducts(
             skus: ['product1'],
             type: ProductType.inapp,
           ),
@@ -180,13 +180,13 @@ void main() {
         );
       });
 
-      test('requestProducts for subscriptions', () async {
+      test('fetchProducts for subscriptions', () async {
         plugin = FlutterInappPurchase.private(
           FakePlatform(operatingSystem: 'android'),
         );
         await plugin.initConnection();
 
-        final subscriptions = await plugin.requestProducts(
+        final subscriptions = await plugin.fetchProducts(
           skus: ['sub1', 'sub2'],
           type: ProductType.subs,
         );
@@ -462,7 +462,7 @@ void main() {
         await plugin.initConnection();
 
         expect(
-          () => plugin.requestProducts(
+          () => plugin.fetchProducts(
             skus: ['product1'],
             type: ProductType.inapp,
           ),

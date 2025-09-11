@@ -175,85 +175,15 @@ class FlutterInappPurchase
     }
   }
 
-  /// Request products (flutter IAP compatible)
-  /// Returns List<Product> for inapp products, List<Subscription> for subscriptions
+  /// Request products (flutter IAP compatible) — DEPRECATED
+  @Deprecated('Removed in 6.6.0. Use fetchProducts().')
   Future<List<T>> requestProducts<T extends iap_types.ProductCommon>({
     required List<String> skus,
     String type = iap_types.ProductType.inapp,
-  }) async {
-    if (!_isInitialized) {
-      throw iap_types.PurchaseError(
-        code: iap_types.ErrorCode.eNotInitialized,
-        message: 'IAP connection not initialized',
-        platform: _platform.isIOS
-            ? iap_types.IapPlatform.ios
-            : iap_types.IapPlatform.android,
+  }) async =>
+      throw UnsupportedError(
+        'requestProducts() was removed in 6.6.0. Use fetchProducts().',
       );
-    }
-
-    try {
-      debugPrint(
-        '[flutter_inapp_purchase] requestProducts called with skus: $skus,',
-      );
-
-      // Get raw data from native platform
-      final dynamic rawResult;
-      if (_platform.isIOS) {
-        // iOS (OpenIAP): use fetchProducts with explicit type
-        rawResult = await _channel.invokeMethod('fetchProducts', {
-          'skus': skus,
-          'type': type,
-        });
-      } else if (type == iap_types.ProductType.inapp) {
-        rawResult = await _channel.invokeMethod('getProducts', {
-          'productIds': skus,
-        });
-      } else {
-        rawResult = await _channel.invokeMethod('getSubscriptions', {
-          'productIds': skus,
-        });
-      }
-
-      // Android returns JSON string, iOS returns List
-      final List<dynamic> result;
-      if (rawResult is String) {
-        // Parse JSON string from Android
-        result = jsonDecode(rawResult) as List<dynamic>? ?? [];
-      } else {
-        result = rawResult as List<dynamic>? ?? [];
-      }
-
-      debugPrint(
-        '[flutter_inapp_purchase] Received ${result.length} items from native',
-      );
-
-      // Convert directly to Product/Subscription without intermediate IapItem
-      final products = result.map((item) {
-        // Handle different Map types from iOS and Android
-        final Map<String, dynamic> itemMap;
-        if (item is Map<String, dynamic>) {
-          itemMap = item;
-        } else if (item is Map) {
-          // Convert Map<Object?, Object?> to Map<String, dynamic>
-          itemMap = Map<String, dynamic>.from(item);
-        } else {
-          throw Exception('Unexpected item type: ${item.runtimeType}');
-        }
-        return _parseProductFromNative(itemMap, type);
-      }).toList();
-
-      // Cast to the expected type
-      return products.cast<T>();
-    } catch (e) {
-      throw iap_types.PurchaseError(
-        code: iap_types.ErrorCode.eServiceError,
-        message: 'Failed to fetch products: ${e.toString()}',
-        platform: _platform.isIOS
-            ? iap_types.IapPlatform.ios
-            : iap_types.IapPlatform.android,
-      );
-    }
-  }
 
   /// Request purchase (flutter IAP compatible)
   Future<void> requestPurchase({
@@ -385,6 +315,7 @@ class FlutterInappPurchase
   /// Request purchase with automatic platform detection
   /// This method simplifies the purchase request by automatically detecting the platform
   /// and using the appropriate parameters from the RequestPurchase object
+  @Deprecated('Removed in 6.6.0. Use requestPurchase() instead.')
   Future<void> requestPurchaseAuto({
     required String sku,
     required String type,
@@ -404,40 +335,10 @@ class FlutterInappPurchase
     // Android subscription-specific
     int? replacementModeAndroid,
     List<iap_types.SubscriptionOfferAndroid>? subscriptionOffers,
-  }) async {
-    final request = iap_types.RequestPurchase(
-      ios: _platform.isIOS
-          ? iap_types.RequestPurchaseIOS(
-              sku: sku,
-              andDangerouslyFinishTransactionAutomaticallyIOS:
-                  andDangerouslyFinishTransactionAutomaticallyIOS,
-              appAccountToken: appAccountToken,
-              quantity: quantity,
-              withOffer: withOffer,
-            )
-          : null,
-      android: _platform.isAndroid
-          ? (type == iap_types.ProductType.subs
-              ? iap_types.RequestSubscriptionAndroid(
-                  skus: [sku],
-                  obfuscatedAccountIdAndroid: obfuscatedAccountIdAndroid,
-                  obfuscatedProfileIdAndroid: obfuscatedProfileIdAndroid,
-                  isOfferPersonalized: isOfferPersonalized,
-                  purchaseTokenAndroid: purchaseToken,
-                  replacementModeAndroid: replacementModeAndroid,
-                  subscriptionOffers: subscriptionOffers ?? [],
-                )
-              : iap_types.RequestPurchaseAndroid(
-                  skus: [sku],
-                  obfuscatedAccountIdAndroid: obfuscatedAccountIdAndroid,
-                  obfuscatedProfileIdAndroid: obfuscatedProfileIdAndroid,
-                  isOfferPersonalized: isOfferPersonalized,
-                ))
-          : null,
-    );
-
-    await requestPurchase(request: request, type: type);
-  }
+  }) async =>
+      throw UnsupportedError(
+        'requestPurchaseAuto() was removed in 6.6.0. Use requestPurchase() with explicit parameters.',
+      );
 
   /// DSL-like request purchase method with builder pattern
   /// Provides a more intuitive and type-safe way to build purchase requests
@@ -454,6 +355,7 @@ class FlutterInappPurchase
   ///       ..skus = ['product_id']),
   /// );
   /// ```
+  @Deprecated('Use requestPurchase() instead. Will be removed in 6.6.0')
   Future<void> requestPurchaseWithBuilder({
     required RequestBuilder build,
   }) async {
@@ -478,14 +380,14 @@ class FlutterInappPurchase
   ///       ..purchaseTokenAndroid = existingToken),
   /// );
   /// ```
+  @Deprecated('Removed in 6.6.0. Use requestPurchaseWithBuilder() or requestPurchase().')
   Future<void> requestSubscriptionWithBuilder({
     required SubscriptionBuilder build,
-  }) async {
-    final builder = RequestSubscriptionBuilder();
-    build(builder);
-    final request = builder.build();
-    await requestPurchase(request: request, type: iap_types.ProductType.subs);
-  }
+  }) async =>
+      throw UnsupportedError(
+        'requestSubscriptionWithBuilder() was removed in 6.6.0. '
+        'Use requestPurchaseWithBuilder() or requestPurchase() instead.',
+      );
 
   /// Get all available purchases (OpenIAP standard)
   /// Returns non-consumed purchases that are still pending acknowledgment or consumption
@@ -558,7 +460,7 @@ class FlutterInappPurchase
   /// ```
   @Deprecated(
     'Use getAvailablePurchases with PurchaseOptions instead. '
-    'Will be removed in v7.0.0',
+    'Will be removed in 6.6.0',
   )
   Future<List<iap_types.Purchase>> getPurchaseHistories() async {
     if (!_isInitialized) {
@@ -697,6 +599,7 @@ class FlutterInappPurchase
 
   /// Android specific: Deep link to subscriptions
   @override
+  @Deprecated('Not part of the unified API. Will be removed in 6.6.0')
   Future<void> deepLinkToSubscriptionsAndroid({String? sku}) async {
     if (!_platform.isAndroid) {
       debugPrint('deepLinkToSubscriptionsAndroid is only supported on Android');
@@ -1260,6 +1163,7 @@ class FlutterInappPurchase
 
   // Original API methods (with deprecation annotations where needed)
 
+  @Deprecated('Not part of the unified API. Will be removed in 6.6.0')
   Future<bool> isReady() async {
     if (_platform.isAndroid) {
       return (await _channel.invokeMethod<bool?>('isReady')) ?? false;
@@ -1273,6 +1177,7 @@ class FlutterInappPurchase
     );
   }
 
+  @Deprecated('Not part of the unified API. Will be removed in 6.6.0')
   Future<Store> getStore() async {
     if (_platform.isIOS) {
       return Future.value(Store.appStore);
@@ -1312,6 +1217,7 @@ class FlutterInappPurchase
   ///   purchaseTokenAndroid: existingSub.purchaseToken,
   /// );
   /// ```
+  @Deprecated('Use requestPurchase() instead. Will be removed in 6.6.0')
   Future<dynamic> requestSubscription(
     String productId, {
     int? replacementModeAndroid,
@@ -1386,6 +1292,7 @@ class FlutterInappPurchase
   }
 
   /// End connection
+  @Deprecated('Use endConnection() instead. Will be removed in 6.6.0')
   Future<String?> finalize() async {
     if (_platform.isAndroid) {
     } else if (_platform.isIOS) {
@@ -1490,7 +1397,7 @@ class FlutterInappPurchase
   @Deprecated(
     'Use validateReceiptIOS for StoreKit 2 on-device validation. '
     'Server-side verifyReceipt remains supported by Apple but is legacy in this plugin. '
-    'Will be removed in v7.0.0',
+    'Will be removed in 6.6.0',
   )
   Future<http.Response> validateReceiptIos({
     required Map<String, String> receiptBody,
@@ -1888,33 +1795,109 @@ class FlutterInappPurchase
     required List<String> skus,
     String type = iap_types.ProductType.inapp,
   }) async {
-    return requestProducts<T>(skus: skus, type: type);
-  }
-
-  /// flutter IAP compatible purchase method
-  Future<void> purchaseAsync(String productId) async {
-    try {
-      if (_platform.isIOS) {
-        await _channel.invokeMethod('requestPurchase', <String, dynamic>{
-          'sku': productId,
-        });
-      } else if (_platform.isAndroid) {
-        await _channel.invokeMethod('buyItemByType', <String, dynamic>{
-          'type': TypeInApp.inapp.name,
-          'productId': productId,
-          'replacementMode': -1,
-        });
-      }
-    } catch (e) {
+    if (!_isInitialized) {
       throw iap_types.PurchaseError(
+        code: iap_types.ErrorCode.eNotInitialized,
+        message: 'IAP connection not initialized',
         platform: _platform.isIOS
             ? iap_types.IapPlatform.ios
             : iap_types.IapPlatform.android,
-        code: iap_types.ErrorCode.eUnknown,
-        message: e.toString(),
+      );
+    }
+
+    try {
+      debugPrint('[flutter_inapp_purchase] fetchProducts called with skus: $skus, type: $type');
+
+      // Get raw data from native platform
+      final List<dynamic> merged = [];
+      if (_platform.isIOS) {
+        // iOS supports 'all' at native layer
+        final raw = await _channel.invokeMethod('fetchProducts', {
+          'skus': skus,
+          'type': type,
+        });
+        if (raw is String) {
+          merged.addAll(jsonDecode(raw) as List<dynamic>? ?? []);
+        } else if (raw is List) {
+          merged.addAll(raw);
+        }
+      } else {
+        // Android: handle 'all' by fetching both types
+        Future<dynamic> fetchInapp() => _channel.invokeMethod('getProducts', {
+              'productIds': skus,
+            });
+        Future<dynamic> fetchSubs() => _channel.invokeMethod('getSubscriptions', {
+              'productIds': skus,
+            });
+
+        if (type == 'all') {
+          final results = await Future.wait([fetchInapp(), fetchSubs()]);
+          for (final raw in results) {
+            if (raw is String) {
+              merged.addAll(jsonDecode(raw) as List<dynamic>? ?? []);
+            } else if (raw is List) {
+              merged.addAll(raw);
+            }
+          }
+        } else if (type == iap_types.ProductType.inapp) {
+          final raw = await fetchInapp();
+          if (raw is String) {
+            merged.addAll(jsonDecode(raw) as List<dynamic>? ?? []);
+          } else if (raw is List) {
+            merged.addAll(raw);
+          }
+        } else {
+          final raw = await fetchSubs();
+          if (raw is String) {
+            merged.addAll(jsonDecode(raw) as List<dynamic>? ?? []);
+          } else if (raw is List) {
+            merged.addAll(raw);
+          }
+        }
+      }
+
+      final result = merged;
+
+      debugPrint(
+        '[flutter_inapp_purchase] Received ${result.length} items from native',
+      );
+
+      // Convert directly to Product/Subscription without intermediate IapItem
+      final products = result.map((item) {
+        // Handle different Map types from iOS and Android
+        final Map<String, dynamic> itemMap;
+        if (item is Map<String, dynamic>) {
+          itemMap = item;
+        } else if (item is Map) {
+          // Convert Map<Object?, Object?> to Map<String, dynamic>
+          itemMap = Map<String, dynamic>.from(item);
+        } else {
+          throw Exception('Unexpected item type: ${item.runtimeType}');
+        }
+        // When 'all', native item contains its own type; pass through using detected type
+        final detectedType = (type == 'all') ? (itemMap['type']?.toString() ?? iap_types.ProductType.inapp) : type;
+        return _parseProductFromNative(itemMap, detectedType);
+      }).toList();
+
+      // Cast to the expected type
+      return products.cast<T>();
+    } catch (e) {
+      throw iap_types.PurchaseError(
+        code: iap_types.ErrorCode.eServiceError,
+        message: 'Failed to fetch products: ${e.toString()}',
+        platform: _platform.isIOS
+            ? iap_types.IapPlatform.ios
+            : iap_types.IapPlatform.android,
       );
     }
   }
+
+  /// flutter IAP compatible purchase method — DEPRECATED
+  @Deprecated('Removed in 6.6.0. Use requestPurchase() instead.')
+  Future<void> purchaseAsync(String productId) async =>
+      throw UnsupportedError(
+        'purchaseAsync() was removed in 6.6.0. Use requestPurchase() instead.',
+      );
 
   // finishTransactionAsync removed in favor of finishTransaction(Purchase).
 
@@ -1953,6 +1936,7 @@ class FlutterInappPurchase
 
   /// Get promoted product (App Store promoted purchase)
   /// Returns a map with product information on iOS or null if unavailable.
+  @Deprecated('Use getPromotedProductIOS() instead. Will be removed in 6.6.0')
   Future<Map<String, dynamic>?> getPromotedProduct() async {
     if (_platform.isIOS) {
       final result = await _channel.invokeMethod('getPromotedProductIOS');

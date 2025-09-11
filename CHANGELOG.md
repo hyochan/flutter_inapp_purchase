@@ -62,7 +62,7 @@
 
 ### Deprecated
 
-- `getPurchaseHistories()` → Use `getAvailablePurchases()` with options (removed in v7.0.0)
+- `getPurchaseHistories()` → Use `getAvailablePurchases()` with options (removed in 6.6.0)
 
 ## 6.4.5
 
@@ -81,7 +81,7 @@
 
 ### Deprecated
 
-- `getPurchaseHistories()` - Use `getAvailablePurchases(PurchaseOptions(onlyIncludeActiveItemsIOS: false))` instead (will be removed in v7.0.0)
+- `getPurchaseHistories()` - Use `getAvailablePurchases(PurchaseOptions(onlyIncludeActiveItemsIOS: false))` instead (will be removed in 6.6.0)
 
 ### Bug Fixes
 

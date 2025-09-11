@@ -50,7 +50,7 @@ void main() {
       });
     });
 
-    group('requestProducts', () {
+    group('fetchProducts', () {
       group('for Android', () {
         final List<MethodCall> log = <MethodCall>[];
         late FlutterInappPurchase testIap;
@@ -100,7 +100,7 @@ void main() {
           await testIap.initConnection();
           log.clear(); // Clear init log
 
-          await testIap.requestProducts(
+          await testIap.fetchProducts(
             skus: ['com.example.product1', 'com.example.product2'],
             type: ProductType.inapp,
           );
@@ -120,7 +120,7 @@ void main() {
           // Initialize connection first
           await testIap.initConnection();
 
-          final products = await testIap.requestProducts<Product>(
+          final products = await testIap.fetchProducts<Product>(
             skus: ['com.example.product1', 'com.example.product2'],
             type: ProductType.inapp,
           );
@@ -133,7 +133,7 @@ void main() {
       });
     });
 
-    group('requestProducts for subscriptions', () {
+    group('fetchProducts for subscriptions', () {
       group('for iOS', () {
         final List<MethodCall> log = <MethodCall>[];
         late FlutterInappPurchase testIap;
@@ -172,7 +172,7 @@ void main() {
           await testIap.initConnection();
           log.clear(); // Clear init log
 
-          await testIap.requestProducts(
+          await testIap.fetchProducts(
             skus: ['com.example.subscription1'],
             type: ProductType.subs,
           );
@@ -191,7 +191,7 @@ void main() {
           // Initialize connection first
           await testIap.initConnection();
 
-          final subscriptions = await testIap.requestProducts<Subscription>(
+          final subscriptions = await testIap.fetchProducts<Subscription>(
             skus: ['com.example.subscription1'],
             type: ProductType.subs,
           );
@@ -591,8 +591,10 @@ void main() {
           // It triggers a native purchase flow that sends events
           // For testing, we just verify the method can be called without error
           await expectLater(
-            testIap.requestPurchaseAuto(
-              sku: 'test.product',
+            testIap.requestPurchase(
+              request: RequestPurchase(
+                android: RequestPurchaseAndroid(skus: ['test.product']),
+              ),
               type: ProductType.inapp,
             ),
             completes,
@@ -609,8 +611,10 @@ void main() {
           // It triggers a native purchase flow that sends events
           // For testing, we just verify the method can be called without error
           await expectLater(
-            testIap.requestPurchaseAuto(
-              sku: 'test.subscription',
+            testIap.requestPurchase(
+              request: RequestPurchase(
+                android: RequestPurchaseAndroid(skus: ['test.subscription']),
+              ),
               type: ProductType.subs,
             ),
             completes,
@@ -659,8 +663,10 @@ void main() {
         // It triggers a native purchase flow that sends events
         // For testing, we just verify the method can be called without error
         await expectLater(
-          testIap.requestPurchaseAuto(
-            sku: 'ios.test.product',
+          testIap.requestPurchase(
+            request: RequestPurchase(
+              ios: RequestPurchaseIOS(sku: 'ios.test.product'),
+            ),
             type: ProductType.inapp,
           ),
           completes,

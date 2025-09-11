@@ -70,6 +70,7 @@ mixin FlutterInappPurchaseIOS {
   }
 
   /// Gets the subscription group for a given SKU
+  @Deprecated('Not part of the unified API. Will be removed in 6.6.0')
   Future<String?> getSubscriptionGroupIOS(String sku) async {
     if (!isIOS) {
       return null;
@@ -86,6 +87,7 @@ mixin FlutterInappPurchaseIOS {
   }
 
   /// Gets the iOS app store country code
+  @Deprecated('Use getStorefrontIOS() via main API. Will be removed in 6.6.0')
   Future<String?> getAppStoreCountryIOS() async {
     if (!isIOS) {
       return null;
@@ -146,6 +148,7 @@ mixin FlutterInappPurchaseIOS {
   }
 
   /// Gets available items (iOS)
+  @Deprecated('Use getAvailablePurchases() instead. Will be removed in 6.6.0')
   Future<List<Purchase>?> getAvailableItemsIOS() async {
     if (!isIOS) {
       return null;
@@ -180,6 +183,7 @@ mixin FlutterInappPurchaseIOS {
   }
 
   /// Gets the typed iOS app transaction (iOS 18.4+)
+  @Deprecated('Use getAppTransactionIOS() and map locally. Will be removed in 6.6.0')
   Future<AppTransaction?> getAppTransactionTypedIOS() async {
     final transactionMap = await getAppTransactionIOS();
     if (transactionMap != null) {
@@ -195,6 +199,7 @@ mixin FlutterInappPurchaseIOS {
 
   /// Gets all purchase histories including expired subscriptions (iOS only)
   /// Uses Transaction.all to retrieve complete transaction history
+  @Deprecated('Use getAvailablePurchases(options) with onlyIncludeActiveItemsIOS=false. Will be removed in 6.6.0')
   Future<List<Purchase>> getPurchaseHistoriesIOS() async {
     if (!isIOS) {
       throw PurchaseError(

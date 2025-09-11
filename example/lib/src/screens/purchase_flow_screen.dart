@@ -320,8 +320,8 @@ Platform: ${error.platform}
 
     try {
       debugPrint('🔍 Loading products for IDs: ${productIds.join(", ")}');
-      // Use requestProducts with Product type for type-safe list
-      final products = await _iap.requestProducts<Product>(
+      // Use fetchProducts with Product type for type-safe list
+      final products = await _iap.fetchProducts<Product>(
         skus: productIds,
         type: ProductType.inapp,
       );
@@ -365,16 +365,18 @@ Platform: ${error.platform}
       debugPrint('Requesting purchase...');
       debugPrint('Product ID: $productId');
 
-      // Use the new DSL-like builder pattern for purchase request
-      // This provides better type safety and cleaner API than the old approach
-      await _iap.requestPurchaseWithBuilder(
-        build: (r) => r
-          ..type = ProductType.inapp
-          ..withIOS((i) => i
-            ..sku = productId
-            ..quantity = 1) // Optional: specify quantity for iOS
-          ..withAndroid(
-              (a) => a..skus = [productId]), // Android uses array of SKUs
+      // Build platform-specific request and call unified requestPurchase
+      await _iap.requestPurchase(
+        request: RequestPurchase(
+          ios: RequestPurchaseIOS(
+            sku: productId,
+            quantity: 1,
+          ),
+          android: RequestPurchaseAndroid(
+            skus: [productId],
+          ),
+        ),
+        type: ProductType.inapp,
       );
 
       debugPrint('✅ Purchase request sent successfully');

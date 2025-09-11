@@ -14,6 +14,7 @@ mixin FlutterInappPurchaseAndroid {
 
   /// Deep links to subscriptions screen on Android devices
   /// @param sku - The SKU of the subscription to deep link to
+  @Deprecated('Not part of the unified API. Will be removed in 6.6.0')
   Future<void> deepLinkToSubscriptionsAndroid({String? sku}) async {
     if (!isAndroid) {
       debugPrint('deepLinkToSubscriptionsAndroid is only supported on Android');
@@ -36,6 +37,7 @@ mixin FlutterInappPurchaseAndroid {
   /// @param productToken - The purchase token
   /// @param accessToken - The access token for validation
   /// @param isSub - Whether this is a subscription
+  @Deprecated('Use validateReceipt() instead. Will be removed in 6.6.0')
   Future<Map<String, dynamic>?> validateReceiptAndroid({
     required String packageName,
     required String productId,
@@ -82,6 +84,7 @@ mixin FlutterInappPurchaseAndroid {
   }
 
   /// Gets in-app messages for Android
+  @Deprecated('Not part of the unified API. Will be removed in 6.6.0')
   Future<List<InAppMessage>> getInAppMessagesAndroid() async {
     if (!isAndroid) {
       return [];
@@ -105,6 +108,7 @@ mixin FlutterInappPurchaseAndroid {
 
   /// Shows in-app messages for Android
   /// @param messageType - The type of message to show
+  @Deprecated('Not part of the unified API. Will be removed in 6.6.0')
   Future<bool> showInAppMessagesAndroid({
     InAppMessageType messageType = InAppMessageType.generic,
   }) async {
@@ -129,6 +133,7 @@ mixin FlutterInappPurchaseAndroid {
   /// @param productToken - The purchase token
   /// @param accessToken - The access token
   /// @param isSub - Whether this is a subscription
+  @Deprecated('Use server-side validation instead. Will be removed in 6.6.0')
   Future<PurchaseResult?> validateReceiptAndroidInGooglePlay({
     required String packageName,
     required String productId,
@@ -163,6 +168,7 @@ mixin FlutterInappPurchaseAndroid {
   }
 
   /// Gets the Play Store connection state
+  @Deprecated('Internal diagnostic. Will be removed in 6.6.0')
   Future<BillingClientState> getConnectionStateAndroid() async {
     if (!isAndroid) {
       return BillingClientState.disconnected;

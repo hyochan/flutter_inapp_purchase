@@ -118,7 +118,7 @@ void main() {
         );
         await plugin.initConnection();
 
-        final subscriptions = await plugin.requestProducts(
+        final subscriptions = await plugin.fetchProducts(
           skus: ['monthly_sub', 'yearly_sub'],
           type: ProductType.subs,
         );
@@ -136,7 +136,7 @@ void main() {
         );
         await plugin.initConnection();
 
-        final subscriptions = await plugin.requestProducts(
+        final subscriptions = await plugin.fetchProducts(
           skus: ['ios_monthly_sub'],
           type: ProductType.subs,
         );
@@ -155,7 +155,7 @@ void main() {
         );
         await plugin.initConnection();
 
-        final subscriptions = await plugin.requestProducts(
+        final subscriptions = await plugin.fetchProducts(
           skus: ['android_sub_with_offers'],
           type: ProductType.subs,
         );

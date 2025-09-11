@@ -1,10 +1,16 @@
 name: Gemini Auto PR
 
 on:
+  # Only run when explicitly requested, to save quota
   issues:
-    types: [opened, labeled]
+    types: [labeled]
   issue_comment:
     types: [created]
+
+# Ensure only one run per-issue at a time and avoid duplicates
+concurrency:
+  group: ci-gemini-pr-${{ github.event.issue.number }}
+  cancel-in-progress: true
 
 permissions:
   contents: write
@@ -16,8 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       (github.event_name == 'issues' && 
-       (github.event.action == 'opened' || 
-        (github.event.action == 'labeled' && contains(github.event.issue.labels.*.name, 'auto-fix')))) ||
+        github.event.action == 'labeled' && contains(github.event.issue.labels.*.name, 'auto-fix')) ||
       (github.event_name == 'issue_comment' && 
        contains(github.event.comment.body, '@gemini-cli') && 
        contains(github.event.comment.body, '/fix'))
@@ -40,6 +45,7 @@ jobs:
       - name: Analyze issue and create PR if solvable
         id: analyze-pr
         uses: google-github-actions/run-gemini-cli@v0
+        timeout-minutes: 20
         with:
           prompt: |
             You are an expert Flutter developer helping with the flutter_inapp_purchase package.
@@ -52,7 +58,7 @@ jobs:
             Your task:
             1. Determine if this issue can be automatically resolved with code changes
             2. If it's a bug that can be fixed or a simple feature that can be implemented:
-               - Create a new branch named 'fix-issue-${{ github.event.issue.number }}'
+               - Create a new branch named 'fix-issue-${{ github.event.issue.number }}' (only if it does not already exist)
                - Make the necessary code changes following the CLAUDE.md guidelines
                - Ensure all tests pass (flutter test)
                - Ensure code is formatted (dart format .)
@@ -71,6 +77,14 @@ jobs:
             - Maintain backward compatibility unless explicitly mentioned in the issue
             - Add tests for any new functionality
             - Update documentation if needed
+
+            Idempotency and Safety Requirements:
+            - Before deleting any branch, first check existence using: `git rev-parse --verify <branch>`.
+              Only delete if it exists. Never loop on the same failing command.
+            - If branch creation fails once, stop and return an error with a single clear message.
+            - If the Gemini API returns a 429 (quota exceeded), stop immediately and surface the error; do not retry in a loop.
+            - Never attempt to switch to a branch you are already on; check current branch with `git rev-parse --abbrev-ref HEAD`.
+            - Keep commands minimal and fail-fast; no repeated attempts of the same action.
 
             Only create a PR if you're confident the solution is correct and complete.
 
@@ -97,10 +111,10 @@ jobs:
               "repositories": [
                 {
                   "path": ".",
-                  "instructions": "file://CLAUDE.md"
+                  "instructions": "Refer to CLAUDE.md for conventions. Keep changes minimal, add tests, and follow pre-commit checks."
                 }
               ],
-              "model": "gemini-2.5-pro"
+              "model": "gemini-1.5-flash"
             }
 
           gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
@@ -119,7 +133,12 @@ jobs:
 
             let comment = '';
             if (error) {
-              comment = `Failed to analyze or fix the issue:\n\`\`\`\n${error}\n\`\`\``;
+              let friendly = '';
+              const lower = String(error).toLowerCase();
+              if (lower.includes('429') || lower.includes('resource_exhausted') || lower.includes('quota')) {
+                friendly = '\n\nIt looks like the Gemini API quota was exceeded. Please try again later or switch to a higher-quota model/key. You can retrigger by commenting `@gemini-cli /fix` once quota is available.';
+              }
+              comment = `Failed to analyze or fix the issue:${friendly}\n\n\`\`\`\n${error}\n\`\`\``;
             } else if (summary) {
               comment = `Gemini Analysis Result:\n${summary}`;
             }

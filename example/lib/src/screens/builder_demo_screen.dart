@@ -38,11 +38,12 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
     });
 
     try {
-      await _iap.requestPurchaseWithBuilder(
-        build: (r) => r
-          ..type = ProductType.inapp
-          ..withIOS((i) => i..sku = 'com.example.coins100')
-          ..withAndroid((a) => a..skus = ['com.example.coins100']),
+      await _iap.requestPurchase(
+        request: RequestPurchase(
+          ios: RequestPurchaseIOS(sku: 'com.example.coins100'),
+          android: RequestPurchaseAndroid(skus: ['com.example.coins100']),
+        ),
+        type: ProductType.inapp,
       );
       setState(() => _status = 'Purchase initiated');
     } catch (e) {
@@ -60,13 +61,12 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
     });
 
     try {
-      await _iap.requestPurchaseWithBuilder(
-        build: (r) => r
-          ..type = ProductType.inapp
-          ..withIOS((i) => i
-            ..sku = 'com.example.coins100'
-            ..quantity = 5)
-          ..withAndroid((a) => a..skus = ['com.example.coins100']),
+      await _iap.requestPurchase(
+        request: RequestPurchase(
+          ios: RequestPurchaseIOS(sku: 'com.example.coins100', quantity: 5),
+          android: RequestPurchaseAndroid(skus: ['com.example.coins100']),
+        ),
+        type: ProductType.inapp,
       );
       setState(() => _status = 'Purchase with quantity initiated');
     } catch (e) {
@@ -84,10 +84,14 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
     });
 
     try {
-      await _iap.requestSubscriptionWithBuilder(
-        build: (r) => r
-          ..withIOS((i) => i..sku = 'com.example.premium_monthly')
-          ..withAndroid((a) => a..skus = ['com.example.premium_monthly']),
+      await _iap.requestPurchase(
+        request: RequestPurchase(
+          ios: RequestPurchaseIOS(sku: 'com.example.premium_monthly'),
+          android: RequestSubscriptionAndroid(
+            skus: ['com.example.premium_monthly'],
+          ),
+        ),
+        type: ProductType.subs,
       );
       setState(() => _status = 'Subscription initiated');
     } catch (e) {
@@ -112,14 +116,16 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
         orElse: () => throw Exception('No existing subscription found'),
       );
 
-      await _iap.requestSubscriptionWithBuilder(
-        build: (r) => r
-          ..withIOS((i) => i..sku = 'com.example.premium_yearly')
-          ..withAndroid((a) => a
-            ..skus = ['com.example.premium_yearly']
-            ..replacementModeAndroid =
-                AndroidReplacementMode.withTimeProration.value
-            ..purchaseTokenAndroid = existingSubscription.purchaseToken),
+      await _iap.requestPurchase(
+        request: RequestPurchase(
+          ios: RequestPurchaseIOS(sku: 'com.example.premium_yearly'),
+          android: RequestSubscriptionAndroid(
+            skus: ['com.example.premium_yearly'],
+            replacementModeAndroid: AndroidReplacementMode.withTimeProration.value,
+            purchaseTokenAndroid: existingSubscription.purchaseToken,
+          ),
+        ),
+        type: ProductType.subs,
       );
       setState(() => _status = 'Subscription upgrade initiated');
     } catch (e) {
@@ -137,17 +143,20 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
     });
 
     try {
-      await _iap.requestPurchaseWithBuilder(
-        build: (r) => r
-          ..type = ProductType.inapp
-          ..withIOS((i) => i
-            ..sku = 'com.example.powerup'
-            ..applicationUsername = 'user123'
-            ..appAccountToken = 'token-abc-123')
-          ..withAndroid((a) => a
-            ..skus = ['com.example.powerup']
-            ..obfuscatedAccountIdAndroid = 'user123_obfuscated'
-            ..obfuscatedProfileIdAndroid = 'profile456_obfuscated'),
+      await _iap.requestPurchase(
+        request: RequestPurchase(
+          ios: RequestPurchaseIOS(
+            sku: 'com.example.powerup',
+            applicationUsername: 'user123',
+            appAccountToken: 'token-abc-123',
+          ),
+          android: RequestPurchaseAndroid(
+            skus: ['com.example.powerup'],
+            obfuscatedAccountIdAndroid: 'user123_obfuscated',
+            obfuscatedProfileIdAndroid: 'profile456_obfuscated',
+          ),
+        ),
+        type: ProductType.inapp,
       );
       setState(() => _status = 'Purchase with account initiated');
     } catch (e) {
@@ -171,13 +180,16 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
         offerToken: 'offer_token_xyz',
       );
 
-      await _iap.requestSubscriptionWithBuilder(
-        build: (r) => r
-          ..withIOS((i) => i..sku = 'com.example.premium_monthly')
-          ..withAndroid((a) => a
-            ..skus = ['com.example.premium_monthly']
-            ..subscriptionOffers = [offer]
-            ..isOfferPersonalized = true),
+      await _iap.requestPurchase(
+        request: RequestPurchase(
+          ios: RequestPurchaseIOS(sku: 'com.example.premium_monthly'),
+          android: RequestSubscriptionAndroid(
+            skus: ['com.example.premium_monthly'],
+            subscriptionOffers: [offer],
+            isOfferPersonalized: true,
+          ),
+        ),
+        type: ProductType.subs,
       );
       setState(() => _status = 'Subscription with offer initiated');
     } catch (e) {
@@ -343,14 +355,12 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Text(
-                        '''await iap.requestPurchaseWithBuilder(
-  build: (r) => r
-    ..type = ProductType.inapp
-    ..withIOS((i) => i
-      ..sku = 'product_id'
-      ..quantity = 1)
-    ..withAndroid((a) => a
-      ..skus = ['product_id']),
+                        '''await iap.requestPurchase(
+  request: RequestPurchase(
+    ios: RequestPurchaseIOS(sku: 'product_id', quantity: 1),
+    android: RequestPurchaseAndroid(skus: ['product_id']),
+  ),
+  type: ProductType.inapp,
 );''',
                         style: TextStyle(
                           fontFamily: 'monospace',

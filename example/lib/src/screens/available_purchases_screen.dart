@@ -122,13 +122,14 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
       // Load purchase history
       List<Purchase> purchaseHistory = [];
       if (getCurrentPlatform() == IapPlatform.ios) {
-        // iOS: use getAvailablePurchases with onlyIncludeActiveItemsIOS = false to include expired
+        // iOS: include expired subscriptions as history
         purchaseHistory = await _iap.getAvailablePurchases(
           const PurchaseOptions(onlyIncludeActiveItemsIOS: false),
         );
       } else {
-        // Android: keep using history API for consumed/expired items
-        purchaseHistory = await _iap.getPurchaseHistories();
+        // Android (GPB v8+): history of consumed items is not available via API
+        // Show active purchases only
+        purchaseHistory = [];
       }
       debugPrint('Loaded ${purchaseHistory.length} purchases from history');
 

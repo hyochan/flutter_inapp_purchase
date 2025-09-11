@@ -2645,7 +2645,7 @@ class ReceiptValidationResult {
   final String? purchaseToken;
 
   /// JWS representation (iOS StoreKit 2) - DEPRECATED: Use purchaseToken instead
-  @Deprecated('Use purchaseToken instead. Will be removed in v7.0.0')
+  @Deprecated('Use purchaseToken instead. Will be removed in 6.6.0')
   final String? jwsRepresentation;
 
   /// Latest transaction information (StoreKit 2)
