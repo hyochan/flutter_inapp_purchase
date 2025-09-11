@@ -355,7 +355,6 @@ class FlutterInappPurchase
   ///       ..skus = ['product_id']),
   /// );
   /// ```
-  @Deprecated('Use requestPurchase() instead. Will be removed in 6.6.0')
   Future<void> requestPurchaseWithBuilder({
     required RequestBuilder build,
   }) async {
@@ -380,14 +379,28 @@ class FlutterInappPurchase
   ///       ..purchaseTokenAndroid = existingToken),
   /// );
   /// ```
-  @Deprecated('Removed in 6.6.0. Use requestPurchaseWithBuilder() or requestPurchase().')
+  /// DSL-like request subscription method with builder pattern
+  /// Provides a more intuitive and type-safe way to build subscription requests
+  ///
+  /// Example:
+  /// ```dart
+  /// await iap.requestSubscriptionWithBuilder(
+  ///   build: (r) => r
+  ///     ..withIOS((i) => i..sku = 'subscription_id')
+  ///     ..withAndroid((a) => a
+  ///       ..skus = ['subscription_id']
+  ///       ..replacementModeAndroid = AndroidReplacementMode.withTimeProration.value
+  ///       ..purchaseTokenAndroid = existingToken),
+  /// );
+  /// ```
   Future<void> requestSubscriptionWithBuilder({
     required SubscriptionBuilder build,
-  }) async =>
-      throw UnsupportedError(
-        'requestSubscriptionWithBuilder() was removed in 6.6.0. '
-        'Use requestPurchaseWithBuilder() or requestPurchase() instead.',
-      );
+  }) async {
+    final builder = RequestSubscriptionBuilder();
+    build(builder);
+    final request = builder.build();
+    await requestPurchase(request: request, type: iap_types.ProductType.subs);
+  }
 
   /// Get all available purchases (OpenIAP standard)
   /// Returns non-consumed purchases that are still pending acknowledgment or consumption
@@ -616,7 +629,6 @@ class FlutterInappPurchase
     }
   }
 
-  // Helper methods
   iap_types.ProductCommon _parseProductFromNative(
     Map<String, dynamic> json,
     String type,
@@ -631,7 +643,8 @@ class FlutterInappPurchase
             : iap_types.IapPlatform.android);
 
     if (type == iap_types.ProductType.subs) {
-      return iap_types.Subscription(
+      return iap_types.ProductSubscription(
+        id: json['id']?.toString() ?? '',
         productId: json['productId']?.toString() ?? '',
         price: json['price']?.toString() ?? '0',
         currency: json['currency']?.toString(),
@@ -749,7 +762,9 @@ class FlutterInappPurchase
       } else {
         // For Android platform, create regular Product
         return iap_types.Product(
-          productId: json['productId']?.toString() ?? '',
+          id: json['id']?.toString() ?? '',
+          productId:
+              json['productId']?.toString() ?? '',
           priceString: json['price']?.toString() ?? '0',
           currency: json['currency']?.toString(),
           localizedPrice: json['localizedPrice']?.toString(),

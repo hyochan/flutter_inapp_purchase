@@ -2,7 +2,7 @@ PODS:
   - Flutter (1.0.0)
   - flutter_inapp_purchase (0.0.1):
     - Flutter
-    - openiap (~> 1.1.9)
+    - openiap (= 1.1.9)
   - openiap (1.1.9)
 
 DEPENDENCIES:
@@ -25,8 +25,8 @@ CHECKOUT OPTIONS:
     :tag: 1.1.9
 
 SPEC CHECKSUMS:
-  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
-  flutter_inapp_purchase: 796b901ba698e052016c07c3fc4bc2d2e9db13c9
+  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
+  flutter_inapp_purchase: 2132ba52676c2848b98ea55d26cd7d2284c252a2
   openiap: dcfa2a4dcf31259ec4b73658e7d1441babccce66
 
 PODFILE CHECKSUM: 7f77729f2fac4d8b3c65d064abe240d5bd87fe01

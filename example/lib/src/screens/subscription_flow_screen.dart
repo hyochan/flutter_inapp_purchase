@@ -264,8 +264,8 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
     setState(() => _isLoadingProducts = true);
 
     try {
-      // Use requestProducts with Subscription type for type-safe list
-      final products = await _iap.requestProducts<Subscription>(
+      // Use fetchProducts with Subscription type for type-safe list
+      final products = await _iap.fetchProducts<Subscription>(
         skus: subscriptionIds,
         type: ProductType.subs,
       );
