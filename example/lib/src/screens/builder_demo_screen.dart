@@ -82,9 +82,12 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
       final purchases = await _iap.getAvailablePurchases();
       final existing = purchases.firstWhere(
         (p) => p.productId == 'com.example.premium_monthly',
-        orElse: () => purchases.isNotEmpty ? purchases.first : Purchase(
-          productId: '', platform: IapPlatform.android,
-        ),
+        orElse: () => purchases.isNotEmpty
+            ? purchases.first
+            : Purchase(
+                productId: '',
+                platform: IapPlatform.android,
+              ),
       );
 
       await _iap.requestSubscriptionWithBuilder(
@@ -92,7 +95,8 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
           ..withIOS((i) => i..sku = 'com.example.premium_yearly')
           ..withAndroid((a) => a
             ..skus = ['com.example.premium_yearly']
-            ..replacementModeAndroid = AndroidReplacementMode.withTimeProration.value
+            ..replacementModeAndroid =
+                AndroidReplacementMode.withTimeProration.value
             ..purchaseTokenAndroid = existing.purchaseToken),
       );
       setState(() => _status = 'Subscription upgrade initiated');
@@ -116,14 +120,18 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Card(
-              color: _isProcessing ? Colors.orange.shade50 : Colors.blue.shade50,
+              color:
+                  _isProcessing ? Colors.orange.shade50 : Colors.blue.shade50,
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
-                    Text('Status', style: Theme.of(context).textTheme.titleMedium),
+                    Text('Status',
+                        style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 4),
-                    Text(_status, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
+                    Text(_status,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 12)),
                     if (_isProcessing) ...[
                       const SizedBox(height: 8),
                       const LinearProgressIndicator(),
@@ -146,7 +154,9 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
             ),
             const SizedBox(height: 8),
             ElevatedButton.icon(
-              onPressed: _isProcessing || !Platform.isAndroid ? null : _subscriptionUpgrade,
+              onPressed: _isProcessing || !Platform.isAndroid
+                  ? null
+                  : _subscriptionUpgrade,
               icon: const Icon(Icons.upgrade),
               label: const Text('Upgrade Subscription (Android)'),
             ),
@@ -182,4 +192,3 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
     );
   }
 }
-

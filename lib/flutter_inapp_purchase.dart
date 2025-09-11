@@ -365,7 +365,9 @@ class FlutterInappPurchase
   }
 
   /// DSL-like request subscription method with builder pattern
-  @Deprecated('Use requestPurchaseWithBuilder() instead. Will be removed in 6.6.0')
+  @Deprecated(
+      'Use requestPurchaseWithBuilder() instead. Will be removed in 6.6.0')
+
   /// Provides a more intuitive and type-safe way to build subscription requests
   ///
   /// Example:
@@ -764,8 +766,7 @@ class FlutterInappPurchase
         // For Android platform, create regular Product
         return iap_types.Product(
           id: json['id']?.toString() ?? '',
-          productId:
-              json['productId']?.toString() ?? '',
+          productId: json['productId']?.toString() ?? '',
           priceString: json['price']?.toString() ?? '0',
           currency: json['currency']?.toString(),
           localizedPrice: json['localizedPrice']?.toString(),
@@ -1822,7 +1823,8 @@ class FlutterInappPurchase
     }
 
     try {
-      debugPrint('[flutter_inapp_purchase] fetchProducts called with skus: $skus, type: $type');
+      debugPrint(
+          '[flutter_inapp_purchase] fetchProducts called with skus: $skus, type: $type');
 
       // Get raw data from native platform
       final List<dynamic> merged = [];
@@ -1842,7 +1844,8 @@ class FlutterInappPurchase
         Future<dynamic> fetchInapp() => _channel.invokeMethod('getProducts', {
               'productIds': skus,
             });
-        Future<dynamic> fetchSubs() => _channel.invokeMethod('getSubscriptions', {
+        Future<dynamic> fetchSubs() =>
+            _channel.invokeMethod('getSubscriptions', {
               'productIds': skus,
             });
 
@@ -1891,7 +1894,9 @@ class FlutterInappPurchase
           throw Exception('Unexpected item type: ${item.runtimeType}');
         }
         // When 'all', native item contains its own type; pass through using detected type
-        final detectedType = (type == 'all') ? (itemMap['type']?.toString() ?? iap_types.ProductType.inapp) : type;
+        final detectedType = (type == 'all')
+            ? (itemMap['type']?.toString() ?? iap_types.ProductType.inapp)
+            : type;
         return _parseProductFromNative(itemMap, detectedType);
       }).toList();
 
@@ -1910,8 +1915,7 @@ class FlutterInappPurchase
 
   /// flutter IAP compatible purchase method — DEPRECATED
   @Deprecated('Removed in 6.6.0. Use requestPurchase() instead.')
-  Future<void> purchaseAsync(String productId) async =>
-      throw UnsupportedError(
+  Future<void> purchaseAsync(String productId) async => throw UnsupportedError(
         'purchaseAsync() was removed in 6.6.0. Use requestPurchase() instead.',
       );
 

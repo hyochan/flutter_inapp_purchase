@@ -19,7 +19,7 @@
 
 ```yaml
 dependencies:
-  flutter_inapp_purchase: ^6.5.2
+  flutter_inapp_purchase: ^6.5.3
 ```
 
 ## 🔧 Quick Start
@@ -64,8 +64,13 @@ await iap.requestPurchase(
 - Run tests: `flutter test`
 - Enable Git hooks (recommended): `git config core.hooksPath .githooks`
   - The pre-commit hook auto-formats staged Dart files and fails if any file remains unformatted. It also runs tests.
-  - To run tests in the hook, set `RUN_PRECOMMIT_TESTS=1` in your environment.
-  - To make analyzer failures block commits, set `ENFORCE_ANALYZE=1`.
+  - Tests: runs changed tests first, then full suite (fail-fast).
+  - Env toggles:
+    - `SKIP_PRECOMMIT_TESTS=1` to skip tests
+    - `PRECOMMIT_TEST_CONCURRENCY=<N>` to control concurrency (default 4)
+    - `PRECOMMIT_FAIL_FAST=0` to disable `--fail-fast`
+    - `PRECOMMIT_RUN_ALL_TESTS=0` to only run changed tests
+    - `ENFORCE_ANALYZE=1` to fail commit on analyzer warnings
 
 ### Singleton Usage
 

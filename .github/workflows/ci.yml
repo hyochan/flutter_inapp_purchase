@@ -23,7 +23,7 @@ jobs:
 
       - run: flutter pub get
 
-      - run: dart format --output=none --set-exit-if-changed .
+      - run: dart format --page-width 80 --trailing-commas automate --output=none --set-exit-if-changed .
 
       # - run: flutter analyze .
 

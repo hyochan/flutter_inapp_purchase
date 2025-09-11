@@ -732,8 +732,9 @@ class Subscription extends ProductCommon {
   final List<SubscriptionOfferAndroid>? subscriptionOffersAndroid;
 
   Subscription({
-    required String super.id,
-    @Deprecated('Use id instead. Will be removed in 6.6.0') String? super.productId,
+    String? id,
+    @Deprecated('Use id instead. Will be removed in 6.6.0')
+    String? super.productId,
     required String price,
     required IapPlatform platform,
     super.currency,
@@ -771,6 +772,7 @@ class Subscription extends ProductCommon {
     this.signatureAndroid,
     this.subscriptionOffersAndroid,
   }) : super(
+          id: id ?? productId ?? '',
           type: type ?? 'subs',
           displayPrice: displayPrice ?? (localizedPrice ?? price),
           platformEnum: platform,
@@ -1185,7 +1187,10 @@ class ProductIOS extends Product {
 
   factory ProductIOS.fromJson(Map<String, dynamic> json) {
     return ProductIOS(
-      id: (json['id'] as String?) ?? (json['productId'] as String?) ?? (json['sku'] as String?) ?? (json['productIdentifier'] as String?),
+      id: (json['id'] as String?) ??
+          (json['productId'] as String?) ??
+          (json['sku'] as String?) ??
+          (json['productIdentifier'] as String?),
       productId: json['productId'] as String?,
       price: _stringFromNumOrString(json['price']),
       currency: json['currency'] as String?,

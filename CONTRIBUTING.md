@@ -32,6 +32,14 @@ After this, committing will:
 - Run `flutter analyze` (non-blocking by default)
 - Run `flutter test`
 
+Hook options (env vars):
+
+- `SKIP_PRECOMMIT_TESTS=1` to skip tests
+- `PRECOMMIT_TEST_CONCURRENCY=<N>` to control concurrency (default 4)
+- `PRECOMMIT_FAIL_FAST=0` to disable `--fail-fast`
+- `PRECOMMIT_RUN_ALL_TESTS=0` to only run changed tests
+- `ENFORCE_ANALYZE=1` to fail on analyzer warnings
+
 ### 3. Run the Example App
 
 Navigate to the example directory and run the app:
