@@ -289,7 +289,25 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 let request = OpenIapProductRequest(skus: skus, type: reqType)
                 let products: [OpenIapProduct] = try await OpenIapModule.shared.fetchProducts(request)
                 let serialized = OpenIapSerialization.products(products)
-                result(serialized)
+                
+                // Hotfix for issue #550 where productId is empty for subscriptions
+                let fixedSerialized = serialized.map { productDict -> [String: Any] in
+                    var mutableProduct = productDict
+                    if let productId = mutableProduct["productId"] as? String, productId.isEmpty,
+                       let jsonRepresentation = mutableProduct["jsonRepresentationIOS"] as? String {
+                        // Attempt to decode the JSON string
+                        if let data = jsonRepresentation.data(using: .utf8),
+                           let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                           let attributes = json["attributes"] as? [String: Any],
+                           let offerName = attributes["offerName"] as? String {
+                            mutableProduct["productId"] = offerName
+                            mutableProduct["id"] = offerName // Also fix the 'id' field
+                        }
+                    }
+                    return mutableProduct
+                }
+                
+                result(fixedSerialized)
             } catch {
                 let code = OpenIapError.E_QUERY_PRODUCT
                 result(FlutterError(code: code, message: defaultMessage(for: code), details: nil))
