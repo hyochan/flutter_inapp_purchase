@@ -365,6 +365,7 @@ class FlutterInappPurchase
   }
 
   /// DSL-like request subscription method with builder pattern
+  @Deprecated('Use requestPurchaseWithBuilder() instead. Will be removed in 6.6.0')
   /// Provides a more intuitive and type-safe way to build subscription requests
   ///
   /// Example:

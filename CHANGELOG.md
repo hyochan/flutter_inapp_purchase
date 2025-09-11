@@ -1,5 +1,31 @@
 # CHANGELOG
 
+## 6.5.3
+
+### Fixed
+
+- iOS: Ensure `product.id` is always populated in `fetchProducts()` (fixes cases where id was empty on iOS). The parser now resolves id from the first non-empty of: `productId` → `id` → `sku` → `productIdentifier` (#550). In debug builds, logs which key was used.
+
+### Changed
+
+- Products API: `id` is the primary identifier for `Product`/`ProductSubscription`. `productId` is kept for backward compatibility only (see Deprecated).
+- `fetchProducts()`: Adds support for `type: 'all'`.
+  - iOS: passes `'all'` through the native `fetchProducts` call
+  - Android: fetches `inapp` and `subs`, then merges results
+- Parser now emits `ProductSubscription` (alias of `Subscription`) for subscriptions internally.
+
+### Deprecated
+
+- `productId` on `ProductCommon`: Use `id` instead (will be removed in 6.6.0).
+- `Subscription` type name: Use `ProductSubscription` instead (will be removed in 6.6.0). The alias keeps existing code working.
+- Methods (removal in 6.6.0):
+  - `requestProducts()` → use `fetchProducts()`
+  - `purchaseAsync()` → use `requestPurchase()`
+  - `requestPurchaseAuto()` → use `requestPurchase()`
+  - `finalize()` → use `endConnection()`
+  - `deepLinkToSubscriptionsAndroid()` → use platform UI links as documented
+  - `getPurchaseHistories()` → use `getAvailablePurchases(PurchaseOptions(onlyIncludeActiveItemsIOS: false))`
+
 ## 6.5.2
 
 ### Fixed
