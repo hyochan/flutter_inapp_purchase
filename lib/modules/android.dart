@@ -20,7 +20,8 @@ mixin FlutterInappPurchaseAndroid {
     }
 
     try {
-      final result = await channel.invokeMethod<bool>('consumePurchaseAndroid', {
+      final result =
+          await channel.invokeMethod<bool>('consumePurchaseAndroid', {
         'purchaseToken': purchaseToken,
       });
       return result ?? false;

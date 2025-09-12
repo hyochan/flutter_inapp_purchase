@@ -69,7 +69,6 @@ mixin FlutterInappPurchaseIOS {
     }
   }
 
-
   /// Presents the code redemption sheet (iOS 14+)
   Future<void> presentCodeRedemptionSheetIOS() async {
     if (!isIOS) {
@@ -116,7 +115,6 @@ mixin FlutterInappPurchaseIOS {
     await channel.invokeMethod('showManageSubscriptionsIOS');
   }
 
-
   /// Gets the iOS app transaction (iOS 18.4+)
   Future<Map<String, dynamic>?> getAppTransactionIOS() async {
     if (!isIOS) {
@@ -133,8 +131,6 @@ mixin FlutterInappPurchaseIOS {
       return null;
     }
   }
-
-
 }
 
 /// iOS App Transaction model (iOS 18.4+)
