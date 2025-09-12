@@ -175,15 +175,7 @@ class FlutterInappPurchase
     }
   }
 
-  /// Request products (flutter IAP compatible) — DEPRECATED
-  @Deprecated('Removed in 6.6.0. Use fetchProducts().')
-  Future<List<T>> requestProducts<T extends iap_types.ProductCommon>({
-    required List<String> skus,
-    String type = iap_types.ProductType.inapp,
-  }) async =>
-      throw UnsupportedError(
-        'requestProducts() was removed in 6.6.0. Use fetchProducts().',
-      );
+  // requestProducts removed in 6.6.0
 
   /// Request purchase (flutter IAP compatible)
   Future<void> requestPurchase({
@@ -319,30 +311,7 @@ class FlutterInappPurchase
   /// Request purchase with automatic platform detection
   /// This method simplifies the purchase request by automatically detecting the platform
   /// and using the appropriate parameters from the RequestPurchase object
-  @Deprecated('Removed in 6.6.0. Use requestPurchase() instead.')
-  Future<void> requestPurchaseAuto({
-    required String sku,
-    required String type,
-    // iOS-specific optional parameters
-    bool? andDangerouslyFinishTransactionAutomaticallyIOS,
-    String? appAccountToken,
-    int? quantity,
-    iap_types.PaymentDiscount? withOffer,
-    // Android-specific optional parameters
-    String? obfuscatedAccountIdAndroid,
-    String? obfuscatedProfileIdAndroid,
-    bool? isOfferPersonalized,
-    String? purchaseToken,
-    int? offerTokenIndex,
-    @Deprecated('Use replacementMode instead') int? prorationMode,
-    int? replacementMode,
-    // Android subscription-specific
-    int? replacementModeAndroid,
-    List<iap_types.SubscriptionOfferAndroid>? subscriptionOffers,
-  }) async =>
-      throw UnsupportedError(
-        'requestPurchaseAuto() was removed in 6.6.0. Use requestPurchase() with explicit parameters.',
-      );
+  // requestPurchaseAuto removed in 6.6.0
 
   /// DSL-like request purchase method with builder pattern
   /// Provides a more intuitive and type-safe way to build purchase requests
@@ -369,45 +338,7 @@ class FlutterInappPurchase
   }
 
   /// DSL-like request subscription method with builder pattern
-  @Deprecated(
-      'Use requestPurchaseWithBuilder() instead. Will be removed in 6.6.0')
-
-  /// Provides a more intuitive and type-safe way to build subscription requests
-  ///
-  /// Example:
-  /// ```dart
-  /// await iap.requestSubscriptionWithBuilder(
-  ///   build: (r) => r
-  ///     ..withIOS((i) => i
-  ///       ..sku = 'subscription_id')
-  ///     ..withAndroid((a) => a
-  ///       ..skus = ['subscription_id']
-  ///       ..replacementModeAndroid = AndroidReplacementMode.withTimeProration.value
-  ///       ..purchaseTokenAndroid = existingToken),
-  /// );
-  /// ```
-  /// DSL-like request subscription method with builder pattern
-  /// Provides a more intuitive and type-safe way to build subscription requests
-  ///
-  /// Example:
-  /// ```dart
-  /// await iap.requestSubscriptionWithBuilder(
-  ///   build: (r) => r
-  ///     ..withIOS((i) => i..sku = 'subscription_id')
-  ///     ..withAndroid((a) => a
-  ///       ..skus = ['subscription_id']
-  ///       ..replacementModeAndroid = AndroidReplacementMode.withTimeProration.value
-  ///       ..purchaseTokenAndroid = existingToken),
-  /// );
-  /// ```
-  Future<void> requestSubscriptionWithBuilder({
-    required SubscriptionBuilder build,
-  }) async {
-    final builder = RequestSubscriptionBuilder();
-    build(builder);
-    final request = builder.build();
-    await requestPurchase(request: request, type: iap_types.ProductType.subs);
-  }
+  // requestSubscriptionWithBuilder removed in 6.6.0 (use requestPurchaseWithBuilder)
 
   /// Get all available purchases (OpenIAP standard)
   /// Returns non-consumed purchases that are still pending acknowledgment or consumption
@@ -601,24 +532,7 @@ class FlutterInappPurchase
     }
   }
 
-  /// Android specific: Deep link to subscriptions
-  @override
-  @Deprecated('Not part of the unified API. Will be removed in 6.6.0')
-  Future<void> deepLinkToSubscriptionsAndroid({String? sku}) async {
-    if (!_platform.isAndroid) {
-      debugPrint('deepLinkToSubscriptionsAndroid is only supported on Android');
-      return;
-    }
-
-    try {
-      await channel.invokeMethod('manageSubscription', {
-        if (sku != null) 'sku': sku,
-      });
-    } catch (error) {
-      debugPrint('Error deep linking to subscriptions: $error');
-      rethrow;
-    }
-  }
+  // Android-specific deep link helper removed in 6.6.0
 
   iap_types.ProductCommon _parseProductFromNative(
     Map<String, dynamic> json,
@@ -1184,19 +1098,7 @@ class FlutterInappPurchase
     );
   }
 
-  @Deprecated('Not part of the unified API. Will be removed in 6.6.0')
-  Future<Store> getStore() async {
-    if (_platform.isIOS) {
-      return Future.value(Store.appStore);
-    }
-    if (_platform.isAndroid) {
-      final store = await _channel.invokeMethod<String?>('getStore');
-      if (store == 'play_store') return Store.playStore;
-      if (store == 'amazon') return Store.amazon;
-      return Store.none;
-    }
-    return Future.value(Store.none);
-  }
+  // getStore removed in 6.6.0
 
   /// Request a subscription
   ///
@@ -1225,7 +1127,7 @@ class FlutterInappPurchase
   /// );
   /// ```
   @Deprecated('Use requestPurchase() instead. Will be removed in 6.6.0')
-  Future<dynamic> requestSubscription(
+  /* removed in 6.6.0 */ Future<dynamic> requestSubscription(
     String productId, {
     int? replacementModeAndroid,
     String? obfuscatedAccountIdAndroid,
@@ -1302,8 +1204,7 @@ class FlutterInappPurchase
   }
 
   /// End connection
-  @Deprecated('Use endConnection() instead. Will be removed in 6.6.0')
-  Future<String?> finalize() async {
+  /* removed in 6.6.0 */ Future<String?> finalize() async {
     if (_platform.isAndroid) {
     } else if (_platform.isIOS) {
       final String? result = await _channel.invokeMethod('endConnection');
