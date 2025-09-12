@@ -38,10 +38,12 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
 
     try {
       await _iap.requestPurchaseWithBuilder(
-        build: (r) => r
+        build: (RequestPurchaseBuilder r) => r
           ..type = ProductType.inapp
-          ..withIOS((i) => i..sku = 'com.example.coins100')
-          ..withAndroid((a) => a..skus = ['com.example.coins100']),
+          ..withIOS(
+              (RequestPurchaseIOSBuilder i) => i..sku = 'com.example.coins100')
+          ..withAndroid((RequestPurchaseAndroidBuilder a) =>
+              a..skus = ['com.example.coins100']),
       );
       setState(() => _status = 'Purchase initiated');
     } catch (e) {
@@ -58,10 +60,14 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
     });
 
     try {
-      await _iap.requestSubscriptionWithBuilder(
-        build: (r) => r
-          ..withIOS((i) => i..sku = 'com.example.premium_monthly')
-          ..withAndroid((a) => a..skus = ['com.example.premium_monthly']),
+      // Use requestPurchaseWithBuilder with type=subs
+      await _iap.requestPurchaseWithBuilder(
+        build: (RequestPurchaseBuilder r) => r
+          ..type = ProductType.subs
+          ..withIOS((RequestPurchaseIOSBuilder i) =>
+              i..sku = 'com.example.premium_monthly')
+          ..withAndroid((RequestPurchaseAndroidBuilder a) =>
+              a..skus = ['com.example.premium_monthly']),
       );
       setState(() => _status = 'Subscription initiated');
     } catch (e) {
@@ -90,14 +96,20 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
               ),
       );
 
-      await _iap.requestSubscriptionWithBuilder(
-        build: (r) => r
-          ..withIOS((i) => i..sku = 'com.example.premium_yearly')
-          ..withAndroid((a) => a
-            ..skus = ['com.example.premium_yearly']
-            ..replacementModeAndroid =
-                AndroidReplacementMode.withTimeProration.value
-            ..purchaseTokenAndroid = existing.purchaseToken),
+      // For upgrade/downgrade flows on Android, build a subscription request
+      // and call requestPurchase with type=subs.
+      final subBuilder = RequestSubscriptionBuilder()
+        ..withIOS((RequestPurchaseIOSBuilder i) =>
+            i..sku = 'com.example.premium_yearly')
+        ..withAndroid((RequestSubscriptionAndroidBuilder a) => a
+          ..skus = ['com.example.premium_yearly']
+          ..replacementModeAndroid =
+              AndroidReplacementMode.withTimeProration.value
+          ..purchaseTokenAndroid = existing.purchaseToken);
+
+      await _iap.requestPurchase(
+        request: subBuilder.build(),
+        type: ProductType.subs,
       );
       setState(() => _status = 'Subscription upgrade initiated');
     } catch (e) {
@@ -172,14 +184,30 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
                     SizedBox(height: 8),
                     SelectableText(
                       """await iap.requestPurchaseWithBuilder(
-  build: (r) => r
+  build: (RequestPurchaseBuilder r) => r
     ..type = ProductType.inapp
-    ..withIOS((i) => i
+    ..withIOS((RequestPurchaseIOSBuilder i) => i
       ..sku = 'product_id'
       ..quantity = 1)
-    ..withAndroid((a) => a
+    ..withAndroid((RequestPurchaseAndroidBuilder a) => a
       ..skus = ['product_id']),
-);""",
+);
+
+// For subscriptions (new purchase):
+await iap.requestPurchaseWithBuilder(
+  build: (RequestPurchaseBuilder r) => r
+    ..type = ProductType.subs
+    ..withIOS((RequestPurchaseIOSBuilder i) => i..sku = 'sub_id')
+    ..withAndroid((RequestPurchaseAndroidBuilder a) => a..skus = ['sub_id']),
+);
+
+// For subscription upgrade/downgrade (Android):
+final b = RequestSubscriptionBuilder()
+  ..withAndroid((RequestSubscriptionAndroidBuilder a) => a
+    ..skus = ['sub_upgrade']
+    ..replacementModeAndroid = AndroidReplacementMode.withTimeProration.value
+    ..purchaseTokenAndroid = '<existing_token>');
+await iap.requestPurchase(request: b.build(), type: ProductType.subs);""",
                       style: TextStyle(fontFamily: 'monospace', fontSize: 12),
                     ),
                   ],
