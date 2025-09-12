@@ -4,59 +4,28 @@ set -euo pipefail
 echo "[pre-commit] Running flutter pub get..."
 flutter pub get >/dev/null
 
-echo "[pre-commit] Auto-formatting staged Dart files..."
-# Collect staged Dart files and format them in place
-STAGED_DART_FILES=$(git diff --cached --name-only --diff-filter=ACMRT | grep -E '\.dart$' || true)
-if [ -n "$STAGED_DART_FILES" ]; then
-  # Pass page-width explicitly to avoid analysis_options include resolution warnings
-  dart format --page-width 80 --trailing-commas automate $STAGED_DART_FILES >/dev/null
-  # Re-stage formatted files
-  echo "$STAGED_DART_FILES" | xargs git add -A --
-fi
-
-echo "[pre-commit] Verifying format on staged Dart files..."
-if [ -n "$STAGED_DART_FILES" ]; then
-  dart format --page-width 80 --trailing-commas automate --output=none --set-exit-if-changed $STAGED_DART_FILES
-fi
+echo "[pre-commit] Auto-formatting repo (Dart)..."
+# Format entire repo to match CI; re-stage any changes
+dart format --line-length 80 . >/dev/null || true
+git add -A
 
 echo "[pre-commit] Verifying repo-wide formatting (matches CI)..."
-# Ensure the entire repo matches formatter expectations to avoid CI failures.
-# This mirrors .github/workflows/ci.yml
-dart format --page-width 80 --trailing-commas automate --output=none --set-exit-if-changed .
+dart format --line-length 80 --output=none --set-exit-if-changed .
 
 echo "[pre-commit] Running analyzer..."
 if [ "${ENFORCE_ANALYZE:-0}" = "1" ]; then
   flutter analyze
 else
-  # Do not fail commit on analyzer warnings by default
   flutter analyze || true
 fi
 
 if [ "${SKIP_PRECOMMIT_TESTS:-0}" != "1" ]; then
   echo "[pre-commit] Running tests (fast fail)..."
-
-  # Run staged tests first if any changed, then optionally the full suite
-  STAGED_TEST_FILES=$(git diff --cached --name-only --diff-filter=ACMRT | grep -E '^test/.+_test\.dart$' || true)
-
-  # Fail fast toggle and concurrency
   FAIL_FAST_FLAG=""
   if [ "${PRECOMMIT_FAIL_FAST:-1}" = "1" ]; then
     FAIL_FAST_FLAG="--fail-fast"
   fi
-
-  # Prefer not to run pub again since we already ran flutter pub get
-  NO_PUB_FLAG="--no-pub"
-
-  if [ -n "$STAGED_TEST_FILES" ]; then
-    echo "[pre-commit] Running changed tests first:"
-    echo "$STAGED_TEST_FILES" | sed 's/^/  - /'
-    flutter test $NO_PUB_FLAG $FAIL_FAST_FLAG --concurrency="${PRECOMMIT_TEST_CONCURRENCY:-4}" $STAGED_TEST_FILES
-  fi
-
-  if [ "${PRECOMMIT_RUN_ALL_TESTS:-1}" = "1" ]; then
-    echo "[pre-commit] Running full test suite..."
-    flutter test $NO_PUB_FLAG $FAIL_FAST_FLAG --concurrency="${PRECOMMIT_TEST_CONCURRENCY:-4}"
-  fi
+  flutter test --no-pub $FAIL_FAST_FLAG --concurrency="${PRECOMMIT_TEST_CONCURRENCY:-4}"
 fi
 
 echo "[pre-commit] OK"
