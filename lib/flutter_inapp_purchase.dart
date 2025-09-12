@@ -1805,8 +1805,14 @@ class FlutterInappPurchase
         }
       }
 
-      // Cast to the expected type
-      return products.cast<T>();
+      // Return as the expected generic type when possible
+      // Using whereType<T>() avoids runtime type errors (e.g., ProductIOS vs Product)
+      final typed = products.whereType<T>().toList();
+      if (typed.length != products.length) {
+        debugPrint(
+            '[flutter_inapp_purchase] Filtered ${products.length - typed.length} items not matching <$T>');
+      }
+      return typed;
     } catch (e) {
       throw iap_types.PurchaseError(
         code: iap_types.ErrorCode.eServiceError,
