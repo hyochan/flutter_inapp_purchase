@@ -22,12 +22,10 @@ void main() {
             return true;
           case 'endConnection':
             return true;
-          case 'getSubscriptions':
+          case 'fetchProducts':
             final args = methodCall.arguments;
             final productIds = args is Map
-                ? (args['productIds'] as Iterable?)
-                    ?.map((e) => e.toString())
-                    .toList()
+                ? (args['skus'] as Iterable?)?.map((e) => e.toString()).toList()
                 : args is Iterable
                     ? args.map((e) => e.toString()).toList()
                     : null;
@@ -65,40 +63,15 @@ void main() {
             ).map((item) => Map<String, dynamic>.from(item)).toList();
           case 'hasActiveSubscriptions':
             return _getHasActiveSubscriptions(methodCall.arguments);
-          case 'acknowledgePurchase':
+          case 'acknowledgePurchaseAndroid':
             return <String, dynamic>{'acknowledged': true};
           case 'finishTransaction':
             return 'finished';
-          case 'getAvailableItemsByType':
-            // This is what Android actually calls for getActiveSubscriptions
-            final args = methodCall.arguments as Map<dynamic, dynamic>?;
+          case 'getAvailableItems':
             // Return active subscriptions only for 'subs' type
             // For 'inapp' type, return empty (no regular purchases in this test)
-            if (args?['type'] == 'subs') {
-              return _getMockActiveSubscriptions(
-                null,
-              ).map((item) => Map<String, dynamic>.from(item)).toList();
-            }
-            return <Map<String, dynamic>>[];
-          case 'fetchProducts':
-            // iOS uses fetchProducts with { skus, type }
-            final args = methodCall.arguments as Map<dynamic, dynamic>?;
-            final productIds = args?['skus'] as List<dynamic>?;
-            final allSubs = _getMockSubscriptions();
-            final filteredSubs = productIds != null
-                ? allSubs
-                    .where(
-                      (sub) => productIds.contains(sub['productId']),
-                    )
-                    .toList()
-                : allSubs;
-            return filteredSubs
-                .map((item) => Map<String, dynamic>.from(item))
-                .toList();
-          case 'getAvailableItems':
-            // iOS uses this for getActiveSubscriptions
             return _getMockActiveSubscriptions(
-              methodCall.arguments,
+              null,
             ).map((item) => Map<String, dynamic>.from(item)).toList();
           default:
             return null;
@@ -195,8 +168,7 @@ void main() {
 
         await plugin.getActiveSubscriptions(subscriptionIds: ['active_sub_1']);
 
-        // Check that the type is 'subs' for subscriptions
-        expect(methodChannelLog.last.arguments['type'], 'subs');
+        // No channel type check; filtering happens in Dart layer
       });
 
       test('getActiveSubscriptions on iOS includes iOS fields', () async {
@@ -257,7 +229,7 @@ void main() {
           type: ProductType.subs,
         );
 
-        expect(methodChannelLog.last.method, 'buyItemByType');
+        expect(methodChannelLog.last.method, 'requestPurchase');
         expect(methodChannelLog.last.arguments['productId'], 'monthly_sub');
       });
 
@@ -282,7 +254,7 @@ void main() {
           type: ProductType.subs,
         );
 
-        expect(methodChannelLog.last.method, 'buyItemByType');
+        expect(methodChannelLog.last.method, 'requestPurchase');
         expect(methodChannelLog.last.arguments['productId'], 'yearly_sub');
         // Offer tokens are passed in subscriptionOffers
         // Check that we passed the subscription arguments
@@ -307,7 +279,7 @@ void main() {
           type: ProductType.subs,
         );
 
-        expect(methodChannelLog.last.method, 'buyItemByType');
+        expect(methodChannelLog.last.method, 'requestPurchase');
         // Check that purchaseToken is passed (it's passed as 'purchaseToken' not 'oldPurchaseToken')
         expect(
           methodChannelLog.last.arguments['purchaseToken'],
@@ -440,9 +412,7 @@ void main() {
           if (methodCall.method == 'getActiveSubscriptions') {
             return <Map<String, dynamic>>[]; // No active subscriptions
           }
-          if (methodCall.method == 'getAvailableItemsByType') {
-            return <Map<String, dynamic>>[]; // No available items
-          }
+
           if (methodCall.method == 'getAvailableItems') {
             return <Map<String, dynamic>>[]; // No available items
           }

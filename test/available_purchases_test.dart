@@ -34,18 +34,14 @@ void main() {
             return _getMockPendingPurchases()
                 .map((item) => Map<String, dynamic>.from(item))
                 .toList();
-          case 'consumeProduct':
+          case 'consumePurchaseAndroid':
             return <String, dynamic>{'consumed': true};
-          case 'acknowledgePurchase':
+          case 'acknowledgePurchaseAndroid':
             return <String, dynamic>{'acknowledged': true};
           case 'finishTransaction':
             return 'finished';
           case 'clearTransactionIOS':
             return 'cleared';
-          case 'getAvailableItemsByType':
-            return _getMockAvailablePurchases()
-                .map((item) => Map<String, dynamic>.from(item))
-                .toList();
           case 'getAvailableItems':
             return _getMockAvailablePurchases()
                 .map((item) => Map<String, dynamic>.from(item))
@@ -119,8 +115,7 @@ void main() {
             return <Map<String, dynamic>>[];
           if (methodCall.method == 'getAvailableItems')
             return <Map<String, dynamic>>[];
-          if (methodCall.method == 'getAvailableItemsByType')
-            return <Map<String, dynamic>>[];
+
           return null;
         });
 
@@ -209,7 +204,7 @@ void main() {
 
         await plugin.finishTransaction(purchase, isConsumable: true);
 
-        expect(methodChannelLog.last.method, 'consumeProduct');
+        expect(methodChannelLog.last.method, 'consumePurchaseAndroid');
         expect(methodChannelLog.last.arguments['purchaseToken'], 'consume_me');
       });
 
@@ -229,7 +224,7 @@ void main() {
 
         await plugin.finishTransaction(purchase);
 
-        expect(methodChannelLog.last.method, 'acknowledgePurchase');
+        expect(methodChannelLog.last.method, 'acknowledgePurchaseAndroid');
         expect(
           methodChannelLog.last.arguments['purchaseToken'],
           'acknowledge_me',
@@ -296,8 +291,8 @@ void main() {
         final restored = await plugin.getAvailablePurchases();
 
         expect(restored.length, greaterThan(0));
-        // On Android, it uses getAvailableItemsByType
-        expect(methodChannelLog.last.method, 'getAvailableItemsByType');
+        // On Android, it uses getAvailableItems
+        expect(methodChannelLog.last.method, 'getAvailableItems');
       });
 
       test('restores purchases on iOS', () async {
@@ -356,8 +351,7 @@ void main() {
               },
             ];
           }
-          if (methodCall.method == 'getAvailableItemsByType')
-            return <Map<String, dynamic>>[];
+
           return null;
         });
 

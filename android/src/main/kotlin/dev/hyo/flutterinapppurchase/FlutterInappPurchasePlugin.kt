@@ -33,10 +33,11 @@ class FlutterInappPurchasePlugin : FlutterPlugin, ActivityAware {
         }
         channel = MethodChannel(messenger, "flutter_inapp")
         if (isAndroid) {
-            androidInappPurchasePlugin = AndroidInappPurchasePlugin()
-            androidInappPurchasePlugin!!.setContext(context)
-            androidInappPurchasePlugin!!.setChannel(channel)
-            channel!!.setMethodCallHandler(androidInappPurchasePlugin)
+            val plugin = AndroidInappPurchasePlugin()
+            plugin.setContext(context)
+            plugin.setChannel(channel)
+            androidInappPurchasePlugin = plugin
+            channel!!.setMethodCallHandler(plugin)
         } else if (isAmazon) {
             amazonInappPurchasePlugin = AmazonInappPurchasePlugin()
             amazonInappPurchasePlugin!!.setContext(context)
@@ -49,7 +50,7 @@ class FlutterInappPurchasePlugin : FlutterPlugin, ActivityAware {
         channel!!.setMethodCallHandler(null)
         channel = null
         if (isAndroid) {
-            androidInappPurchasePlugin!!.setChannel(null)
+            androidInappPurchasePlugin?.setChannel(null)
         } else if (isAmazon) {
             amazonInappPurchasePlugin!!.setChannel(null)
         }
@@ -57,7 +58,7 @@ class FlutterInappPurchasePlugin : FlutterPlugin, ActivityAware {
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
         if (isAndroid) {
-            androidInappPurchasePlugin!!.setActivity(binding.activity)
+            androidInappPurchasePlugin?.setActivity(binding.activity)
         } else if (isAmazon) {
             amazonInappPurchasePlugin!!.setActivity(binding.activity)
         }
@@ -65,8 +66,8 @@ class FlutterInappPurchasePlugin : FlutterPlugin, ActivityAware {
 
     override fun onDetachedFromActivity() {
         if (isAndroid) {
-            androidInappPurchasePlugin!!.setActivity(null)
-            androidInappPurchasePlugin!!.onDetachedFromActivity()
+            androidInappPurchasePlugin?.setActivity(null)
+            androidInappPurchasePlugin?.onDetachedFromActivity()
         } else if (isAmazon) {
             amazonInappPurchasePlugin!!.setActivity(null)
         }

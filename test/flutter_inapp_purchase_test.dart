@@ -66,8 +66,7 @@ void main() {
               return true;
             }
             // For requestProducts, Android expects parsed JSON list
-            if (methodCall.method == 'getProducts' ||
-                methodCall.method == 'getSubscriptions') {
+            if (methodCall.method == 'fetchProducts') {
               return '''[
                 {
                   "productId": "com.example.product1",
@@ -104,13 +103,13 @@ void main() {
             skus: ['com.example.product1', 'com.example.product2'],
             type: ProductType.inapp,
           );
-          // Since getProducts is deprecated and redirects to requestProducts,
-          // it now passes productIds directly as List, not wrapped in a Map
+          // Unified fetchProducts is used for product queries
           expect(log, <Matcher>[
             isMethodCall(
-              'getProducts',
+              'fetchProducts',
               arguments: {
-                'productIds': ['com.example.product1', 'com.example.product2'],
+                'skus': ['com.example.product1', 'com.example.product2'],
+                'type': ProductType.inapp,
               },
             ),
           ]);
@@ -433,24 +432,20 @@ void main() {
             if (methodCall.method == 'initConnection') {
               return 'Billing service is ready';
             }
-            if (methodCall.method == 'getAvailableItemsByType') {
-              final arguments = methodCall.arguments;
-              if (arguments is Map && arguments['type'] == 'subs') {
-                // Return a mock subscription purchase
-                return '''[
-                  {
-                    "productId": "monthly_subscription",
-                    "transactionId": "GPA.1234-5678-9012-34567",
-                    "transactionDate": ${DateTime.now().millisecondsSinceEpoch},
-                    "transactionReceipt": "receipt_data",
-                    "purchaseToken": "token_123",
-                    "autoRenewingAndroid": true,
-                    "purchaseStateAndroid": 1,
-                    "isAcknowledgedAndroid": true
-                  }
-                ]''';
-              }
-              return '[]';
+            if (methodCall.method == 'getAvailableItems') {
+              // Return a mock subscription purchase
+              return '''[
+                {
+                  "productId": "monthly_subscription",
+                  "transactionId": "GPA.1234-5678-9012-34567",
+                  "transactionDate": ${DateTime.now().millisecondsSinceEpoch},
+                  "transactionReceipt": "receipt_data",
+                  "purchaseToken": "token_123",
+                  "autoRenewingAndroid": true,
+                  "purchaseStateAndroid": 1,
+                  "isAcknowledgedAndroid": true
+                }
+              ]''';
             }
             return '[]';
           });
@@ -509,7 +504,7 @@ void main() {
                       '1', // TransactionState.purchased value
                   'environmentIOS': 'Production',
                   'expirationDateIOS': DateTime.now()
-                      .add(Duration(days: 30))
+                      .add(const Duration(days: 30))
                       .millisecondsSinceEpoch,
                 },
               ];
@@ -687,7 +682,7 @@ void main() {
           if (methodCall.method == 'initConnection') {
             return 'Billing service is ready';
           }
-          if (methodCall.method == 'getAvailableItemsByType') {
+          if (methodCall.method == 'getAvailableItems') {
             // Return purchases with unified purchaseToken as JSON string
             final timestamp = DateTime.now().millisecondsSinceEpoch;
             return '''[
@@ -727,9 +722,8 @@ void main() {
         await testIap.initConnection();
         final purchases = await testIap.getAvailablePurchases();
 
-        // Android calls getAvailableItemsByType twice (inapp and subs)
-        // Each returns 2 items, so total is 4
-        expect(purchases.length, 4);
+        // Android uses unified getAvailableItems; mock returns 2 items
+        expect(purchases.length, 2);
 
         // Check that all purchases have unified purchaseToken
         for (final purchase in purchases) {
@@ -928,23 +922,19 @@ void main() {
           if (methodCall.method == 'initConnection') {
             return 'Billing service is ready';
           }
-          if (methodCall.method == 'getAvailableItemsByType') {
-            final arguments = methodCall.arguments;
-            if (arguments is Map && arguments['type'] == 'subs') {
-              return '''[
-                {
-                  "productId": "monthly_subscription",
-                  "transactionId": "GPA.1234-5678-9012-34567",
-                  "transactionDate": ${DateTime.now().millisecondsSinceEpoch},
-                  "transactionReceipt": "receipt_data",
-                  "purchaseToken": "token_123",
-                  "autoRenewingAndroid": true,
-                  "purchaseStateAndroid": 1,
-                  "isAcknowledgedAndroid": true
-                }
-              ]''';
-            }
-            return '[]';
+          if (methodCall.method == 'getAvailableItems') {
+            return '''[
+              {
+                "productId": "monthly_subscription",
+                "transactionId": "GPA.1234-5678-9012-34567",
+                "transactionDate": ${DateTime.now().millisecondsSinceEpoch},
+                "transactionReceipt": "receipt_data",
+                "purchaseToken": "token_123",
+                "autoRenewingAndroid": true,
+                "purchaseStateAndroid": 1,
+                "isAcknowledgedAndroid": true
+              }
+            ]''';
           }
           return '[]';
         });

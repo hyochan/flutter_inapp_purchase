@@ -51,10 +51,8 @@ android {
 }
 
 dependencies {
-    def billing_version = "8.0.0"
-
-    implementation "com.android.billingclient:billing-ktx:$billing_version"
+    // OpenIAP Google billing wrapper (1.1.0) includes Google Play Billing
+    implementation "io.github.hyochan.openiap:openiap-google:1.1.0"
     implementation files('jars/in-app-purchasing-2.0.76.jar')
     implementation 'androidx.annotation:annotation:1.6.0'
 }
-

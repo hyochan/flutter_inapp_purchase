@@ -289,12 +289,16 @@ class FlutterInappPurchase
             );
           }
         } else {
-          await _channel.invokeMethod('buyItemByType', <String, dynamic>{
+          // Use OpenIAP-compatible requestPurchase API on Android
+          await _channel.invokeMethod('requestPurchase', <String, dynamic>{
             'type': TypeInApp.inapp.name,
-            'productId': sku,
-            'replacementMode': -1,
-            'obfuscatedAccountId': androidRequest.obfuscatedAccountIdAndroid,
-            'obfuscatedProfileId': androidRequest.obfuscatedProfileIdAndroid,
+            'skus': [sku],
+            if (androidRequest.obfuscatedAccountIdAndroid != null)
+              'obfuscatedAccountId': androidRequest.obfuscatedAccountIdAndroid,
+            if (androidRequest.obfuscatedProfileIdAndroid != null)
+              'obfuscatedProfileId': androidRequest.obfuscatedProfileIdAndroid,
+            if (androidRequest.isOfferPersonalized != null)
+              'isOfferPersonalized': androidRequest.isOfferPersonalized,
           });
         }
       }
@@ -426,26 +430,10 @@ class FlutterInappPurchase
 
     try {
       if (_platform.isAndroid) {
-        // Get both consumable and subscription purchases on Android
-        final List<iap_types.Purchase> allPurchases = [];
-
-        // Get consumable purchases
-        dynamic result1 = await _channel.invokeMethod(
-          'getAvailableItemsByType',
-          <String, dynamic>{'type': TypeInApp.inapp.name},
-        );
-        final consumables = extractPurchases(result1) ?? [];
-        allPurchases.addAll(consumables);
-
-        // Get subscription purchases
-        dynamic result2 = await _channel.invokeMethod(
-          'getAvailableItemsByType',
-          <String, dynamic>{'type': TypeInApp.subs.name},
-        );
-        final subscriptions = extractPurchases(result2) ?? [];
-        allPurchases.addAll(subscriptions);
-
-        return allPurchases;
+        // Android unified available items
+        final dynamic result = await _channel.invokeMethod('getAvailableItems');
+        final items = extractPurchases(result) ?? [];
+        return items;
       } else if (_platform.isIOS) {
         // On iOS, pass both iOS-specific options to native method
         final args = options?.toMap() ?? <String, dynamic>{};
@@ -648,7 +636,8 @@ class FlutterInappPurchase
     if (type == iap_types.ProductType.subs) {
       return iap_types.ProductSubscription(
         id: json['id']?.toString() ?? '',
-        productId: json['productId']?.toString() ?? '',
+        productId:
+            json['productId']?.toString() ?? json['id']?.toString() ?? '',
         price: json['price']?.toString() ?? '0',
         currency: json['currency']?.toString(),
         localizedPrice: json['localizedPrice']?.toString(),
@@ -766,7 +755,8 @@ class FlutterInappPurchase
         // For Android platform, create regular Product
         return iap_types.Product(
           id: json['id']?.toString() ?? '',
-          productId: json['productId']?.toString() ?? '',
+          productId:
+              json['productId']?.toString() ?? json['id']?.toString() ?? '',
           priceString: json['price']?.toString() ?? '0',
           currency: json['currency']?.toString(),
           localizedPrice: json['localizedPrice']?.toString(),
@@ -1262,14 +1252,17 @@ class FlutterInappPurchase
         );
       }
 
-      return await _channel.invokeMethod('buyItemByType', <String, dynamic>{
+      return await _channel.invokeMethod('requestPurchase', <String, dynamic>{
         'type': TypeInApp.subs.name,
-        'productId': productId,
-        'replacementMode': effectiveReplacementMode ?? -1,
-        'obfuscatedAccountId': obfuscatedAccountIdAndroid,
-        'obfuscatedProfileId': obfuscatedProfileIdAndroid,
-        'purchaseToken': purchaseTokenAndroid,
-        'offerTokenIndex': offerTokenIndex,
+        'skus': [productId],
+        if (obfuscatedAccountIdAndroid != null)
+          'obfuscatedAccountId': obfuscatedAccountIdAndroid,
+        if (obfuscatedProfileIdAndroid != null)
+          'obfuscatedProfileId': obfuscatedProfileIdAndroid,
+        if (offerTokenIndex != null) 'offerTokenIndex': offerTokenIndex,
+        if (purchaseTokenAndroid != null) 'purchaseToken': purchaseTokenAndroid,
+        if (effectiveReplacementMode != null)
+          'replacementMode': effectiveReplacementMode,
       });
     } else if (_platform.isIOS) {
       return await _channel.invokeMethod('requestPurchase', <String, dynamic>{
@@ -1338,7 +1331,7 @@ class FlutterInappPurchase
           '[FlutterInappPurchase] Android: Consuming product with token: ${purchase.purchaseToken}',
         );
         final result = await _channel.invokeMethod(
-          'consumeProduct',
+          'consumePurchaseAndroid',
           <String, dynamic>{'purchaseToken': purchase.purchaseToken},
         );
         parseAndLogAndroidResponse(
@@ -1368,7 +1361,7 @@ class FlutterInappPurchase
             );
           }
           final result = await _channel.invokeMethod(
-            'acknowledgePurchase',
+            'acknowledgePurchaseAndroid',
             <String, dynamic>{'purchaseToken': purchase.purchaseToken},
           );
           parseAndLogAndroidResponse(
@@ -1840,38 +1833,15 @@ class FlutterInappPurchase
           merged.addAll(raw);
         }
       } else {
-        // Android: handle 'all' by fetching both types
-        Future<dynamic> fetchInapp() => _channel.invokeMethod('getProducts', {
-              'productIds': skus,
-            });
-        Future<dynamic> fetchSubs() =>
-            _channel.invokeMethod('getSubscriptions', {
-              'productIds': skus,
-            });
-
-        if (type == 'all') {
-          final results = await Future.wait([fetchInapp(), fetchSubs()]);
-          for (final raw in results) {
-            if (raw is String) {
-              merged.addAll(jsonDecode(raw) as List<dynamic>? ?? []);
-            } else if (raw is List) {
-              merged.addAll(raw);
-            }
-          }
-        } else if (type == iap_types.ProductType.inapp) {
-          final raw = await fetchInapp();
-          if (raw is String) {
-            merged.addAll(jsonDecode(raw) as List<dynamic>? ?? []);
-          } else if (raw is List) {
-            merged.addAll(raw);
-          }
-        } else {
-          final raw = await fetchSubs();
-          if (raw is String) {
-            merged.addAll(jsonDecode(raw) as List<dynamic>? ?? []);
-          } else if (raw is List) {
-            merged.addAll(raw);
-          }
+        // Android: unified fetchProducts(type, skus)
+        final raw = await _channel.invokeMethod('fetchProducts', {
+          'skus': skus,
+          'type': type,
+        });
+        if (raw is String) {
+          merged.addAll(jsonDecode(raw) as List<dynamic>? ?? []);
+        } else if (raw is List) {
+          merged.addAll(raw);
         }
       }
 
