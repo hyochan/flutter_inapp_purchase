@@ -1778,23 +1778,32 @@ class FlutterInappPurchase
       );
 
       // Convert directly to Product/Subscription without intermediate IapItem
-      final products = result.map((item) {
-        // Handle different Map types from iOS and Android
-        final Map<String, dynamic> itemMap;
-        if (item is Map<String, dynamic>) {
-          itemMap = item;
-        } else if (item is Map) {
-          // Convert Map<Object?, Object?> to Map<String, dynamic>
-          itemMap = Map<String, dynamic>.from(item);
-        } else {
-          throw Exception('Unexpected item type: ${item.runtimeType}');
+      final List<iap_types.ProductCommon> products = [];
+      for (final item in result) {
+        try {
+          // Handle different Map types from iOS and Android
+          final Map<String, dynamic> itemMap;
+          if (item is Map<String, dynamic>) {
+            itemMap = item;
+          } else if (item is Map) {
+            // Convert Map<Object?, Object?> to Map<String, dynamic>
+            itemMap = Map<String, dynamic>.from(item);
+          } else {
+            debugPrint(
+                '[flutter_inapp_purchase] Skipping unexpected item type: ${item.runtimeType}');
+            continue;
+          }
+          // When 'all', native item contains its own type; pass through using detected type
+          final detectedType = (type == 'all')
+              ? (itemMap['type']?.toString() ?? iap_types.ProductType.inapp)
+              : type;
+          final parsed = _parseProductFromNative(itemMap, detectedType);
+          products.add(parsed);
+        } catch (e) {
+          debugPrint(
+              '[flutter_inapp_purchase] Skipping product due to parse error: $e');
         }
-        // When 'all', native item contains its own type; pass through using detected type
-        final detectedType = (type == 'all')
-            ? (itemMap['type']?.toString() ?? iap_types.ProductType.inapp)
-            : type;
-        return _parseProductFromNative(itemMap, detectedType);
-      }).toList();
+      }
 
       // Cast to the expected type
       return products.cast<T>();
