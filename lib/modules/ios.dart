@@ -160,7 +160,7 @@ mixin FlutterInappPurchaseIOS {
     }
   }
 
-  /// Gets the iOS app transaction (iOS 18.4+)
+  /// Gets the iOS app transaction (iOS 15+)
   Future<Map<String, dynamic>?> getAppTransactionIOS() async {
     if (!isIOS) {
       return null;
@@ -178,20 +178,16 @@ mixin FlutterInappPurchaseIOS {
   }
 
   /// Attempts to parse the app transaction into a typed object.
-  /// Returns null if required fields are missing.
+  /// Returns null if essential fields are missing.
   Future<AppTransaction?> getAppTransactionTypedIOS() async {
     final map = await getAppTransactionIOS();
     if (map == null) return null;
-    // Validate presence of expected fields for typed parsing
+    // Validate presence of essential fields for typed parsing
     final requiredKeys = [
       'version',
       'bundleId',
       'originalPurchaseDate',
       'originalTransactionId',
-      'deviceVerification',
-      'deviceVerificationNonce',
-      'preorder',
-      'deviceId',
     ];
     for (final k in requiredKeys) {
       if (!map.containsKey(k)) return null;
@@ -218,7 +214,7 @@ mixin FlutterInappPurchaseIOS {
   }
 }
 
-/// iOS App Transaction model (iOS 18.4+)
+/// iOS App Transaction model (iOS 15+)
 class AppTransaction {
   final int version;
   final String bundleId;
