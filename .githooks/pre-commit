@@ -7,7 +7,8 @@ flutter pub get >/dev/null
 echo "[pre-commit] Auto-formatting repo (Dart)..."
 # Format entire repo to match CI; re-stage any changes
 dart format --page-width 80 --trailing-commas automate . >/dev/null || true
-git add -A
+# Only re-stage modified tracked files to avoid accidentally staging untracked files
+git add -u
 
 echo "[pre-commit] Verifying repo-wide formatting (matches CI)..."
 dart format --page-width 80 --trailing-commas automate --output=none --set-exit-if-changed .
