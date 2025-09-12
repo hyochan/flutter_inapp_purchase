@@ -53,6 +53,11 @@ android {
 dependencies {
     // OpenIAP Google billing wrapper (1.1.0) includes Google Play Billing
     implementation "io.github.hyochan.openiap:openiap-google:1.1.0"
+
+    // For local debugging with a checked-out module, you can switch to:
+    //   debugImplementation project(":openiap")
+    // and include the module in android/settings.gradle (see CONTRIBUTING.md)
+
     implementation files('jars/in-app-purchasing-2.0.76.jar')
     implementation 'androidx.annotation:annotation:1.6.0'
 }

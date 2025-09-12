@@ -38,7 +38,13 @@ class AmazonInappPurchasePlugin : MethodCallHandler {
             return
         }
 
-        safeResult = MethodResultWrapper(result, channel!!)
+        val ch = channel
+        if (ch == null) {
+            Log.e(TAG, "onMethodCall received for ${call.method} but channel is null. Cannot send result.")
+            result.error("E_CHANNEL_NULL", "MethodChannel is not attached", null)
+            return
+        }
+        safeResult = MethodResultWrapper(result, ch)
 
         try {
             PurchasingService.registerListener(context, purchasesUpdatedListener)
@@ -65,21 +71,21 @@ class AmazonInappPurchasePlugin : MethodCallHandler {
             }
             "getProducts",
             "getSubscriptions" -> {
-                Log.d(TAG, call.method)
+                if (BuildConfig.DEBUG) Log.d(TAG, call.method)
                 val ids = call.argument<ArrayList<String>>("productIds")
                     ?: call.argument<ArrayList<String>>("skus")
                 if (ids.isNullOrEmpty()) {
                     safeResult!!.error(TAG, "E_INVALID_ARGS", "Missing or empty 'productIds'.")
                     return
                 }
-                if (Log.isLoggable(TAG, Log.DEBUG)) {
+                if (BuildConfig.DEBUG && Log.isLoggable(TAG, Log.DEBUG)) {
                     Log.d(TAG, "Requesting product data for ${ids.size} ids")
                 }
                 PurchasingService.getProductData(ids.toSet())
             }
             "getAvailableItemsByType" -> {
                 val type = call.argument<String>("type")
-                Log.d(TAG, "gaibt=$type")
+                if (BuildConfig.DEBUG) Log.d(TAG, "gaibt=$type")
                 // NOTE: getPurchaseUpdates doesnt return Consumables which are FULFILLED
                 if (type == "inapp") {
                     PurchasingService.getPurchaseUpdates(true)
@@ -102,9 +108,9 @@ class AmazonInappPurchasePlugin : MethodCallHandler {
                 val oldSku = call.argument<String>("oldSku")
                 // TODO(v6.4.0): Remove this commented prorationMode line
                 //val prorationMode = call.argument<Int>("prorationMode")!!
-                Log.d(TAG, "type=$type||sku=$sku||oldsku=$oldSku")
+                if (BuildConfig.DEBUG) Log.d(TAG, "type=$type||sku=$sku||oldsku=$oldSku")
                 val requestId = PurchasingService.purchase(sku)
-                Log.d(TAG, "resid=$requestId")
+                if (BuildConfig.DEBUG) Log.d(TAG, "resid=$requestId")
             }
             "consumeProduct" -> {
                 // consumable is a separate type in amazon
@@ -118,28 +124,32 @@ class AmazonInappPurchasePlugin : MethodCallHandler {
 
     private val purchasesUpdatedListener: PurchasingListener = object : PurchasingListener {
         override fun onUserDataResponse(userDataResponse: UserDataResponse) {
-            Log.d(TAG, "oudr=$userDataResponse")
+            if (BuildConfig.DEBUG) Log.d(TAG, "oudr=$userDataResponse")
         }
 
         // getItemsByType
         override fun onProductDataResponse(response: ProductDataResponse) {
-            Log.d(TAG, "opdr=$response")
+            if (BuildConfig.DEBUG) Log.d(TAG, "opdr=$response")
             val status = response.requestStatus
-            Log.d(TAG, "onProductDataResponse: RequestStatus ($status)")
+            if (BuildConfig.DEBUG) Log.d(TAG, "onProductDataResponse: RequestStatus ($status)")
             when (status) {
                 ProductDataResponse.RequestStatus.SUCCESSFUL -> {
-                    Log.d(
-                        TAG,
-                        "onProductDataResponse: successful.  The item data map in this response includes the valid SKUs"
-                    )
+                    if (BuildConfig.DEBUG) {
+                        Log.d(
+                            TAG,
+                            "onProductDataResponse: successful.  The item data map in this response includes the valid SKUs"
+                        )
+                    }
                     val productData = response.productData
                     //Log.d(TAG, "productData="+productData.toString());
                     val unavailableSkus = response.unavailableSkus
-                    Log.d(
-                        TAG,
-                        "onProductDataResponse: " + unavailableSkus.size + " unavailable skus"
-                    )
-                    Log.d(TAG, "unavailableSkus=$unavailableSkus")
+                    if (BuildConfig.DEBUG) {
+                        Log.d(
+                            TAG,
+                            "onProductDataResponse: " + unavailableSkus.size + " unavailable skus"
+                        )
+                        Log.d(TAG, "unavailableSkus=$unavailableSkus")
+                    }
                     val items = JSONArray()
                     try {
                         for ((_, product) in productData) {
@@ -163,7 +173,7 @@ class AmazonInappPurchasePlugin : MethodCallHandler {
                             item.put("freeTrialPeriodAndroid", "")
                             item.put("introductoryPriceCyclesAndroid", 0)
                             item.put("introductoryPricePeriodAndroid", "")
-                            Log.d(TAG, "opdr Putting $item")
+                            if (BuildConfig.DEBUG) Log.d(TAG, "opdr Putting $item")
                             items.put(item)
                         }
                         //System.err.println("Sending "+items.toString());
@@ -174,11 +184,11 @@ class AmazonInappPurchasePlugin : MethodCallHandler {
                 }
                 ProductDataResponse.RequestStatus.FAILED -> {
                     safeResult!!.error(TAG, "FAILED", null)
-                    Log.d(TAG, "onProductDataResponse: failed, should retry request")
+                    if (BuildConfig.DEBUG) Log.d(TAG, "onProductDataResponse: failed, should retry request")
                     safeResult!!.error(TAG, "NOT_SUPPORTED", null)
                 }
                 ProductDataResponse.RequestStatus.NOT_SUPPORTED -> {
-                    Log.d(TAG, "onProductDataResponse: failed, should retry request")
+                    if (BuildConfig.DEBUG) Log.d(TAG, "onProductDataResponse: failed, should retry request")
                     safeResult!!.error(TAG, "NOT_SUPPORTED", null)
                 }
             }
@@ -186,7 +196,7 @@ class AmazonInappPurchasePlugin : MethodCallHandler {
 
         // buyItemByType
         override fun onPurchaseResponse(response: PurchaseResponse) {
-            Log.d(TAG, "opr=$response")
+            if (BuildConfig.DEBUG) Log.d(TAG, "opr=$response")
             when (val status = response.requestStatus) {
                 PurchaseResponse.RequestStatus.SUCCESSFUL -> {
                     val receipt = response.receipt
@@ -203,7 +213,7 @@ class AmazonInappPurchasePlugin : MethodCallHandler {
                             receipt.receiptId,
                             transactionDate.toDouble()
                         )
-                        Log.d(TAG, "opr Putting $item")
+                        if (BuildConfig.DEBUG) Log.d(TAG, "opr Putting $item")
                         safeResult!!.success(item.toString())
                         safeResult!!.invokeMethod("purchase-updated", item.toString())
                     } catch (e: JSONException) {
@@ -221,7 +231,7 @@ class AmazonInappPurchasePlugin : MethodCallHandler {
 
         // getAvailableItemsByType
         override fun onPurchaseUpdatesResponse(response: PurchaseUpdatesResponse) {
-            Log.d(TAG, "opudr=$response")
+            if (BuildConfig.DEBUG) Log.d(TAG, "opudr=$response")
             when (response.requestStatus) {
                 PurchaseUpdatesResponse.RequestStatus.SUCCESSFUL -> {
                     val items = JSONArray()
@@ -236,7 +246,7 @@ class AmazonInappPurchasePlugin : MethodCallHandler {
                                 receipt.receiptId,
                                 transactionDate.toDouble()
                             )
-                            Log.d(TAG, "opudr Putting $item")
+                            if (BuildConfig.DEBUG) Log.d(TAG, "opudr Putting $item")
                             items.put(item)
                         }
                         safeResult!!.success(items.toString())
@@ -250,7 +260,7 @@ class AmazonInappPurchasePlugin : MethodCallHandler {
                     null
                 )
                 PurchaseUpdatesResponse.RequestStatus.NOT_SUPPORTED -> {
-                    Log.d(TAG, "onPurchaseUpdatesResponse: failed, should retry request")
+                    if (BuildConfig.DEBUG) Log.d(TAG, "onPurchaseUpdatesResponse: failed, should retry request")
                     safeResult!!.error(TAG, "NOT_SUPPORTED", null)
                 }
             }
