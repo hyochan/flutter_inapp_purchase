@@ -173,6 +173,7 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
             purchase.purchaseStateAndroid ==
                 AndroidPurchaseState.unspecified.value) {
           // Pending
+          if (!mounted) return;
           setState(() {
             _purchaseResult = '⏳ Purchase pending: ${purchase.productId}';
           });
@@ -187,6 +188,7 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
           debugPrint(
               '  Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpty}');
 
+          if (!mounted) return;
           setState(() {
             _isProcessing = false;
             _purchaseResult = '''
@@ -203,6 +205,7 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
       },
       onError: (Object error) {
         debugPrint('Purchase stream error: $error');
+        if (!mounted) return;
         setState(() {
           _isProcessing = false;
           _purchaseResult = '❌ Stream error: $error';
@@ -333,6 +336,7 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
       });
     } catch (error) {
       debugPrint('Failed to check active subscriptions: $error');
+      if (!mounted) return;
       setState(() {
         _purchaseResult = '❌ Error checking subscriptions: $error';
       });
@@ -428,6 +432,7 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
       debugPrint('Purchase request sent, waiting for response...');
     } catch (error) {
       debugPrint('Failed to request subscription: $error');
+      if (!mounted) return;
       setState(() {
         _isProcessing = false;
         _purchaseResult = '❌ Failed to request: $error';
@@ -475,6 +480,7 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
       // Result will come through purchaseUpdatedListener
     } catch (error) {
       debugPrint('Error with fake token: $error');
+      if (!mounted) return;
       setState(() {
         _isProcessing = false;
         _purchaseResult = '❌ Error with fake token:\n$error';
@@ -520,6 +526,7 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
       // Result will come through purchaseUpdatedListener
     } catch (error) {
       debugPrint('Error with test token: $error');
+      if (!mounted) return;
       setState(() {
         _isProcessing = false;
         _purchaseResult = '❌ Error with test token:\n$error';
@@ -558,6 +565,7 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
       }
     } catch (error) {
       debugPrint('Failed to restore purchases: $error');
+      if (!mounted) return;
       setState(() {
         _isProcessing = false;
         _purchaseResult = '❌ Failed to restore: $error';
