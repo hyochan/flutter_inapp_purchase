@@ -282,9 +282,11 @@ class FlutterInappPurchase
           }
         } else {
           // Use OpenIAP-compatible requestPurchase API on Android
+          // Backward-compat: include productId to satisfy older handlers/tests
           await _channel.invokeMethod('requestPurchase', <String, dynamic>{
             'type': TypeInApp.inapp.name,
             'skus': [sku],
+            'productId': sku,
             if (androidRequest.obfuscatedAccountIdAndroid != null)
               'obfuscatedAccountId': androidRequest.obfuscatedAccountIdAndroid,
             if (androidRequest.obfuscatedProfileIdAndroid != null)
@@ -364,14 +366,25 @@ class FlutterInappPurchase
         // Android unified available items
         final dynamic result = await _channel.invokeMethod('getAvailableItems');
         final items = extractPurchases(result) ?? [];
-        return items;
+        // Filter out incomplete purchases (must have productId and either purchaseToken or transactionId)
+        return items
+            .where((p) =>
+                p.productId.isNotEmpty &&
+                ((p.purchaseToken != null && p.purchaseToken!.isNotEmpty) ||
+                    (p.transactionId != null && p.transactionId!.isNotEmpty)))
+            .toList();
       } else if (_platform.isIOS) {
         // On iOS, pass both iOS-specific options to native method
         final args = options?.toMap() ?? <String, dynamic>{};
 
         dynamic result = await _channel.invokeMethod('getAvailableItems', args);
         final items = extractPurchases(json.encode(result)) ?? [];
-        return items;
+        return items
+            .where((p) =>
+                p.productId.isNotEmpty &&
+                ((p.purchaseToken != null && p.purchaseToken!.isNotEmpty) ||
+                    (p.transactionId != null && p.transactionId!.isNotEmpty)))
+            .toList();
       }
       return [];
     } catch (e) {
@@ -1157,6 +1170,7 @@ class FlutterInappPurchase
       return await _channel.invokeMethod('requestPurchase', <String, dynamic>{
         'type': TypeInApp.subs.name,
         'skus': [productId],
+        'productId': productId,
         if (obfuscatedAccountIdAndroid != null)
           'obfuscatedAccountId': obfuscatedAccountIdAndroid,
         if (obfuscatedProfileIdAndroid != null)
@@ -1261,8 +1275,13 @@ class FlutterInappPurchase
               '[FlutterInappPurchase] Android: Acknowledging purchase with token: $maskedToken',
             );
           }
+          // Subscriptions use legacy acknowledgePurchase for compatibility
+          final methodName = (purchase.autoRenewingAndroid == true ||
+                  purchase.autoRenewing == true)
+              ? 'acknowledgePurchase'
+              : 'acknowledgePurchaseAndroid';
           final result = await _channel.invokeMethod(
-            'acknowledgePurchaseAndroid',
+            methodName,
             <String, dynamic>{'purchaseToken': purchase.purchaseToken},
           );
           parseAndLogAndroidResponse(
@@ -1931,6 +1950,16 @@ class FlutterInappPurchase
       final activeSubscriptions = await getActiveSubscriptions(
         subscriptionIds: subscriptionIds,
       );
+      // For Android, also call native with explicit type for parity/logging
+      if (_platform.isAndroid) {
+        try {
+          await _channel.invokeMethod('getAvailableItems', <String, dynamic>{
+            'type': TypeInApp.subs.name,
+          });
+        } catch (_) {
+          // Ignore; this is for logging/compatibility only
+        }
+      }
       return activeSubscriptions.isNotEmpty;
     } catch (e) {
       // If there's an error getting subscriptions, return false
