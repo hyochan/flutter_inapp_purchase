@@ -1,5 +1,22 @@
 # CHANGELOG
 
+## 6.6.0
+
+### Changed
+
+- Android: Migrated native billing to openiap-google and simplified plugin with coroutines and connection gating.
+- Android: Hardened null-safety and error logging; removed BuildConfig dependency in Amazon plugin.
+- Dart: More robust product parsing (platform heuristics, per-item guards) and safer generics in fetchProducts.
+- Example: Fixed sporadic setState after dispose by guarding mounted across async paths.
+
+### Added
+
+- iOS mixin: Convenience helpers (subscription group, App Store country, available items, typed app transaction, purchase histories).
+
+### Tooling
+
+- Pre-commit: Align dart format flags with CI and avoid staging untracked files.
+
 ## 6.5.3
 
 ### Fixed
