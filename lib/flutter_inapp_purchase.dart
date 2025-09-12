@@ -551,19 +551,35 @@ class FlutterInappPurchase
     Map<String, dynamic> json,
     String type,
   ) {
-    // Determine platform from JSON data if available, otherwise use current device
+    // Determine platform from JSON data if available, otherwise use heuristics, then runtime
     iap_types.IapPlatform platform;
     final dynamic platformRaw = json['platform'];
     if (platformRaw is String) {
-      platform = platformRaw.toLowerCase() == 'android'
+      final v = platformRaw.toLowerCase();
+      platform = (v == 'android')
           ? iap_types.IapPlatform.android
           : iap_types.IapPlatform.ios;
     } else if (platformRaw is iap_types.IapPlatform) {
       platform = platformRaw;
     } else {
-      platform = _platform.isIOS
-          ? iap_types.IapPlatform.ios
-          : iap_types.IapPlatform.android;
+      // Heuristics based on well-known platform-specific fields
+      final looksAndroid =
+          json.containsKey('oneTimePurchaseOfferDetailsAndroid') ||
+              json.containsKey('subscriptionOfferDetailsAndroid') ||
+              json.containsKey('nameAndroid');
+      final looksIOS = json.containsKey('subscriptionGroupIdIOS') ||
+          json.containsKey('jsonRepresentationIOS') ||
+          json.containsKey('environmentIOS');
+      if (looksAndroid && !looksIOS) {
+        platform = iap_types.IapPlatform.android;
+      } else if (looksIOS && !looksAndroid) {
+        platform = iap_types.IapPlatform.ios;
+      } else {
+        // Fallback to current runtime platform
+        platform = _platform.isIOS
+            ? iap_types.IapPlatform.ios
+            : iap_types.IapPlatform.android;
+      }
     }
 
     if (type == iap_types.ProductType.subs) {
