@@ -552,13 +552,19 @@ class FlutterInappPurchase
     String type,
   ) {
     // Determine platform from JSON data if available, otherwise use current device
-    final platform = json.containsKey('platform')
-        ? (json['platform'] == 'android'
-            ? iap_types.IapPlatform.android
-            : iap_types.IapPlatform.ios)
-        : (_platform.isIOS
-            ? iap_types.IapPlatform.ios
-            : iap_types.IapPlatform.android);
+    iap_types.IapPlatform platform;
+    final dynamic platformRaw = json['platform'];
+    if (platformRaw is String) {
+      platform = platformRaw.toLowerCase() == 'android'
+          ? iap_types.IapPlatform.android
+          : iap_types.IapPlatform.ios;
+    } else if (platformRaw is iap_types.IapPlatform) {
+      platform = platformRaw;
+    } else {
+      platform = _platform.isIOS
+          ? iap_types.IapPlatform.ios
+          : iap_types.IapPlatform.android;
+    }
 
     if (type == iap_types.ProductType.subs) {
       return iap_types.ProductSubscription(
