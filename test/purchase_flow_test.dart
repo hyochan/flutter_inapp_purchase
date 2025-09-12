@@ -22,16 +22,10 @@ void main() {
             return true;
           case 'endConnection':
             return true;
-          case 'getProducts':
-          case 'getSubscriptions':
-            final args = methodCall.arguments;
-            final productIds = args is Map
-                ? (args['productIds'] as Iterable?)
-                    ?.map((e) => e.toString())
-                    .toList()
-                : args is Iterable
-                    ? args.map((e) => e.toString()).toList()
-                    : null;
+          case 'fetchProducts':
+            final args = methodCall.arguments as Map?;
+            final productIds =
+                (args?['skus'] as Iterable?)?.map((e) => e.toString()).toList();
             final allProducts = _getMockProducts();
             final filteredProducts = productIds != null
                 ? allProducts
@@ -43,17 +37,15 @@ void main() {
             return filteredProducts
                 .map((item) => Map<String, dynamic>.from(item))
                 .toList();
-          case 'buyItemByType':
-            return _getMockPurchase(methodCall.arguments);
           case 'requestPurchase':
             return _getMockPurchase(methodCall.arguments);
           case 'requestSubscription':
             return _getMockSubscription(methodCall.arguments);
           case 'finishTransaction':
             return 'finished';
-          case 'consumeProduct':
+          case 'consumePurchaseAndroid':
             return <String, dynamic>{'purchaseToken': methodCall.arguments};
-          case 'acknowledgePurchase':
+          case 'acknowledgePurchaseAndroid':
             return <String, dynamic>{'purchaseToken': methodCall.arguments};
           case 'getAvailablePurchases':
             return _getMockAvailablePurchases()
@@ -69,10 +61,6 @@ void main() {
                 .toList();
           case 'getPurchaseHistory':
             return _getMockPurchaseHistory()
-                .map((item) => Map<String, dynamic>.from(item))
-                .toList();
-          case 'getAvailableItemsByType':
-            return _getMockAvailablePurchases()
                 .map((item) => Map<String, dynamic>.from(item))
                 .toList();
           default:
@@ -192,7 +180,7 @@ void main() {
         );
 
         expect(subscriptions.length, 2);
-        expect(methodChannelLog.last.method, 'getSubscriptions');
+        expect(methodChannelLog.last.method, 'fetchProducts');
       });
     });
 
@@ -210,7 +198,7 @@ void main() {
           type: ProductType.inapp,
         );
 
-        expect(methodChannelLog.last.method, 'buyItemByType');
+        expect(methodChannelLog.last.method, 'requestPurchase');
       });
 
       test('requestPurchase with additional params on Android', () async {
@@ -258,7 +246,7 @@ void main() {
           type: ProductType.subs,
         );
 
-        expect(methodChannelLog.last.method, 'buyItemByType');
+        expect(methodChannelLog.last.method, 'requestPurchase');
       });
 
       test('requestPurchase with offer token on Android', () async {
@@ -321,7 +309,7 @@ void main() {
 
         await plugin.finishTransaction(purchase, isConsumable: true);
 
-        expect(methodChannelLog.last.method, 'consumeProduct');
+        expect(methodChannelLog.last.method, 'consumePurchaseAndroid');
       });
 
       test(
@@ -342,7 +330,7 @@ void main() {
 
           await plugin.finishTransaction(purchase);
 
-          expect(methodChannelLog.last.method, 'acknowledgePurchase');
+          expect(methodChannelLog.last.method, 'acknowledgePurchaseAndroid');
         },
       );
 
@@ -415,8 +403,7 @@ void main() {
           MethodCall methodCall,
         ) async {
           if (methodCall.method == 'initConnection') return true;
-          if (methodCall.method == 'buyItemByType' ||
-              methodCall.method == 'requestPurchase') {
+          if (methodCall.method == 'requestPurchase') {
             throw PlatformException(
               code: 'E_USER_CANCELLED',
               message: 'User cancelled the purchase',
@@ -447,7 +434,7 @@ void main() {
           MethodCall methodCall,
         ) async {
           if (methodCall.method == 'initConnection') return true;
-          if (methodCall.method == 'getProducts') {
+          if (methodCall.method == 'fetchProducts') {
             throw PlatformException(
               code: 'E_NETWORK_ERROR',
               message: 'Network connection failed',

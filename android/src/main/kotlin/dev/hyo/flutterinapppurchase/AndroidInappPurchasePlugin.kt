@@ -3,837 +3,818 @@ package dev.hyo.flutterinapppurchase
 import android.app.Activity
 import android.app.Application
 import android.app.Application.ActivityLifecycleCallbacks
-import android.content.ActivityNotFoundException
 import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
-import com.android.billingclient.api.*
-import com.android.billingclient.api.BillingFlowParams.*
-import io.flutter.plugin.common.FlutterException
+import dev.hyo.openiap.OpenIapError
+import dev.hyo.openiap.OpenIapModule
+import dev.hyo.openiap.listener.OpenIapPurchaseErrorListener
+import dev.hyo.openiap.listener.OpenIapPurchaseUpdateListener
+import dev.hyo.openiap.models.ProductRequest
+import dev.hyo.openiap.models.RequestPurchaseAndroidProps
+import dev.hyo.openiap.models.DeepLinkOptions
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.json.JSONArray
-import org.json.JSONException
 import org.json.JSONObject
 
 /**
- * AndroidInappPurchasePlugin
+ * AndroidInappPurchasePlugin (OpenIAP-backed)
+ *
+ * Implements the existing MethodChannel API using openiap-google (OpenIapModule),
+ * and adds parity endpoints used by Expo modules for Android.
  */
-class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler,
-    ActivityLifecycleCallbacks {
-    private var safeResult: MethodResultWrapper? = null
-    private var billingClient: BillingClient? = null
+class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, ActivityLifecycleCallbacks {
+    private val job = Job()
+    private val scope = CoroutineScope(Dispatchers.Main + job)
+
     private var context: Context? = null
     private var activity: Activity? = null
     private var channel: MethodChannel? = null
+
+    private var connectionReady: Boolean = false
+    private var listenersAttached = false
+    private val connectionMutex = Mutex()
+
+    // OpenIAP module instance
+    private var openIap: OpenIapModule? = null
+
     fun setContext(context: Context?) {
         this.context = context
+        if (context != null && openIap == null) {
+            openIap = OpenIapModule(context)
+        }
     }
+
     fun setActivity(activity: Activity?) {
         this.activity = activity
-        Log.d(TAG, "Activity set: ${if (activity != null) "not null" else "null"}")
+        openIap?.setActivity(activity)
     }
+
     fun setChannel(channel: MethodChannel?) {
         this.channel = channel
-        Log.d(TAG, "Channel set: ${if (channel != null) "not null" else "null"}")
     }
+
     fun onDetachedFromActivity() {
-        endBillingClientConnection()
+        scope.launch {
+            kotlin.runCatching { openIap?.endConnection() }
+            connectionReady = false
+        }
+        // Cancel coroutine job to avoid leaks
+        job.cancel()
     }
+
+    // ActivityLifecycleCallbacks (no-ops except for cleanup)
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
     override fun onActivityStarted(activity: Activity) {}
     override fun onActivityResumed(activity: Activity) {}
     override fun onActivityPaused(activity: Activity) {}
-    override fun onActivityDestroyed(activity: Activity) {
-        if (this.activity === activity && context != null) {
-            (context as Application?)!!.unregisterActivityLifecycleCallbacks(this)
-            endBillingClientConnection()
-        }
-    }
     override fun onActivityStopped(activity: Activity) {}
     override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
+    override fun onActivityDestroyed(activity: Activity) {
+        if (this.activity === activity && context != null) {
+            (context as Application).unregisterActivityLifecycleCallbacks(this)
+            onDetachedFromActivity()
+        }
+    }
+
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
-
-        if(call.method == "getStore"){
-            result.success(FlutterInappPurchasePlugin.getStore())
+        val ch = channel
+        if (ch == null) {
+            Log.e(TAG, "onMethodCall received for ${call.method} but channel is null. Cannot send result.")
+            result.error("E_CHANNEL_NULL", "MethodChannel is not attached", null)
             return
         }
+        val safe = MethodResultWrapper(result, ch)
 
-        if(call.method == "manageSubscription"){
-            result.success(manageSubscription(call.argument<String>("sku")!!,call.argument<String>("packageName")!!))
-            return
-        }
-
-        if(call.method == "openPlayStoreSubscriptions"){
-            result.success(openPlayStoreSubscriptions())
-            return
-        }
-
-        safeResult = MethodResultWrapper(result, channel!!)
-        val safeChannel = MethodResultWrapper(result, channel!!)
-
-        if (call.method == "initConnection") {
-            if (billingClient != null) {
-                safeChannel.success("Already started. Call endConnection method if you want to start over.")
+        // Quick methods that do not depend on billing readiness
+        when (call.method) {
+            "getStore" -> {
+                safe.success(FlutterInappPurchasePlugin.getStore())
                 return
             }
-            
-            Log.d(TAG, "Creating BillingClient with PurchasesUpdatedListener")
-            billingClient = BillingClient.newBuilder(context ?: return)
-                .setListener(purchasesUpdatedListener)
-                .enablePendingPurchases(
-                    PendingPurchasesParams.newBuilder()
-                        .enableOneTimeProducts()
-                        .build()
-                )
-                .build()
-            Log.d(TAG, "BillingClient created successfully")
-            
-            billingClient?.startConnection(object : BillingClientStateListener {
-                private var alreadyFinished = false
-            
-                override fun onBillingSetupFinished(billingResult: BillingResult) {
-                    if (alreadyFinished) return
-                    alreadyFinished = true
-            
+            "manageSubscription" -> {
+                val sku = call.argument<String>("sku")
+                val packageName = call.argument<String>("packageName")
+                scope.launch {
                     try {
-                        val isConnected = billingResult.responseCode == BillingClient.BillingResponseCode.OK
-                        updateConnectionStatus(isConnected)
-            
-                        val resultMessage = if (isConnected) {
-                            "Billing client ready"
-                        } else {
-                            "responseCode: ${billingResult.responseCode}"
-                        }
-            
-                        if (isConnected) {
-                            safeChannel.success(resultMessage)
-                        } else {
-                            safeChannel.error(call.method, resultMessage, "")
-                        }
-                    } catch (je: JSONException) {
-                        je.printStackTrace()
+                        openIap?.deepLinkToSubscriptions(DeepLinkOptions(skuAndroid = sku, packageNameAndroid = packageName))
+                        safe.success(true)
+                    } catch (e: Exception) {
+                        safe.error("manageSubscription", e.message, null)
                     }
                 }
-            
-                override fun onBillingServiceDisconnected() {
-                    if (alreadyFinished) return
-                    alreadyFinished = true
-                    updateConnectionStatus(false)
-                }
-            
-                private fun updateConnectionStatus(isConnected: Boolean) {
+                return
+            }
+            "openPlayStoreSubscriptions" -> {
+                scope.launch {
                     try {
-                        val item = JSONObject().apply {
-                            put("connected", isConnected)
-                        }
-                        safeChannel.invokeMethod("connection-updated", item.toString())
-                    } catch (je: JSONException) {
-                        je.printStackTrace()
+                        openIap?.deepLinkToSubscriptions(DeepLinkOptions())
+                        safe.success(true)
+                    } catch (e: Exception) {
+                        safe.error("openPlayStoreSubscriptions", e.message, null)
                     }
                 }
-            })
-            return
-        }
-
-        if (call.method == "endConnection") {
-            if (billingClient == null) {
-                safeChannel.success("Already ended.")
-            }else{
-                endBillingClientConnection(safeChannel)
-            }
-            return
-        }
-
-        val isReady = billingClient?.isReady
-
-        if(call.method == "isReady"){
-            safeChannel.success(isReady)
-            return
-        }
-
-        if (isReady != true) {
-            safeChannel.error(
-                call.method,
-                BillingError.E_NOT_PREPARED,
-                "IAP not prepared. Check if Google Play service is available."
-            )
-            return
-        }
-
-        when(call.method){
-            "showInAppMessages" -> showInAppMessages(safeChannel)
-            "getProducts" -> getProductsByType(BillingClient.ProductType.INAPP, call, safeChannel)
-            "getSubscriptions" -> getProductsByType(BillingClient.ProductType.SUBS, call, safeChannel)
-            "getAvailableItemsByType" -> getAvailableItemsByType(call, safeChannel)
-            "getPurchaseHistoryByType" -> getPurchaseHistoryByType(call, safeChannel)
-            "buyItemByType" -> buyProduct(call, safeChannel)
-            "acknowledgePurchase" -> acknowledgePurchase(call, safeChannel)
-            "consumeProduct" -> consumeProduct(call, safeChannel)
-            "consumePurchase" -> consumeProduct(call, safeChannel)
-            else -> safeChannel.notImplemented()
-        }
-    }
-
-    private fun manageSubscription(sku: String, packageName: String): Boolean{
-        val url = "$PLAY_STORE_URL?sku=${sku}&package=${packageName}"
-        return openWithFallback(Uri.parse(url))
-    }
-
-    private fun openPlayStoreSubscriptions():Boolean{
-        return openWithFallback(Uri.parse(PLAY_STORE_URL))
-    }
-
-    private fun openWithFallback(uri: Uri):Boolean{
-        try{
-            activity!!.startActivity(Intent(Intent.ACTION_VIEW).apply { data = uri })
-            return true
-        }catch (e: ActivityNotFoundException){
-            try{
-                activity!!.startActivity( Intent(Intent.ACTION_VIEW)
-                    .setDataAndType(uri, "text/html")
-                    .addCategory(Intent.CATEGORY_BROWSABLE))
-                return true
-            }catch (e: ActivityNotFoundException){
-                // ignore
+                return
             }
         }
-        return false
-    }
 
-    private fun showInAppMessages(safeChannel: MethodResultWrapper) {
-        val inAppMessageParams = InAppMessageParams.newBuilder()
-            .addInAppMessageCategoryToShow(InAppMessageParams.InAppMessageCategoryId.TRANSACTIONAL)
-            .build()
-
-        billingClient!!.showInAppMessages(activity!!, inAppMessageParams) { inAppMessageResult ->
-            safeChannel.invokeMethod("on-in-app-message", inAppMessageResult.responseCode)
-        }
-        safeChannel.success("show in app messages ready")
-    }
-
-
-    private fun getAvailableItemsByType(
-        call: MethodCall,
-        safeChannel: MethodResultWrapper
-    ) {
-        val type = if(call.argument<String>("type") == "subs") BillingClient.ProductType.SUBS else BillingClient.ProductType.INAPP
-        val params = QueryPurchasesParams.newBuilder().apply { setProductType(type) }.build()
-        val items = JSONArray()
-        billingClient!!.queryPurchasesAsync(params) { billingResult, productDetailList ->
-            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                for (purchase in productDetailList) {
-                    val item = JSONObject()
-                    item.put("id", purchase.orderId)
-                    item.put("productId", purchase.products[0])
-                    item.put("ids", JSONArray(purchase.products))
-                    item.put("transactionId", purchase.orderId)  // @deprecated - use id instead
-                    item.put("transactionDate", purchase.purchaseTime)
-                    item.put("transactionReceipt", purchase.originalJson)
-                    item.put("purchaseToken", purchase.purchaseToken)  // Unified field
-                    item.put("purchaseTokenAndroid", purchase.purchaseToken)  // Deprecated - use purchaseToken
-                    item.put("dataAndroid", purchase.originalJson)
-                    item.put("signatureAndroid", purchase.signature)
-                    item.put("purchaseStateAndroid", purchase.purchaseState)
-                    item.put("packageNameAndroid", purchase.packageName)
-                    item.put("developerPayloadAndroid", purchase.developerPayload)
-                    item.put("platform", "android")
-                    if (type == BillingClient.ProductType.INAPP) {
-                        item.put("isAcknowledgedAndroid", purchase.isAcknowledged)
-                    } else if (type == BillingClient.ProductType.SUBS) {
-                        item.put("autoRenewingAndroid", purchase.isAutoRenewing)
-                    }
-                    val accountIdentifiers = purchase.accountIdentifiers
-                    if (accountIdentifiers != null) {
-                        item.put("obfuscatedAccountIdAndroid", accountIdentifiers.obfuscatedAccountId)
-                        item.put("obfuscatedProfileIdAndroid", accountIdentifiers.obfuscatedProfileId)
-                    }
-                    items.put(item)
+        // Initialization / teardown
+        when (call.method) {
+            "initConnection" -> {
+                if (connectionReady) {
+                    safe.success("Already started. Call endConnection method if you want to start over.")
+                    return
                 }
-                safeChannel.success(items.toString())
-            } else {
-                safeChannel.error(
-                    call.method, billingResult.debugMessage,
-                    "responseCode:${billingResult.responseCode}"
-                )
-            }
-        }
-    }
-
-    private fun consumeProduct(
-        call: MethodCall,
-        safeChannel: MethodResultWrapper
-    ) {
-        val token = call.argument<String>("purchaseToken")
-        val params = ConsumeParams.newBuilder()
-            .setPurchaseToken(token!!)
-            .build()
-        billingClient!!.consumeAsync(params) { billingResult, purchaseToken ->
-            if (billingResult.responseCode != BillingClient.BillingResponseCode.OK) {
-                val errorData = BillingError.getErrorFromResponseData(billingResult.responseCode)
-                safeChannel.error(call.method, errorData.code, errorData.message)
-                return@consumeAsync
-            }
-            try {
-                val item = JSONObject()
-                item.put("responseCode", billingResult.responseCode)
-                item.put("debugMessage", billingResult.debugMessage)
-                val errorData = BillingError.getErrorFromResponseData(billingResult.responseCode)
-                item.put("code", errorData.code)
-                item.put("message", errorData.message)
-                item.put("purchaseToken", purchaseToken)
-                safeChannel.success(item.toString())
-                return@consumeAsync
-            } catch (je: JSONException) {
-                safeChannel.error(
-                    TAG,
-                    BillingError.E_BILLING_RESPONSE_JSON_PARSE_ERROR,
-                    je.message
-                )
-                return@consumeAsync
-            }
-        }
-    }
-
-    private fun acknowledgePurchase(
-        call: MethodCall,
-        safeChannel: MethodResultWrapper
-    ) {
-        val token = call.argument<String>("purchaseToken")
-        val acknowledgePurchaseParams = AcknowledgePurchaseParams.newBuilder()
-            .setPurchaseToken(token!!)
-            .build()
-        billingClient!!.acknowledgePurchase(acknowledgePurchaseParams) { billingResult ->
-            if (billingResult.responseCode != BillingClient.BillingResponseCode.OK) {
-                val errorData = BillingError.getErrorFromResponseData(billingResult.responseCode)
-                safeChannel.error(call.method, errorData.code, errorData.message)
-                return@acknowledgePurchase
-            }
-            try {
-                val item = JSONObject()
-                item.put("responseCode", billingResult.responseCode)
-                item.put("debugMessage", billingResult.debugMessage)
-                val errorData = BillingError.getErrorFromResponseData(billingResult.responseCode)
-                item.put("code", errorData.code)
-                item.put("message", errorData.message)
-                safeChannel.success(item.toString())
-            } catch (je: JSONException) {
-                je.printStackTrace()
-                safeChannel.error(
-                    TAG,
-                    BillingError.E_BILLING_RESPONSE_JSON_PARSE_ERROR,
-                    je.message
-                )
-            }
-        }
-    }
-
-    private fun getPurchaseHistoryByType(
-        call: MethodCall,
-        safeChannel: MethodResultWrapper
-    ) {
-        val type = if(call.argument<String>("type") == "subs") BillingClient.ProductType.SUBS else BillingClient.ProductType.INAPP
-        val params = QueryPurchaseHistoryParams.newBuilder().apply { setProductType(type) }.build()
-
-        // Note: queryPurchaseHistoryAsync was removed in v8.0.0
-        // Using queryPurchasesAsync instead
-        val queryParams = QueryPurchasesParams.newBuilder()
-            .setProductType(type)
-            .build()
-            
-        billingClient!!.queryPurchasesAsync(
-            queryParams
-        ) { billingResult, purchasesList ->
-            if (billingResult.responseCode != BillingClient.BillingResponseCode.OK) {
-                val errorData = BillingError.getErrorFromResponseData(billingResult.responseCode)
-                safeChannel.error(call.method, errorData.code, errorData.message)
-                return@queryPurchasesAsync
-            }
-            val items = JSONArray()
-            try {
-                for (purchase in purchasesList) {
-                    val item = JSONObject()
-                    item.put("id", purchase.orderId)
-                    item.put("productId", purchase.products[0])
-                    item.put("ids", JSONArray(purchase.products))
-                    item.put("transactionId", purchase.orderId)  // @deprecated - use id instead
-                    item.put("transactionDate", purchase.purchaseTime)
-                    item.put("transactionReceipt", purchase.originalJson)
-                    item.put("purchaseToken", purchase.purchaseToken)  // Unified field
-                    item.put("purchaseTokenAndroid", purchase.purchaseToken)  // Deprecated - use purchaseToken
-                    item.put("dataAndroid", purchase.originalJson)
-                    item.put("signatureAndroid", purchase.signature)
-                    item.put("purchaseStateAndroid", purchase.purchaseState)
-                    item.put("autoRenewingAndroid", purchase.isAutoRenewing)
-                    item.put("isAcknowledgedAndroid", purchase.isAcknowledged)
-                    item.put("packageNameAndroid", purchase.packageName)
-                    item.put("developerPayloadAndroid", purchase.developerPayload)
-                    item.put("platform", "android")
-                    val accountIdentifiers = purchase.accountIdentifiers
-                    if (accountIdentifiers != null) {
-                        item.put("obfuscatedAccountIdAndroid", accountIdentifiers.obfuscatedAccountId)
-                        item.put("obfuscatedProfileIdAndroid", accountIdentifiers.obfuscatedProfileId)
+                attachListenersIfNeeded()
+                openIap?.setActivity(activity)
+                scope.launch {
+                    try {
+                        val ok = openIap?.initConnection() ?: false
+                        connectionReady = ok
+                        // Emit connection-updated for compatibility
+                        val item = JSONObject().apply { put("connected", ok) }
+                        channel?.invokeMethod("connection-updated", item.toString())
+                        if (ok) safe.success("Billing client ready") else safe.error(call.method, "responseCode: -1", "")
+                    } catch (e: Exception) {
+                        safe.error(call.method, OpenIapError.E_INIT_CONNECTION, e.message)
                     }
-                    items.put(item)
                 }
-                safeChannel.success(items.toString())
-                return@queryPurchasesAsync
-            } catch (je: JSONException) {
-                je.printStackTrace()
-                safeChannel.error(TAG, BillingError.E_BILLING_RESPONSE_JSON_PARSE_ERROR, je.message)
+                return
+            }
+            "endConnection" -> {
+                scope.launch {
+                    try {
+                        openIap?.endConnection()
+                        connectionReady = false
+                        safe.success("Billing client has ended.")
+                    } catch (e: Exception) {
+                        safe.error("endConnection", e.message, null)
+                    }
+                }
+                return
+            }
+            "isReady" -> {
+                safe.success(connectionReady)
+                return
             }
         }
-    }
 
-    private fun getProductsByType(
-        productType: String,
-        call: MethodCall,
-        safeChannel: MethodResultWrapper
-    ) {
-        val productIds : ArrayList<String> = call.argument<ArrayList<String>>("productIds")!!
-        val params = ArrayList<QueryProductDetailsParams.Product>()
-        for (i in productIds.indices) {
-            params.add(QueryProductDetailsParams.Product.newBuilder().setProductId(productIds[i]).setProductType(productType).build())
+        // Lazily init connection on demand
+        if (!connectionReady && call.method in setOf("fetchProducts", "getAvailableItems", "getStorefrontAndroid", "requestPurchase", "getProducts", "getSubscriptions", "getAvailableItemsByType", "getPurchaseHistoryByType", "buyItemByType", "acknowledgePurchase", "consumeProduct", "consumePurchase", "acknowledgePurchaseAndroid", "consumePurchaseAndroid")) {
+            // Best-effort prepare connection
+            scope.launch {
+                connectionMutex.withLock {
+                    try {
+                        attachListenersIfNeeded()
+                        openIap?.setActivity(activity)
+                        val ok = openIap?.initConnection() ?: false
+                        connectionReady = ok
+                        val item = JSONObject().apply { put("connected", ok) }
+                        channel?.invokeMethod("connection-updated", item.toString())
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Lazy connection initialization failed", e)
+                        connectionReady = false
+                    }
+                }
+            }
         }
 
-        billingClient!!.queryProductDetailsAsync(
-            QueryProductDetailsParams.newBuilder().setProductList(params).build()
-        ) { billingResult: BillingResult, productDetailsResult: QueryProductDetailsResult ->
-            // On error
-            if (billingResult.responseCode != BillingClient.BillingResponseCode.OK) {
-                val errorData = BillingError.getErrorFromResponseData(billingResult.responseCode)
-                safeChannel.error(call.method, errorData.code, errorData.message)
-                return@queryProductDetailsAsync
-            }
-
-            try {
-                val products = productDetailsResult.productDetailsList ?: emptyList()
-                val items = JSONArray()
-                for (productDetails in products) {
-                    // Add to list of tracked products
-                    if (!productDetailsList.contains(productDetails)) {
-                        productDetailsList.add(productDetails)
-                    }
-
-                    // Create flutter objects
-                    val item = JSONObject()
-                    item.put("id", productDetails.productId)
-                    item.put("productId", productDetails.productId)
-                    item.put("type", productDetails.productType)
-                    item.put("title", productDetails.title)
-                    item.put("displayName", productDetails.name)
-                    item.put("nameAndroid", productDetails.name)
-                    item.put("description", productDetails.description)
-                    item.put("platform", "android")
-                    
-                    // Debug logging
-                    Log.d("InappPurchase", "Product: ${productDetails.productId}")
-                    Log.d("InappPurchase", "Name: ${productDetails.name}")
-                    Log.d("InappPurchase", "Type: ${productDetails.productType}")
-                    Log.d("InappPurchase", "OneTimePurchaseOfferDetails: ${productDetails.oneTimePurchaseOfferDetails}")
-                    
-                    // Set currency and displayPrice based on product type
-                    val currency = productDetails.oneTimePurchaseOfferDetails?.priceCurrencyCode
-                        ?: productDetails.subscriptionOfferDetails?.firstOrNull()?.pricingPhases?.pricingPhaseList?.firstOrNull()?.priceCurrencyCode
-                        ?: "Unknown"
-                    val displayPrice = productDetails.oneTimePurchaseOfferDetails?.formattedPrice
-                        ?: productDetails.subscriptionOfferDetails?.firstOrNull()?.pricingPhases?.pricingPhaseList?.firstOrNull()?.formattedPrice
-                        ?: "N/A"
-                    
-                    item.put("currency", currency)
-                    item.put("displayPrice", displayPrice)
-
-                    // One-time offer details have changed in 5.0
-                    if (productDetails.oneTimePurchaseOfferDetails != null) {
-                        item.put("introductoryPrice", productDetails.oneTimePurchaseOfferDetails!!.formattedPrice)
-                        // Also put the price here for consistency
-                        item.put("price", (productDetails.oneTimePurchaseOfferDetails!!.priceAmountMicros / 1000000f).toString())
-                    }
-
-                    if (productDetails.productType == BillingClient.ProductType.INAPP) {
-                        val oneTimePurchaseOfferDetails = productDetails.oneTimePurchaseOfferDetails
-                        
-                        Log.d("InappPurchase", "INAPP product oneTimePurchaseOfferDetails is ${if (oneTimePurchaseOfferDetails != null) "available" else "null"}")
-
-                        if (oneTimePurchaseOfferDetails != null) {
-                            item.put("price", (oneTimePurchaseOfferDetails.priceAmountMicros / 1000000f).toString())
-                            item.put("localizedPrice", oneTimePurchaseOfferDetails.formattedPrice)
-                            
-                            // Add structured oneTimePurchaseOfferDetails
-                            val offerDetails = JSONObject()
-                            offerDetails.put("priceCurrencyCode", oneTimePurchaseOfferDetails.priceCurrencyCode)
-                            offerDetails.put("formattedPrice", oneTimePurchaseOfferDetails.formattedPrice)
-                            offerDetails.put("priceAmountMicros", oneTimePurchaseOfferDetails.priceAmountMicros.toString())
-                            item.put("oneTimePurchaseOfferDetails", offerDetails)
-                            item.put("oneTimePurchaseOfferDetailsAndroid", offerDetails)
-                            
-                            Log.d("InappPurchase", "Added oneTimePurchaseOfferDetailsAndroid: $offerDetails")
-                        } else {
-                            Log.d(TAG, "oneTimePurchaseOfferDetails is null for INAPP product")
-                            // Still expose display-only details without mutating numeric price
-                            if (currency != null && displayPrice != null) {
-                                val basicOfferDetails = JSONObject()
-                                basicOfferDetails.put("priceCurrencyCode", currency)
-                                basicOfferDetails.put("formattedPrice", displayPrice)
-                                basicOfferDetails.put("priceAmountMicros", JSONObject.NULL) // unknown
-                                item.put("oneTimePurchaseOfferDetailsAndroid", basicOfferDetails)
-                                Log.d(TAG, "Created basic oneTimePurchaseOfferDetailsAndroid: $basicOfferDetails")
-                            }
-                        }
-                    } else if (productDetails.productType == BillingClient.ProductType.SUBS) {
-                        // These generalized values are derived from the first pricing object, mainly for backwards compatibility
-                        // It would be better to use the actual objects in PricingPhases and SubscriptionOffers
-    
-                        // Get first subscription offer
-                        val firstOffer = productDetails.subscriptionOfferDetails?.firstOrNull()
-                        if (firstOffer != null && firstOffer.pricingPhases.pricingPhaseList.isNotEmpty()) {
-                            val defaultPricingPhase = firstOffer.pricingPhases.pricingPhaseList[0]
-                            item.put("price", (defaultPricingPhase.priceAmountMicros / 1000000f).toString())
-                            item.put("localizedPrice", defaultPricingPhase.formattedPrice)
-                            item.put("subscriptionPeriodAndroid", defaultPricingPhase.billingPeriod)
-                        }
-    
-                        // Add structured subscriptionOfferDetails
-                        val subsOffers = JSONArray()
-                        if (productDetails.subscriptionOfferDetails != null) {
-                            for (offer in productDetails.subscriptionOfferDetails!!) {
-                                val offerItem = JSONObject()
-                                offerItem.put("basePlanId", offer.basePlanId)
-                                // offerId can be null for base plans without special offers
-                                offerItem.put("offerId", offer.offerId ?: JSONObject.NULL)
-                                offerItem.put("offerToken", offer.offerToken)
-                                offerItem.put("offerTags", JSONArray(offer.offerTags))
-                                
-                                // Add pricingPhases
-                                val pricingPhasesObj = JSONObject()
-                                val pricingPhasesList = JSONArray()
-                                for (pricing in offer.pricingPhases.pricingPhaseList) {
-                                    val pricingPhase = JSONObject()
-                                    pricingPhase.put("formattedPrice", pricing.formattedPrice)
-                                    pricingPhase.put("priceCurrencyCode", pricing.priceCurrencyCode)
-                                    pricingPhase.put("billingPeriod", pricing.billingPeriod)
-                                    pricingPhase.put("billingCycleCount", pricing.billingCycleCount)
-                                    pricingPhase.put("priceAmountMicros", pricing.priceAmountMicros.toString())
-                                    pricingPhase.put("recurrenceMode", pricing.recurrenceMode)
-                                    pricingPhasesList.put(pricingPhase)
+        when (call.method) {
+            // Expo parity: fetchProducts(type, skuArr[])
+            "fetchProducts" -> {
+                val typeStr = call.argument<String>("type") ?: "inapp"
+                val skuArr = call.argument<List<String>>("skuArr")
+                    ?: call.argument<List<String>>("skus")
+                    ?: call.argument<List<String>>("productIds")
+                    ?: emptyList()
+                val reqType = ProductRequest.ProductRequestType.fromString(typeStr)
+                scope.launch {
+                    // Ensure connection
+                    connectionMutex.withLock {
+                        try {
+                            attachListenersIfNeeded()
+                            openIap?.setActivity(activity)
+                            if (!connectionReady) {
+                                val ok = openIap?.initConnection() ?: false
+                                connectionReady = ok
+                                val item = JSONObject().apply { put("connected", ok) }
+                                channel?.invokeMethod("connection-updated", item.toString())
+                                if (!ok) {
+                                    safe.error(call.method, OpenIapError.E_INIT_CONNECTION, "Failed to initialize connection")
+                                    return@launch
                                 }
-                                pricingPhasesObj.put("pricingPhaseList", pricingPhasesList)
-                                offerItem.put("pricingPhases", pricingPhasesObj)
-                                subsOffers.put(offerItem)
                             }
+                        } catch (e: Exception) {
+                            safe.error(call.method, OpenIapError.E_SERVICE_ERROR, e.message)
+                            return@launch
                         }
-                        // Use Android suffix for platform-specific field
-                        item.put("subscriptionOfferDetailsAndroid", subsOffers)
-                        Log.d("InappPurchase", "subscriptionOfferDetailsAndroid: $subsOffers")
                     }
-
-                    items.put(item)
-                }
-                safeChannel.success(items.toString())
-                return@queryProductDetailsAsync
-            } catch (je: JSONException) {
-                je.printStackTrace()
-                safeChannel.error(TAG, BillingError.E_BILLING_RESPONSE_JSON_PARSE_ERROR, je.message)
-            } catch (fe: FlutterException) {
-                safeChannel.error(call.method, fe.message, fe.localizedMessage)
-                return@queryProductDetailsAsync
-            }
-        }
-    }
-
-    private fun buyProduct(
-        call: MethodCall,
-        safeChannel: MethodResultWrapper
-    ) {
-        Log.d(TAG, "buyProduct called with arguments: ${call.arguments}")
-        try {
-            val type = if(call.argument<String>("type") == "subs") BillingClient.ProductType.SUBS else BillingClient.ProductType.INAPP
-            val obfuscatedAccountId = call.argument<String>("obfuscatedAccountId")
-            val obfuscatedProfileId = call.argument<String>("obfuscatedProfileId")
-            val productId = call.argument<String>("productId")
-            val replacementMode = call.argument<Int>("replacementModeAndroid")
-                ?: call.argument<Int>("replacementMode") ?: -1
-            val purchaseToken = call.argument<String>("purchaseToken")
-            val offerTokenIndex = call.argument<Int>("offerTokenIndex")
-            
-            Log.d(TAG, "buyProduct - productId: $productId, type: $type")
-            val builder = newBuilder()
-            var selectedProductDetails: ProductDetails? = null
-            for (productDetails in productDetailsList) {
-                if (productDetails.productId == productId) {
-                    selectedProductDetails = productDetails
-                    break
-                }
-            }
-            if (selectedProductDetails == null) {
-                val debugMessage =
-                    "The selected product was not found. Please fetch products first by calling getItems"
-                
-                // Send purchase-error event like expo-iap
-                try {
-                    val errorJson = JSONObject()
-                    errorJson.put("code", "E_PRODUCT_NOT_FOUND")
-                    errorJson.put("message", debugMessage)
-                    errorJson.put("productId", productId)
-                    
-                    Log.d(TAG, "Sending purchase-error event for product not found")
-                    channel?.invokeMethod("purchase-error", errorJson.toString())
-                } catch (je: JSONException) {
-                    Log.e(TAG, "Failed to create error JSON: ${je.message}")
-                }
-                
-                safeChannel.error(TAG, "E_PRODUCT_NOT_FOUND", debugMessage)
-                return
-            }
-
-            // Get the selected offerToken from the product, or first one if this is a migrated from 4.0 product
-            // or if the offerTokenIndex was not provided
-            val productDetailsParamsBuilder = ProductDetailsParams.newBuilder().setProductDetails(selectedProductDetails)
-            var offerToken : String? = null
-
-            if (type == BillingClient.ProductType.SUBS) {
-                if (offerTokenIndex != null) {
-                    offerToken = selectedProductDetails.subscriptionOfferDetails?.get(offerTokenIndex)?.offerToken
-                }
-                if (offerToken == null) {
-                    offerToken = selectedProductDetails.subscriptionOfferDetails!![0].offerToken
-                }
-
-                productDetailsParamsBuilder.setOfferToken(offerToken)
-            }
-
-            val productDetailsParamsList = listOf(productDetailsParamsBuilder.build())
-
-            builder.setProductDetailsParamsList(productDetailsParamsList)
-
-            val params = SubscriptionUpdateParams.newBuilder()
-
-            if (obfuscatedAccountId != null) {
-                builder.setObfuscatedAccountId(obfuscatedAccountId)
-            }
-            if (obfuscatedProfileId != null) {
-                builder.setObfuscatedProfileId(obfuscatedProfileId)
-            }
-
-            when (replacementMode) {
-                -1 -> { /* ignore - no replacement mode specified */ }
-                2 -> { // CHARGE_PRORATED_PRICE
-                    // For subscription replacement, purchaseToken is required
-                    if (purchaseToken.isNullOrEmpty()) {
-                        safeChannel.error(
-                            TAG,
-                            "buyItemByType",
-                            "Old SKU purchase information(token/id) or original external transaction id must be provided for subscription replacement."
-                        )
-                        return
-                    }
-                    params.setOldPurchaseToken(purchaseToken)
-                        .setSubscriptionReplacementMode(BillingFlowParams.SubscriptionUpdateParams.ReplacementMode.CHARGE_PRORATED_PRICE)
-                    builder.setSubscriptionUpdateParams(params.build())
-                    if (type != BillingClient.ProductType.SUBS) {
-                        safeChannel.error(
-                            TAG,
-                            "buyItemByType",
-                            "CHARGE_PRORATED_PRICE replacement mode only works with subscriptions."
-                        )
-                        return
-                    }
-                }
-                3 -> { // WITHOUT_PRORATION
-                    if (purchaseToken.isNullOrEmpty()) {
-                        safeChannel.error(
-                            TAG,
-                            "buyItemByType",
-                            "Old SKU purchase information(token/id) or original external transaction id must be provided for subscription replacement."
-                        )
-                        return
-                    }
-                    params.setOldPurchaseToken(purchaseToken)
-                        .setSubscriptionReplacementMode(BillingFlowParams.SubscriptionUpdateParams.ReplacementMode.WITHOUT_PRORATION)
-                    builder.setSubscriptionUpdateParams(params.build())
-                }
-                4 -> { // DEFERRED
-                    if (purchaseToken.isNullOrEmpty()) {
-                        safeChannel.error(
-                            TAG,
-                            "buyItemByType",
-                            "Old SKU purchase information(token/id) or original external transaction id must be provided for deferred subscription replacement."
-                        )
-                        return
-                    }
-                    params.setOldPurchaseToken(purchaseToken)
-                        .setSubscriptionReplacementMode(BillingFlowParams.SubscriptionUpdateParams.ReplacementMode.DEFERRED)
-                    builder.setSubscriptionUpdateParams(params.build())
-                }
-                1 -> { // WITH_TIME_PRORATION
-                    if (purchaseToken.isNullOrEmpty()) {
-                        safeChannel.error(
-                            TAG,
-                            "buyItemByType",
-                            "Old SKU purchase information(token/id) or original external transaction id must be provided for subscription replacement."
-                        )
-                        return
-                    }
-                    params.setOldPurchaseToken(purchaseToken)
-                        .setSubscriptionReplacementMode(BillingFlowParams.SubscriptionUpdateParams.ReplacementMode.WITH_TIME_PRORATION)
-                    builder.setSubscriptionUpdateParams(params.build())
-                }
-                5 -> { // CHARGE_FULL_PRICE
-                    if (purchaseToken.isNullOrEmpty()) {
-                        safeChannel.error(
-                            TAG,
-                            "buyItemByType",
-                            "Old SKU purchase information(token/id) or original external transaction id must be provided for subscription replacement."
-                        )
-                        return
-                    }
-                    params.setOldPurchaseToken(purchaseToken)
-                        .setSubscriptionReplacementMode(BillingFlowParams.SubscriptionUpdateParams.ReplacementMode.CHARGE_FULL_PRICE)
-                    builder.setSubscriptionUpdateParams(params.build())
-                }
-                else -> {
-                    // Unknown replacement mode: do not set subscription update params
-                }
-            }
-            if (activity != null) {
-                Log.d(TAG, "Launching billing flow for product: $productId")
-                val billingFlowParams = builder.build()
-                val responseCode = billingClient!!.launchBillingFlow(activity!!, billingFlowParams)
-                Log.d(TAG, "launchBillingFlow response code: ${responseCode.responseCode}")
-                if (responseCode.responseCode != BillingClient.BillingResponseCode.OK) {
-                    Log.e(TAG, "launchBillingFlow failed with code: ${responseCode.responseCode}, message: ${responseCode.debugMessage}")
-                    val errorData = BillingError.getErrorFromResponseData(responseCode.responseCode)
-                    
-                    // Send purchase-error event like expo-iap
                     try {
-                        val errorJson = JSONObject()
-                        errorJson.put("responseCode", responseCode.responseCode)
-                        errorJson.put("debugMessage", responseCode.debugMessage)
-                        errorJson.put("code", errorData.code)
-                        errorJson.put("message", errorData.message)
-                        errorJson.put("productId", productId)
-                        
-                        Log.d(TAG, "Sending purchase-error event for launchBillingFlow failure")
-                        channel?.invokeMethod("purchase-error", errorJson.toString())
-                    } catch (je: JSONException) {
-                        Log.e(TAG, "Failed to create error JSON: ${je.message}")
+                        val iap = openIap
+                        if (iap == null) {
+                            safe.error(call.method, OpenIapError.E_NOT_PREPARED, "IAP module not initialized.")
+                            return@launch
+                        }
+                        val products = iap.fetchProducts(ProductRequest(skuArr, reqType))
+                        val arr = JSONArray()
+                        products.forEach { p ->
+                            val map = p.toJSON()
+                            val obj = JSONObject(map)
+                            // Backward-compat: add productId field mirroring id
+                            if (!obj.has("productId")) obj.put("productId", map["id"])
+                            arr.put(obj)
+                        }
+                        safe.success(arr.toString())
+                    } catch (e: Exception) {
+                        safe.error(call.method, OpenIapError.E_QUERY_PRODUCT, e.message)
                     }
-                    
-                    safeChannel.error(TAG, errorData.code, "Failed to launch billing flow: ${errorData.message}")
-                } else {
-                    // Return success immediately - purchase result will come via purchasesUpdatedListener
-                    safeChannel.success("Billing flow launched successfully")
-                    Log.d(TAG, "Billing flow launched, purchase result will be sent via purchase-updated event")
                 }
-            } else {
-                Log.e(TAG, "Activity is null, cannot launch billing flow")
-                safeChannel.error(TAG, "E_ACTIVITY_NULL", "Activity is null, cannot launch billing flow")
             }
-        } catch (e: Exception) {
-            safeChannel.error(TAG, "buyItemByType", e.message)
-            return
+
+            // Expo parity: getAvailableItems()
+            "getAvailableItems" -> {
+                scope.launch {
+                    // Ensure connection
+                    connectionMutex.withLock {
+                        try {
+                            attachListenersIfNeeded()
+                            openIap?.setActivity(activity)
+                            if (!connectionReady) {
+                                val ok = openIap?.initConnection() ?: false
+                                connectionReady = ok
+                                val item = JSONObject().apply { put("connected", ok) }
+                                channel?.invokeMethod("connection-updated", item.toString())
+                                if (!ok) {
+                                    safe.error(call.method, OpenIapError.E_INIT_CONNECTION, "Failed to initialize connection")
+                                    return@launch
+                                }
+                            }
+                        } catch (e: Exception) {
+                            safe.error(call.method, OpenIapError.E_SERVICE_ERROR, e.message)
+                            return@launch
+                        }
+                    }
+                    try {
+                        val iap = openIap
+                        if (iap == null) {
+                            safe.error(call.method, OpenIapError.E_NOT_PREPARED, "IAP module not initialized.")
+                            return@launch
+                        }
+                        val purchases = iap.getAvailablePurchases(null)
+                        val arr = JSONArray(purchases.map { it.toJSON() })
+                        safe.success(arr.toString())
+                    } catch (e: Exception) {
+                        safe.error(call.method, OpenIapError.E_SERVICE_ERROR, e.message)
+                    }
+                }
+            }
+
+            
+
+            // Expo parity: requestPurchase(params)
+            "requestPurchase" -> {
+                val params = call.arguments as? Map<*, *> ?: emptyMap<String, Any?>()
+                val typeStr = params["type"] as? String ?: "inapp"
+                val skus: List<String> =
+                    (params["skus"] as? List<*>)?.filterIsInstance<String>()
+                        ?: (params["skuArr"] as? List<*>)?.filterIsInstance<String>()
+                        ?: emptyList()
+                val skusNormalized = skus.filter { it.isNotBlank() }
+                val obfuscatedAccountId =
+                    (params["obfuscatedAccountIdAndroid"] ?: params["obfuscatedAccountId"]) as? String
+                val obfuscatedProfileId =
+                    (params["obfuscatedProfileIdAndroid"] ?: params["obfuscatedProfileId"]) as? String
+                val isOfferPersonalized = params["isOfferPersonalized"] as? Boolean ?: false
+
+                // Validate SKUs
+                if (skusNormalized.isEmpty()) {
+                    channel?.invokeMethod(
+                        "purchase-error",
+                        JSONObject(OpenIapError.EmptySkuList.toJSON()).toString()
+                    )
+                    safe.error(call.method, OpenIapError.E_EMPTY_SKU_LIST, "Empty SKUs provided")
+                    return
+                }
+
+                scope.launch {
+                    // Ensure connection and listeners under mutex
+                    connectionMutex.withLock {
+                        try {
+                            attachListenersIfNeeded()
+                            openIap?.setActivity(activity)
+                            if (!connectionReady) {
+                                val ok = openIap?.initConnection() ?: false
+                                connectionReady = ok
+                                val item = JSONObject().apply { put("connected", ok) }
+                                channel?.invokeMethod("connection-updated", item.toString())
+                                if (!ok) {
+                                    val err = OpenIapError.InitConnection("Failed to initialize connection").toJSON()
+                                    channel?.invokeMethod("purchase-error", JSONObject(err).toString())
+                                    safe.error(call.method, OpenIapError.E_INIT_CONNECTION, "Failed to initialize connection")
+                                    return@withLock
+                                }
+                            }
+                        } catch (e: Exception) {
+                            val err = OpenIapError.BillingError(e.message ?: "Service error").toJSON()
+                            channel?.invokeMethod("purchase-error", JSONObject(err).toString())
+                            safe.error(call.method, OpenIapError.E_SERVICE_ERROR, e.message)
+                            return@withLock
+                        }
+                    }
+
+                    try {
+                        val iap = openIap
+                        if (iap == null) {
+                            safe.error(call.method, OpenIapError.E_NOT_PREPARED, "IAP module not initialized.")
+                            return@launch
+                        }
+                        iap.requestPurchase(
+                            RequestPurchaseAndroidProps(
+                                skus = skusNormalized,
+                                obfuscatedAccountIdAndroid = obfuscatedAccountId,
+                                obfuscatedProfileIdAndroid = obfuscatedProfileId,
+                                isOfferPersonalized = isOfferPersonalized,
+                            ),
+                            ProductRequest.ProductRequestType.fromString(typeStr)
+                        )
+                        // Success signaled by purchase-updated event
+                        safe.success(null)
+                    } catch (e: Exception) {
+                        channel?.invokeMethod(
+                            "purchase-error",
+                            JSONObject(OpenIapError.PurchaseFailed(e.message ?: "Purchase failed").toJSON()).toString()
+                        )
+                        safe.error(call.method, OpenIapError.E_PURCHASE_ERROR, e.message)
+                    }
+                }
+            }
+
+            // -----------------------------------------------------------------
+            // Android-suffix stable APIs (kept)
+            // -----------------------------------------------------------------
+            "getStorefrontAndroid" -> {
+                scope.launch {
+                    try {
+                        val iap = openIap
+                        if (iap == null) {
+                            safe.error(call.method, OpenIapError.E_NOT_PREPARED, "IAP module not initialized.")
+                            return@launch
+                        }
+                        val code = iap.getStorefront()
+                        safe.success(code)
+                    } catch (e: Exception) {
+                        safe.error(call.method, OpenIapError.E_SERVICE_ERROR, e.message)
+                    }
+                }
+            }
+            "deepLinkToSubscriptionsAndroid" -> {
+                val params = call.arguments as? Map<*, *>
+                val sku = params?.get("sku") as? String ?: params?.get("skuAndroid") as? String
+                val pkg = params?.get("packageName") as? String
+                    ?: params?.get("packageNameAndroid") as? String
+                scope.launch {
+                    try {
+                        val iap = openIap
+                        if (iap == null) {
+                            safe.error(call.method, OpenIapError.E_NOT_PREPARED, "IAP module not initialized.")
+                            return@launch
+                        }
+                        iap.deepLinkToSubscriptions(DeepLinkOptions(skuAndroid = sku, packageNameAndroid = pkg))
+                        safe.success(null)
+                    } catch (e: Exception) {
+                        safe.error(call.method, OpenIapError.E_SERVICE_ERROR, e.message)
+                    }
+                }
+            }
+            "acknowledgePurchaseAndroid" -> {
+                val token = call.argument<String>("token") ?: call.argument<String>("purchaseToken")
+                if (token.isNullOrBlank()) {
+                    safe.error(call.method, OpenIapError.E_DEVELOPER_ERROR, "Missing purchaseToken")
+                    return
+                }
+                scope.launch {
+                    try {
+                        val iap = openIap
+                        if (iap == null) {
+                            safe.error(call.method, OpenIapError.E_NOT_PREPARED, "IAP module not initialized.")
+                            return@launch
+                        }
+                        iap.acknowledgePurchaseAndroid(token)
+                        val resp = JSONObject().apply { put("responseCode", 0) }
+                        safe.success(resp.toString())
+                    } catch (e: Exception) {
+                        safe.error(call.method, OpenIapError.E_SERVICE_ERROR, e.message)
+                    }
+                }
+            }
+            
+            "consumePurchaseAndroid" -> {
+                val token = call.argument<String>("token") ?: call.argument<String>("purchaseToken")
+                if (token.isNullOrBlank()) {
+                    safe.error(call.method, OpenIapError.E_DEVELOPER_ERROR, "Missing purchaseToken")
+                    return
+                }
+                scope.launch {
+                    try {
+                        val iap = openIap
+                        if (iap == null) {
+                            safe.error(call.method, OpenIapError.E_NOT_PREPARED, "IAP module not initialized.")
+                            return@launch
+                        }
+                        iap.consumePurchaseAndroid(token)
+                        val resp = JSONObject().apply {
+                            put("responseCode", 0)
+                            put("purchaseToken", token)
+                        }
+                        safe.success(resp.toString())
+                    } catch (e: Exception) {
+                        safe.error(call.method, OpenIapError.E_SERVICE_ERROR, e.message)
+                    }
+                }
+            }
+
+            // -----------------------------------------------------------------
+            // Legacy/compat API (Deprecated)
+            // NOTE: These endpoints are kept for backwards compatibility only
+            // and will be removed in 7.0.0. Please migrate to:
+            //  - fetchProducts(type, skuArr)
+            //  - getAvailableItems()
+            //  - requestPurchase(params)
+            // -----------------------------------------------------------------
+            // Legacy/compat product queries
+            "getProducts" -> {
+                logDeprecated("getProducts", "Use fetchProducts(type, skuArr) instead")
+                val productIds = call.argument<ArrayList<String>>("productIds") ?: arrayListOf()
+                scope.launch {
+                    // Ensure connection for legacy path
+                    connectionMutex.withLock {
+                        try {
+                            attachListenersIfNeeded()
+                            openIap?.setActivity(activity)
+                            if (!connectionReady) {
+                                val ok = openIap?.initConnection() ?: false
+                                connectionReady = ok
+                                val item = JSONObject().apply { put("connected", ok) }
+                                channel?.invokeMethod("connection-updated", item.toString())
+                                if (!ok) {
+                                    safe.error(call.method, OpenIapError.E_INIT_CONNECTION, "Failed to initialize connection")
+                                    return@launch
+                                }
+                            }
+                        } catch (e: Exception) {
+                            safe.error(call.method, OpenIapError.E_SERVICE_ERROR, e.message)
+                            return@launch
+                        }
+                    }
+                    try {
+                        val iap = openIap
+                        if (iap == null) {
+                            safe.error(call.method, OpenIapError.E_NOT_PREPARED, "IAP module not initialized.")
+                            return@launch
+                        }
+                        val products = iap.fetchProducts(
+                            ProductRequest(productIds, ProductRequest.ProductRequestType.INAPP)
+                        )
+                        val arr = JSONArray()
+                        products.forEach { p ->
+                            val map = p.toJSON()
+                            val obj = JSONObject(map)
+                            if (!obj.has("productId")) obj.put("productId", map["id"])
+                            arr.put(obj)
+                        }
+                        safe.success(arr.toString())
+                    } catch (e: Exception) {
+                        safe.error(call.method, OpenIapError.E_QUERY_PRODUCT, e.message)
+                    }
+                }
+            }
+            "getSubscriptions" -> {
+                logDeprecated("getSubscriptions", "Use fetchProducts(type, skuArr) with type=subs")
+                val productIds = call.argument<ArrayList<String>>("productIds") ?: arrayListOf()
+                scope.launch {
+                    // Ensure connection for legacy path
+                    connectionMutex.withLock {
+                        try {
+                            attachListenersIfNeeded()
+                            openIap?.setActivity(activity)
+                            if (!connectionReady) {
+                                val ok = openIap?.initConnection() ?: false
+                                connectionReady = ok
+                                val item = JSONObject().apply { put("connected", ok) }
+                                channel?.invokeMethod("connection-updated", item.toString())
+                                if (!ok) {
+                                    safe.error(call.method, OpenIapError.E_INIT_CONNECTION, "Failed to initialize connection")
+                                    return@launch
+                                }
+                            }
+                        } catch (e: Exception) {
+                            safe.error(call.method, OpenIapError.E_SERVICE_ERROR, e.message)
+                            return@launch
+                        }
+                    }
+                    try {
+                        val iap = openIap
+                        if (iap == null) {
+                            safe.error(call.method, OpenIapError.E_NOT_PREPARED, "IAP module not initialized.")
+                            return@launch
+                        }
+                        val products = iap.fetchProducts(
+                            ProductRequest(productIds, ProductRequest.ProductRequestType.SUBS)
+                        )
+                        val arr = JSONArray()
+                        products.forEach { p ->
+                            val map = p.toJSON()
+                            val obj = JSONObject(map)
+                            if (!obj.has("productId")) obj.put("productId", map["id"])
+                            arr.put(obj)
+                        }
+                        safe.success(arr.toString())
+                    } catch (e: Exception) {
+                        safe.error(call.method, OpenIapError.E_QUERY_PRODUCT, e.message)
+                    }
+                }
+            }
+
+            // Legacy/compat purchases queries
+            "getAvailableItemsByType" -> {
+                logDeprecated("getAvailableItemsByType", "Use getAvailableItems() instead")
+                val typeStr = call.argument<String>("type") ?: "inapp"
+                val reqType = ProductRequest.ProductRequestType.fromString(typeStr)
+                scope.launch {
+                    // Ensure connection for legacy path
+                    connectionMutex.withLock {
+                        try {
+                            attachListenersIfNeeded()
+                            openIap?.setActivity(activity)
+                            if (!connectionReady) {
+                                val ok = openIap?.initConnection() ?: false
+                                connectionReady = ok
+                                val item = JSONObject().apply { put("connected", ok) }
+                                channel?.invokeMethod("connection-updated", item.toString())
+                                if (!ok) {
+                                    safe.error(call.method, OpenIapError.E_INIT_CONNECTION, "Failed to initialize connection")
+                                    return@launch
+                                }
+                            }
+                        } catch (e: Exception) {
+                            safe.error(call.method, OpenIapError.E_SERVICE_ERROR, e.message)
+                            return@launch
+                        }
+                    }
+                    try {
+                        val iap = openIap
+                        if (iap == null) {
+                            safe.error(call.method, OpenIapError.E_NOT_PREPARED, "IAP module not initialized.")
+                            return@launch
+                        }
+                        val purchases = iap.getAvailableItems(reqType)
+                        val arr = JSONArray(purchases.map { it.toJSON() })
+                        safe.success(arr.toString())
+                    } catch (e: Exception) {
+                        safe.error(call.method, OpenIapError.E_SERVICE_ERROR, e.message)
+                    }
+                }
+            }
+            "getPurchaseHistoryByType" -> {
+                logDeprecated("getPurchaseHistoryByType", "Use getAvailableItems() instead")
+                val typeStr = call.argument<String>("type") ?: "inapp"
+                val reqType = ProductRequest.ProductRequestType.fromString(typeStr)
+                scope.launch {
+                    // Ensure connection for legacy path
+                    connectionMutex.withLock {
+                        try {
+                            attachListenersIfNeeded()
+                            openIap?.setActivity(activity)
+                            if (!connectionReady) {
+                                val ok = openIap?.initConnection() ?: false
+                                connectionReady = ok
+                                val item = JSONObject().apply { put("connected", ok) }
+                                channel?.invokeMethod("connection-updated", item.toString())
+                                if (!ok) {
+                                    safe.error(call.method, OpenIapError.E_INIT_CONNECTION, "Failed to initialize connection")
+                                    return@launch
+                                }
+                            }
+                        } catch (e: Exception) {
+                            safe.error(call.method, OpenIapError.E_SERVICE_ERROR, e.message)
+                            return@launch
+                        }
+                    }
+                    try {
+                        val iap = openIap
+                        if (iap == null) {
+                            safe.error(call.method, OpenIapError.E_NOT_PREPARED, "IAP module not initialized.")
+                            return@launch
+                        }
+                        val purchases = iap.getAvailableItems(reqType)
+                        val arr = JSONArray(purchases.map { it.toJSON() })
+                        safe.success(arr.toString())
+                    } catch (e: Exception) {
+                        safe.error(call.method, OpenIapError.E_SERVICE_ERROR, e.message)
+                    }
+                }
+            }
+
+            // Legacy/compat purchase flow
+            "buyItemByType" -> {
+                logDeprecated("buyItemByType", "Use requestPurchase(params) instead")
+                val typeStr = call.argument<String>("type") ?: "inapp"
+                val productId = call.argument<String>("productId")
+                    ?: call.argument<String>("sku")
+                    ?: call.argument<ArrayList<String>>("skus")?.firstOrNull()
+                val obfuscatedAccountId = call.argument<String>("obfuscatedAccountId")
+                val obfuscatedProfileId = call.argument<String>("obfuscatedProfileId")
+                val isOfferPersonalized = call.argument<Boolean>("isOfferPersonalized") ?: false
+
+                if (productId.isNullOrBlank()) {
+                    channel?.invokeMethod(
+                        "purchase-error",
+                        JSONObject(OpenIapError.BillingError("Missing productId").toJSON()).toString()
+                    )
+                    safe.error("buyItemByType", OpenIapError.E_DEVELOPER_ERROR, "Missing productId")
+                    return
+                }
+
+                scope.launch {
+                    // Ensure connection and listeners under mutex
+                    connectionMutex.withLock {
+                        try {
+                            attachListenersIfNeeded()
+                            openIap?.setActivity(activity)
+                            if (!connectionReady) {
+                                val ok = openIap?.initConnection() ?: false
+                                connectionReady = ok
+                                val item = JSONObject().apply { put("connected", ok) }
+                                channel?.invokeMethod("connection-updated", item.toString())
+                                if (!ok) {
+                                    val err = OpenIapError.InitConnection("Failed to initialize connection").toJSON()
+                                    channel?.invokeMethod("purchase-error", JSONObject(err).toString())
+                                    safe.error(call.method, OpenIapError.E_INIT_CONNECTION, "Failed to initialize connection")
+                                    return@withLock
+                                }
+                            }
+                        } catch (e: Exception) {
+                            val err = OpenIapError.BillingError(e.message ?: "Service error").toJSON()
+                            channel?.invokeMethod("purchase-error", JSONObject(err).toString())
+                            safe.error(call.method, OpenIapError.E_SERVICE_ERROR, e.message)
+                            return@withLock
+                        }
+                    }
+                    try {
+                        val iap = openIap
+                        if (iap == null) {
+                            safe.error(call.method, OpenIapError.E_NOT_PREPARED, "IAP module not initialized.")
+                            return@launch
+                        }
+                        iap.requestPurchase(
+                            RequestPurchaseAndroidProps(
+                                skus = listOf(productId),
+                                obfuscatedAccountIdAndroid = obfuscatedAccountId,
+                                obfuscatedProfileIdAndroid = obfuscatedProfileId,
+                                isOfferPersonalized = isOfferPersonalized,
+                            ),
+                            ProductRequest.ProductRequestType.fromString(typeStr)
+                        )
+                    } catch (e: Exception) {
+                        channel?.invokeMethod(
+                            "purchase-error",
+                            JSONObject(OpenIapError.PurchaseFailed(e.message ?: "Purchase failed").toJSON()).toString()
+                        )
+                    }
+                }
+                safe.success(null)
+            }
+
+            // Finish/acknowledge/consume (compat)
+            "acknowledgePurchase" -> {
+                logDeprecated("acknowledgePurchase", "Use acknowledgePurchaseAndroid(token) instead")
+                val token = call.argument<String>("purchaseToken")
+                if (token.isNullOrBlank()) {
+                    safe.error("acknowledgePurchase", OpenIapError.E_DEVELOPER_ERROR, "Missing purchaseToken")
+                    return
+                }
+                scope.launch {
+                    try {
+                        val iap = openIap
+                        if (iap == null) {
+                            safe.error("acknowledgePurchase", OpenIapError.E_NOT_PREPARED, "IAP module not initialized.")
+                            return@launch
+                        }
+                        iap.acknowledgePurchaseAndroid(token)
+                        val resp = JSONObject().apply { put("responseCode", 0) }
+                        safe.success(resp.toString())
+                    } catch (e: Exception) {
+                        safe.error("acknowledgePurchase", OpenIapError.E_SERVICE_ERROR, e.message)
+                    }
+                }
+            }
+            
+
+            "consumeProduct" -> {
+                logDeprecated("consumeProduct", "Use finishTransaction(purchase, isConsumable=true) at higher-level API")
+                val token = call.argument<String>("purchaseToken")
+                if (token.isNullOrBlank()) {
+                    safe.error("consumeProduct", OpenIapError.E_DEVELOPER_ERROR, "Missing purchaseToken")
+                    return
+                }
+                scope.launch {
+                    try {
+                        val iap = openIap
+                        if (iap == null) {
+                            safe.error("consumeProduct", OpenIapError.E_NOT_PREPARED, "IAP module not initialized.")
+                            return@launch
+                        }
+                        iap.consumePurchaseAndroid(token)
+                        val resp = JSONObject().apply {
+                            put("responseCode", 0)
+                            put("purchaseToken", token)
+                        }
+                        safe.success(resp.toString())
+                    } catch (e: Exception) {
+                        safe.error("consumeProduct", OpenIapError.E_SERVICE_ERROR, e.message)
+                    }
+                }
+            }
+            "consumePurchase" -> {
+                logDeprecated("consumePurchase", "Use finishTransaction(purchase, isConsumable=true) at higher-level API")
+                val token = call.argument<String>("purchaseToken")
+                if (token.isNullOrBlank()) {
+                    safe.error("consumePurchase", OpenIapError.E_DEVELOPER_ERROR, "Missing purchaseToken")
+                    return
+                }
+                scope.launch {
+                    try {
+                        val iap = openIap
+                        if (iap == null) {
+                            safe.success(false)
+                            return@launch
+                        }
+                        iap.consumePurchaseAndroid(token)
+                        safe.success(true)
+                    } catch (e: Exception) {
+                        safe.success(false)
+                    }
+                }
+            }
+            
+
+            // No-op legacy (Deprecated — will be removed in 7.0.0)
+            "showInAppMessages" -> {
+                logDeprecated("showInAppMessages", "No-op; removed in 7.0.0")
+                safe.success(true)
+            }
+
+            else -> safe.notImplemented()
         }
     }
 
-    private val purchasesUpdatedListener = PurchasesUpdatedListener { billingResult, purchases ->
-        Log.d(TAG, "PurchasesUpdatedListener triggered!")
-        Log.d(TAG, "BillingResult responseCode: ${billingResult.responseCode}")
-        Log.d(TAG, "Purchases: ${purchases?.size ?: 0} items")
-        
-        try {
-            if (billingResult.responseCode != BillingClient.BillingResponseCode.OK) {
-                Log.d(TAG, "Purchase failed with response code: ${billingResult.responseCode}")
-                val json = JSONObject()
-                json.put("responseCode", billingResult.responseCode)
-                json.put("debugMessage", billingResult.debugMessage)
-                val errorData = BillingError.getErrorFromResponseData(billingResult.responseCode)
-                json.put("code", errorData.code)
-                json.put("message", errorData.message)
-                Log.d(TAG, "Sending purchase-error event to Flutter, channel is ${if (channel != null) "not null" else "null"}")
-                Log.d(TAG, "Error data: ${json.toString()}")
-                if (channel != null) {
-                    channel!!.invokeMethod("purchase-error", json.toString())
-                    Log.d(TAG, "Successfully sent purchase-error event")
-                } else {
-                    Log.e(TAG, "Cannot send purchase-error event: channel is null!")
-                }
-                return@PurchasesUpdatedListener
-            }
-            if (purchases != null) {
-                Log.d(TAG, "Processing ${purchases.size} successful purchases")
-                for (purchase in purchases) {
-                    Log.d(TAG, "Processing purchase: productId=${purchase.products[0]}, orderId=${purchase.orderId}")
-                    val item = JSONObject()
-                    item.put("id", purchase.orderId)
-                    item.put("productId", purchase.products[0])
-                    item.put("ids", JSONArray(purchase.products))
-                    item.put("transactionId", purchase.orderId)  // @deprecated - use id instead
-                    item.put("transactionDate", purchase.purchaseTime)
-                    item.put("transactionReceipt", purchase.originalJson)
-                    item.put("purchaseToken", purchase.purchaseToken)  // Unified field for iOS JWS and Android purchaseToken
-                    item.put("purchaseTokenAndroid", purchase.purchaseToken)  // Deprecated - use purchaseToken
-                    item.put("dataAndroid", purchase.originalJson)
-                    item.put("signatureAndroid", purchase.signature)
-                    item.put("purchaseStateAndroid", purchase.purchaseState)
-                    item.put("autoRenewingAndroid", purchase.isAutoRenewing)
-                    item.put("isAcknowledgedAndroid", purchase.isAcknowledged)
-                    item.put("packageNameAndroid", purchase.packageName)
-                    item.put("developerPayloadAndroid", purchase.developerPayload)
-                    item.put("platform", "android")
-                    val accountIdentifiers = purchase.accountIdentifiers
-                    if (accountIdentifiers != null) {
-                        item.put("obfuscatedAccountIdAndroid", accountIdentifiers.obfuscatedAccountId)
-                        item.put("obfuscatedProfileIdAndroid", accountIdentifiers.obfuscatedProfileId)
-                    }
-                    Log.d(TAG, "Sending purchase-updated event to Flutter, channel is ${if (channel != null) "not null" else "null"}")
-                    Log.d(TAG, "Purchase data: ${item.toString()}")
-                    if (channel != null) {
-                        channel!!.invokeMethod("purchase-updated", item.toString())
-                        Log.d(TAG, "Successfully sent purchase-updated event")
-                    } else {
-                        Log.e(TAG, "Cannot send purchase-updated event: channel is null!")
-                    }
-                    return@PurchasesUpdatedListener
-                }
-            } else {
-                val json = JSONObject()
-                json.put("responseCode", billingResult.responseCode)
-                json.put("debugMessage", billingResult.debugMessage)
-                val errorData = BillingError.getErrorFromResponseData(billingResult.responseCode)
-                json.put("code", errorData.code)
-                json.put("message", "purchases returns null.")
-                Log.d(TAG, "Sending purchase-error event to Flutter, channel is ${if (channel != null) "not null" else "null"}")
-                Log.d(TAG, "Error data: ${json.toString()}")
-                if (channel != null) {
-                    channel!!.invokeMethod("purchase-error", json.toString())
-                    Log.d(TAG, "Successfully sent purchase-error event")
-                } else {
-                    Log.e(TAG, "Cannot send purchase-error event: channel is null!")
-                }
-                return@PurchasesUpdatedListener
-            }
-        } catch (je: JSONException) {
-            channel?.invokeMethod("purchase-error", je.message)
-            return@PurchasesUpdatedListener
-        }
+    @Deprecated("Deprecated channel endpoint; will be removed in 7.0.0")
+    private fun logDeprecated(name: String, message: String) {
+        Log.w(TAG, "[$name] is deprecated and will be removed in 7.0.0. $message")
     }
 
-    private fun endBillingClientConnection(safeChannel: MethodResultWrapper? = null) {
-        try {
-            billingClient?.endConnection()
-            billingClient = null
-            safeChannel?.success("Billing client has ended.")
-        } catch (e: Exception) {
-            safeChannel?.error("client end connection", e.message, "")
-        }
+    private fun attachListenersIfNeeded() {
+        if (listenersAttached) return
+        listenersAttached = true
+        openIap?.addPurchaseUpdateListener(OpenIapPurchaseUpdateListener { p ->
+            scope.launch {
+                try {
+                    val payload = JSONObject(p.toJSON())
+                    channel?.invokeMethod("purchase-updated", payload.toString())
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to send purchase-updated", e)
+                }
+            }
+        })
+        openIap?.addPurchaseErrorListener(OpenIapPurchaseErrorListener { e ->
+            scope.launch {
+                try {
+                    val payload = when (e) {
+                        is OpenIapError -> JSONObject(e.toJSON())
+                        else -> JSONObject(mapOf(
+                            "code" to OpenIapError.E_PURCHASE_ERROR,
+                            "message" to (e.message ?: "Purchase error"),
+                            "platform" to "android"
+                        ))
+                    }
+                    channel?.invokeMethod("purchase-error", payload.toString())
+                } catch (ex: Exception) {
+                    Log.e(TAG, "Failed to send purchase-error", ex)
+                }
+            }
+        })
     }
 
     companion object {
         private const val TAG = "InappPurchasePlugin"
         private const val PLAY_STORE_URL = "https://play.google.com/store/account/subscriptions"
-        private var productDetailsList: ArrayList<ProductDetails> = arrayListOf()
     }
 }

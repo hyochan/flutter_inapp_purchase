@@ -69,32 +69,33 @@ mixin FlutterInappPurchaseIOS {
     }
   }
 
-  /// Gets the subscription group for a given SKU
-  @Deprecated('Not part of the unified API. Will be removed in 6.6.0')
-  Future<String?> getSubscriptionGroupIOS(String sku) async {
+  /// Gets the subscription group identifier for a given product ID (iOS)
+  Future<String?> getSubscriptionGroupIOS(String productId) async {
     if (!isIOS) {
       return null;
     }
 
     try {
-      return await channel.invokeMethod<String>('getSubscriptionGroup', {
-        'sku': sku,
-      });
+      final result = await channel.invokeMethod<String>(
+        'getSubscriptionGroup',
+        {'sku': productId},
+      );
+      return result;
     } catch (error) {
       debugPrint('Error getting subscription group: $error');
       return null;
     }
   }
 
-  /// Gets the iOS app store country code
-  @Deprecated('Use getStorefrontIOS() via main API. Will be removed in 6.6.0')
+  /// Gets the user's App Store country code (iOS)
   Future<String?> getAppStoreCountryIOS() async {
     if (!isIOS) {
       return null;
     }
 
     try {
-      return await channel.invokeMethod<String>('getAppStoreCountry');
+      final result = await channel.invokeMethod<String>('getAppStoreCountry');
+      return result;
     } catch (error) {
       debugPrint('Error getting App Store country: $error');
       return null;
@@ -147,25 +148,19 @@ mixin FlutterInappPurchaseIOS {
     await channel.invokeMethod('showManageSubscriptionsIOS');
   }
 
-  /// Gets available items (iOS)
-  @Deprecated('Use getAvailablePurchases() instead. Will be removed in 6.6.0')
+  /// Gets available items (iOS-only convenience that parses to typed purchases)
   Future<List<Purchase>?> getAvailableItemsIOS() async {
-    if (!isIOS) {
-      return null;
-    }
-
+    if (!isIOS) return null;
     try {
-      final result = await channel.invokeMethod<String>('getAvailableItems');
-      if (result == null) return null;
-
+      final dynamic result = await channel.invokeMethod('getAvailableItems');
       return extractPurchasedItems(result);
     } catch (error) {
-      debugPrint('Error getting available items: $error');
+      debugPrint('Error getting available items (iOS): $error');
       return null;
     }
   }
 
-  /// Gets the iOS app transaction (iOS 18.4+)
+  /// Gets the iOS app transaction (iOS 15+)
   Future<Map<String, dynamic>?> getAppTransactionIOS() async {
     if (!isIOS) {
       return null;
@@ -182,70 +177,44 @@ mixin FlutterInappPurchaseIOS {
     }
   }
 
-  /// Gets the typed iOS app transaction (iOS 18.4+)
-  @Deprecated(
-      'Use getAppTransactionIOS() and map locally. Will be removed in 6.6.0')
+  /// Attempts to parse the app transaction into a typed object.
+  /// Returns null if essential fields are missing.
   Future<AppTransaction?> getAppTransactionTypedIOS() async {
-    final transactionMap = await getAppTransactionIOS();
-    if (transactionMap != null) {
-      try {
-        return AppTransaction.fromMap(transactionMap);
-      } catch (e) {
-        debugPrint('getAppTransactionTyped parsing error: $e');
-        return null;
-      }
+    final map = await getAppTransactionIOS();
+    if (map == null) return null;
+    // Validate presence of essential fields for typed parsing
+    final requiredKeys = [
+      'version',
+      'bundleId',
+      'originalPurchaseDate',
+      'originalTransactionId',
+    ];
+    for (final k in requiredKeys) {
+      if (!map.containsKey(k)) return null;
     }
-    return null;
+    try {
+      return AppTransaction.fromMap(map);
+    } catch (_) {
+      return null;
+    }
   }
 
-  /// Gets all purchase histories including expired subscriptions (iOS only)
-  /// Uses Transaction.all to retrieve complete transaction history
-  @Deprecated(
-      'Use getAvailablePurchases(options) with onlyIncludeActiveItemsIOS=false. Will be removed in 6.6.0')
+  /// Fetch purchase histories on iOS and decode to typed purchases
   Future<List<Purchase>> getPurchaseHistoriesIOS() async {
-    if (!isIOS) {
-      throw PurchaseError(
-        code: ErrorCode.eIapNotAvailable,
-        message: 'getPurchaseHistoriesIOS is only available on iOS',
-        platform: IapPlatform.ios,
-      );
-    }
-
+    if (!isIOS) return <Purchase>[];
     try {
-      dynamic result = await channel.invokeMethod('getPurchaseHistoriesIOS');
-      // Parse the result into a list of purchases
-      List<dynamic> list;
-      if (result is String) {
-        list = json.decode(result) as List<dynamic>;
-      } else if (result is List) {
-        list = result;
-      } else {
-        return [];
-      }
-
-      final purchases = <Purchase>[];
-      for (final item in list) {
-        try {
-          final purchase = Purchase.fromJson(item as Map<String, dynamic>);
-          purchases.add(purchase);
-        } catch (e) {
-          debugPrint('Error parsing purchase: $e');
-          continue;
-        }
-      }
-
-      return purchases;
-    } catch (e) {
-      throw PurchaseError(
-        code: ErrorCode.eServiceError,
-        message: 'Failed to get iOS purchase histories: ${e.toString()}',
-        platform: IapPlatform.ios,
-      );
+      final dynamic result =
+          await channel.invokeMethod('getPurchaseHistoriesIOS');
+      final items = extractPurchasedItems(result) ?? <Purchase>[];
+      return items;
+    } catch (error) {
+      debugPrint('Error getting purchase histories (iOS): $error');
+      return <Purchase>[];
     }
   }
 }
 
-/// iOS App Transaction model (iOS 18.4+)
+/// iOS App Transaction model (iOS 15+)
 class AppTransaction {
   final int version;
   final String bundleId;

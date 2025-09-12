@@ -49,12 +49,14 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
   }
 
   Future<void> _initConnection() async {
+    if (!mounted) return;
     setState(() {
       _loading = true;
     });
 
     try {
       await _iap.initConnection();
+      if (!mounted) return;
       setState(() {
         _connected = true;
       });
@@ -64,6 +66,7 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
     } catch (e) {
       debugPrint('Failed to initialize IAP connection: $e');
     } finally {
+      if (!mounted) return;
       setState(() {
         _loading = false;
       });
@@ -180,6 +183,7 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
 
     if (!isPurchased) {
       debugPrint('❓ Purchase not detected as successful');
+      if (!mounted) return;
       setState(() {
         _isProcessing = false;
         _purchaseResult = '''
@@ -205,6 +209,7 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
       _processedTransactionIds.add(transactionId);
     }
 
+    if (!mounted) return;
     setState(() {
       _isProcessing = false;
       _currentPurchase = purchase;
@@ -238,12 +243,14 @@ Purchase Token: ${purchase.purchaseToken?.substring(0, 30)}...
     try {
       await _iap.finishTransaction(purchase, isConsumable: true);
       debugPrint('Transaction finished successfully');
+      if (!mounted) return;
       setState(() {
         _purchaseResult =
             '$_purchaseResult\n\n✅ Transaction finished successfully';
       });
     } catch (e) {
       debugPrint('Error finishing transaction: $e');
+      if (!mounted) return;
       setState(() {
         _purchaseResult =
             '$_purchaseResult\n\n❌ Failed to finish transaction: $e';
@@ -252,6 +259,7 @@ Purchase Token: ${purchase.purchaseToken?.substring(0, 30)}...
   }
 
   void _handlePurchaseError(PurchaseError error) {
+    if (!mounted) return;
     setState(() {
       _isProcessing = false;
 
@@ -343,6 +351,7 @@ Platform: ${error.platform}
         debugPrint('  Description: ${product.description ?? 'No description'}');
       }
 
+      if (!mounted) return;
       setState(() {
         _products = products;
       });
@@ -356,6 +365,7 @@ Platform: ${error.platform}
     debugPrint('📱 Platform: ${Platform.operatingSystem}');
     debugPrint('🔗 Connection status: $_connected');
 
+    if (!mounted) return;
     setState(() {
       _isProcessing = true;
       _purchaseResult = null; // Clear previous results
@@ -535,6 +545,7 @@ Platform: ${error.platform}
                               onPressed: _isProcessing
                                   ? null
                                   : () async {
+                                      if (!mounted) return;
                                       setState(() {
                                         _isProcessing = true;
                                         _purchaseResult = null;
@@ -544,6 +555,7 @@ Platform: ${error.platform}
                                             'Checking available purchases...');
                                         final purchases =
                                             await _iap.getAvailablePurchases();
+                                        if (!mounted) return;
                                         setState(() {
                                           _purchaseResult = '''
 📊 Available Purchases: ${purchases.length}
@@ -553,6 +565,7 @@ ${purchases.map((p) => '- ${p.productId}: ${p.purchaseToken?.substring(0, 20)}..
                                           _isProcessing = false;
                                         });
                                       } catch (e) {
+                                        if (!mounted) return;
                                         setState(() {
                                           _purchaseResult =
                                               '❌ Error checking purchases: $e';
@@ -567,10 +580,12 @@ ${purchases.map((p) => '- ${p.productId}: ${p.purchaseToken?.substring(0, 20)}..
                               onPressed: _isProcessing
                                   ? null
                                   : () async {
+                                      if (!mounted) return;
                                       setState(() {
                                         _isProcessing = true;
                                       });
                                       await _loadProducts();
+                                      if (!mounted) return;
                                       setState(() {
                                         _isProcessing = false;
                                       });
@@ -582,6 +597,7 @@ ${purchases.map((p) => '- ${p.productId}: ${p.purchaseToken?.substring(0, 20)}..
                               onPressed: _isProcessing
                                   ? null
                                   : () async {
+                                      if (!mounted) return;
                                       setState(() {
                                         _isProcessing = true;
                                         _purchaseResult = null;
@@ -592,12 +608,14 @@ ${purchases.map((p) => '- ${p.productId}: ${p.purchaseToken?.substring(0, 20)}..
                                         await Future<void>.delayed(
                                             const Duration(seconds: 1));
                                         await _initConnection();
+                                        if (!mounted) return;
                                         setState(() {
                                           _purchaseResult =
                                               '✅ Connection reinitialized';
                                           _isProcessing = false;
                                         });
                                       } catch (e) {
+                                        if (!mounted) return;
                                         setState(() {
                                           _purchaseResult = '❌ Error: $e';
                                           _isProcessing = false;
