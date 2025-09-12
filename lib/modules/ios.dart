@@ -69,6 +69,39 @@ mixin FlutterInappPurchaseIOS {
     }
   }
 
+  /// Gets the subscription group identifier for a given product ID (iOS)
+  Future<String?> getSubscriptionGroupIOS(String productId) async {
+    if (!isIOS) {
+      return null;
+    }
+
+    try {
+      final result = await channel.invokeMethod<String>(
+        'getSubscriptionGroup',
+        {'sku': productId},
+      );
+      return result;
+    } catch (error) {
+      debugPrint('Error getting subscription group: $error');
+      return null;
+    }
+  }
+
+  /// Gets the user's App Store country code (iOS)
+  Future<String?> getAppStoreCountryIOS() async {
+    if (!isIOS) {
+      return null;
+    }
+
+    try {
+      final result = await channel.invokeMethod<String>('getAppStoreCountry');
+      return result;
+    } catch (error) {
+      debugPrint('Error getting App Store country: $error');
+      return null;
+    }
+  }
+
   /// Presents the code redemption sheet (iOS 14+)
   Future<void> presentCodeRedemptionSheetIOS() async {
     if (!isIOS) {
@@ -115,6 +148,18 @@ mixin FlutterInappPurchaseIOS {
     await channel.invokeMethod('showManageSubscriptionsIOS');
   }
 
+  /// Gets available items (iOS-only convenience that parses to typed purchases)
+  Future<List<Purchase>?> getAvailableItemsIOS() async {
+    if (!isIOS) return null;
+    try {
+      final dynamic result = await channel.invokeMethod('getAvailableItems');
+      return extractPurchasedItems(result);
+    } catch (error) {
+      debugPrint('Error getting available items (iOS): $error');
+      return null;
+    }
+  }
+
   /// Gets the iOS app transaction (iOS 18.4+)
   Future<Map<String, dynamic>?> getAppTransactionIOS() async {
     if (!isIOS) {
@@ -129,6 +174,46 @@ mixin FlutterInappPurchaseIOS {
     } catch (error) {
       debugPrint('Error getting app transaction: $error');
       return null;
+    }
+  }
+
+  /// Attempts to parse the app transaction into a typed object.
+  /// Returns null if required fields are missing.
+  Future<AppTransaction?> getAppTransactionTypedIOS() async {
+    final map = await getAppTransactionIOS();
+    if (map == null) return null;
+    // Validate presence of expected fields for typed parsing
+    final requiredKeys = [
+      'version',
+      'bundleId',
+      'originalPurchaseDate',
+      'originalTransactionId',
+      'deviceVerification',
+      'deviceVerificationNonce',
+      'preorder',
+      'deviceId',
+    ];
+    for (final k in requiredKeys) {
+      if (!map.containsKey(k)) return null;
+    }
+    try {
+      return AppTransaction.fromMap(map);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Fetch purchase histories on iOS and decode to typed purchases
+  Future<List<Purchase>> getPurchaseHistoriesIOS() async {
+    if (!isIOS) return <Purchase>[];
+    try {
+      final dynamic result =
+          await channel.invokeMethod('getPurchaseHistoriesIOS');
+      final items = extractPurchasedItems(result) ?? <Purchase>[];
+      return items;
+    } catch (error) {
+      debugPrint('Error getting purchase histories (iOS): $error');
+      return <Purchase>[];
     }
   }
 }
