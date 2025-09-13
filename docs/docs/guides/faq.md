@@ -557,6 +557,54 @@ However, it's recommended to migrate to the new API for better functionality.
 
 ## Troubleshooting Questions
 
+### I sometimes see both a success and an error for one subscription purchase
+
+This can briefly happen on iOS due to StoreKit 2 event ordering and native background work. If you already received a success and processed it, you can safely ignore a transient error that arrives shortly afterwards.
+
+Tip (dedup in app logic):
+
+```dart
+class IapDeduper {
+  int _lastSuccessAtMs = 0;
+
+  void attachListeners() {
+    // Success handler
+    FlutterInappPurchase.purchaseUpdated.listen((purchase) async {
+      if (purchase == null) return;
+      _lastSuccessAtMs = DateTime.now().millisecondsSinceEpoch;
+
+      // Subscriptions are non-consumable; finish/acknowledge the transaction
+      await FlutterInappPurchase.instance
+          .finishTransaction(purchase, isConsumable: false);
+    });
+
+    // Error handler with spurious-error filter
+    FlutterInappPurchase.purchaseError.listen((error) {
+      if (error == null) return;
+
+      // Ignore user-cancelled
+      if (error.code == 'E_USER_CANCELLED') return;
+
+      // If an error follows immediately after a success, ignore it
+      if (error.code == 'E_SERVICE_ERROR') {
+        final now = DateTime.now().millisecondsSinceEpoch;
+        final dt = now - _lastSuccessAtMs;
+        if (dt >= 0 && dt < 1500) return; // Ignore spurious error
+      }
+
+      // Surface remaining errors to the user/logs
+      debugPrint('Purchase failed: ${error.message}');
+    });
+  }
+}
+```
+
+Because of this timing model, all request* APIs (for example, `requestPurchase`) are event‑driven, not promise‑based:
+
+- `requestPurchase()` does not resolve with a final outcome. It triggers the native flow; handle results via `purchaseUpdated`/`purchaseError`.
+- Avoid relying on `await requestPurchase(...)` for the final status; multiple events and inter‑session completions are possible.
+- This design ensures robustness when the store delivers updates after app restarts or in edge timing conditions.
+
 ### Why are my products not loading?
 
 Common causes and solutions:
