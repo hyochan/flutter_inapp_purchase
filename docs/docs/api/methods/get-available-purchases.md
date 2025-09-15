@@ -20,7 +20,7 @@ Future<List<Purchase>> getAvailablePurchases()
 
 ### Legacy Method
 ```dart
-Future<List<PurchasedItem>?> getAvailableItemsIOS()
+Future<List<Purchase>?> getAvailableItemsIOS()
 ```
 
 ## Returns

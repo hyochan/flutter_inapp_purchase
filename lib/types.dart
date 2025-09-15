@@ -1636,6 +1636,16 @@ class Purchase {
   /// OpenIAP compatibility: ids array containing the productId
   List<String> get ids => [productId];
 
+  /// Common quantity field (OpenIAP compliant)
+  /// iOS supports quantity; Android defaults to 1
+  int get quantity => quantityIOS ?? 1;
+
+  /// Common auto-renew flag across platforms
+  bool get isAutoRenewing =>
+      autoRenewing == true ||
+      autoRenewingAndroid == true ||
+      isAutoRenewingAndroid == true;
+
   Purchase({
     required this.productId,
     required this.platform,

@@ -102,7 +102,7 @@ class ProductStore {
     }
   }
 
-  void handlePurchaseUpdate(PurchasedItem item) async {
+  void handlePurchaseUpdate(Purchase item) async {
     // 1. Verify the purchase
     bool isValid = await verifyPurchase(item);
 
@@ -150,7 +150,7 @@ await FlutterInappPurchase.instance.acknowledgePurchase(
 Basic validation before server verification:
 
 ```dart
-bool validatePurchaseLocally(PurchasedItem item) {
+bool validatePurchaseLocally(Purchase item) {
   // Check required fields
   if (item.productId == null || item.transactionId == null) {
     return false;
@@ -180,7 +180,7 @@ bool validatePurchaseLocally(PurchasedItem item) {
 Always verify purchases on your server:
 
 ```dart
-Future<bool> verifyPurchase(PurchasedItem item) async {
+Future<bool> verifyPurchase(Purchase item) async {
   // Get receipt data
   String? receipt;
   if (Platform.isIOS) {
@@ -213,7 +213,7 @@ class ConsumableManager {
   // Track consumable inventory
   Map<String, int> inventory = {};
 
-  Future<void> handleConsumablePurchase(PurchasedItem item) async {
+  Future<void> handleConsumablePurchase(Purchase item) async {
     // Add to inventory
     String productId = item.productId!;
     int amount = getProductAmount(productId);
@@ -252,7 +252,7 @@ class ConsumableManager {
 class NonConsumableManager {
   Set<String> unlockedFeatures = {};
 
-  Future<void> handleNonConsumablePurchase(PurchasedItem item) async {
+  Future<void> handleNonConsumablePurchase(Purchase item) async {
     // Unlock the feature
     unlockedFeatures.add(item.productId!);
 
@@ -285,7 +285,7 @@ Always provide a way to restore non-consumable purchases:
 ```dart
 Future<void> restorePurchases() async {
   try {
-    List<PurchasedItem>? purchases = await FlutterInappPurchase
+    List<Purchase>? purchases = await FlutterInappPurchase
         .instance.getAvailablePurchases();
 
     if (purchases != null) {

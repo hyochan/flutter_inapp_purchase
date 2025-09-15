@@ -14,16 +14,16 @@ Real-time event streams for monitoring purchase transactions, connection states,
 Stream for successful purchase completions.
 
 ```dart
-static Stream<PurchasedItem?> get purchaseUpdated
+static Stream<Purchase?> get purchaseUpdated
 ```
 
-**Type**: `Stream<PurchasedItem?>`  
+**Type**: `Stream<Purchase?>`  
 **Emits**: Purchase completion events  
 **Null Safety**: Can emit null values - always check for null
 
 **Example**:
 ```dart
-StreamSubscription<PurchasedItem?>? _purchaseSubscription;
+StreamSubscription<Purchase?>? _purchaseSubscription;
 
 void setupPurchaseListener() {
   _purchaseSubscription = FlutterInappPurchase.purchaseUpdated.listen(
@@ -38,7 +38,7 @@ void setupPurchaseListener() {
   );
 }
 
-Future<void> handlePurchaseSuccess(PurchasedItem purchase) async {
+Future<void> handlePurchaseSuccess(Purchase purchase) async {
   print('Purchase completed: ${purchase.productId}');
   
   try {
@@ -314,7 +314,7 @@ void handleInAppMessage(int messageType) {
 
 ```dart
 class IAPListenerManager {
-  StreamSubscription<PurchasedItem?>? _purchaseSubscription;
+  StreamSubscription<Purchase?>? _purchaseSubscription;
   StreamSubscription<PurchaseResult?>? _errorSubscription;
   StreamSubscription<ConnectionResult>? _connectionSubscription;
   StreamSubscription<String?>? _promotedSubscription;
@@ -402,7 +402,7 @@ class IAPListenerManager {
     print('IAP listeners stopped');
   }
   
-  Future<void> _handlePurchaseSuccess(PurchasedItem purchase) async {
+  Future<void> _handlePurchaseSuccess(Purchase purchase) async {
     // Implementation from examples above
   }
   

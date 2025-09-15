@@ -26,7 +26,7 @@ class _SimpleStoreState extends State<SimpleStore> {
 
   List<ProductCommon> _products = [];
   List<ProductCommon> _subscriptions = [];
-  List<PurchasedItem> _purchases = [];
+  List<Purchase> _purchases = [];
 
   // Your product IDs from App Store Connect / Google Play Console
   final List<String> _productIds = [
@@ -108,7 +108,7 @@ class _SimpleStoreState extends State<SimpleStore> {
   // Get previous purchases
   Future<void> _getPurchases() async {
     try {
-      List<PurchasedItem>? purchases =
+      List<Purchase>? purchases =
           await FlutterInappPurchase.instance.getAvailablePurchases();
 
       setState(() {
@@ -120,7 +120,7 @@ class _SimpleStoreState extends State<SimpleStore> {
   }
 
   // Handle purchase updates
-  void _handlePurchaseUpdate(PurchasedItem productItem) async {
+  void _handlePurchaseUpdate(Purchase productItem) async {
     // Verify purchase on your server here
     bool isValid = await _verifyPurchase(productItem);
 
@@ -188,14 +188,14 @@ class _SimpleStoreState extends State<SimpleStore> {
   }
 
   // Verify purchase (implement your server logic)
-  Future<bool> _verifyPurchase(PurchasedItem item) async {
+  Future<bool> _verifyPurchase(Purchase item) async {
     // TODO: Verify receipt with your server
     // For now, just return true
     return true;
   }
 
   // Deliver product (implement your logic)
-  Future<void> _deliverProduct(PurchasedItem item) async {
+  Future<void> _deliverProduct(Purchase item) async {
     // TODO: Deliver the product to user
     print('Delivering product: ${item.productId}');
   }

@@ -77,7 +77,7 @@ purchase.jwsRepresentationIOS; // [DEPRECATED] Use purchaseToken instead
 
 ```dart
 // Cross-platform server validation
-void validatePurchase(PurchasedItem purchase) {
+void validatePurchase(Purchase purchase) {
   final token = purchase.purchaseToken; // Works on both iOS & Android
 
   if (purchase.platform == IapPlatform.ios) {

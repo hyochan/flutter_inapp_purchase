@@ -43,7 +43,7 @@ class IAPService {
   IAPService._internal();
 
   // Stream subscriptions
-  StreamSubscription<PurchasedItem?>? _purchaseSubscription;
+  StreamSubscription<Purchase?>? _purchaseSubscription;
   StreamSubscription<PurchaseResult?>? _errorSubscription;
 
   // Connection state
@@ -107,7 +107,7 @@ class IAPService {
   }
 
   /// Handle successful purchase updates
-  Future<void> _handlePurchaseUpdate(PurchasedItem purchase) async {
+  Future<void> _handlePurchaseUpdate(Purchase purchase) async {
     print('🎉 Purchase received: ${purchase.productId}');
 
     try {
@@ -160,7 +160,7 @@ class IAPService {
   }
 
   /// Verify purchase with your server
-  Future<bool> _verifyPurchase(PurchasedItem purchase) async {
+  Future<bool> _verifyPurchase(Purchase purchase) async {
     // TODO: Implement server-side verification
     // This is crucial for security!
 
@@ -170,7 +170,7 @@ class IAPService {
   }
 
   /// Grant purchased content to the user
-  Future<void> _grantPurchasedContent(PurchasedItem purchase) async {
+  Future<void> _grantPurchasedContent(Purchase purchase) async {
     final productId = purchase.productId ?? '';
 
     // Grant content based on product ID

@@ -186,7 +186,7 @@ Receipt validation should always be done server-side:
 ```dart
 class ReceiptValidator {
   // iOS Receipt Validation
-  Future<bool> validateIOSReceipt(PurchasedItem purchase) async {
+  Future<bool> validateIOSReceipt(Purchase purchase) async {
     if (purchase.transactionReceipt == null) return false;
 
     final response = await http.post(
@@ -204,7 +204,7 @@ class ReceiptValidator {
   }
 
   // Android Receipt Validation
-  Future<bool> validateAndroidReceipt(PurchasedItem purchase) async {
+  Future<bool> validateAndroidReceipt(Purchase purchase) async {
     if (purchase.purchaseToken == null) return false;
 
     final response = await http.post(
@@ -347,13 +347,13 @@ class ProductIds {
 
 ```dart
 // ❌ Don't do this - Client-side only
-void badPractice(PurchasedItem purchase) {
+void badPractice(Purchase purchase) {
   // Directly deliver content without verification
   deliverContent(purchase.productId);
 }
 
 // ✅ Do this - Server-side verification
-Future<void> goodPractice(PurchasedItem purchase) async {
+Future<void> goodPractice(Purchase purchase) async {
   // 1. Send to server for verification
   final isValid = await verifyOnServer(purchase);
 
@@ -754,7 +754,7 @@ class PerformanceOptimization {
     });
   }
 
-  static void _processPurchaseImmediately(PurchasedItem purchase) {
+  static void _processPurchaseImmediately(Purchase purchase) {
     // Implementation for immediate purchase processing
   }
 

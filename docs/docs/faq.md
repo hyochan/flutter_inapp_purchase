@@ -161,7 +161,7 @@ Future<void> restorePurchases() async {
 **A:** Android purchases can be pending for various payment methods:
 
 ```dart
-void _handlePurchaseUpdate(PurchasedItem item) {
+void _handlePurchaseUpdate(Purchase item) {
   if (item.purchaseStateAndroid == 0) {
     // Purchase completed
     _deliverProduct(item);

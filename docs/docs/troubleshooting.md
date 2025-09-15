@@ -201,12 +201,12 @@ flutter pub upgrade
 3. **Check purchase listeners:**
    ```dart
    // Ensure listeners are set up before purchase
-   FlutterInappPurchase.purchaseUpdated.listen((item) {
-     print('Purchase updated: ${item?.productId}');
+   FlutterInappPurchase.purchaseUpdated.listen((purchase) {
+     print('Purchase updated: ${purchase?.productId}');
    });
    
-   FlutterInappPurchase.purchaseError.listen((item) {
-     print('Purchase error: ${item?.productId}');
+   FlutterInappPurchase.purchaseError.listen((result) {
+     print('Purchase error: ${result?.message}');
    });
    ```
 
@@ -216,22 +216,22 @@ flutter pub upgrade
 
 **Solution:**
 ```dart
-void _handlePurchaseUpdate(PurchasedItem? item) async {
-  if (item == null) return;
+void _handlePurchaseUpdate(Purchase? purchase) async {
+  if (purchase == null) return;
   
   try {
     // IMPORTANT: Always complete transactions
     if (Platform.isIOS) {
-      await FlutterInappPurchase.instance.finishTransaction(item);
+      await FlutterInappPurchase.instance.finishTransaction(purchase);
     } else {
       // Android: Choose based on product type
-      if (isConsumable(item.productId!)) {
+      if (isConsumable(purchase.productId)) {
         await FlutterInappPurchase.instance.consumePurchase(
-          purchaseToken: item.purchaseToken!,
+          purchaseToken: purchase.purchaseToken!,
         );
       } else {
         await FlutterInappPurchase.instance.acknowledgePurchase(
-          purchaseToken: item.purchaseToken!,
+          purchaseToken: purchase.purchaseToken!,
         );
       }
     }

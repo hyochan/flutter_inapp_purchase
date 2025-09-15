@@ -192,18 +192,18 @@ Purchase results are delivered through streams:
 
 ```dart
 // Listen to successful purchases
-FlutterInappPurchase.purchaseUpdated.listen((PurchasedItem? item) {
-  if (item != null) {
-    print('Purchase successful: ${item.productId}');
+FlutterInappPurchase.purchaseUpdated.listen((Purchase? purchase) {
+  if (purchase != null) {
+    print('Purchase successful: ${purchase.productId}');
     
     // Verify the purchase
-    _verifyPurchase(item);
+    _verifyPurchase(purchase);
     
     // Deliver the content
-    _deliverContent(item.productId);
+    _deliverContent(purchase.productId);
     
     // Finish the transaction
-    _finishTransaction(item);
+    _finishTransaction(purchase);
   }
 });
 

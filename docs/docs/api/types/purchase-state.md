@@ -71,7 +71,7 @@ enum PurchaseState {
 ### Usage
 
 ```dart
-void handleAndroidPurchase(PurchasedItem item) {
+void handleAndroidPurchase(Purchase item) {
   switch (item.purchaseStateAndroid) {
     case PurchaseState.purchased:
       // Purchase completed - safe to deliver content
@@ -106,7 +106,7 @@ enum TransactionState {
 ### Usage
 
 ```dart
-void handleIOSTransaction(PurchasedItem item) {
+void handleIOSTransaction(Purchase item) {
   switch (item.transactionStateIOS) {
     case TransactionState.purchased:
     case TransactionState.restored:
@@ -136,7 +136,7 @@ void handleIOSTransaction(PurchasedItem item) {
 
 ```dart
 class PurchaseStateHandler {
-  void processPurchase(PurchasedItem purchase) {
+  void processPurchase(Purchase purchase) {
     if (Platform.isAndroid) {
       _handleAndroidPurchase(purchase);
     } else if (Platform.isIOS) {
@@ -144,7 +144,7 @@ class PurchaseStateHandler {
     }
   }
 
-  void _handleAndroidPurchase(PurchasedItem purchase) {
+  void _handleAndroidPurchase(Purchase purchase) {
     switch (purchase.purchaseStateAndroid) {
       case PurchaseState.purchased:
         if (purchase.isAcknowledgedAndroid == false) {
@@ -167,7 +167,7 @@ class PurchaseStateHandler {
     }
   }
 
-  void _handleIOSPurchase(PurchasedItem purchase) {
+  void _handleIOSPurchase(Purchase purchase) {
     switch (purchase.transactionStateIOS) {
       case TransactionState.purchased:
         _deliverContent(purchase);
@@ -309,7 +309,7 @@ bool needsAcknowledgment(Purchase purchase) {
          purchase.isAcknowledgedAndroid == false;
 }
 
-bool canFinishTransaction(PurchasedItem item) {
+bool canFinishTransaction(Purchase item) {
   if (Platform.isIOS) {
     return item.transactionStateIOS == TransactionState.purchased ||
            item.transactionStateIOS == TransactionState.restored ||

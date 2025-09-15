@@ -52,16 +52,16 @@ class PurchaseHandler {
   // Using singleton instance for in-app purchases
   final _iap = FlutterInappPurchase.instance;
 
-  StreamSubscription<PurchasedItem?>? _purchaseUpdatedSubscription;
+  StreamSubscription<Purchase?>? _purchaseUpdatedSubscription;
   StreamSubscription<PurchaseResult?>? _purchaseErrorSubscription;
 
   void setupPurchaseListeners() {
     // Listen to successful purchases
     _purchaseUpdatedSubscription = _iap.purchaseUpdated.listen(
-      (purchasedItem) {
-        if (purchasedItem != null) {
-          debugPrint('Purchase update received: ${purchasedItem.productId}');
-          _handlePurchaseUpdate(purchasedItem);
+      (purchase) {
+        if (purchase != null) {
+          debugPrint('Purchase update received: ${purchase.productId}');
+          _handlePurchaseUpdate(purchase);
         }
       },
     );
@@ -102,7 +102,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
   String? _purchaseResult;
   bool _isProcessing = false;
-  StreamSubscription<PurchasedItem?>? _purchaseUpdatedSubscription;
+  StreamSubscription<Purchase?>? _purchaseUpdatedSubscription;
   StreamSubscription<PurchaseResult?>? _purchaseErrorSubscription;
 
   @override
@@ -234,7 +234,7 @@ await FlutterInappPurchase.instance.requestSubscription(productId);
 Handle cases where purchases might be pending:
 
 ```dart
-Future<void> _handlePurchaseUpdate(PurchasedItem purchasedItem) async {
+Future<void> _handlePurchaseUpdate(Purchase purchasedItem) async {
   debugPrint('Purchase successful: ${purchasedItem.productId}');
 
   // Deliver the product to the user
@@ -351,7 +351,7 @@ void checkPlatformFeatures() {
 Products that can be purchased multiple times:
 
 ```dart
-Future<void> handleConsumableProduct(PurchasedItem purchase) async {
+Future<void> handleConsumableProduct(Purchase purchase) async {
   // Deliver the consumable content (coins, lives, etc.)
   await deliverConsumableProduct(purchase.productId);
 
@@ -377,7 +377,7 @@ Future<void> handleConsumableProduct(PurchasedItem purchase) async {
 Products purchased once and owned permanently:
 
 ```dart
-Future<void> handleNonConsumableProduct(PurchasedItem purchase) async {
+Future<void> handleNonConsumableProduct(Purchase purchase) async {
   // Deliver the permanent content (premium features, ad removal)
   await deliverPermanentProduct(purchase.productId);
 
@@ -403,7 +403,7 @@ Future<void> handleNonConsumableProduct(PurchasedItem purchase) async {
 Recurring purchases with auto-renewal:
 
 ```dart
-Future<void> handleSubscriptionProduct(PurchasedItem purchase) async {
+Future<void> handleSubscriptionProduct(Purchase purchase) async {
   // Activate subscription for user
   await activateSubscription(purchase.productId);
 
@@ -518,7 +518,7 @@ Future<void> openSubscriptionManagement() async {
 Validate purchases server-side for security:
 
 ```dart
-Future<bool> validatePurchaseReceipt(PurchasedItem purchase) async {
+Future<bool> validatePurchaseReceipt(Purchase purchase) async {
   try {
     if (Platform.isIOS) {
       // Validate iOS receipt
@@ -638,7 +638,7 @@ Here's a complete working example based on the project's `products_screen.dart`:
 class PurchaseService {
   final _iap = FlutterInappPurchase.instance;
 
-  StreamSubscription<PurchasedItem?>? _purchaseUpdatedSubscription;
+  StreamSubscription<Purchase?>? _purchaseUpdatedSubscription;
   StreamSubscription<PurchaseResult?>? _purchaseErrorSubscription;
 
   void init() {
@@ -663,7 +663,7 @@ class PurchaseService {
     );
   }
 
-  Future<void> _handlePurchaseSuccess(PurchasedItem purchase) async {
+  Future<void> _handlePurchaseSuccess(Purchase purchase) async {
     // 1. Deliver product
     await _deliverProduct(purchase.productId);
 

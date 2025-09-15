@@ -1,25 +1,25 @@
 ---
 sidebar_position: 3
-title: PurchasedItem
+title: Purchase
 ---
 
-# PurchasedItem Class
+# Purchase Class
 
 Represents an item that was purchased from either the Google Play Store or iOS App Store.
 
 ## Overview
 
-The `PurchasedItem` class contains all the information about a completed or pending purchase transaction. This includes transaction identifiers, receipts, purchase states, and platform-specific details.
+The `Purchase` class contains all the information about a completed or pending purchase transaction. This includes transaction identifiers, receipts, purchase states, and platform-specific details.
 
 ## Properties
 
 ### Common Properties
 
 ```dart
-final String? productId
+final String productId
 ```
 
-The product identifier of the purchased item.
+The product identifier (SKU) of the purchase.
 
 ```dart
 final String? transactionId
@@ -28,10 +28,10 @@ final String? transactionId
 The unique transaction identifier.
 
 ```dart
-final DateTime? transactionDate
+final int? transactionDate
 ```
 
-The date and time when the transaction occurred.
+The time when the transaction occurred (Unix timestamp in milliseconds).
 
 ```dart
 final String? transactionReceipt
@@ -80,10 +80,10 @@ The current state of the purchase on Android.
 ### iOS-Specific Properties
 
 ```dart
-final DateTime? originalTransactionDateIOS
+final String? originalTransactionDateIOS
 ```
 
-The date of the original transaction (for restored purchases).
+The original transaction date (string) for restored purchases.
 
 ```dart
 final String? originalTransactionIdentifierIOS
@@ -102,10 +102,10 @@ The current state of the transaction on iOS.
 ### fromJSON()
 
 ```dart
-PurchasedItem.fromJSON(Map<String, dynamic> json)
+Purchase.fromJSON(Map<String, dynamic> json)
 ```
 
-Creates a `PurchasedItem` instance from a JSON map.
+Creates a `Purchase` instance from a JSON map.
 
 ### toString()
 
@@ -143,24 +143,24 @@ enum TransactionState {
 
 ```dart
 // Listen to purchase updates
-FlutterInappPurchase.purchaseUpdated.listen((PurchasedItem? item) {
-  if (item != null) {
-    print('Product purchased: ${item.productId}');
-    print('Transaction ID: ${item.transactionId}');
-    print('Transaction Date: ${item.transactionDate}');
+FlutterInappPurchase.purchaseUpdated.listen((Purchase? purchase) async {
+  if (purchase != null) {
+    print('Product purchased: ${purchase.productId}');
+    print('Transaction ID: ${purchase.transactionId}');
+    print('Transaction Date: ${purchase.transactionDate}');
 
     // Platform-specific handling
     if (Platform.isIOS) {
       // Check iOS transaction state
-      if (item.transactionStateIOS == TransactionState.purchased) {
+      if (purchase.transactionStateIOS == TransactionState.purchased) {
         // Finish the transaction
-        await FlutterInappPurchase.instance.finishTransaction(item);
+        await FlutterInappPurchase.instance.finishTransaction(purchase);
       }
     } else if (Platform.isAndroid) {
       // Check if acknowledgment is needed
-      if (item.isAcknowledgedAndroid == false) {
+      if (purchase.isAcknowledgedAndroid == false) {
         await FlutterInappPurchase.instance.acknowledgePurchaseAndroid(
-          purchaseToken: item.purchaseToken!
+          purchaseToken: purchase.purchaseToken!
         );
       }
     }
@@ -168,11 +168,11 @@ FlutterInappPurchase.purchaseUpdated.listen((PurchasedItem? item) {
 });
 
 // Get purchase history
-List<PurchasedItem>? history = await FlutterInappPurchase.instance.getPurchaseHistory();
+List<Purchase> history = await FlutterInappPurchase.instance.getPurchaseHistory();
 if (history != null) {
   for (var purchase in history) {
     print('Previous purchase: ${purchase.productId}');
-    print('Purchase date: ${purchase.transactionDate?.toIso8601String()}');
+    print('Purchase date: ${purchase.transactionDate}');
   }
 }
 ```
@@ -184,10 +184,10 @@ For receipt validation, use the appropriate properties:
 **iOS:**
 
 ```dart
-if (Platform.isIOS && item.transactionReceipt != null) {
+if (Platform.isIOS && purchase.transactionReceipt != null) {
   final response = await FlutterInappPurchase.instance.validateReceiptIos(
     receiptBody: {
-      'receipt-data': item.transactionReceipt!,
+      'receipt-data': purchase.transactionReceipt!,
       'password': 'your-shared-secret',
     },
     isTest: true, // Use sandbox for testing
@@ -198,11 +198,11 @@ if (Platform.isIOS && item.transactionReceipt != null) {
 **Android:**
 
 ```dart
-if (Platform.isAndroid && item.purchaseToken != null) {
+if (Platform.isAndroid && purchase.purchaseToken != null) {
   final response = await FlutterInappPurchase.instance.validateReceiptAndroid(
     packageName: 'com.example.app',
-    productId: item.productId!,
-    productToken: item.purchaseToken!,
+    productId: purchase.productId,
+    productToken: purchase.purchaseToken!,
     accessToken: 'your-access-token',
     isSubscription: false,
   );

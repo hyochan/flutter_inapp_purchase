@@ -198,10 +198,10 @@ await FlutterInappPurchase.instance.requestPurchaseSimple(
 Get all non-consumed purchases (restore purchases).
 
 ```dart
-Future<List<PurchasedItem>?> getAvailablePurchases()
+Future<List<Purchase>> getAvailablePurchases()
 ```
 
-**Returns:** `Future<List<PurchasedItem>?>` - List of available purchases
+**Returns:** `Future<List<Purchase>>` - List of available purchases
 
 **Example:**
 
@@ -221,10 +221,10 @@ if (purchases != null) {
 Get purchase history (including consumed purchases on Android).
 
 ```dart
-Future<List<PurchasedItem>?> getPurchaseHistory()
+Future<List<Purchase>> getPurchaseHistory()
 ```
 
-**Returns:** `Future<List<PurchasedItem>?>` - List of purchase history
+**Returns:** `Future<List<Purchase>>` - List of purchase history
 
 ## ✅ Transaction Completion
 
@@ -233,14 +233,14 @@ Future<List<PurchasedItem>?> getPurchaseHistory()
 Complete a transaction (cross-platform).
 
 ```dart
-Future<String?> finishTransaction(PurchasedItem purchase, {bool? isConsumable})
+Future<void> finishTransaction(Purchase purchase, {bool isConsumable = false})
 ```
 
 **Parameters:**
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `purchase` | `PurchasedItem` | ✅ | Purchase to finish |
-| `isConsumable` | `bool?` | ❌ | Whether the purchase is consumable (Android) |
+| `purchase` | `Purchase` | ✅ | Purchase to finish |
+| `isConsumable` | `bool` | ❌ | Whether the purchase is consumable (Android) |
 
 **Example:**
 
@@ -313,7 +313,7 @@ Future<BillingClientState> getConnectionStateAndroid()
 Stream of purchase updates.
 
 ```dart
-Stream<PurchasedItem?> get purchaseUpdated
+Stream<Purchase?> get purchaseUpdated
 ```
 
 **Example:**
