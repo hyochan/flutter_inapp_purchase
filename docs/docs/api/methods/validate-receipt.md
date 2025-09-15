@@ -87,7 +87,7 @@ class IosReceiptValidator {
   
   IosReceiptValidator({required this.sharedSecret});
   
-  Future<ReceiptValidationResult> validate(PurchasedItem purchase) async {
+  Future<ReceiptValidationResult> validate(Purchase purchase) async {
     if (purchase.transactionReceipt == null) {
       return ReceiptValidationResult(
         isValid: false,
@@ -189,7 +189,7 @@ class IosReceiptValidator {
 ### Basic Usage
 
 ```dart
-Future<bool> validateAndroidReceipt(PurchasedItem purchase) async {
+Future<bool> validateAndroidReceipt(Purchase purchase) async {
   try {
     // Get access token (implement OAuth 2.0 flow)
     final accessToken = await _getGoogleAccessToken();
@@ -233,7 +233,7 @@ class AndroidReceiptValidator {
     required this.authService,
   });
   
-  Future<ReceiptValidationResult> validate(PurchasedItem purchase) async {
+  Future<ReceiptValidationResult> validate(Purchase purchase) async {
     if (purchase.purchaseToken == null) {
       return ReceiptValidationResult(
         isValid: false,
@@ -265,7 +265,7 @@ class AndroidReceiptValidator {
   
   ReceiptValidationResult _parseResponse(
     http.Response response,
-    PurchasedItem purchase,
+    Purchase purchase,
   ) {
     if (response.statusCode == 404) {
       return ReceiptValidationResult(
@@ -337,7 +337,7 @@ class ServerReceiptValidator {
     required this.httpClient,
   });
   
-  Future<bool> validate(PurchasedItem purchase) async {
+  Future<bool> validate(Purchase purchase) async {
     try {
       final payload = {
         'platform': Platform.isIOS ? 'ios' : 'android',
@@ -382,7 +382,7 @@ class PurchaseValidator {
   final IosReceiptValidator iosValidator;
   final AndroidReceiptValidator androidValidator;
   
-  Future<void> validatePurchase(PurchasedItem purchase) async {
+  Future<void> validatePurchase(Purchase purchase) async {
     try {
       // Always prefer server-side validation
       if (await serverValidator.validate(purchase)) {
@@ -414,7 +414,7 @@ class PurchaseValidator {
     }
   }
   
-  Future<void> _completePurchase(PurchasedItem purchase) async {
+  Future<void> _completePurchase(Purchase purchase) async {
     // Deliver content
     await _deliverContent(purchase.productId!);
     

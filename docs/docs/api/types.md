@@ -159,31 +159,32 @@ class SubscriptionOfferAndroid {
 
 ## Purchase Types
 
-### PurchasedItem
+### Purchase
 
-Represents a completed purchase.
+Represents a completed purchase (unified across iOS and Android).
 
 ```dart
-class PurchasedItem {
-  final String? productId;                        // Product identifier
-  final String? transactionId;                    // Transaction ID
-  final DateTime? transactionDate;                // Transaction date
-  final String? transactionReceipt;               // Transaction receipt
-  final String? purchaseToken;                    // Unified purchase token (iOS JWS or Android token)
-
-  // Android-specific fields
-  final String? dataAndroid;                      // Purchase data
-  final String? signatureAndroid;                 // Purchase signature
-  final bool? autoRenewingAndroid;               // Auto-renewing status
-  final bool? isAcknowledgedAndroid;             // Acknowledgment status
-  final PurchaseState? purchaseStateAndroid;     // Purchase state
-  final String? purchaseTokenAndroid;            // [DEPRECATED] Use purchaseToken instead
+class Purchase {
+  // Common fields
+  final String productId;                         // Product identifier (SKU)
+  final String? transactionId;                    // Transaction ID (legacy id)
+  final int? transactionDate;                     // Timestamp (ms)
+  final String? transactionReceipt;               // Receipt payload
+  final String? purchaseToken;                    // JWS (iOS) or purchase token (Android)
 
   // iOS-specific fields
-  final DateTime? originalTransactionDateIOS;     // Original transaction date
   final String? originalTransactionIdentifierIOS; // Original transaction ID
-  final TransactionState? transactionStateIOS;   // Transaction state
-  final String? jwsRepresentationIOS;            // [DEPRECATED] Use purchaseToken instead
+  final String? originalTransactionDateIOS;       // Original transaction date (string)
+  final TransactionState? transactionStateIOS;    // Transaction state
+  final String? jwsRepresentationIOS;             // [DEPRECATED] Use purchaseToken
+
+  // Android-specific fields
+  final String? dataAndroid;                      // Raw purchase data
+  final String? signatureAndroid;                 // Signature
+  final bool? autoRenewingAndroid;                // Auto-renewing status
+  final bool? isAcknowledgedAndroid;              // Acknowledgment status
+  final int? purchaseStateAndroid;                // Purchase state
+  final String? purchaseTokenAndroid;             // [DEPRECATED] Use purchaseToken
 }
 ```
 

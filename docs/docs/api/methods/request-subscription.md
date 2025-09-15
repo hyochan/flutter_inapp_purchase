@@ -154,20 +154,20 @@ await _iap.requestSubscription(
 ```dart
 void setupSubscriptionListeners() {
   // Listen for successful subscriptions
-  FlutterInappPurchase.purchaseUpdated.listen((PurchasedItem? item) {
-    if (item != null && _isSubscription(item.productId)) {
-      print('Subscription successful: ${item.productId}');
+  FlutterInappPurchase.purchaseUpdated.listen((Purchase? purchase) {
+    if (purchase != null && _isSubscription(purchase.productId)) {
+      print('Subscription successful: ${purchase.productId}');
       
       // Store the token for future upgrades
       if (Platform.isAndroid) {
-        _currentSubscriptionToken = item.purchaseToken;
+        _currentSubscriptionToken = purchase.purchaseToken;
       }
       
       // Verify and activate subscription
-      _activateSubscription(item);
+      _activateSubscription(purchase);
       
       // Finish the transaction
-      _iap.finishTransactionIOS(item);
+      _iap.finishTransactionIOS(purchase);
     }
   });
   

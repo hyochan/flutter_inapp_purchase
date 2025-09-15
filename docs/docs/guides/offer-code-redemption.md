@@ -68,7 +68,7 @@ class OfferCodeHandler {
     });
   }
   
-  void _handleRedeemedPurchase(PurchasedItem purchase) {
+  void _handleRedeemedPurchase(Purchase purchase) {
     // Process the redeemed purchase
     // Verify receipt, deliver content, etc.
   }

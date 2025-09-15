@@ -22,7 +22,7 @@ Future<String?> finishTransaction(Purchase purchase, {bool isConsumable = false}
 ### Legacy Method
 
 ```dart
-Future<String?> finishTransactionIOS(PurchasedItem purchasedItem, {bool isConsumable = false})
+Future<String?> finishTransactionIOS(Purchase purchasedItem, {bool isConsumable = false})
 ```
 
 ## Parameters
@@ -50,15 +50,15 @@ Future<String?> finishTransactionIOS(PurchasedItem purchasedItem, {bool isConsum
 
 ```dart
 // Listen for purchases and finish them
-FlutterInappPurchase.purchaseUpdated.listen((PurchasedItem? item) async {
-  if (item != null) {
+FlutterInappPurchase.purchaseUpdated.listen((Purchase? purchase) async {
+  if (purchase != null) {
     // Verify and deliver content
-    await _verifyAndDeliver(item);
+    await _verifyAndDeliver(purchase);
 
     // Finish the transaction
     await FlutterInappPurchase.instance.finishTransactionIOS(
-      item,
-      isConsumable: _isConsumable(item.productId),
+      purchase,
+      isConsumable: _isConsumable(purchase.productId),
     );
   }
 });
@@ -91,23 +91,23 @@ class PurchaseHandler {
     FlutterInappPurchase.purchaseUpdated.listen(_handlePurchase);
   }
 
-  Future<void> _handlePurchase(PurchasedItem? item) async {
-    if (item == null) return;
+  Future<void> _handlePurchase(Purchase? purchase) async {
+    if (purchase == null) return;
 
     try {
       // Step 1: Verify the purchase
-      final isValid = await _verifyPurchase(item);
+      final isValid = await _verifyPurchase(purchase);
       if (!isValid) {
         print('Invalid purchase detected');
         return;
       }
 
       // Step 2: Deliver the content
-      await _deliverContent(item.productId!);
+      await _deliverContent(purchase.productId!);
 
       // Step 3: Finish the transaction
-      final isConsumable = _consumableIds.contains(item.productId);
-      await _iap.finishTransactionIOS(item, isConsumable: isConsumable);
+      final isConsumable = _consumableIds.contains(purchase.productId);
+      await _iap.finishTransactionIOS(purchase, isConsumable: isConsumable);
 
       print('Transaction completed successfully');
 
@@ -118,7 +118,7 @@ class PurchaseHandler {
     }
   }
 
-  Future<bool> _verifyPurchase(PurchasedItem item) async {
+  Future<bool> _verifyPurchase(Purchase item) async {
     // Implement your verification logic
     // - Verify receipt with your backend
     // - Check transaction ID uniqueness
@@ -146,7 +146,7 @@ class PurchaseHandler {
 ## Android-Specific Handling
 
 ```dart
-Future<void> handleAndroidPurchase(PurchasedItem item) async {
+Future<void> handleAndroidPurchase(Purchase item) async {
   if (!Platform.isAndroid) return;
 
   // Check acknowledgment status
@@ -188,7 +188,7 @@ class TransactionManager {
     }
   }
 
-  Future<void> _processPendingTransaction(PurchasedItem item) async {
+  Future<void> _processPendingTransaction(Purchase item) async {
     // Verify the transaction
     final isValid = await _verifyTransaction(item);
 
@@ -216,7 +216,7 @@ class TransactionManager {
 ## Error Handling
 
 ```dart
-Future<void> safeFinishTransaction(PurchasedItem item) async {
+Future<void> safeFinishTransaction(Purchase item) async {
   const maxRetries = 3;
   var retryCount = 0;
 
@@ -251,7 +251,7 @@ Future<void> safeFinishTransaction(PurchasedItem item) async {
 Monitor transaction states for proper handling:
 
 ```dart
-void handleTransactionState(PurchasedItem item) {
+void handleTransactionState(Purchase item) {
   if (Platform.isIOS) {
     switch (item.transactionStateIOS) {
       case TransactionState.purchased:

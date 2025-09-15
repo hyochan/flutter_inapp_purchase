@@ -248,7 +248,7 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
   }
 
   /// Verify purchase with server (mock implementation)
-  Future<bool> _verifyPurchase(PurchasedItem purchase) async {
+  Future<bool> _verifyPurchase(Purchase purchase) async {
     // In a real app, send the receipt to your server for verification
     // For this example, we'll just simulate a successful verification
     await Future.delayed(Duration(milliseconds: 500));
@@ -293,7 +293,7 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
   }
 
   /// Finish the transaction
-  Future<void> _finishTransaction(PurchasedItem purchase) async {
+  Future<void> _finishTransaction(Purchase purchase) async {
     try {
       if (Platform.isAndroid) {
         // For Android, consume the purchase if it's a consumable product

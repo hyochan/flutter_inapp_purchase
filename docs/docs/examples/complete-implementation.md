@@ -60,7 +60,7 @@ class IAPService {
     }
   }
 
-  void _handlePurchaseUpdate(PurchasedItem? item) async {
+  void _handlePurchaseUpdate(Purchase? item) async {
     if (item == null) return;
 
     try {
@@ -95,7 +95,7 @@ class IAPService {
     }
   }
 
-  void _handlePurchaseError(PurchasedItem? item) {
+  void _handlePurchaseError(Purchase? item) {
     _purchaseController.add(PurchaseUpdate(
       item: item,
       status: PurchaseStatus.error,
@@ -129,7 +129,7 @@ class IAPService {
     await FlutterInappPurchase.instance.requestSubscription(productId);
   }
 
-  Future<List<PurchasedItem>> getAvailablePurchases() async {
+  Future<List<Purchase>> getAvailablePurchases() async {
     try {
       final purchases = await FlutterInappPurchase.instance
           .getAvailablePurchases();
@@ -140,7 +140,7 @@ class IAPService {
     }
   }
 
-  Future<ValidationResult> _validatePurchase(PurchasedItem item) async {
+  Future<ValidationResult> _validatePurchase(Purchase item) async {
     try {
       String? receipt;
 
@@ -177,7 +177,7 @@ class IAPService {
   }
 
   Future<void> _deliverPurchase(
-    PurchasedItem item,
+    Purchase item,
     ValidationResult validationResult
   ) async {
     // Update local storage
@@ -193,7 +193,7 @@ class IAPService {
     );
   }
 
-  Future<void> _completeTransaction(PurchasedItem item) async {
+  Future<void> _completeTransaction(Purchase item) async {
     if (Platform.isIOS) {
       await FlutterInappPurchase.instance.finishTransaction(item);
     } else if (Platform.isAndroid) {
@@ -220,7 +220,7 @@ class IAPService {
 
 // Data models
 class PurchaseUpdate {
-  final PurchasedItem? item;
+  final Purchase? item;
   final PurchaseStatus status;
   final String? error;
   final ValidationResult? validationResult;
@@ -269,7 +269,7 @@ class StoreProvider extends ChangeNotifier {
 
   List<IapItem> _products = [];
   List<IapItem> _subscriptions = [];
-  List<PurchasedItem> _purchases = [];
+  List<Purchase> _purchases = [];
 
   bool _isInitialized = false;
   bool _isLoading = false;
@@ -278,7 +278,7 @@ class StoreProvider extends ChangeNotifier {
   // Getters
   List<IapItem> get products => _products;
   List<IapItem> get subscriptions => _subscriptions;
-  List<PurchasedItem> get purchases => _purchases;
+  List<Purchase> get purchases => _purchases;
   bool get isInitialized => _isInitialized;
   bool get isLoading => _isLoading;
   String? get error => _error;
@@ -363,7 +363,10 @@ class StoreProvider extends ChangeNotifier {
   bool isSubscriptionActive(String productId) {
     final purchase = _purchases.firstWhere(
       (p) => p.productId == productId,
-      orElse: () => PurchasedItem(),
+      orElse: () => Purchase(
+        productId: '',
+        platform: IapPlatform.ios,
+      ),
     );
 
     // Check if subscription is still valid

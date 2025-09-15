@@ -166,7 +166,7 @@ class PurchaseScreen extends StatefulWidget {
 class _PurchaseScreenState extends State<PurchaseScreen>
     with WidgetsBindingObserver {
 
-  StreamSubscription<PurchasedItem?>? _purchaseSubscription;
+  StreamSubscription<Purchase?>? _purchaseSubscription;
   StreamSubscription<PurchaseResult?>? _errorSubscription;
   bool _isProcessing = false;
 
@@ -234,11 +234,11 @@ Using hooks or similar patterns for functional components:
 ```dart
 // Custom hook for IAP lifecycle management
 class IapHook {
-  late StreamSubscription<PurchasedItem?>? _purchaseSubscription;
+  late StreamSubscription<Purchase?>? _purchaseSubscription;
   late StreamSubscription<PurchaseResult?>? _errorSubscription;
 
   void initialize(
-    Function(PurchasedItem) onPurchase,
+    Function(Purchase) onPurchase,
     Function(PurchaseResult) onError,
   ) {
     _purchaseSubscription = FlutterInappPurchase.purchaseUpdated.listen(
@@ -336,7 +336,7 @@ Always validate purchases server-side:
 
 ```dart
 class SecurePurchaseValidator {
-  static Future<bool> validatePurchase(PurchasedItem purchase) async {
+  static Future<bool> validatePurchase(Purchase purchase) async {
     try {
       if (Platform.isIOS) {
         // iOS receipt validation
@@ -552,7 +552,7 @@ class TransactionCleanup {
     }
   }
 
-  static Future<void> _finalizePurchase(PurchasedItem purchase) async {
+  static Future<void> _finalizePurchase(Purchase purchase) async {
     // Validate and deliver content first
     final isValid = await _validatePurchase(purchase);
     if (!isValid) return;
@@ -581,7 +581,7 @@ class TransactionCleanup {
 ```dart
 // Solution: Always validate server-side
 class SecurityBestPractices {
-  static Future<bool> secureValidation(PurchasedItem purchase) async {
+  static Future<bool> secureValidation(Purchase purchase) async {
     // 1. Client-side basic checks
     if (purchase.productId == null || purchase.transactionReceipt == null) {
       return false;

@@ -29,7 +29,7 @@ class FlutterInappPurchase {
   // Purchase management
   Future<void> requestPurchase(String sku);
   Future<void> requestSubscription(String sku);
-  Future<List<PurchasedItem>?> getAvailablePurchases();
+  Future<List<Purchase>> getAvailablePurchases();
 
   // Transaction management
   Future<String?> finishTransaction(Purchase purchase, {bool isConsumable = false});
@@ -72,20 +72,20 @@ class IapItem {
 }
 ```
 
-### PurchasedItem
+### Purchase
 
 Represents a completed purchase:
 
 ```dart
-class PurchasedItem {
-  final String? productId;
+class Purchase {
+  final String productId;
   final String? transactionId;
-  final DateTime? transactionDate;
+  final int? transactionDate; // timestamp (ms)
   final String? transactionReceipt;
   final String? purchaseToken;
 
   // iOS specific
-  final String? originalTransactionDateIOS;
+  final String? originalTransactionDateIOS; // string
   final String? originalTransactionIdentifierIOS;
 
   // Android specific
@@ -182,7 +182,7 @@ try {
 #### getAvailablePurchases()
 
 ```dart
-Future<List<PurchasedItem>?> getAvailablePurchases() async
+Future<List<Purchase>> getAvailablePurchases() async
 ```
 
 Retrieves all available purchases (including pending and non-consumed).
@@ -294,7 +294,7 @@ Future<List<IapItem>> getProductsIOS(List<String> skus) async
 
 ```dart
 // Get purchase history
-Future<List<PurchasedItem>?> getPurchaseHistoryAndroid() async
+Future<List<Purchase>> getPurchaseHistoryAndroid() async
 
 // Enable debug mode
 void setDebugMode(bool enabled)

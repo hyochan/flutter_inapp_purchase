@@ -158,7 +158,7 @@ Future<void> _requestPurchase(String productId) async {
 }
 
 // Handle purchase completion
-void _handlePurchaseUpdate(PurchasedItem item) async {
+void _handlePurchaseUpdate(Purchase item) async {
   // Deliver content
   await _deliverProduct(item);
 
@@ -218,10 +218,10 @@ interface Purchase {
 }
 ```
 
-**flutter_inapp_purchase PurchasedItem:**
+**flutter_inapp_purchase Purchase:**
 
 ```dart
-class PurchasedItem {
+class Purchase {
   String? productId;           // maps to id
   String? transactionId;       // same
   int? transactionDate;        // same (timestamp)
@@ -363,7 +363,7 @@ class _StoreState extends State<Store> {
     }
   }
 
-  void _handlePurchase(PurchasedItem? item) async {
+  void _handlePurchase(Purchase? item) async {
     if (item == null) return;
 
     try {

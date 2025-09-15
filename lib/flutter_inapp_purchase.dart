@@ -1331,7 +1331,7 @@ class FlutterInappPurchase
     );
   }
 
-  /// Finish a transaction using PurchasedItem object (legacy compatibility)
+  /// Finish a transaction using legacy PurchasedItem JSON (legacy compatibility)
   /// @deprecated Use finishTransaction with Purchase object instead
   Future<void> finishTransactionIOS(
     Map<String, dynamic> purchasedItemJson, {

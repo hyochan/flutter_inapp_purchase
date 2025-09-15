@@ -33,7 +33,7 @@ class _SubscriptionStoreState extends State<SubscriptionStore> {
   StreamSubscription? _purchaseErrorSubscription;
 
   List<IapItem> _subscriptions = [];
-  List<PurchasedItem> _purchases = [];
+  List<Purchase> _purchases = [];
   bool _isLoading = true;
 
   // Your subscription IDs
@@ -106,7 +106,7 @@ class _SubscriptionStoreState extends State<SubscriptionStore> {
     }
   }
 
-  void _handlePurchaseUpdate(PurchasedItem? item) async {
+  void _handlePurchaseUpdate(Purchase? item) async {
     if (item == null) return;
 
     print('Purchase update: ${item.productId}');
@@ -134,7 +134,7 @@ class _SubscriptionStoreState extends State<SubscriptionStore> {
     }
   }
 
-  void _handlePurchaseError(PurchasedItem? item) {
+  void _handlePurchaseError(Purchase? item) {
     // Handle purchase errors
     _showError('Purchase failed');
   }
@@ -159,18 +159,18 @@ class _SubscriptionStoreState extends State<SubscriptionStore> {
     }
   }
 
-  Future<bool> _verifyPurchase(PurchasedItem item) async {
+  Future<bool> _verifyPurchase(Purchase item) async {
     // TODO: Implement server-side verification
     // This should verify the receipt with your backend
     return true;
   }
 
-  Future<void> _deliverSubscription(PurchasedItem item) async {
+  Future<void> _deliverSubscription(Purchase item) async {
     // TODO: Grant subscription access to user
     print('Delivering subscription: ${item.productId}');
   }
 
-  Future<void> _completeTransaction(PurchasedItem item) async {
+  Future<void> _completeTransaction(Purchase item) async {
     if (Platform.isIOS) {
       await FlutterInappPurchase.instance.finishTransaction(item);
     } else if (Platform.isAndroid) {

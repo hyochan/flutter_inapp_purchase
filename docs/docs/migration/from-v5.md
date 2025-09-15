@@ -291,7 +291,7 @@ class _MyAppState extends State<MyApp> {
   StreamSubscription _purchaseUpdatedSubscription;
   StreamSubscription _purchaseErrorSubscription;
   List<IAPItem> _items = [];
-  List<PurchasedItem> _purchases = [];
+  List<Purchase> _purchases = [];
 
   @override
   void initState() {
@@ -336,7 +336,7 @@ class _MyAppState extends State<MyApp> {
   StreamSubscription? _purchaseUpdatedSubscription;
   StreamSubscription? _purchaseErrorSubscription;
   List<IapItem> _items = [];
-  List<PurchasedItem> _purchases = [];
+  List<Purchase> _purchases = [];
 
   @override
   void initState() {
@@ -365,8 +365,8 @@ class _MyAppState extends State<MyApp> {
     });
 
     _purchaseErrorSubscription = FlutterInappPurchase
-        .purchaseError.listen((productItem) {
-      print('purchase-error: ${productItem?.productId}');
+        .purchaseError.listen((result) {
+      print('purchase-error: ${result?.message}');
       // Handle error
     });
 
@@ -381,7 +381,7 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  Future<void> _finishTransaction(PurchasedItem item) async {
+  Future<void> _finishTransaction(Purchase item) async {
     try {
       await FlutterInappPurchase.instance.finishTransaction(item);
     } catch (e) {

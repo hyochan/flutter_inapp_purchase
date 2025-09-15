@@ -24,7 +24,7 @@ The singleton instance of the FlutterInappPurchase class.
 ### Streams
 
 ```dart
-Stream<PurchasedItem?> purchaseUpdated
+Stream<Purchase?> purchaseUpdated
 ```
 
 Stream that emits purchase updates when a transaction state changes.
@@ -325,7 +325,7 @@ class StoreService {
     );
   }
 
-  void _handlePurchase(PurchasedItem purchase) {
+  void _handlePurchase(Purchase purchase) {
     // Process the purchase
     print('Purchase completed: ${purchase.productId}');
   }

@@ -286,14 +286,14 @@ Completes a transaction after successful purchase processing.
 
 ```dart
 Future<void> finishTransaction(
-  PurchasedItem purchase, {
+  Purchase purchase, {
   bool isConsumable = false,
 }) async
 ```
 
 **Parameters**:
 
-- `purchase` - The purchased item to finish
+- `purchase` - The purchase to finish
 - `isConsumable` - Whether the product is consumable (Android only)
 
 **Example**:
