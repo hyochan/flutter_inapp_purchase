@@ -31,7 +31,7 @@ class ProductDetailModal extends StatelessWidget {
 
   Map<String, dynamic> _itemToMap(ProductCommon item) {
     final map = <String, dynamic>{
-      'productId': item.productId,
+      'productId': item.id,
       'price': item.price,
       'currency': item.currency,
       'localizedPrice': item.localizedPrice,
@@ -40,7 +40,7 @@ class ProductDetailModal extends StatelessWidget {
     };
 
     // Add Subscription-specific fields
-    if (item is Subscription) {
+    if (item is ProductSubscription) {
       map['subscriptionPeriodNumberIOS'] = item.subscriptionPeriodNumberIOS;
       map['subscriptionPeriodUnitIOS'] = item.subscriptionPeriodUnitIOS;
       map['introductoryPriceNumberOfPeriodsIOS'] =
@@ -146,8 +146,8 @@ class ProductDetailModal extends StatelessWidget {
     // Use product.toJson() if available, otherwise fall back to _itemToMap
     final jsonData = product != null && product is Product
         ? (product as Product).toJson()
-        : product != null && product is Subscription
-            ? (product as Subscription).toJson()
+        : product != null && product is ProductSubscription
+            ? (product as ProductSubscription).toJson()
             : _itemToMap(item);
     final jsonString = const JsonEncoder.withIndent('  ').convert(jsonData);
 
@@ -178,7 +178,7 @@ class ProductDetailModal extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      item.title ?? item.productId ?? 'Product Details',
+                      item.title ?? item.id,
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -205,7 +205,7 @@ class ProductDetailModal extends StatelessWidget {
                     'Basic Information',
                     Column(
                       children: [
-                        _buildDetailRow('Product ID', item.productId),
+                        _buildDetailRow('Product ID', item.id),
                         _buildDetailRow('Price', item.localizedPrice),
                         _buildDetailRow('Currency', item.currency),
                         _buildDetailRow('Description', item.description),
@@ -214,9 +214,9 @@ class ProductDetailModal extends StatelessWidget {
                   ),
 
                   // Subscription Information (if applicable)
-                  if (item is Subscription) ...[
+                  if (item is ProductSubscription) ...[
                     () {
-                      final subscription = item as Subscription;
+                      final subscription = item as ProductSubscription;
                       if (subscription.subscriptionPeriodAndroid != null ||
                           subscription.subscriptionPeriodUnitIOS != null) {
                         return _buildSection(
@@ -242,9 +242,9 @@ class ProductDetailModal extends StatelessWidget {
                   ],
 
                   // Android Offers
-                  if (item is Subscription) ...[
+                  if (item is ProductSubscription) ...[
                     () {
-                      final subscription = item as Subscription;
+                      final subscription = item as ProductSubscription;
                       if (subscription.subscriptionOffersAndroid?.isNotEmpty ??
                           false) {
                         return _buildSection(
@@ -318,9 +318,9 @@ class ProductDetailModal extends StatelessWidget {
                   ],
 
                   // iOS Discounts - for Subscription
-                  if (item is Subscription) ...[
+                  if (item is ProductSubscription) ...[
                     () {
-                      final subscription = item as Subscription;
+                      final subscription = item as ProductSubscription;
                       if (subscription.discountsIOS?.isNotEmpty ?? false) {
                         return _buildSection(
                           'iOS Discounts',
@@ -384,7 +384,7 @@ class ProductDetailModal extends StatelessWidget {
                           child: ElevatedButton.icon(
                             onPressed: () {
                               debugPrint(
-                                  '=== Raw JSON Data for ${item.productId} ===');
+                                  '=== Raw JSON Data for ${item.id} ===');
                               debugPrint(jsonString);
                               debugPrint('=== End of Raw JSON Data ===');
 
@@ -435,7 +435,7 @@ class ProductDetailModal extends StatelessWidget {
                             child: ElevatedButton.icon(
                               onPressed: () {
                                 debugPrint(
-                                    '=== Original Product Object for ${item.productId} ===');
+                                    '=== Original Product Object for ${item.id} ===');
                                 debugPrint('Type: ${product.runtimeType}');
                                 debugPrint(product.toString());
 
@@ -451,7 +451,7 @@ class ProductDetailModal extends StatelessWidget {
                                     debugPrint(
                                         'iOS Discounts: ${product.discountsIOS}');
                                   }
-                                } else if (prod is Subscription) {
+                                } else if (prod is ProductSubscription) {
                                   final subscription = prod;
                                   debugPrint('Product Type: Subscription');
                                   debugPrint(

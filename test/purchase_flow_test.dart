@@ -143,9 +143,9 @@ void main() {
         );
 
         expect(products.length, 2);
-        expect(products[0].productId, 'product1');
+        expect(products[0].id, 'product1');
         expect(products[0].displayPrice, '\$1.99');
-        expect(products[1].productId, 'product2');
+        expect(products[1].id, 'product2');
       });
 
       test('fetchProducts throws when not initialized', () async {

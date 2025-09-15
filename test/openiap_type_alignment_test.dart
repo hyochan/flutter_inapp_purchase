@@ -6,19 +6,18 @@ void main() {
     group('Product Type Alignment', () {
       test('Product should have OpenIAP compliant id getter', () {
         final product = Product(
-          productId: 'test_product',
+          id: 'test_product',
           priceString: '9.99',
           platformEnum: IapPlatform.android,
         );
 
         // OpenIAP spec: Product should have id field that maps to productId
         expect(product.id, 'test_product');
-        expect(product.productId, 'test_product');
       });
 
       test('Product should have required OpenIAP fields', () {
         final product = Product(
-          productId: 'test_product',
+          id: 'test_product',
           title: 'Test Product',
           description: 'Test Description',
           type: 'inapp',
@@ -39,7 +38,7 @@ void main() {
 
       test('Android Product should have platform-specific fields', () {
         final product = Product(
-          productId: 'android_product',
+          id: 'android_product',
           priceString: '9.99',
           platformEnum: IapPlatform.android,
           nameAndroid: 'Android Product Name',
@@ -60,7 +59,7 @@ void main() {
 
       test('iOS Product should have platform-specific fields', () {
         final product = Product(
-          productId: 'ios_product',
+          id: 'ios_product',
           priceString: '9.99',
           platformEnum: IapPlatform.ios,
           environmentIOS: 'Sandbox',
@@ -77,8 +76,8 @@ void main() {
 
     group('Subscription Type Alignment', () {
       test('Subscription should have OpenIAP compliant id and ids getters', () {
-        final subscription = Subscription(
-          productId: 'test_sub',
+        final subscription = ProductSubscription(
+          id: 'test_sub',
           price: '9.99',
           platform: IapPlatform.android,
         );
@@ -89,8 +88,8 @@ void main() {
       });
 
       test('Android Subscription should have offer details structure', () {
-        final subscription = Subscription(
-          productId: 'android_sub',
+        final subscription = ProductSubscription(
+          id: 'android_sub',
           price: '9.99',
           platform: IapPlatform.android,
           subscriptionOfferDetailsAndroid: [

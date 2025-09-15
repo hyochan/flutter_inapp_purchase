@@ -79,8 +79,11 @@ class FlutterInappPurchase
 
   Platform get _platform => _pf;
   // Public getters used by platform mixins
+  @override
   bool get isIOS => _platform.isIOS;
+  @override
   bool get isAndroid => _platform.isAndroid;
+  @override
   String get operatingSystem => _platform.operatingSystem;
 
   final Platform _pf;
@@ -584,9 +587,11 @@ class FlutterInappPurchase
 
     if (type == iap_types.ProductType.subs) {
       return iap_types.ProductSubscription(
-        id: json['id']?.toString() ?? '',
-        productId:
-            json['productId']?.toString() ?? json['id']?.toString() ?? '',
+        id: (json['id']?.toString() ??
+            json['productId']?.toString() ??
+            json['sku']?.toString() ??
+            json['productIdentifier']?.toString() ??
+            ''),
         price: json['price']?.toString() ?? '0',
         currency: json['currency']?.toString(),
         localizedPrice: json['localizedPrice']?.toString(),
@@ -666,8 +671,11 @@ class FlutterInappPurchase
       // For iOS platform, create ProductIOS instance to capture iOS-specific fields
       if (platform == iap_types.IapPlatform.ios) {
         return iap_types.ProductIOS(
-          productId:
-              json['productId']?.toString() ?? json['id']?.toString() ?? '',
+          id: (json['id']?.toString() ??
+              json['productId']?.toString() ??
+              json['sku']?.toString() ??
+              json['productIdentifier']?.toString() ??
+              ''),
           price: json['price']?.toString() ?? '0',
           currency: json['currency']?.toString(),
           localizedPrice: json['localizedPrice']?.toString(),
@@ -703,9 +711,11 @@ class FlutterInappPurchase
       } else {
         // For Android platform, create regular Product
         return iap_types.Product(
-          id: json['id']?.toString() ?? '',
-          productId:
-              json['productId']?.toString() ?? json['id']?.toString() ?? '',
+          id: (json['id']?.toString() ??
+              json['productId']?.toString() ??
+              json['sku']?.toString() ??
+              json['productIdentifier']?.toString() ??
+              ''),
           priceString: json['price']?.toString() ?? '0',
           currency: json['currency']?.toString(),
           localizedPrice: json['localizedPrice']?.toString(),
@@ -1840,14 +1850,6 @@ class FlutterInappPurchase
     }
   }
 
-  /// flutter IAP compatible purchase method — DEPRECATED
-  @Deprecated('Removed in 6.6.0. Use requestPurchase() instead.')
-  Future<void> purchaseAsync(String productId) async => throw UnsupportedError(
-        'purchaseAsync() was removed in 6.6.0. Use requestPurchase() instead.',
-      );
-
-  // finishTransactionAsync removed in favor of finishTransaction(Purchase).
-
   // MARK: - StoreKit 2 specific methods
 
   /// Restore completed transactions (cross-platform behavior)
@@ -1873,32 +1875,6 @@ class FlutterInappPurchase
           '[flutter_inapp_purchase] Failed to restore purchases: $error');
     }
   }
-
-  // presentCodeRedemptionSheet removed; use presentCodeRedemptionSheetIOS()
-
-  // showManageSubscriptions removed; use showManageSubscriptionsIOS() on iOS
-  // and deepLinkToSubscriptionsAndroid() on Android.
-
-  // clearTransactionCache removed; use clearTransactionIOS() on iOS.
-
-  /// Get promoted product (App Store promoted purchase)
-  /// Returns a map with product information on iOS or null if unavailable.
-  @Deprecated('Use getPromotedProductIOS() instead. Will be removed in 6.6.0')
-  Future<Map<String, dynamic>?> getPromotedProduct() async {
-    if (_platform.isIOS) {
-      final result = await _channel.invokeMethod('getPromotedProductIOS');
-      if (result == null) return null;
-      if (result is Map) return Map<String, dynamic>.from(result);
-      // Backward compatibility: if native returns string id, wrap it
-      if (result is String) return {'productIdentifier': result};
-      return null;
-    }
-    return null;
-  }
-
-  // Removed getAppTransaction(); use getAppTransactionIOS() instead.
-
-  // getAppTransactionTyped removed; use getAppTransactionIOS() and map as needed.
 
   /// Get all active subscriptions with detailed information (OpenIAP compliant)
   /// Returns an array of active subscriptions. If subscriptionIds is not provided,

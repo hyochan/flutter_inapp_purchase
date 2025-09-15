@@ -5,7 +5,7 @@ void main() {
   group('Product Type Tests', () {
     test('Product should be created with basic fields', () {
       final product = Product(
-        productId: 'test_product',
+        id: 'test_product',
         title: 'Test Product',
         description: 'Test Description',
         price: 9.99,
@@ -14,7 +14,7 @@ void main() {
         platformEnum: IapPlatform.ios,
       );
 
-      expect(product.productId, 'test_product');
+      expect(product.id, 'test_product');
       expect(product.title, 'Test Product');
       expect(product.description, 'Test Description');
       expect(product.price, 9.99);
@@ -24,7 +24,7 @@ void main() {
 
     test('Product should handle iOS-specific fields', () {
       final product = Product(
-        productId: 'test_product',
+        id: 'test_product',
         title: 'Test Product',
         description: 'Test Description',
         price: 9.99,
@@ -40,8 +40,8 @@ void main() {
     });
 
     test('Subscription should extend ProductCommon', () {
-      final subscription = Subscription(
-        productId: 'test_subscription',
+      final subscription = ProductSubscription(
+        id: 'test_subscription',
         title: 'Test Subscription',
         description: 'Test Subscription Description',
         price: '4.99',
@@ -53,7 +53,7 @@ void main() {
       );
 
       expect(subscription, isA<ProductCommon>());
-      expect(subscription.productId, 'test_subscription');
+      expect(subscription.id, 'test_subscription');
       expect(subscription.subscriptionPeriodAndroid, 'P1M');
       expect(subscription.subscriptionGroupIdIOS, 'test_group');
     });

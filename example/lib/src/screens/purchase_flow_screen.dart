@@ -342,7 +342,7 @@ Platform: ${error.platform}
 
       // Store original products
       for (final product in products) {
-        final productKey = product.productId ?? product.id;
+        final productKey = product.id;
         _originalProducts[productKey] = product;
 
         debugPrint('Product: ${product.id} - ${product.title ?? 'No title'}');
@@ -396,6 +396,19 @@ Platform: ${error.platform}
         _isProcessing = false;
       });
       debugPrint('❌ Purchase request error: $error');
+
+      // Do not show alert dialog if the user cancelled the purchase
+      final errorString = error.toString().toLowerCase();
+      final bool isUserCancelled =
+          (error is PurchaseError && error.code == ErrorCode.eUserCancelled) ||
+              errorString.contains('user_cancel') ||
+              errorString.contains('user cancelled') ||
+              errorString.contains('canceled') ||
+              errorString.contains('cancelled');
+      if (isUserCancelled) {
+        debugPrint('ℹ️ Purchase cancelled by user - suppressing alert');
+        return;
+      }
 
       // Check if it's a server error and we haven't exceeded retry limit
       if (error.toString().contains('responseCode: 6') && retryCount < 2) {
@@ -744,7 +757,7 @@ ${_currentPurchase!.purchaseToken}
                         onTap: () => ProductDetailModal.show(
                           context: context,
                           item: product,
-                          product: _originalProducts[product.productId],
+                          product: _originalProducts[product.id],
                         ),
                         child: Card(
                           margin: const EdgeInsets.only(bottom: 12),
@@ -759,7 +772,7 @@ ${_currentPurchase!.purchaseToken}
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  product.title ?? product.productId ?? '',
+                                  product.title ?? product.id,
                                   style: const TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
@@ -786,8 +799,7 @@ ${_currentPurchase!.purchaseToken}
                                     ElevatedButton(
                                       onPressed: _isProcessing || !_connected
                                           ? null
-                                          : () => _handlePurchase(
-                                              product.productId!),
+                                          : () => _handlePurchase(product.id),
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.blue,
                                         foregroundColor: Colors.white,

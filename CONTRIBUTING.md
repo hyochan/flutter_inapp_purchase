@@ -26,6 +26,7 @@ git config core.hooksPath .githooks
 ```
 
 After this, committing will:
+
 - Run `flutter pub get`
 - Auto-format staged Dart files
 - Verify repo-wide formatting (same as CI)
@@ -106,37 +107,37 @@ implementation "io.github.hyochan.openiap:openiap-google:1.1.0"
 
 If you need to debug against a local checkout of the OpenIAP Android module:
 
-1) Clone the module
+1. Clone the module
 
-```
-git clone https://github.com/hyodotdev/openiap-google
-```
+   ```
+   git clone https://github.com/hyodotdev/openiap-google
+   ```
 
-2) Point Gradle to the local module (uncomment/edit paths)
+2. Point Gradle to the local module (uncomment/edit paths)
 
-Edit `android/settings.gradle` and uncomment the lines, updating the path:
+   Edit `android/settings.gradle` and uncomment the lines, updating the path:
 
-```
-include ':openiap'
-project(':openiap').projectDir = new File('/Users/you/path/to/openiap-google/openiap')
-```
+   ```
+   include ':openiap'
+   project(':openiap').projectDir = new File('/Users/you/path/to/openiap-google/openiap')
+   ```
 
-3) Switch the dependency for debug builds
+3. Switch the dependency for debug builds
 
-Edit `android/build.gradle` dependencies to use the local project in debug only:
+   Edit `android/build.gradle` dependencies to use the local project in debug only:
 
-```
-// implementation "io.github.hyochan.openiap:openiap-google:1.1.0"
-debugImplementation project(":openiap")
-releaseImplementation "io.github.hyochan.openiap:openiap-google:1.1.0"
-```
+   ```
+   // implementation "io.github.hyochan.openiap:openiap-google:1.1.0"
+   debugImplementation project(":openiap")
+   releaseImplementation "io.github.hyochan.openiap:openiap-google:1.1.0"
+   ```
 
-4) Sync and run
+4. Sync and run
 
-Run a Gradle sync from Android Studio or rebuild the Flutter module.
+   Run a Gradle sync from Android Studio or rebuild the Flutter module.
 
-To revert, comment out the include lines in `settings.gradle` and restore the single
-`implementation "io.github.hyochan.openiap:openiap-google:1.1.0"` line in `android/build.gradle`.
+   To revert, comment out the include lines in `settings.gradle` and restore the single
+   `implementation "io.github.hyochan.openiap:openiap-google:1.1.0"` line in `android/build.gradle`.
 
 ### 5. Commit Your Changes
 

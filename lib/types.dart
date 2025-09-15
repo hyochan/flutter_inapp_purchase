@@ -175,10 +175,6 @@ abstract class ProductCommon {
   final double? price;
   final String? debugDescription;
   final String? platform;
-
-  // Backward compatibility fields
-  @Deprecated('Use id instead. Will be removed in 6.6.0')
-  final String? productId;
   final String? localizedPrice;
   final IapPlatform platformEnum;
 
@@ -194,8 +190,6 @@ abstract class ProductCommon {
     this.price,
     this.debugDescription,
     this.platform,
-    // Backward compatibility
-    this.productId,
     this.localizedPrice,
   });
 }
@@ -241,8 +235,6 @@ class Product extends ProductCommon {
     double? price,
     super.debugDescription,
     String? platform,
-    // Backward compatibility fields
-    super.productId,
     String? priceString,
     super.localizedPrice,
     IapPlatform? platformEnum,
@@ -272,7 +264,7 @@ class Product extends ProductCommon {
     this.signatureAndroid,
     this.subscriptionOffersAndroid,
   }) : super(
-          id: id ?? productId ?? '',
+          id: id ?? '',
           type: type ?? 'inapp',
           displayPrice: displayPrice ?? localizedPrice ?? '0',
           platformEnum: platformEnum ?? IapPlatform.ios,
@@ -300,8 +292,6 @@ class Product extends ProductCommon {
               ? double.tryParse(json['price'] as String)
               : null),
       platform: json['platform'] as String?,
-      // Backward compatibility fields
-      productId: json['productId'] as String?,
       priceString: (json['price'] is String) ? json['price'] as String : null,
       localizedPrice: json['localizedPrice'] as String?,
       platformEnum:
@@ -379,7 +369,6 @@ class Product extends ProductCommon {
   @override
   String toString() {
     final buffer = StringBuffer('$runtimeType{\n');
-    buffer.writeln('  productId: $productId,');
     buffer.writeln('  id: $id,');
     buffer.writeln('  price: $price,');
     buffer.writeln('  currency: $currency,');
@@ -449,8 +438,8 @@ class Product extends ProductCommon {
     }
 
     // For Subscription class, add subscription info
-    if (this is Subscription) {
-      final sub = this as Subscription;
+    if (this is ProductSubscription) {
+      final sub = this as ProductSubscription;
       if (sub.subscription != null) {
         buffer.writeln('  subscription: ${sub.subscription},');
       }
@@ -537,7 +526,7 @@ class Product extends ProductCommon {
       }
       // Add OpenIAP compliant iOS fields for Subscription
       // Note: In Product class, this check is needed; in Subscription class, it's redundant
-      else if (this is Subscription) {
+      else if (this is ProductSubscription) {
         // Remove unnecessary cast since we know the type
         if ((this as dynamic).isFamilyShareableIOS != null) {
           json['isFamilyShareableIOS'] = (this as dynamic).isFamilyShareableIOS;
@@ -695,11 +684,9 @@ class DiscountIOS {
         subscriptionPeriod = json['subscriptionPeriod'] as String;
 }
 
-/// Subscription class for subscription items (OpenIAP compliant)
-@Deprecated('Use ProductSubscription instead. Will be removed in 6.6.0')
-class Subscription extends ProductCommon {
+class ProductSubscription extends ProductCommon {
   /// OpenIAP compatibility: ids array containing the productId
-  List<String> get ids => [productId ?? ''];
+  List<String> get ids => [id];
 
   // iOS fields per OpenIAP spec
   // displayName and displayPrice are inherited from ProductCommon
@@ -731,12 +718,10 @@ class Subscription extends ProductCommon {
   final String? signatureAndroid;
   final List<SubscriptionOfferAndroid>? subscriptionOffersAndroid;
 
-  Subscription({
-    String? id,
-    @Deprecated('Use id instead. Will be removed in 6.6.0')
-    String? super.productId,
+  ProductSubscription({
     required String price,
     required IapPlatform platform,
+    String? id,
     super.currency,
     super.localizedPrice,
     super.title,
@@ -772,7 +757,7 @@ class Subscription extends ProductCommon {
     this.signatureAndroid,
     this.subscriptionOffersAndroid,
   }) : super(
-          id: id ?? productId ?? '',
+          id: id ?? '',
           type: type ?? 'subs',
           displayPrice: displayPrice ?? (localizedPrice ?? price),
           platformEnum: platform,
@@ -780,10 +765,9 @@ class Subscription extends ProductCommon {
           platform: platform == IapPlatform.ios ? 'ios' : 'android',
         );
 
-  factory Subscription.fromJson(Map<String, dynamic> json) {
-    return Subscription(
+  factory ProductSubscription.fromJson(Map<String, dynamic> json) {
+    return ProductSubscription(
       id: json['id'] as String? ?? '',
-      productId: json['productId'] as String? ?? '',
       price: _stringFromNumOrString(json['price']),
       currency: json['currency'] as String?,
       localizedPrice: json['localizedPrice'] as String?,
@@ -867,8 +851,8 @@ class Subscription extends ProductCommon {
 
   @override
   String toString() {
-    final buffer = StringBuffer('Subscription{\n');
-    buffer.writeln('  productId: $productId,');
+    final buffer = StringBuffer('ProductSubscription{\n');
+    buffer.writeln('  productId: $id,');
     buffer.writeln('  id: $id,');
     buffer.writeln('  title: $title,');
     buffer.writeln('  description: $description,');
@@ -1127,10 +1111,6 @@ class Subscription extends ProductCommon {
   }
 }
 
-/// Preferred subscription type name (OpenIAP compliant)
-/// Use this instead of [Subscription].
-typedef ProductSubscription = Subscription;
-
 /// iOS-specific product class (OpenIAP compliant)
 class ProductIOS extends Product {
   // OpenIAP compliant iOS fields
@@ -1146,9 +1126,8 @@ class ProductIOS extends Product {
   final List<DiscountIOS>? discounts;
 
   ProductIOS({
-    String? id,
-    @Deprecated('Use id instead. Will be removed in 6.6.0') String? productId,
     required String price,
+    super.id,
     super.currency,
     super.localizedPrice,
     super.title,
@@ -1172,8 +1151,6 @@ class ProductIOS extends Product {
     this.promotionalOfferIds,
     this.discounts,
   }) : super(
-          id: id ?? productId,
-          productId: productId,
           priceString: price,
           platformEnum: IapPlatform.ios,
           subscriptionGroupIdIOS: subscriptionGroupIdentifier,
@@ -1191,7 +1168,6 @@ class ProductIOS extends Product {
           (json['productId'] as String?) ??
           (json['sku'] as String?) ??
           (json['productIdentifier'] as String?),
-      productId: json['productId'] as String?,
       price: _stringFromNumOrString(json['price']),
       currency: json['currency'] as String?,
       localizedPrice: json['localizedPrice'] as String?,
@@ -1237,9 +1213,8 @@ class ProductAndroid extends Product {
   final List<SubscriptionOfferAndroid>? subscriptionOffers;
 
   ProductAndroid({
-    String? id,
-    @Deprecated('Use id instead. Will be removed in 6.6.0') String? productId,
     required String price,
+    super.id,
     super.currency,
     super.localizedPrice,
     super.title,
@@ -1256,8 +1231,6 @@ class ProductAndroid extends Product {
     this.signature,
     this.subscriptionOffers,
   }) : super(
-          id: id ?? productId,
-          productId: productId,
           priceString: price,
           platformEnum: IapPlatform.android,
           subscriptionPeriodAndroid: subscriptionPeriod,
@@ -1271,7 +1244,6 @@ class ProductAndroid extends Product {
   factory ProductAndroid.fromJson(Map<String, dynamic> json) {
     return ProductAndroid(
       id: (json['id'] as String?) ?? (json['productId'] as String?),
-      productId: json['productId'] as String?,
       price: _stringFromNumOrString(json['price']),
       currency: json['currency'] as String?,
       localizedPrice: json['localizedPrice'] as String?,

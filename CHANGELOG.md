@@ -17,7 +17,7 @@
 
 - Pre-commit: Align dart format flags with CI and avoid staging untracked files.
 
-## 6.5.3
+## 6.6.1
 
 ### Fixed
 

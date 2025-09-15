@@ -228,8 +228,6 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                         products.forEach { p ->
                             val map = p.toJSON()
                             val obj = JSONObject(map)
-                            // Backward-compat: add productId field mirroring id
-                            if (!obj.has("productId")) obj.put("productId", map["id"])
                             arr.put(obj)
                         }
                         safe.success(arr.toString())

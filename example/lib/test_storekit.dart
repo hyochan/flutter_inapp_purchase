@@ -60,8 +60,8 @@ class _TestScreenState extends State<TestScreen> {
 
       if (products.isNotEmpty) {
         final product = products.first;
-        setState(() => _status =
-            'Product: ${product.productId} - ${product.localizedPrice}');
+        setState(() =>
+            _status = 'Product: ${product.id} - ${product.localizedPrice}');
       }
     } catch (e) {
       setState(() => _status = 'Error: $e');

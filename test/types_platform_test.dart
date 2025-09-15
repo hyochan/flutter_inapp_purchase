@@ -6,7 +6,7 @@ void main() {
     group('Product toJson platform checks', () {
       test('should include Android fields only on Android platform', () {
         final product = Product(
-          productId: 'android_product',
+          id: 'android_product',
           priceString: '9.99',
           currency: 'USD',
           platformEnum: IapPlatform.android,
@@ -32,7 +32,7 @@ void main() {
 
       test('should include iOS fields only on iOS platform', () {
         final product = Product(
-          productId: 'ios_product',
+          id: 'ios_product',
           priceString: '9.99',
           currency: 'USD',
           platformEnum: IapPlatform.ios,
@@ -57,8 +57,8 @@ void main() {
 
     group('Subscription platform checks', () {
       test('should handle subscription offer details on Android platform', () {
-        final subscription = Subscription(
-          productId: 'android_sub',
+        final subscription = ProductSubscription(
+          id: 'android_sub',
           price: '9.99',
           currency: 'USD',
           platform: IapPlatform.android,
@@ -77,8 +77,8 @@ void main() {
       });
 
       test('should handle iOS subscription fields', () {
-        final subscription = Subscription(
-          productId: 'ios_sub',
+        final subscription = ProductSubscription(
+          id: 'ios_sub',
           price: '9.99',
           currency: 'USD',
           platform: IapPlatform.ios,

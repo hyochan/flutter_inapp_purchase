@@ -268,7 +268,7 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
 
     try {
       // Use fetchProducts with Subscription type for type-safe list
-      final products = await _iap.fetchProducts<Subscription>(
+      final products = await _iap.fetchProducts<ProductSubscription>(
         skus: subscriptionIds,
         type: ProductType.subs,
       );
@@ -281,7 +281,7 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
         // Store original products
         _originalProducts.clear();
         for (final product in products) {
-          final productKey = product.productId ?? product.id;
+          final productKey = product.id;
           _originalProducts[productKey] = product;
         }
 
@@ -350,7 +350,7 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
       return;
     }
 
-    debugPrint('🛒 Starting subscription purchase: ${item.productId}');
+    debugPrint('🛒 Starting subscription purchase: ${item.id}');
     debugPrint('  isUpgrade: $isUpgrade');
     debugPrint('  Current subscription: ${_currentSubscription?.productId}');
 
@@ -364,9 +364,9 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
       // Check for Android offers
       SubscriptionOfferAndroid? selectedOffer;
       final hasOffers =
-          item is Subscription && item.subscriptionOffersAndroid != null;
+          item is ProductSubscription && item.subscriptionOffersAndroid != null;
       if (Platform.isAndroid && hasOffers) {
-        final offers = (item as Subscription).subscriptionOffersAndroid!;
+        final offers = (item as ProductSubscription).subscriptionOffersAndroid!;
         if (offers.isNotEmpty) {
           selectedOffer = offers.first;
           debugPrint('Using offer token: ${selectedOffer.offerToken}');
@@ -387,7 +387,7 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
 
           final request = RequestPurchase(
             android: RequestSubscriptionAndroid(
-              skus: [item.productId!],
+              skus: [item.id],
               subscriptionOffers: selectedOffer != null ? [selectedOffer] : [],
               purchaseTokenAndroid: _currentSubscription!.purchaseToken,
               replacementModeAndroid: _selectedProrationMode,
@@ -404,7 +404,7 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
 
           final request = RequestPurchase(
             android: RequestSubscriptionAndroid(
-              skus: [item.productId!],
+              skus: [item.id],
               subscriptionOffers: selectedOffer != null ? [selectedOffer] : [],
             ),
           );
@@ -418,7 +418,7 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
         // iOS
         final request = RequestPurchase(
           ios: RequestPurchaseIOS(
-            sku: item.productId!,
+            sku: item.id,
           ),
         );
 
@@ -460,8 +460,8 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
 
       final request = RequestPurchase(
         android: RequestSubscriptionAndroid(
-          skus: [item.productId!],
-          subscriptionOffers: item is Subscription
+          skus: [item.id],
+          subscriptionOffers: item is ProductSubscription
               ? (item.subscriptionOffersAndroid ?? [])
               : [],
           purchaseTokenAndroid:
@@ -508,8 +508,8 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
       // Test with empty string - but pass validation by using a non-empty token
       final request = RequestPurchase(
         android: RequestSubscriptionAndroid(
-          skus: [item.productId!],
-          subscriptionOffers: item is Subscription
+          skus: [item.id],
+          subscriptionOffers: item is ProductSubscription
               ? (item.subscriptionOffersAndroid ?? [])
               : [],
           purchaseTokenAndroid: testToken, // Use test token to pass validation
@@ -575,14 +575,14 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
 
   Widget _buildSubscriptionTier(ProductCommon subscription) {
     final isCurrentSubscription =
-        _currentSubscription?.productId == subscription.productId;
+        _currentSubscription?.productId == subscription.id;
     // Note: canUpgrade logic removed - now always show proration options for testing
 
     return GestureDetector(
       onTap: () => ProductDetailModal.show(
         context: context,
         item: subscription,
-        product: _originalProducts[subscription.productId ?? ''],
+        product: _originalProducts[subscription.id],
       ),
       child: Card(
         margin: const EdgeInsets.only(bottom: 12),
@@ -601,9 +601,7 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          subscription.title ??
-                              subscription.productId ??
-                              'Subscription',
+                          subscription.title ?? subscription.id,
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,

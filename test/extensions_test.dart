@@ -6,7 +6,6 @@ void main() {
     group('Product Tests', () {
       test('Product should be created correctly for Android', () {
         final product = Product(
-          productId: 'android_product',
           title: 'Test Product',
           description: 'Test Description',
           price: 9.99,
@@ -15,7 +14,6 @@ void main() {
           nameAndroid: 'Android Product',
         );
 
-        expect(product.productId, 'android_product');
         expect(product.title, 'Test Product');
         expect(product.description, 'Test Description');
         expect(product.price, 9.99);
@@ -26,7 +24,6 @@ void main() {
 
       test('Product should be created correctly for iOS', () {
         final product = Product(
-          productId: 'ios_product',
           title: 'iOS Product',
           description: 'iOS Description',
           price: 4.99,
@@ -34,7 +31,6 @@ void main() {
           currency: 'USD',
         );
 
-        expect(product.productId, 'ios_product');
         expect(product.title, 'iOS Product');
         expect(product.price, 4.99);
       });
@@ -42,8 +38,7 @@ void main() {
 
     group('Subscription Tests', () {
       test('Subscription should be created correctly for Android', () {
-        final subscription = Subscription(
-          productId: 'android_sub',
+        final subscription = ProductSubscription(
           title: 'Premium Subscription',
           description: 'Premium features',
           price: '9.99',
@@ -53,14 +48,12 @@ void main() {
           platform: IapPlatform.android,
         );
 
-        expect(subscription.productId, 'android_sub');
         expect(subscription.subscriptionPeriodAndroid, 'P1M');
         expect(subscription.platform, 'android');
       });
 
       test('Subscription should be created correctly for iOS', () {
-        final subscription = Subscription(
-          productId: 'ios_sub',
+        final subscription = ProductSubscription(
           title: 'Premium',
           description: 'Premium subscription',
           price: '9.99',
@@ -70,7 +63,6 @@ void main() {
           platform: IapPlatform.ios,
         );
 
-        expect(subscription.productId, 'ios_sub');
         expect(subscription.subscriptionGroupIdIOS, 'group_123');
         expect(subscription.platform, 'ios');
       });

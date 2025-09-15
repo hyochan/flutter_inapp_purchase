@@ -31,6 +31,7 @@ void main() {
               return <String, dynamic>{'countryCode': 'US'};
             case 'getPromotedProductIOS':
               return <String, dynamic>{
+                'id': 'com.example.prod1',
                 'productIdentifier': 'com.example.prod1',
                 'localizedTitle': 'Prod 1',
                 'localizedDescription': 'Desc',
@@ -83,9 +84,10 @@ void main() {
     });
 
     test('getPromotedProduct returns structured map', () async {
-      final data = await iap.getPromotedProduct();
+      final data = await iap.getPromotedProductIOS();
       expect(data, isA<Map<String, dynamic>>());
-      expect(data!['productIdentifier'], 'com.example.prod1');
+      expect(data!['id'], 'com.example.prod1');
+      expect(data['productIdentifier'], 'com.example.prod1');
       expect(calls.last.method, 'getPromotedProductIOS');
     });
 

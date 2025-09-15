@@ -97,9 +97,9 @@ void main() {
         );
 
         expect(subscriptions.length, 2);
-        expect(subscriptions[0].productId, 'monthly_sub');
+        expect(subscriptions[0].id, 'monthly_sub');
         expect(subscriptions[0].displayPrice, '\$9.99');
-        expect(subscriptions[1].productId, 'yearly_sub');
+        expect(subscriptions[1].id, 'yearly_sub');
         expect(subscriptions[1].displayPrice, '\$99.99');
       });
 
@@ -115,8 +115,8 @@ void main() {
         );
 
         expect(subscriptions.length, 1);
-        final sub = subscriptions[0] as Subscription;
-        expect(sub.productId, 'ios_monthly_sub');
+        final sub = subscriptions[0] as ProductSubscription;
+        expect(sub.id, 'ios_monthly_sub');
         // These fields are not parsed from the mock data, so checking for non-null is enough
         expect(sub.title, 'iOS Monthly');
         expect(sub.displayPrice, '\$9.99');
@@ -134,8 +134,8 @@ void main() {
         );
 
         expect(subscriptions.length, 1);
-        final sub = subscriptions[0] as Subscription;
-        expect(sub.productId, 'android_sub_with_offers');
+        final sub = subscriptions[0] as ProductSubscription;
+        expect(sub.id, 'android_sub_with_offers');
         // Offers are parsed differently, just check the subscription exists
         expect(sub.displayPrice, '\$19.99');
         expect(sub.title, 'Premium Subscription');

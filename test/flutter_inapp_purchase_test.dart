@@ -124,10 +124,9 @@ void main() {
             type: ProductType.inapp,
           );
           expect(products.length, 2);
-          expect(products[0].productId, 'com.example.product1');
+          expect(products[0].id, 'com.example.product1');
           expect(products[0].price, 0.99);
           expect(products[0].currency, 'USD');
-          expect(products[1].productId, 'com.example.product2');
         });
       });
     });
@@ -190,12 +189,13 @@ void main() {
           // Initialize connection first
           await testIap.initConnection();
 
-          final subscriptions = await testIap.fetchProducts<Subscription>(
+          final subscriptions =
+              await testIap.fetchProducts<ProductSubscription>(
             skus: ['com.example.subscription1'],
             type: ProductType.subs,
           );
           expect(subscriptions.length, 1);
-          expect(subscriptions[0].productId, 'com.example.subscription1');
+          expect(subscriptions[0].id, 'com.example.subscription1');
           // Now we can directly access Subscription properties
           expect(subscriptions[0].subscriptionPeriodUnitIOS, 'MONTH');
         });
@@ -260,15 +260,14 @@ void main() {
 
     group('Product OpenIAP Compatibility', () {
       test('Product has OpenIAP compliant id getter', () {
-        final product = Product(productId: 'test.product.id', price: 9.99);
+        final product = Product(id: 'test.product.id', price: 9.99);
 
         expect(product.id, 'test.product.id');
-        expect(product.productId, 'test.product.id');
       });
 
       test('Price parsing tolerates numeric values in JSON', () {
         // Subscription.fromJson with numeric price
-        final sub = Subscription.fromJson({
+        final sub = ProductSubscription.fromJson({
           'productId': 'com.example.sub',
           'price': 9.99, // numeric
           'platform': 'ios',
@@ -313,14 +312,14 @@ void main() {
       });
 
       test('Subscription has OpenIAP compliant id getter', () {
-        final subscription = Subscription(
-          productId: 'test.subscription.id',
+        final subscription = ProductSubscription(
+          id: 'test.subscription.id',
           price: '4.99',
           platform: IapPlatform.ios,
         );
 
         expect(subscription.id, 'test.subscription.id');
-        expect(subscription.productId, 'test.subscription.id');
+        expect(subscription.id, 'test.subscription.id');
       });
 
       test('Purchase has OpenIAP compliant id getter', () {
@@ -350,14 +349,13 @@ void main() {
 
       test('Product toString includes new fields', () {
         final product = Product(
-          productId: 'test.product',
+          id: 'test.product',
           price: 9.99,
           environmentIOS: 'Production',
           subscriptionPeriodAndroid: 'P1M',
         );
 
         final str = product.toString();
-        expect(str, contains('productId: test.product'));
         expect(str, contains('id: test.product'));
         expect(str, contains('environmentIOS: Production'));
         expect(str, contains('subscriptionPeriodAndroid: P1M'));
