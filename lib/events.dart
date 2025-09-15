@@ -1,7 +1,7 @@
 /// Event types for flutter_inapp_purchase (OpenIAP compliant)
+library;
 
 import 'types.dart';
-import 'errors.dart';
 
 /// Event types enum (OpenIAP compliant)
 enum IapEvent {

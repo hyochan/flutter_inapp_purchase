@@ -1,4 +1,5 @@
 /// iOS-specific types for in-app purchases
+library;
 
 /// iOS product information
 class ProductIos {
@@ -22,12 +23,12 @@ class ProductIos {
     required this.localizedPrice,
     required this.title,
     required this.description,
-    this.periodUnit,
-    this.periodUnitIOS,
-    this.discountId,
     required this.discounts,
     required this.introductoryOffers,
     required this.subscriptionOffers,
+    this.periodUnit,
+    this.periodUnitIOS,
+    this.discountId,
   });
 
   factory ProductIos.fromJson(Map<String, dynamic> json) {

@@ -111,10 +111,12 @@ void main() {
           MethodCall methodCall,
         ) async {
           if (methodCall.method == 'initConnection') return true;
-          if (methodCall.method == 'getAvailablePurchases')
+          if (methodCall.method == 'getAvailablePurchases') {
             return <Map<String, dynamic>>[];
-          if (methodCall.method == 'getAvailableItems')
+          }
+          if (methodCall.method == 'getAvailableItems') {
             return <Map<String, dynamic>>[];
+          }
 
           return null;
         });

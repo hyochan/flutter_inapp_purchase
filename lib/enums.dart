@@ -1,4 +1,5 @@
-/// Enums for flutter_inapp_purchase package
+// Enums for flutter_inapp_purchase package
+library;
 
 /// Store types
 enum Store { none, playStore, amazon, appStore }

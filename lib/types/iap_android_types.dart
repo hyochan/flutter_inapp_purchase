@@ -1,4 +1,5 @@
 /// Android-specific types for in-app purchases
+library;
 
 /// Android product information
 class ProductAndroid {

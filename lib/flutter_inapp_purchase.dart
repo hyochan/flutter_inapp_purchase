@@ -225,6 +225,7 @@ class FlutterInappPurchase
           );
         } else {
           if (type == iap_types.ProductType.subs) {
+            // ignore: deprecated_member_use_from_same_package
             await requestSubscription(iosRequest.sku);
           } else {
             await _channel.invokeMethod('requestPurchase', <String, dynamic>{
@@ -265,6 +266,7 @@ class FlutterInappPurchase
               );
             }
 
+            // ignore: deprecated_member_use_from_same_package
             await requestSubscription(
               sku,
               obfuscatedAccountIdAndroid:
@@ -275,6 +277,7 @@ class FlutterInappPurchase
               replacementModeAndroid: androidRequest.replacementModeAndroid,
             );
           } else {
+            // ignore: deprecated_member_use_from_same_package
             await requestSubscription(
               sku,
               obfuscatedAccountIdAndroid:

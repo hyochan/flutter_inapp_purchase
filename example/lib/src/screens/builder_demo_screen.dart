@@ -40,10 +40,10 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
       await _iap.requestPurchaseWithBuilder(
         build: (RequestPurchaseBuilder r) => r
           ..type = ProductType.inapp
-          ..withIOS(
-              (RequestPurchaseIOSBuilder i) => i..sku = 'com.example.coins100')
+          ..withIOS((RequestPurchaseIOSBuilder i) =>
+              i..sku = 'dev.hyo.martie.10bulbs')
           ..withAndroid((RequestPurchaseAndroidBuilder a) =>
-              a..skus = ['com.example.coins100']),
+              a..skus = ['dev.hyo.martie.10bulbs']),
       );
       setState(() => _status = 'Purchase initiated');
     } catch (e) {
@@ -65,9 +65,9 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
         build: (RequestPurchaseBuilder r) => r
           ..type = ProductType.subs
           ..withIOS((RequestPurchaseIOSBuilder i) =>
-              i..sku = 'com.example.premium_monthly')
+              i..sku = 'dev.hyo.martie.premium')
           ..withAndroid((RequestPurchaseAndroidBuilder a) =>
-              a..skus = ['com.example.premium_monthly']),
+              a..skus = ['dev.hyo.martie.premium']),
       );
       setState(() => _status = 'Subscription initiated');
     } catch (e) {
@@ -87,31 +87,43 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
       // Get existing subscription token if any
       final purchases = await _iap.getAvailablePurchases();
       final existing = purchases.firstWhere(
-        (p) => p.productId == 'com.example.premium_monthly',
+        (p) => p.productId == 'dev.hyo.martie.premium',
         orElse: () => purchases.isNotEmpty
             ? purchases.first
-            : Purchase(
-                productId: '',
-                platform: IapPlatform.android,
-              ),
+            : Purchase(productId: '', platform: IapPlatform.android),
       );
 
-      // For upgrade/downgrade flows on Android, build a subscription request
-      // and call requestPurchase with type=subs.
-      final subBuilder = RequestSubscriptionBuilder()
-        ..withIOS((RequestPurchaseIOSBuilder i) =>
-            i..sku = 'com.example.premium_yearly')
-        ..withAndroid((RequestSubscriptionAndroidBuilder a) => a
-          ..skus = ['com.example.premium_yearly']
-          ..replacementModeAndroid =
-              AndroidReplacementMode.withTimeProration.value
-          ..purchaseTokenAndroid = existing.purchaseToken);
+      // Android requires an existing purchase token to replace (proration)
+      final token = existing.purchaseToken;
+      final hasToken = token != null && token.isNotEmpty;
+      // Demo: use a default proration mode for upgrade
+      final int prorationMode = AndroidReplacementMode.withTimeProration.value;
 
-      await _iap.requestPurchase(
-        request: subBuilder.build(),
-        type: ProductType.subs,
-      );
-      setState(() => _status = 'Subscription upgrade initiated');
+      if (Platform.isAndroid && hasToken) {
+        // Upgrade/downgrade with replacement mode
+        final subBuilder = RequestSubscriptionBuilder()
+          ..withAndroid((RequestSubscriptionAndroidBuilder a) => a
+            ..skus = ['dev.hyo.martie.premium']
+            ..replacementModeAndroid = prorationMode
+            ..purchaseTokenAndroid = token);
+
+        await _iap.requestPurchase(
+          request: subBuilder.build(),
+          type: ProductType.subs,
+        );
+        setState(() => _status = 'Subscription upgrade initiated');
+      } else {
+        // Fallback to a new subscription purchase (no replacement)
+        final newSub = RequestSubscriptionBuilder()
+          ..withAndroid((RequestSubscriptionAndroidBuilder a) =>
+              a..skus = ['dev.hyo.martie.premium']);
+        await _iap.requestPurchase(
+          request: newSub.build(),
+          type: ProductType.subs,
+        );
+        setState(() => _status =
+            'No token/proration; purchased yearly as new subscription');
+      }
     } catch (e) {
       setState(() => _status = 'Error: $e');
     } finally {
@@ -175,11 +187,11 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
             const SizedBox(height: 24),
             Card(
               color: Colors.grey.shade100,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
+              child: const Padding(
+                padding: EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text('Code Example'),
                     SizedBox(height: 8),
                     SelectableText(
@@ -187,24 +199,24 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
   build: (RequestPurchaseBuilder r) => r
     ..type = ProductType.inapp
     ..withIOS((RequestPurchaseIOSBuilder i) => i
-      ..sku = 'product_id'
+      ..sku = 'dev.hyo.martie.10bulbs'
       ..quantity = 1)
     ..withAndroid((RequestPurchaseAndroidBuilder a) => a
-      ..skus = ['product_id']),
+      ..skus = ['dev.hyo.martie.10bulbs']),
 );
 
 // For subscriptions (new purchase):
 await iap.requestPurchaseWithBuilder(
   build: (RequestPurchaseBuilder r) => r
     ..type = ProductType.subs
-    ..withIOS((RequestPurchaseIOSBuilder i) => i..sku = 'sub_id')
-    ..withAndroid((RequestPurchaseAndroidBuilder a) => a..skus = ['sub_id']),
+    ..withIOS((RequestPurchaseIOSBuilder i) => i..sku = 'dev.hyo.martie.premium')
+    ..withAndroid((RequestPurchaseAndroidBuilder a) => a..skus = ['dev.hyo.martie.premium']),
 );
 
 // For subscription upgrade/downgrade (Android):
 final b = RequestSubscriptionBuilder()
   ..withAndroid((RequestSubscriptionAndroidBuilder a) => a
-    ..skus = ['sub_upgrade']
+    ..skus = ['dev.hyo.martie.premium']
     ..replacementModeAndroid = AndroidReplacementMode.withTimeProration.value
     ..purchaseTokenAndroid = '<existing_token>');
 await iap.requestPurchase(request: b.build(), type: ProductType.subs);""",

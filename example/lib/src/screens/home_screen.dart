@@ -120,7 +120,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Version: 6.0.0',
+                      'Version: 6.6.1',
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey[600],
@@ -154,7 +154,7 @@ class HomeScreen extends StatelessWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(

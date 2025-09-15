@@ -1,5 +1,25 @@
 # CHANGELOG
 
+## 6.6.1
+
+### Fixed
+
+- iOS: Ensure `product.id` is always populated in `fetchProducts()` (fixes cases where id was empty on iOS). The parser now resolves id from the first non-empty of: `productId` → `id` → `sku` → `productIdentifier` (#550). In debug builds, logs which key was used.
+  `withOpacity` in example UI.
+- refactor: remove overridden field in `PurchaseIOS` (use `super.expirationDateIOS`).
+- refactor: locally suppress legacy `jwsRepresentation` mapping and deprecated `requestSubscription` calls kept for backward compatibility.
+
+### Changed
+
+- Products API: `id` is the primary identifier for `Product`/`ProductSubscription`. `productId` is kept for backward compatibility only (see Deprecated).
+- `fetchProducts()`: Adds support for `type: 'all'`.
+  - iOS: passes `'all'` through the native `fetchProducts` call
+  - Android: fetches `inapp` and `subs`, then merges results
+- `productId` on `ProductCommon`: Use `id` instead (will be removed in 6.6.0).
+- `Subscription` type name: Use `ProductSubscription` instead (will be removed in 6.6.0). The alias keeps existing code working.
+- Parser now emits `ProductSubscription` (alias of `Subscription`) for subscriptions internally.
+- Docs/Examples: Completed migration from `PurchasedItem` → `Purchase` in current docs/examples.
+
 ## 6.6.0
 
 ### Changed
@@ -17,24 +37,8 @@
 
 - Pre-commit: Align dart format flags with CI and avoid staging untracked files.
 
-## 6.6.1
-
-### Fixed
-
-- iOS: Ensure `product.id` is always populated in `fetchProducts()` (fixes cases where id was empty on iOS). The parser now resolves id from the first non-empty of: `productId` → `id` → `sku` → `productIdentifier` (#550). In debug builds, logs which key was used.
-
-### Changed
-
-- Products API: `id` is the primary identifier for `Product`/`ProductSubscription`. `productId` is kept for backward compatibility only (see Deprecated).
-- `fetchProducts()`: Adds support for `type: 'all'`.
-  - iOS: passes `'all'` through the native `fetchProducts` call
-  - Android: fetches `inapp` and `subs`, then merges results
-- Parser now emits `ProductSubscription` (alias of `Subscription`) for subscriptions internally.
-
 ### Deprecated
 
-- `productId` on `ProductCommon`: Use `id` instead (will be removed in 6.6.0).
-- `Subscription` type name: Use `ProductSubscription` instead (will be removed in 6.6.0). The alias keeps existing code working.
 - Methods (removal in 6.6.0):
   - `requestProducts()` → use `fetchProducts()`
   - `purchaseAsync()` → use `requestPurchase()`

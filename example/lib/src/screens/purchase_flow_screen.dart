@@ -66,10 +66,11 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
     } catch (e) {
       debugPrint('Failed to initialize IAP connection: $e');
     } finally {
-      if (!mounted) return;
-      setState(() {
-        _loading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _loading = false;
+        });
+      }
     }
   }
 

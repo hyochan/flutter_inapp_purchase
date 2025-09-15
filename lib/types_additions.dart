@@ -1,5 +1,4 @@
 import 'types.dart';
-import 'enums.dart';
 
 // ============================================================================
 // ADDITIONAL TYPES
@@ -190,16 +189,13 @@ class ActiveSubscription {
 
 /// iOS-specific purchase class
 class PurchaseIOS extends Purchase {
-  @override
-  final DateTime? expirationDateIOS;
-
   PurchaseIOS({
     required super.productId,
     super.transactionId,
     super.transactionDate,
     super.transactionReceipt,
     super.purchaseToken,
-    this.expirationDateIOS,
+    super.expirationDateIOS,
     // Add other fields from Purchase parent class
     super.transactionStateIOS,
     super.originalTransactionIdentifierIOS,

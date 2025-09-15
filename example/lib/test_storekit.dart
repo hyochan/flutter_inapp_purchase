@@ -2,21 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 
 void main() {
-  runApp(TestApp());
+  runApp(const TestApp());
 }
 
 class TestApp extends StatelessWidget {
+  const TestApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       home: TestScreen(),
     );
   }
 }
 
 class TestScreen extends StatefulWidget {
+  const TestScreen({Key? key}) : super(key: key);
+
   @override
-  _TestScreenState createState() => _TestScreenState();
+  State<TestScreen> createState() => _TestScreenState();
 }
 
 class _TestScreenState extends State<TestScreen> {

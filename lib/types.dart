@@ -2727,9 +2727,10 @@ class ReceiptValidationResult {
       if (errorMessage != null) 'errorMessage': errorMessage,
       if (receiptData != null) 'receiptData': receiptData,
       if (purchaseToken != null) 'purchaseToken': purchaseToken,
+      // ignore: deprecated_member_use_from_same_package
       if (jwsRepresentation != null)
-        'jwsRepresentation':
-            jwsRepresentation, // Kept for backward compatibility
+        // ignore: deprecated_member_use_from_same_package
+        'jwsRepresentation': jwsRepresentation, // Backward compatibility
       if (latestTransaction != null) 'latestTransaction': latestTransaction,
       if (rawResponse != null) 'rawResponse': rawResponse,
       if (platform != null)
@@ -2762,3 +2763,4 @@ class DeepLinkOptions {
     };
   }
 }
+// ignore_for_file: constant_identifier_names
