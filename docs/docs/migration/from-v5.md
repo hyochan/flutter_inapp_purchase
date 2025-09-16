@@ -76,7 +76,7 @@ ErrorCode.E_DEVELOPER_ERROR
 **v6.0 (New):**
 
 ```dart
-// lowerCamelCase format
+// PascalCase format
 ErrorCode.UserCancelled
 ErrorCode.NetworkError
 ErrorCode.ItemUnavailable
