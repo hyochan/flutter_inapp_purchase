@@ -3,31 +3,31 @@ import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 
 // Extension methods for PurchaseError
 extension PurchaseErrorExtensions on PurchaseError {
-  bool get isUserCancelled => code == ErrorCode.eUserCancelled;
+  bool get isUserCancelled => code == ErrorCode.UserCancelled;
 
   bool get isNetworkRelated =>
-      code == ErrorCode.eNetworkError || code == ErrorCode.eRemoteError;
+      code == ErrorCode.NetworkError || code == ErrorCode.RemoteError;
 
   bool get isRecoverable =>
-      code == ErrorCode.eNetworkError ||
-      code == ErrorCode.eServiceError ||
-      code == ErrorCode.eRemoteError;
+      code == ErrorCode.NetworkError ||
+      code == ErrorCode.ServiceError ||
+      code == ErrorCode.RemoteError;
 
   String get userFriendlyMessage {
     switch (code) {
-      case ErrorCode.eUserCancelled:
+      case ErrorCode.UserCancelled:
         return 'Purchase was cancelled';
-      case ErrorCode.eNetworkError:
+      case ErrorCode.NetworkError:
         return 'Network connection failed. Please check your internet connection.';
-      case ErrorCode.eItemUnavailable:
+      case ErrorCode.ItemUnavailable:
         return 'This item is not available for purchase';
-      case ErrorCode.eServiceError:
+      case ErrorCode.ServiceError:
         return 'Store service is temporarily unavailable. Please try again later.';
-      case ErrorCode.eAlreadyOwned:
+      case ErrorCode.AlreadyOwned:
         return 'You already own this item';
-      case ErrorCode.ePurchaseNotAllowed:
+      case ErrorCode.PurchaseNotAllowed:
         return 'Purchases are not allowed on this device';
-      case ErrorCode.eDeveloperError:
+      case ErrorCode.DeveloperError:
         return 'Configuration error. Please contact support.';
       default:
         return message;
@@ -37,31 +37,31 @@ extension PurchaseErrorExtensions on PurchaseError {
 
 // Extension methods for ErrorCode
 extension ErrorCodeExtensions on ErrorCode {
-  bool get isUserCancelled => this == ErrorCode.eUserCancelled;
+  bool get isUserCancelled => this == ErrorCode.UserCancelled;
 
   bool get isNetworkRelated =>
-      this == ErrorCode.eNetworkError || this == ErrorCode.eRemoteError;
+      this == ErrorCode.NetworkError || this == ErrorCode.RemoteError;
 
   bool get isRecoverable =>
-      this == ErrorCode.eNetworkError ||
-      this == ErrorCode.eServiceError ||
-      this == ErrorCode.eRemoteError;
+      this == ErrorCode.NetworkError ||
+      this == ErrorCode.ServiceError ||
+      this == ErrorCode.RemoteError;
 
   String get userFriendlyMessage {
     switch (this) {
-      case ErrorCode.eUserCancelled:
+      case ErrorCode.UserCancelled:
         return 'Purchase was cancelled';
-      case ErrorCode.eNetworkError:
+      case ErrorCode.NetworkError:
         return 'Network connection failed';
-      case ErrorCode.eItemUnavailable:
+      case ErrorCode.ItemUnavailable:
         return 'Item not available';
-      case ErrorCode.eServiceError:
+      case ErrorCode.ServiceError:
         return 'Service temporarily unavailable';
-      case ErrorCode.eAlreadyOwned:
+      case ErrorCode.AlreadyOwned:
         return 'Already owned';
-      case ErrorCode.ePurchaseNotAllowed:
+      case ErrorCode.PurchaseNotAllowed:
         return 'Purchase not allowed';
-      case ErrorCode.eDeveloperError:
+      case ErrorCode.DeveloperError:
         return 'Configuration error';
       default:
         return 'Unknown error';
@@ -72,14 +72,14 @@ extension ErrorCodeExtensions on ErrorCode {
 // Global utility functions for error handling
 bool isUserCancelledError(dynamic error) {
   if (error is PurchaseError) {
-    return error.code == ErrorCode.eUserCancelled;
+    return error.code == ErrorCode.UserCancelled;
   }
   return false;
 }
 
 bool isNetworkError(dynamic error) {
   if (error is PurchaseError) {
-    return error.code == ErrorCode.eNetworkError;
+    return error.code == ErrorCode.NetworkError;
   }
   return false;
 }
@@ -87,9 +87,9 @@ bool isNetworkError(dynamic error) {
 bool isRecoverableError(dynamic error) {
   if (error is PurchaseError) {
     // Network errors and service errors are often recoverable
-    return error.code == ErrorCode.eNetworkError ||
-        error.code == ErrorCode.eServiceError ||
-        error.code == ErrorCode.eRemoteError;
+    return error.code == ErrorCode.NetworkError ||
+        error.code == ErrorCode.ServiceError ||
+        error.code == ErrorCode.RemoteError;
   }
   return false;
 }
@@ -97,19 +97,19 @@ bool isRecoverableError(dynamic error) {
 String getUserFriendlyErrorMessage(dynamic error) {
   if (error is PurchaseError) {
     switch (error.code) {
-      case ErrorCode.eUserCancelled:
+      case ErrorCode.UserCancelled:
         return 'Purchase was cancelled';
-      case ErrorCode.eNetworkError:
+      case ErrorCode.NetworkError:
         return 'Network connection failed. Please check your internet connection.';
-      case ErrorCode.eItemUnavailable:
+      case ErrorCode.ItemUnavailable:
         return 'This item is not available for purchase';
-      case ErrorCode.eServiceError:
+      case ErrorCode.ServiceError:
         return 'Store service is temporarily unavailable. Please try again later.';
-      case ErrorCode.eAlreadyOwned:
+      case ErrorCode.AlreadyOwned:
         return 'You already own this item';
-      case ErrorCode.ePurchaseNotAllowed:
+      case ErrorCode.PurchaseNotAllowed:
         return 'Purchases are not allowed on this device';
-      case ErrorCode.eDeveloperError:
+      case ErrorCode.DeveloperError:
         return 'Configuration error. Please contact support.';
       default:
         return error.message;
@@ -169,7 +169,7 @@ class ErrorHandlingExample extends StatelessWidget {
               'User Cancelled Error',
               () {
                 final error = PurchaseError(
-                  code: ErrorCode.eUserCancelled,
+                  code: ErrorCode.UserCancelled,
                   message: 'User cancelled the purchase',
                   platform: IapPlatform.ios,
                 );
@@ -188,7 +188,7 @@ isRecoverableError: ${isRecoverableError(error)}
               'Network Error',
               () {
                 final error = PurchaseError(
-                  code: ErrorCode.eNetworkError,
+                  code: ErrorCode.NetworkError,
                   message: 'Network connection failed',
                   platform: IapPlatform.android,
                 );
@@ -217,11 +217,11 @@ isRecoverableError: ${isRecoverableError(error)}
               'Various Error Messages',
               () {
                 final errors = [
-                  ErrorCode.eUserCancelled,
-                  ErrorCode.eNetworkError,
-                  ErrorCode.eAlreadyOwned,
-                  ErrorCode.eDeferredPayment,
-                  ErrorCode.eDeveloperError,
+                  ErrorCode.UserCancelled,
+                  ErrorCode.NetworkError,
+                  ErrorCode.AlreadyOwned,
+                  ErrorCode.DeferredPayment,
+                  ErrorCode.DeveloperError,
                 ];
 
                 return errors
@@ -247,7 +247,7 @@ isRecoverableError: ${isRecoverableError(error)}
               'PurchaseError Extensions',
               () {
                 final error = PurchaseError(
-                  code: ErrorCode.eNetworkError,
+                  code: ErrorCode.NetworkError,
                   message: 'Network error occurred',
                   platform: IapPlatform.ios,
                 );
@@ -264,7 +264,7 @@ error.userFriendlyMessage: "${error.userFriendlyMessage}"
             _buildErrorExample(
               'ErrorCode Extensions',
               () {
-                const code = ErrorCode.eServiceError;
+                const code = ErrorCode.ServiceError;
 
                 return '''
 code.isUserCancelled: ${code.isUserCancelled}
@@ -322,7 +322,7 @@ class PurchaseWithErrorHandling extends StatelessWidget {
 
       // For demo, we'll simulate an error
       throw PurchaseError(
-        code: ErrorCode.eNetworkError,
+        code: ErrorCode.NetworkError,
         message: 'Failed to connect to store',
         platform: IapPlatform.ios,
       );

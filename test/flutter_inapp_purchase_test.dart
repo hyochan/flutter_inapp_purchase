@@ -212,7 +212,7 @@ void main() {
           'productId': 'com.example.product',
         }, IapPlatform.android);
 
-        expect(error.code, ErrorCode.eUserCancelled);
+        expect(error.code, ErrorCode.UserCancelled);
         expect(error.message, 'User cancelled the purchase');
         expect(error.responseCode, 1);
         expect(error.debugMessage, 'Debug info');
@@ -224,11 +224,11 @@ void main() {
         // Test iOS mapping
         expect(
           ErrorCodeUtils.fromPlatformCode(2, IapPlatform.ios),
-          ErrorCode.eUserCancelled,
+          ErrorCode.UserCancelled,
         );
         expect(
           ErrorCodeUtils.toPlatformCode(
-            ErrorCode.eUserCancelled,
+            ErrorCode.UserCancelled,
             IapPlatform.ios,
           ),
           2,
@@ -240,11 +240,11 @@ void main() {
             'E_USER_CANCELLED',
             IapPlatform.android,
           ),
-          ErrorCode.eUserCancelled,
+          ErrorCode.UserCancelled,
         );
         expect(
           ErrorCodeUtils.toPlatformCode(
-            ErrorCode.eUserCancelled,
+            ErrorCode.UserCancelled,
             IapPlatform.android,
           ),
           'E_USER_CANCELLED',
@@ -253,7 +253,7 @@ void main() {
         // Test unknown code
         expect(
           ErrorCodeUtils.fromPlatformCode('UNKNOWN_ERROR', IapPlatform.android),
-          ErrorCode.eUnknown,
+          ErrorCode.Unknown,
         );
       });
     });

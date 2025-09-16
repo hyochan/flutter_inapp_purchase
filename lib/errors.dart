@@ -18,67 +18,67 @@ IapPlatform getCurrentPlatform() {
 class ErrorCodeMapping {
   static const Map<ErrorCode, int> ios = {
     // OpenIAP standard error codes
-    ErrorCode.eUnknown: 0,
-    ErrorCode.eUserCancelled: 2, // SKErrorPaymentCancelled
-    ErrorCode.eNetworkError: 1, // SKErrorClientInvalid
-    ErrorCode.eItemUnavailable: 3,
-    ErrorCode.eServiceError: 4,
-    ErrorCode.eReceiptFailed: 5,
-    ErrorCode.eAlreadyOwned: 6,
-    ErrorCode.eProductNotAvailable: 7,
-    ErrorCode.eProductAlreadyOwned: 8,
-    ErrorCode.eUserError: 9,
-    ErrorCode.eRemoteError: 10,
-    ErrorCode.eReceiptFinished: 11,
-    ErrorCode.ePending: 12,
-    ErrorCode.eNotEnded: 13,
-    ErrorCode.eDeveloperError: 14,
+    ErrorCode.Unknown: 0,
+    ErrorCode.UserCancelled: 2, // SKErrorPaymentCancelled
+    ErrorCode.NetworkError: 1, // SKErrorClientInvalid
+    ErrorCode.ItemUnavailable: 3,
+    ErrorCode.ServiceError: 4,
+    ErrorCode.ReceiptFailed: 5,
+    ErrorCode.AlreadyOwned: 6,
+    ErrorCode.ProductNotAvailable: 7,
+    ErrorCode.ProductAlreadyOwned: 8,
+    ErrorCode.UserError: 9,
+    ErrorCode.RemoteError: 10,
+    ErrorCode.ReceiptFinished: 11,
+    ErrorCode.Pending: 12,
+    ErrorCode.NotEnded: 13,
+    ErrorCode.DeveloperError: 14,
     // Legacy codes for compatibility
-    ErrorCode.eReceiptFinishedFailed: 15,
-    ErrorCode.ePurchaseError: 16,
-    ErrorCode.eSyncError: 17,
-    ErrorCode.eDeferredPayment: 18,
-    ErrorCode.eTransactionValidationFailed: 19,
-    ErrorCode.eNotPrepared: 20,
-    ErrorCode.eBillingResponseJsonParseError: 21,
-    ErrorCode.eInterrupted: 22,
-    ErrorCode.eIapNotAvailable: 23,
-    ErrorCode.eActivityUnavailable: 24,
-    ErrorCode.eAlreadyPrepared: 25,
-    ErrorCode.eConnectionClosed: 26,
+    ErrorCode.ReceiptFinishedFailed: 15,
+    ErrorCode.PurchaseError: 16,
+    ErrorCode.SyncError: 17,
+    ErrorCode.DeferredPayment: 18,
+    ErrorCode.TransactionValidationFailed: 19,
+    ErrorCode.NotPrepared: 20,
+    ErrorCode.BillingResponseJsonParseError: 21,
+    ErrorCode.Interrupted: 22,
+    ErrorCode.IapNotAvailable: 23,
+    ErrorCode.ActivityUnavailable: 24,
+    ErrorCode.AlreadyPrepared: 25,
+    ErrorCode.ConnectionClosed: 26,
   };
 
   static const Map<ErrorCode, String> android = {
     // OpenIAP standard error codes
-    ErrorCode.eUnknown: 'E_UNKNOWN',
-    ErrorCode.eUserCancelled: 'E_USER_CANCELLED',
-    ErrorCode.eUserError: 'E_USER_ERROR',
-    ErrorCode.eItemUnavailable: 'E_ITEM_UNAVAILABLE',
-    ErrorCode.eProductNotAvailable: 'E_PRODUCT_NOT_AVAILABLE',
-    ErrorCode.eProductAlreadyOwned: 'E_PRODUCT_ALREADY_OWNED',
-    ErrorCode.eAlreadyOwned: 'E_ALREADY_OWNED',
-    ErrorCode.eNetworkError: 'E_NETWORK_ERROR',
-    ErrorCode.eServiceError: 'E_SERVICE_ERROR',
-    ErrorCode.eRemoteError: 'E_REMOTE_ERROR',
-    ErrorCode.eReceiptFailed: 'E_RECEIPT_FAILED',
-    ErrorCode.eReceiptFinished: 'E_RECEIPT_FINISHED',
-    ErrorCode.ePending: 'E_PENDING',
-    ErrorCode.eNotEnded: 'E_NOT_ENDED',
-    ErrorCode.eDeveloperError: 'E_DEVELOPER_ERROR',
+    ErrorCode.Unknown: 'E_UNKNOWN',
+    ErrorCode.UserCancelled: 'E_USER_CANCELLED',
+    ErrorCode.UserError: 'E_USER_ERROR',
+    ErrorCode.ItemUnavailable: 'E_ITEM_UNAVAILABLE',
+    ErrorCode.ProductNotAvailable: 'E_PRODUCT_NOT_AVAILABLE',
+    ErrorCode.ProductAlreadyOwned: 'E_PRODUCT_ALREADY_OWNED',
+    ErrorCode.AlreadyOwned: 'E_ALREADY_OWNED',
+    ErrorCode.NetworkError: 'E_NETWORK_ERROR',
+    ErrorCode.ServiceError: 'E_SERVICE_ERROR',
+    ErrorCode.RemoteError: 'E_REMOTE_ERROR',
+    ErrorCode.ReceiptFailed: 'E_RECEIPT_FAILED',
+    ErrorCode.ReceiptFinished: 'E_RECEIPT_FINISHED',
+    ErrorCode.Pending: 'E_PENDING',
+    ErrorCode.NotEnded: 'E_NOT_ENDED',
+    ErrorCode.DeveloperError: 'E_DEVELOPER_ERROR',
     // Legacy codes for compatibility
-    ErrorCode.eReceiptFinishedFailed: 'E_RECEIPT_FINISHED_FAILED',
-    ErrorCode.eNotPrepared: 'E_NOT_PREPARED',
-    ErrorCode.eBillingResponseJsonParseError:
+    ErrorCode.ReceiptFinishedFailed: 'E_RECEIPT_FINISHED_FAILED',
+    ErrorCode.NotPrepared: 'E_NOT_PREPARED',
+    ErrorCode.BillingResponseJsonParseError:
         'E_BILLING_RESPONSE_JSON_PARSE_ERROR',
-    ErrorCode.eDeferredPayment: 'E_DEFERRED_PAYMENT',
-    ErrorCode.eInterrupted: 'E_INTERRUPTED',
-    ErrorCode.eIapNotAvailable: 'E_IAP_NOT_AVAILABLE',
-    ErrorCode.ePurchaseError: 'E_PURCHASE_ERROR',
-    ErrorCode.eSyncError: 'E_SYNC_ERROR',
-    ErrorCode.eTransactionValidationFailed: 'E_TRANSACTION_VALIDATION_FAILED',
-    ErrorCode.eActivityUnavailable: 'E_ACTIVITY_UNAVAILABLE',
-    ErrorCode.eAlreadyPrepared: 'E_ALREADY_PREPARED',
-    ErrorCode.eConnectionClosed: 'E_CONNECTION_CLOSED',
+    ErrorCode.DeferredPayment: 'E_DEFERRED_PAYMENT',
+    ErrorCode.Interrupted: 'E_INTERRUPTED',
+    ErrorCode.IapNotAvailable: 'E_IAP_NOT_AVAILABLE',
+    ErrorCode.PurchaseError: 'E_PURCHASE_ERROR',
+    ErrorCode.SyncError: 'E_SYNC_ERROR',
+    ErrorCode.TransactionValidationFailed: 'E_TRANSACTION_VALIDATION_FAILED',
+    ErrorCode.ActivityUnavailable: 'E_ACTIVITY_UNAVAILABLE',
+    ErrorCode.AlreadyPrepared: 'E_ALREADY_PREPARED',
+    ErrorCode.ConnectionClosed: 'E_CONNECTION_CLOSED',
   };
 }
 
@@ -97,32 +97,32 @@ ErrorCode _normalizeToErrorCode(dynamic error) {
     // Legacy iOS numeric codes
     return ErrorCodeUtils.fromPlatformCode(code, IapPlatform.ios);
   }
-  return ErrorCode.eUnknown;
+  return ErrorCode.Unknown;
 }
 
 /// Returns a user-friendly message for the given error or error code
 String getUserFriendlyErrorMessage(dynamic error) {
   final ErrorCode code = _normalizeToErrorCode(error);
   switch (code) {
-    case ErrorCode.eUserCancelled:
+    case ErrorCode.UserCancelled:
       return 'Purchase was cancelled by user';
-    case ErrorCode.eNetworkError:
+    case ErrorCode.NetworkError:
       return 'Network connection error. Please check your internet connection and try again.';
-    case ErrorCode.eItemUnavailable:
-    case ErrorCode.eProductNotAvailable:
+    case ErrorCode.ItemUnavailable:
+    case ErrorCode.ProductNotAvailable:
       return 'This item is not available for purchase';
-    case ErrorCode.eAlreadyOwned:
-    case ErrorCode.eProductAlreadyOwned:
+    case ErrorCode.AlreadyOwned:
+    case ErrorCode.ProductAlreadyOwned:
       return 'You already own this item';
-    case ErrorCode.eDeferredPayment:
+    case ErrorCode.DeferredPayment:
       return 'Payment is pending approval';
-    case ErrorCode.eNotPrepared:
+    case ErrorCode.NotPrepared:
       return 'In-app purchase is not ready. Please try again later.';
-    case ErrorCode.eServiceError:
+    case ErrorCode.ServiceError:
       return 'Store service error. Please try again later.';
-    case ErrorCode.eTransactionValidationFailed:
+    case ErrorCode.TransactionValidationFailed:
       return 'Transaction could not be verified';
-    case ErrorCode.eReceiptFailed:
+    case ErrorCode.ReceiptFailed:
       return 'Receipt processing failed';
     default:
       // Try to surface message from PurchaseError if available
@@ -163,7 +163,7 @@ class PurchaseError implements Exception {
   ) {
     final errorCode = errorData['code'] != null
         ? ErrorCodeUtils.fromPlatformCode(errorData['code'], platform)
-        : ErrorCode.eUnknown;
+        : ErrorCode.Unknown;
 
     return PurchaseError(
       message: errorData['message']?.toString() ?? 'Unknown error occurred',
@@ -240,7 +240,7 @@ class ErrorCodeUtils {
           return entry.key;
         }
       }
-      return ErrorCode.eUnknown;
+      return ErrorCode.Unknown;
     }
 
     // Handle legacy/numeric iOS codes
@@ -253,7 +253,7 @@ class ErrorCodeUtils {
       }
     }
 
-    return ErrorCode.eUnknown;
+    return ErrorCode.Unknown;
   }
 
   /// Maps an ErrorCode enum to platform-specific code

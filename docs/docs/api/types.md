@@ -255,30 +255,30 @@ Standardized error codes across platforms.
 
 ```dart
 enum ErrorCode {
-  eUnknown,                           // Unknown error
-  eUserCancelled,                     // User cancelled
-  eUserError,                         // User error
-  eItemUnavailable,                   // Item unavailable
-  eRemoteError,                       // Remote server error
-  eNetworkError,                      // Network error
-  eServiceError,                      // Service error
-  eReceiptFailed,                     // Receipt validation failed
-  eReceiptFinishedFailed,             // Receipt finish failed
-  eNotPrepared,                       // Not prepared
-  eNotEnded,                          // Not ended
-  eAlreadyOwned,                      // Already owned
-  eDeveloperError,                    // Developer error
-  eBillingResponseJsonParseError,     // JSON parse error
-  eDeferredPayment,                   // Deferred payment
-  eInterrupted,                       // Interrupted
-  eIapNotAvailable,                   // IAP not available
-  ePurchaseError,                     // Purchase error
-  eSyncError,                         // Sync error
-  eTransactionValidationFailed,       // Transaction validation failed
-  eActivityUnavailable,               // Activity unavailable
-  eAlreadyPrepared,                   // Already prepared
-  ePending,                           // Pending
-  eConnectionClosed,                  // Connection closed
+  Unknown,                           // Unknown error
+  UserCancelled,                     // User cancelled
+  UserError,                         // User error
+  ItemUnavailable,                   // Item unavailable
+  RemoteError,                       // Remote server error
+  NetworkError,                      // Network error
+  ServiceError,                      // Service error
+  ReceiptFailed,                     // Receipt validation failed
+  ReceiptFinishedFailed,             // Receipt finish failed
+  NotPrepared,                       // Not prepared
+  NotEnded,                          // Not ended
+  AlreadyOwned,                      // Already owned
+  DeveloperError,                    // Developer error
+  BillingResponseJsonParseError,     // JSON parse error
+  DeferredPayment,                   // Deferred payment
+  Interrupted,                       // Interrupted
+  IapNotAvailable,                   // IAP not available
+  PurchaseError,                     // Purchase error
+  SyncError,                         // Sync error
+  TransactionValidationFailed,       // Transaction validation failed
+  ActivityUnavailable,               // Activity unavailable
+  AlreadyPrepared,                   // Already prepared
+  Pending,                           // Pending
+  ConnectionClosed,                  // Connection closed
   // Additional error codes...
 }
 ```

@@ -126,7 +126,7 @@ class FlutterInappPurchase
   Future<bool> initConnection() async {
     if (_isInitialized) {
       throw iap_types.PurchaseError(
-        code: iap_types.ErrorCode.eAlreadyInitialized,
+        code: iap_types.ErrorCode.AlreadyInitialized,
         message: 'IAP connection already initialized',
         platform: _platform.isIOS
             ? iap_types.IapPlatform.ios
@@ -146,7 +146,7 @@ class FlutterInappPurchase
       return true;
     } catch (e) {
       throw iap_types.PurchaseError(
-        code: iap_types.ErrorCode.eNotInitialized,
+        code: iap_types.ErrorCode.NotInitialized,
         message: 'Failed to initialize IAP connection: ${e.toString()}',
         platform: _platform.isIOS
             ? iap_types.IapPlatform.ios
@@ -169,7 +169,7 @@ class FlutterInappPurchase
       return true;
     } catch (e) {
       throw iap_types.PurchaseError(
-        code: iap_types.ErrorCode.eServiceError,
+        code: iap_types.ErrorCode.ServiceError,
         message: 'Failed to end IAP connection: ${e.toString()}',
         platform: _platform.isIOS
             ? iap_types.IapPlatform.ios
@@ -187,7 +187,7 @@ class FlutterInappPurchase
   }) async {
     if (!_isInitialized) {
       throw iap_types.PurchaseError(
-        code: iap_types.ErrorCode.eNotInitialized,
+        code: iap_types.ErrorCode.NotInitialized,
         message: 'IAP connection not initialized',
         platform: _platform.isIOS
             ? iap_types.IapPlatform.ios
@@ -200,7 +200,7 @@ class FlutterInappPurchase
         final iosRequest = request.ios;
         if (iosRequest == null) {
           throw iap_types.PurchaseError(
-            code: iap_types.ErrorCode.eDeveloperError,
+            code: iap_types.ErrorCode.DeveloperError,
             message: 'iOS request parameters are required for iOS platform',
             platform: _platform.isIOS
                 ? iap_types.IapPlatform.ios
@@ -238,7 +238,7 @@ class FlutterInappPurchase
         final androidRequest = request.android;
         if (androidRequest == null) {
           throw iap_types.PurchaseError(
-            code: iap_types.ErrorCode.eDeveloperError,
+            code: iap_types.ErrorCode.DeveloperError,
             message:
                 'Android request parameters are required for Android platform',
             platform: _platform.isIOS
@@ -258,7 +258,7 @@ class FlutterInappPurchase
                 (androidRequest.purchaseTokenAndroid == null ||
                     androidRequest.purchaseTokenAndroid!.isEmpty)) {
               throw iap_types.PurchaseError(
-                code: iap_types.ErrorCode.eDeveloperError,
+                code: iap_types.ErrorCode.DeveloperError,
                 message:
                     'purchaseTokenAndroid is required when using replacementModeAndroid (proration mode). '
                     'You need the purchase token from the existing subscription to upgrade/downgrade.',
@@ -307,7 +307,7 @@ class FlutterInappPurchase
         rethrow;
       }
       throw iap_types.PurchaseError(
-        code: iap_types.ErrorCode.eServiceError,
+        code: iap_types.ErrorCode.ServiceError,
         message: 'Failed to request purchase: ${e.toString()}',
         platform: _platform.isIOS
             ? iap_types.IapPlatform.ios
@@ -359,7 +359,7 @@ class FlutterInappPurchase
   ]) async {
     if (!_isInitialized) {
       throw iap_types.PurchaseError(
-        code: iap_types.ErrorCode.eNotInitialized,
+        code: iap_types.ErrorCode.NotInitialized,
         message: 'IAP connection not initialized',
         platform: _platform.isIOS
             ? iap_types.IapPlatform.ios
@@ -395,7 +395,7 @@ class FlutterInappPurchase
       return [];
     } catch (e) {
       throw iap_types.PurchaseError(
-        code: iap_types.ErrorCode.eServiceError,
+        code: iap_types.ErrorCode.ServiceError,
         message: 'Failed to get available purchases: ${e.toString()}',
         platform: _platform.isIOS
             ? iap_types.IapPlatform.ios
@@ -419,7 +419,7 @@ class FlutterInappPurchase
   Future<List<iap_types.Purchase>> getPurchaseHistories() async {
     if (!_isInitialized) {
       throw iap_types.PurchaseError(
-        code: iap_types.ErrorCode.eNotInitialized,
+        code: iap_types.ErrorCode.NotInitialized,
         message: 'IAP connection not initialized',
         platform: _platform.isIOS
             ? iap_types.IapPlatform.ios
@@ -456,7 +456,7 @@ class FlutterInappPurchase
       return history;
     } catch (e) {
       throw iap_types.PurchaseError(
-        code: iap_types.ErrorCode.eServiceError,
+        code: iap_types.ErrorCode.ServiceError,
         message: 'Failed to get purchase history: ${e.toString()}',
         platform: _platform.isIOS
             ? iap_types.IapPlatform.ios
@@ -469,7 +469,7 @@ class FlutterInappPurchase
   Future<String> getStorefrontIOS() async {
     if (!_platform.isIOS) {
       throw iap_types.PurchaseError(
-        code: iap_types.ErrorCode.eIapNotAvailable,
+        code: iap_types.ErrorCode.IapNotAvailable,
         message: 'Storefront is only available on iOS',
         platform: _platform.isIOS
             ? iap_types.IapPlatform.ios
@@ -485,7 +485,7 @@ class FlutterInappPurchase
         return result['countryCode'] as String;
       }
       throw iap_types.PurchaseError(
-        code: iap_types.ErrorCode.eServiceError,
+        code: iap_types.ErrorCode.ServiceError,
         message: 'Failed to get storefront country code',
         platform: _platform.isIOS
             ? iap_types.IapPlatform.ios
@@ -496,7 +496,7 @@ class FlutterInappPurchase
         rethrow;
       }
       throw iap_types.PurchaseError(
-        code: iap_types.ErrorCode.eServiceError,
+        code: iap_types.ErrorCode.ServiceError,
         message: 'Failed to get storefront: ${e.toString()}',
         platform: _platform.isIOS
             ? iap_types.IapPlatform.ios
@@ -519,7 +519,7 @@ class FlutterInappPurchase
       await channel.invokeMethod('presentCodeRedemptionSheetIOS');
     } catch (e) {
       throw iap_types.PurchaseError(
-        code: iap_types.ErrorCode.eServiceError,
+        code: iap_types.ErrorCode.ServiceError,
         message: 'Failed to present code redemption sheet: ${e.toString()}',
         platform: _platform.isIOS
             ? iap_types.IapPlatform.ios
@@ -542,7 +542,7 @@ class FlutterInappPurchase
       await channel.invokeMethod('showManageSubscriptionsIOS');
     } catch (e) {
       throw iap_types.PurchaseError(
-        code: iap_types.ErrorCode.eServiceError,
+        code: iap_types.ErrorCode.ServiceError,
         message: 'Failed to show manage subscriptions: ${e.toString()}',
         platform: _platform.isIOS
             ? iap_types.IapPlatform.ios
@@ -1073,7 +1073,7 @@ class FlutterInappPurchase
   iap_types.PurchaseError _convertToPurchaseError(
     iap_types.PurchaseResult result,
   ) {
-    iap_types.ErrorCode code = iap_types.ErrorCode.eUnknown;
+    iap_types.ErrorCode code = iap_types.ErrorCode.Unknown;
 
     // Prefer OpenIAP string codes when present (works cross-platform)
     if (result.code != null && result.code!.isNotEmpty) {
@@ -1081,41 +1081,41 @@ class FlutterInappPurchase
         result.code!,
         _platform.isIOS ? IapPlatform.ios : IapPlatform.android,
       );
-      if (detected != iap_types.ErrorCode.eUnknown) {
+      if (detected != iap_types.ErrorCode.Unknown) {
         code = detected;
       }
     }
 
     // Map error codes
     // Fallback to legacy numeric response codes when string code is absent
-    if (code == iap_types.ErrorCode.eUnknown) {
+    if (code == iap_types.ErrorCode.Unknown) {
       switch (result.responseCode) {
         case 0:
-          code = iap_types.ErrorCode.eUnknown;
+          code = iap_types.ErrorCode.Unknown;
           break;
         case 1:
-          code = iap_types.ErrorCode.eUserCancelled;
+          code = iap_types.ErrorCode.UserCancelled;
           break;
         case 2:
-          code = iap_types.ErrorCode.eServiceError;
+          code = iap_types.ErrorCode.ServiceError;
           break;
         case 3:
-          code = iap_types.ErrorCode.eBillingUnavailable;
+          code = iap_types.ErrorCode.BillingUnavailable;
           break;
         case 4:
-          code = iap_types.ErrorCode.eItemUnavailable;
+          code = iap_types.ErrorCode.ItemUnavailable;
           break;
         case 5:
-          code = iap_types.ErrorCode.eDeveloperError;
+          code = iap_types.ErrorCode.DeveloperError;
           break;
         case 6:
-          code = iap_types.ErrorCode.eUnknown;
+          code = iap_types.ErrorCode.Unknown;
           break;
         case 7:
-          code = iap_types.ErrorCode.eProductAlreadyOwned;
+          code = iap_types.ErrorCode.ProductAlreadyOwned;
           break;
         case 8:
-          code = iap_types.ErrorCode.ePurchaseNotAllowed;
+          code = iap_types.ErrorCode.PurchaseNotAllowed;
           break;
       }
     }
@@ -1192,7 +1192,7 @@ class FlutterInappPurchase
           effectiveReplacementMode != -1 &&
           (purchaseTokenAndroid == null || purchaseTokenAndroid.isEmpty)) {
         throw iap_types.PurchaseError(
-          code: iap_types.ErrorCode.eDeveloperError,
+          code: iap_types.ErrorCode.DeveloperError,
           message:
               'purchaseTokenAndroid is required when using replacement mode (replacementModeAndroid: $effectiveReplacementMode). '
               'Replacement modes are only for upgrading/downgrading EXISTING subscriptions. '
@@ -1762,7 +1762,7 @@ class FlutterInappPurchase
   }) async {
     if (!_isInitialized) {
       throw iap_types.PurchaseError(
-        code: iap_types.ErrorCode.eNotInitialized,
+        code: iap_types.ErrorCode.NotInitialized,
         message: 'IAP connection not initialized',
         platform: _platform.isIOS
             ? iap_types.IapPlatform.ios
@@ -1844,7 +1844,7 @@ class FlutterInappPurchase
       return typed;
     } catch (e) {
       throw iap_types.PurchaseError(
-        code: iap_types.ErrorCode.eServiceError,
+        code: iap_types.ErrorCode.ServiceError,
         message: 'Failed to fetch products: ${e.toString()}',
         platform: _platform.isIOS
             ? iap_types.IapPlatform.ios
@@ -1888,7 +1888,7 @@ class FlutterInappPurchase
   }) async {
     if (!_isInitialized) {
       throw iap_types.PurchaseError(
-        code: iap_types.ErrorCode.eNotInitialized,
+        code: iap_types.ErrorCode.NotInitialized,
         message: 'IAP connection not initialized',
         platform: _platform.isIOS
             ? iap_types.IapPlatform.ios
@@ -1949,7 +1949,7 @@ class FlutterInappPurchase
         rethrow;
       }
       throw iap_types.PurchaseError(
-        code: iap_types.ErrorCode.eServiceError,
+        code: iap_types.ErrorCode.ServiceError,
         message: 'Failed to get active subscriptions: ${e.toString()}',
         platform: _platform.isIOS
             ? iap_types.IapPlatform.ios

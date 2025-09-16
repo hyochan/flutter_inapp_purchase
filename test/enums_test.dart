@@ -5,13 +5,13 @@ void main() {
   group('Enums', () {
     test('ErrorCode should contain all expected values', () {
       expect(ErrorCode.values.length, greaterThan(5));
-      expect(ErrorCode.eUnknown, isA<ErrorCode>());
-      expect(ErrorCode.eUserCancelled, isA<ErrorCode>());
-      expect(ErrorCode.eUserError, isA<ErrorCode>());
-      expect(ErrorCode.eItemUnavailable, isA<ErrorCode>());
-      expect(ErrorCode.eProductNotAvailable, isA<ErrorCode>());
-      expect(ErrorCode.eProductAlreadyOwned, isA<ErrorCode>());
-      expect(ErrorCode.eNetworkError, isA<ErrorCode>());
+      expect(ErrorCode.Unknown, isA<ErrorCode>());
+      expect(ErrorCode.UserCancelled, isA<ErrorCode>());
+      expect(ErrorCode.UserError, isA<ErrorCode>());
+      expect(ErrorCode.ItemUnavailable, isA<ErrorCode>());
+      expect(ErrorCode.ProductNotAvailable, isA<ErrorCode>());
+      expect(ErrorCode.ProductAlreadyOwned, isA<ErrorCode>());
+      expect(ErrorCode.NetworkError, isA<ErrorCode>());
     });
 
     test('IapPlatform should work correctly', () {

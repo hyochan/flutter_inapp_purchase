@@ -77,11 +77,11 @@ ErrorCode.E_DEVELOPER_ERROR
 
 ```dart
 // lowerCamelCase format
-ErrorCode.eUserCancelled
-ErrorCode.eNetworkError
-ErrorCode.eItemUnavailable
-ErrorCode.eAlreadyOwned
-ErrorCode.eDeveloperError
+ErrorCode.UserCancelled
+ErrorCode.NetworkError
+ErrorCode.ItemUnavailable
+ErrorCode.AlreadyOwned
+ErrorCode.DeveloperError
 ```
 
 **Before (v5.x):**

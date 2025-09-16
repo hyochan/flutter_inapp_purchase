@@ -105,7 +105,7 @@ void main() {
             isA<PurchaseError>().having(
               (e) => e.code,
               'error code',
-              ErrorCode.eAlreadyInitialized,
+              ErrorCode.AlreadyInitialized,
             ),
           ),
         );
@@ -162,7 +162,7 @@ void main() {
             isA<PurchaseError>().having(
               (e) => e.code,
               'error code',
-              ErrorCode.eNotInitialized,
+              ErrorCode.NotInitialized,
             ),
           ),
         );

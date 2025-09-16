@@ -140,17 +140,17 @@ class IAPService {
 
     // Handle specific error codes
     switch (error.code) {
-      case ErrorCode.eUserCancelled:
+      case ErrorCode.UserCancelled:
         print('ℹ️ User cancelled the purchase');
         break;
-      case ErrorCode.eNetworkError:
+      case ErrorCode.NetworkError:
         print('🌐 Network error occurred');
         // Show retry option to user
         break;
-      case ErrorCode.eItemUnavailable:
+      case ErrorCode.ItemUnavailable:
         print('🚫 Product is not available');
         break;
-      case ErrorCode.eAlreadyOwned:
+      case ErrorCode.AlreadyOwned:
         print('✅ User already owns this product');
         // Restore the purchase
         break;

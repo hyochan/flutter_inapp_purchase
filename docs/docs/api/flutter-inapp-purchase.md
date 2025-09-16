@@ -359,9 +359,9 @@ FlutterInappPurchase.purchaseError.listen((error) {
     print('Purchase error: ${error.message}');
 
     // Handle specific error codes
-    if (error.code == ErrorCode.eUserCancelled) {
+    if (error.code == ErrorCode.UserCancelled) {
       // User cancelled - no action needed
-    } else if (error.code == ErrorCode.eNetworkError) {
+    } else if (error.code == ErrorCode.NetworkError) {
       // Show retry option
       showRetryDialog();
     }
@@ -375,11 +375,11 @@ Common error codes you should handle:
 
 | Error Code                   | Description               | Action                 |
 | ---------------------------- | ------------------------- | ---------------------- |
-| `ErrorCode.eUserCancelled`   | User cancelled purchase   | No action needed       |
-| `ErrorCode.eNetworkError`    | Network error             | Offer retry            |
-| `ErrorCode.eItemUnavailable` | Product not available     | Check product setup    |
-| `ErrorCode.eAlreadyOwned`    | User already owns product | Restore or acknowledge |
-| `ErrorCode.eDeveloperError`  | Configuration error       | Check setup            |
+| `ErrorCode.UserCancelled`   | User cancelled purchase   | No action needed       |
+| `ErrorCode.NetworkError`    | Network error             | Offer retry            |
+| `ErrorCode.ItemUnavailable` | Product not available     | Check product setup    |
+| `ErrorCode.AlreadyOwned`    | User already owns product | Restore or acknowledge |
+| `ErrorCode.DeveloperError`  | Configuration error       | Check setup            |
 
 **Example Error Handling:**
 
@@ -388,16 +388,16 @@ FlutterInappPurchase.purchaseError.listen((error) {
   if (error == null) return;
 
   switch (error.code) {
-    case ErrorCode.eUserCancelled:
+    case ErrorCode.UserCancelled:
       // User cancelled - no UI needed
       break;
-    case ErrorCode.eNetworkError:
+    case ErrorCode.NetworkError:
       showSnackBar('Network error. Please check your connection and try again.');
       break;
-    case ErrorCode.eItemUnavailable:
+    case ErrorCode.ItemUnavailable:
       showSnackBar('This item is currently unavailable.');
       break;
-    case ErrorCode.eAlreadyOwned:
+    case ErrorCode.AlreadyOwned:
       showSnackBar('You already own this item.');
       break;
     default:

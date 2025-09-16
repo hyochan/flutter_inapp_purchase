@@ -467,7 +467,7 @@ This major release redesigns the API to fully comply with the [Open IAP](https:/
 - **iOS**: Now requires iOS 11.0+ with StoreKit 2 support (iOS 15.0+)
 - **Android**: Updated to Billing Client v8.0.0
 - **API Changes**:
-  - Enum naming convention: `E_UNKNOWN` → `eUnknown` (lowerCamelCase)
+  - Enum naming convention: `E_UNKNOWN` → `Unknown` (PascalCase)
   - Channel access: `FlutterInappPurchase.channel` → `FlutterInappPurchase.instance.channel`
   - Unified error handling with standardized error codes
 
