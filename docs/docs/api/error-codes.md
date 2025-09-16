@@ -13,53 +13,53 @@ The standardized error codes used across both platforms.
 
 ```dart
 enum ErrorCode {
-  eUnknown,                           // Unknown error
-  eUserCancelled,                     // User cancelled
-  eUserError,                         // User error
-  eItemUnavailable,                   // Item unavailable
-  eRemoteError,                       // Remote server error
-  eNetworkError,                      // Network error
-  eServiceError,                      // Service error
-  eReceiptFailed,                     // Receipt validation failed
-  eReceiptFinishedFailed,             // Receipt finish failed
-  eNotPrepared,                       // Not prepared
-  eNotEnded,                          // Not ended
-  eAlreadyOwned,                      // Already owned
-  eDeveloperError,                    // Developer error
-  eBillingResponseJsonParseError,     // JSON parse error
-  eDeferredPayment,                   // Deferred payment
-  eInterrupted,                       // Interrupted
-  eIapNotAvailable,                   // IAP not available
-  ePurchaseError,                     // Purchase error
-  eSyncError,                         // Sync error
-  eTransactionValidationFailed,       // Transaction validation failed
-  eActivityUnavailable,               // Activity unavailable
-  eAlreadyPrepared,                   // Already prepared
-  ePending,                           // Pending
-  eConnectionClosed,                  // Connection closed
+  Unknown,                           // Unknown error
+  UserCancelled,                     // User cancelled
+  UserError,                         // User error
+  ItemUnavailable,                   // Item unavailable
+  RemoteError,                       // Remote server error
+  NetworkError,                      // Network error
+  ServiceError,                      // Service error
+  ReceiptFailed,                     // Receipt validation failed
+  ReceiptFinishedFailed,             // Receipt finish failed
+  NotPrepared,                       // Not prepared
+  NotEnded,                          // Not ended
+  AlreadyOwned,                      // Already owned
+  DeveloperError,                    // Developer error
+  BillingResponseJsonParseError,     // JSON parse error
+  DeferredPayment,                   // Deferred payment
+  Interrupted,                       // Interrupted
+  IapNotAvailable,                   // IAP not available
+  PurchaseError,                     // Purchase error
+  SyncError,                         // Sync error
+  TransactionValidationFailed,       // Transaction validation failed
+  ActivityUnavailable,               // Activity unavailable
+  AlreadyPrepared,                   // Already prepared
+  Pending,                           // Pending
+  ConnectionClosed,                  // Connection closed
   // Additional error codes
-  eBillingUnavailable,                // Billing unavailable
-  eProductAlreadyOwned,               // Product already owned
-  ePurchaseNotAllowed,                // Purchase not allowed
-  eQuotaExceeded,                     // Quota exceeded
-  eFeatureNotSupported,               // Feature not supported
-  eNotInitialized,                    // Not initialized
-  eAlreadyInitialized,                // Already initialized
-  eClientInvalid,                     // Client invalid
-  ePaymentInvalid,                    // Payment invalid
-  ePaymentNotAllowed,                 // Payment not allowed
-  eStorekitOriginalTransactionIdNotFound, // StoreKit transaction not found
-  eNotSupported,                      // Not supported
-  eTransactionFailed,                 // Transaction failed
-  eTransactionInvalid,                // Transaction invalid
-  eProductNotFound,                   // Product not found
-  ePurchaseFailed,                    // Purchase failed
-  eTransactionNotFound,               // Transaction not found
-  eRestoreFailed,                     // Restore failed
-  eRedeemFailed,                      // Redeem failed
-  eNoWindowScene,                     // No window scene
-  eShowSubscriptionsFailed,           // Show subscriptions failed
-  eProductLoadFailed,                 // Product load failed
+  BillingUnavailable,                // Billing unavailable
+  ProductAlreadyOwned,               // Product already owned
+  PurchaseNotAllowed,                // Purchase not allowed
+  QuotaExceeded,                     // Quota exceeded
+  FeatureNotSupported,               // Feature not supported
+  NotInitialized,                    // Not initialized
+  AlreadyInitialized,                // Already initialized
+  ClientInvalid,                     // Client invalid
+  PaymentInvalid,                    // Payment invalid
+  PaymentNotAllowed,                 // Payment not allowed
+  StorekitOriginalTransactionIdNotFound, // StoreKit transaction not found
+  NotSupported,                      // Not supported
+  TransactionFailed,                 // Transaction failed
+  TransactionInvalid,                // Transaction invalid
+  ProductNotFound,                   // Product not found
+  PurchaseFailed,                    // Purchase failed
+  TransactionNotFound,               // Transaction not found
+  RestoreFailed,                     // Restore failed
+  RedeemFailed,                      // Redeem failed
+  NoWindowScene,                     // No window scene
+  ShowSubscriptionsFailed,           // Show subscriptions failed
+  ProductLoadFailed,                 // Product load failed
 }
 ```
 
@@ -110,7 +110,7 @@ try {
 
 ### User-Related Errors
 
-#### eUserCancelled
+#### UserCancelled
 
 **Meaning**: User cancelled the purchase  
 **When it occurs**: User closes purchase dialog or cancels payment  
@@ -118,14 +118,14 @@ try {
 **Developer action**: Don't show error messages for cancellation
 
 ```dart
-if (error.code == ErrorCode.eUserCancelled) {
+if (error.code == ErrorCode.UserCancelled) {
   // User cancelled - this is normal, don't show error
   print('User cancelled the purchase');
   return;
 }
 ```
 
-#### eUserError
+#### UserError
 
 **Meaning**: User made an error during purchase  
 **When it occurs**: Invalid payment method, insufficient funds  
@@ -133,12 +133,12 @@ if (error.code == ErrorCode.eUserCancelled) {
 **Developer action**: Show helpful message about payment methods
 
 ```dart
-if (error.code == ErrorCode.eUserError) {
+if (error.code == ErrorCode.UserError) {
   showMessage('Please check your payment method and try again.');
 }
 ```
 
-#### eAlreadyOwned
+#### AlreadyOwned
 
 **Meaning**: User already owns this product  
 **When it occurs**: Attempting to purchase owned non-consumable  
@@ -146,7 +146,7 @@ if (error.code == ErrorCode.eUserError) {
 **Developer action**: Unlock product or suggest restore purchases
 
 ```dart
-if (error.code == ErrorCode.eAlreadyOwned) {
+if (error.code == ErrorCode.AlreadyOwned) {
   showMessage('You already own this item.');
   // Optionally trigger restore purchases
   await restorePurchases();
@@ -155,7 +155,7 @@ if (error.code == ErrorCode.eAlreadyOwned) {
 
 ### Network & Service Errors
 
-#### eNetworkError
+#### NetworkError
 
 **Meaning**: Network connectivity issues  
 **When it occurs**: No internet, poor connection, server timeout  
@@ -163,7 +163,7 @@ if (error.code == ErrorCode.eAlreadyOwned) {
 **Developer action**: Show retry option
 
 ```dart
-if (error.code == ErrorCode.eNetworkError) {
+if (error.code == ErrorCode.NetworkError) {
   showRetryDialog(
     'Network error. Please check your connection and try again.',
     onRetry: () => retryPurchase(),
@@ -171,7 +171,7 @@ if (error.code == ErrorCode.eNetworkError) {
 }
 ```
 
-#### eServiceError
+#### ServiceError
 
 **Meaning**: Store service unavailable  
 **When it occurs**: App Store/Play Store service issues  
@@ -179,12 +179,12 @@ if (error.code == ErrorCode.eNetworkError) {
 **Developer action**: Show temporary error message
 
 ```dart
-if (error.code == ErrorCode.eServiceError) {
+if (error.code == ErrorCode.ServiceError) {
   showMessage('Store service temporarily unavailable. Please try again later.');
 }
 ```
 
-#### eRemoteError
+#### RemoteError
 
 **Meaning**: Remote server error  
 **When it occurs**: Store backend issues  
@@ -192,7 +192,7 @@ if (error.code == ErrorCode.eServiceError) {
 **Developer action**: Log for monitoring, show generic error
 
 ```dart
-if (error.code == ErrorCode.eRemoteError) {
+if (error.code == ErrorCode.RemoteError) {
   logError('Remote server error', error);
   showMessage('Service temporarily unavailable. Please try again.');
 }
@@ -200,7 +200,7 @@ if (error.code == ErrorCode.eRemoteError) {
 
 ### Product & Availability Errors
 
-#### eItemUnavailable
+#### ItemUnavailable
 
 **Meaning**: Product not available for purchase  
 **When it occurs**: Product deleted, not in current storefront  
@@ -208,14 +208,14 @@ if (error.code == ErrorCode.eRemoteError) {
 **Developer action**: Check product configuration
 
 ```dart
-if (error.code == ErrorCode.eItemUnavailable) {
+if (error.code == ErrorCode.ItemUnavailable) {
   showMessage('This item is currently unavailable.');
   // Log for investigation
   logError('Product unavailable: ${error.productId}', error);
 }
 ```
 
-#### eProductNotFound
+#### ProductNotFound
 
 **Meaning**: Product ID not found in store  
 **When it occurs**: Invalid product ID, not published  
@@ -223,7 +223,7 @@ if (error.code == ErrorCode.eItemUnavailable) {
 **Developer action**: Verify product ID and store configuration
 
 ```dart
-if (error.code == ErrorCode.eProductNotFound) {
+if (error.code == ErrorCode.ProductNotFound) {
   logError('Product not found: ${error.productId}', error);
   showMessage('Product not found. Please contact support.');
 }
@@ -231,7 +231,7 @@ if (error.code == ErrorCode.eProductNotFound) {
 
 ### Configuration & Developer Errors
 
-#### eDeveloperError
+#### DeveloperError
 
 **Meaning**: Developer configuration error  
 **When it occurs**: Invalid parameters, wrong usage  
@@ -239,13 +239,13 @@ if (error.code == ErrorCode.eProductNotFound) {
 **Developer action**: Fix implementation
 
 ```dart
-if (error.code == ErrorCode.eDeveloperError) {
+if (error.code == ErrorCode.DeveloperError) {
   logError('Developer error: ${error.message}', error);
   showMessage('Configuration error. Please contact support.');
 }
 ```
 
-#### eNotInitialized
+#### NotInitialized
 
 **Meaning**: IAP not initialized  
 **When it occurs**: Calling methods before `initConnection()`  
@@ -253,13 +253,13 @@ if (error.code == ErrorCode.eDeveloperError) {
 **Developer action**: Call `initConnection()` first
 
 ```dart
-if (error.code == ErrorCode.eNotInitialized) {
+if (error.code == ErrorCode.NotInitialized) {
   await FlutterInappPurchase.instance.initConnection();
   // Retry the operation
 }
 ```
 
-#### eAlreadyInitialized
+#### AlreadyInitialized
 
 **Meaning**: IAP already initialized  
 **When it occurs**: Calling `initConnection()` multiple times  
@@ -267,7 +267,7 @@ if (error.code == ErrorCode.eNotInitialized) {
 **Developer action**: Check initialization state
 
 ```dart
-if (error.code == ErrorCode.eAlreadyInitialized) {
+if (error.code == ErrorCode.AlreadyInitialized) {
   // Already initialized - continue with operation
   print('IAP already initialized');
 }
@@ -279,23 +279,23 @@ if (error.code == ErrorCode.eAlreadyInitialized) {
 
 ```dart
 static const Map<ErrorCode, int> ios = {
-  ErrorCode.eUnknown: 0,
-  ErrorCode.eServiceError: 1,
-  ErrorCode.eUserCancelled: 2,
-  ErrorCode.eUserError: 3,
-  ErrorCode.eItemUnavailable: 4,
-  ErrorCode.eRemoteError: 5,
-  ErrorCode.eNetworkError: 6,
-  ErrorCode.eReceiptFailed: 7,
-  ErrorCode.eReceiptFinishedFailed: 8,
-  ErrorCode.eDeveloperError: 9,
-  ErrorCode.ePurchaseError: 10,
-  ErrorCode.eSyncError: 11,
-  ErrorCode.eDeferredPayment: 12,
-  ErrorCode.eTransactionValidationFailed: 13,
-  ErrorCode.eNotPrepared: 14,
-  ErrorCode.eNotEnded: 15,
-  ErrorCode.eAlreadyOwned: 16,
+  ErrorCode.Unknown: 0,
+  ErrorCode.ServiceError: 1,
+  ErrorCode.UserCancelled: 2,
+  ErrorCode.UserError: 3,
+  ErrorCode.ItemUnavailable: 4,
+  ErrorCode.RemoteError: 5,
+  ErrorCode.NetworkError: 6,
+  ErrorCode.ReceiptFailed: 7,
+  ErrorCode.ReceiptFinishedFailed: 8,
+  ErrorCode.DeveloperError: 9,
+  ErrorCode.PurchaseError: 10,
+  ErrorCode.SyncError: 11,
+  ErrorCode.DeferredPayment: 12,
+  ErrorCode.TransactionValidationFailed: 13,
+  ErrorCode.NotPrepared: 14,
+  ErrorCode.NotEnded: 15,
+  ErrorCode.AlreadyOwned: 16,
   // ... additional mappings
 };
 ```
@@ -304,15 +304,15 @@ static const Map<ErrorCode, int> ios = {
 
 ```dart
 static const Map<ErrorCode, String> android = {
-  ErrorCode.eUnknown: 'E_UNKNOWN',
-  ErrorCode.eUserCancelled: 'E_USER_CANCELLED',
-  ErrorCode.eUserError: 'E_USER_ERROR',
-  ErrorCode.eItemUnavailable: 'E_ITEM_UNAVAILABLE',
-  ErrorCode.eRemoteError: 'E_REMOTE_ERROR',
-  ErrorCode.eNetworkError: 'E_NETWORK_ERROR',
-  ErrorCode.eServiceError: 'E_SERVICE_ERROR',
-  ErrorCode.eReceiptFailed: 'E_RECEIPT_FAILED',
-  ErrorCode.eAlreadyOwned: 'E_ALREADY_OWNED',
+  ErrorCode.Unknown: 'E_UNKNOWN',
+  ErrorCode.UserCancelled: 'E_USER_CANCELLED',
+  ErrorCode.UserError: 'E_USER_ERROR',
+  ErrorCode.ItemUnavailable: 'E_ITEM_UNAVAILABLE',
+  ErrorCode.RemoteError: 'E_REMOTE_ERROR',
+  ErrorCode.NetworkError: 'E_NETWORK_ERROR',
+  ErrorCode.ServiceError: 'E_SERVICE_ERROR',
+  ErrorCode.ReceiptFailed: 'E_RECEIPT_FAILED',
+  ErrorCode.AlreadyOwned: 'E_ALREADY_OWNED',
   // ... additional mappings
 };
 ```
@@ -325,24 +325,24 @@ static const Map<ErrorCode, String> android = {
 class ErrorHandler {
   static void handlePurchaseError(PurchaseError error) {
     switch (error.code) {
-      case ErrorCode.eUserCancelled:
+      case ErrorCode.UserCancelled:
         // Don't show error for user cancellation
         break;
 
-      case ErrorCode.eNetworkError:
+      case ErrorCode.NetworkError:
         showRetryDialog('Network error. Please check your connection.');
         break;
 
-      case ErrorCode.eAlreadyOwned:
+      case ErrorCode.AlreadyOwned:
         showMessage('You already own this item.');
         restorePurchases();
         break;
 
-      case ErrorCode.eItemUnavailable:
+      case ErrorCode.ItemUnavailable:
         showMessage('This item is currently unavailable.');
         break;
 
-      case ErrorCode.eServiceError:
+      case ErrorCode.ServiceError:
         showMessage('Service temporarily unavailable. Please try again later.');
         break;
 
@@ -394,42 +394,42 @@ class ComprehensiveErrorHandler {
     _logError(error, context: context);
 
     switch (error.code) {
-      case ErrorCode.eUserCancelled:
+      case ErrorCode.UserCancelled:
         // Silent handling - user intentionally cancelled
         return;
 
-      case ErrorCode.eNetworkError:
+      case ErrorCode.NetworkError:
         _showNetworkError();
         break;
 
-      case ErrorCode.eAlreadyOwned:
+      case ErrorCode.AlreadyOwned:
         _handleAlreadyOwned(error.productId);
         break;
 
-      case ErrorCode.eItemUnavailable:
+      case ErrorCode.ItemUnavailable:
         _handleItemUnavailable(error.productId);
         break;
 
-      case ErrorCode.eServiceError:
-      case ErrorCode.eRemoteError:
+      case ErrorCode.ServiceError:
+      case ErrorCode.RemoteError:
         _showServiceError();
         break;
 
-      case ErrorCode.eDeveloperError:
-      case ErrorCode.eNotInitialized:
+      case ErrorCode.DeveloperError:
+      case ErrorCode.NotInitialized:
         _handleConfigurationError(error);
         break;
 
-      case ErrorCode.eReceiptFailed:
-      case ErrorCode.eTransactionValidationFailed:
+      case ErrorCode.ReceiptFailed:
+      case ErrorCode.TransactionValidationFailed:
         _handleValidationError(error);
         break;
 
-      case ErrorCode.eDeferredPayment:
+      case ErrorCode.DeferredPayment:
         _handleDeferredPayment();
         break;
 
-      case ErrorCode.ePending:
+      case ErrorCode.Pending:
         _handlePendingPurchase();
         break;
 
@@ -535,9 +535,9 @@ class RetryLogic {
         // Only retry on specific errors
         if (error is PurchaseError) {
           switch (error.code) {
-            case ErrorCode.eNetworkError:
-            case ErrorCode.eServiceError:
-            case ErrorCode.eRemoteError:
+            case ErrorCode.NetworkError:
+            case ErrorCode.ServiceError:
+            case ErrorCode.RemoteError:
               // Retry these errors
               await Future.delayed(retryDelay * attempts);
               continue;
@@ -600,7 +600,7 @@ class ValidationHelper {
       final products = await FlutterInappPurchase.instance.getProducts([productId]);
       if (products.isEmpty) {
         throw PurchaseError(
-          code: ErrorCode.eProductNotFound,
+          code: ErrorCode.ProductNotFound,
           message: 'Product not found: $productId',
         );
       }
@@ -609,7 +609,7 @@ class ValidationHelper {
       final availablePurchases = await FlutterInappPurchase.instance.getAvailablePurchases();
       if (availablePurchases.any((p) => p.productId == productId)) {
         throw PurchaseError(
-          code: ErrorCode.eAlreadyOwned,
+          code: ErrorCode.AlreadyOwned,
           message: 'Product already owned: $productId',
         );
       }

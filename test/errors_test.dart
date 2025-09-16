@@ -8,7 +8,7 @@ void main() {
         final error = PurchaseError(
           name: 'CustomError',
           message: 'User cancelled',
-          code: ErrorCode.eUserCancelled,
+          code: ErrorCode.UserCancelled,
           platform: IapPlatform.android,
           responseCode: 6,
           debugMessage: 'Debug info',
@@ -16,7 +16,7 @@ void main() {
         );
 
         expect(error.name, 'CustomError');
-        expect(error.code, ErrorCode.eUserCancelled);
+        expect(error.code, ErrorCode.UserCancelled);
         expect(error.message, 'User cancelled');
         expect(error.platform, IapPlatform.android);
         expect(error.responseCode, 6);
@@ -27,12 +27,12 @@ void main() {
       test('should create with minimal fields', () {
         final error = PurchaseError(
           message: 'Network failed',
-          code: ErrorCode.eNetworkError,
+          code: ErrorCode.NetworkError,
           platform: IapPlatform.ios,
         );
 
         expect(error.name, '[flutter_inapp_purchase]: PurchaseError');
-        expect(error.code, ErrorCode.eNetworkError);
+        expect(error.code, ErrorCode.NetworkError);
         expect(error.message, 'Network failed');
         expect(error.platform, IapPlatform.ios);
         expect(error.responseCode, isNull);
@@ -43,7 +43,7 @@ void main() {
       test('toString should return formatted string', () {
         final error = PurchaseError(
           message: 'Item not found',
-          code: ErrorCode.eItemUnavailable,
+          code: ErrorCode.ItemUnavailable,
           platform: IapPlatform.android,
           responseCode: 4,
         );
@@ -65,7 +65,7 @@ void main() {
           IapPlatform.android,
         );
 
-        expect(error.code, ErrorCode.eUserCancelled);
+        expect(error.code, ErrorCode.UserCancelled);
         expect(error.message, 'User cancelled the purchase');
         expect(error.platform, IapPlatform.android);
       });
@@ -170,15 +170,15 @@ void main() {
 
     group('ErrorCode enum', () {
       test('should contain all expected error codes', () {
-        expect(ErrorCode.eUnknown, isA<ErrorCode>());
-        expect(ErrorCode.eUserCancelled, isA<ErrorCode>());
-        expect(ErrorCode.eUserError, isA<ErrorCode>());
-        expect(ErrorCode.eItemUnavailable, isA<ErrorCode>());
-        expect(ErrorCode.eProductNotAvailable, isA<ErrorCode>());
-        expect(ErrorCode.eProductAlreadyOwned, isA<ErrorCode>());
-        expect(ErrorCode.eReceiptFinished, isA<ErrorCode>());
-        expect(ErrorCode.eAlreadyOwned, isA<ErrorCode>());
-        expect(ErrorCode.eNetworkError, isA<ErrorCode>());
+        expect(ErrorCode.Unknown, isA<ErrorCode>());
+        expect(ErrorCode.UserCancelled, isA<ErrorCode>());
+        expect(ErrorCode.UserError, isA<ErrorCode>());
+        expect(ErrorCode.ItemUnavailable, isA<ErrorCode>());
+        expect(ErrorCode.ProductNotAvailable, isA<ErrorCode>());
+        expect(ErrorCode.ProductAlreadyOwned, isA<ErrorCode>());
+        expect(ErrorCode.ReceiptFinished, isA<ErrorCode>());
+        expect(ErrorCode.AlreadyOwned, isA<ErrorCode>());
+        expect(ErrorCode.NetworkError, isA<ErrorCode>());
       });
     });
   });

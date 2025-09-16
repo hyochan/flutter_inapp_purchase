@@ -240,19 +240,19 @@ void main() {
     group('Error Code Type Alignment', () {
       test('ErrorCode enum should match OpenIAP specification', () {
         // Test that our ErrorCode enum has the expected OpenIAP values
-        expect(ErrorCode.eUnknown, isA<ErrorCode>());
-        expect(ErrorCode.eUserCancelled, isA<ErrorCode>());
-        expect(ErrorCode.eUserError, isA<ErrorCode>());
-        expect(ErrorCode.eItemUnavailable, isA<ErrorCode>());
-        expect(ErrorCode.eProductNotAvailable, isA<ErrorCode>());
-        expect(ErrorCode.eProductAlreadyOwned, isA<ErrorCode>());
-        expect(ErrorCode.eNetworkError, isA<ErrorCode>());
-        expect(ErrorCode.eAlreadyOwned, isA<ErrorCode>());
+        expect(ErrorCode.Unknown, isA<ErrorCode>());
+        expect(ErrorCode.UserCancelled, isA<ErrorCode>());
+        expect(ErrorCode.UserError, isA<ErrorCode>());
+        expect(ErrorCode.ItemUnavailable, isA<ErrorCode>());
+        expect(ErrorCode.ProductNotAvailable, isA<ErrorCode>());
+        expect(ErrorCode.ProductAlreadyOwned, isA<ErrorCode>());
+        expect(ErrorCode.NetworkError, isA<ErrorCode>());
+        expect(ErrorCode.AlreadyOwned, isA<ErrorCode>());
       });
 
       test('PurchaseError should have OpenIAP compliant structure', () {
         final error = PurchaseError(
-          code: ErrorCode.eUserCancelled,
+          code: ErrorCode.UserCancelled,
           message: 'User cancelled the purchase',
           platform: IapPlatform.android,
           responseCode: 6,

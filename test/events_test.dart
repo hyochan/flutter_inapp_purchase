@@ -27,13 +27,13 @@ void main() {
     test('PurchaseErrorEvent should create correctly', () {
       final event = PurchaseErrorEvent(
         error: PurchaseError(
-          code: ErrorCode.eUserCancelled,
+          code: ErrorCode.UserCancelled,
           message: 'User cancelled the purchase',
           platform: IapPlatform.android,
         ),
       );
 
-      expect(event.error.code, ErrorCode.eUserCancelled);
+      expect(event.error.code, ErrorCode.UserCancelled);
       expect(event.error.message, 'User cancelled the purchase');
       expect(event.error.platform, IapPlatform.android);
     });

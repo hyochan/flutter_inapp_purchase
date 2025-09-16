@@ -562,10 +562,10 @@ try {
   await FlutterInappPurchase.instance.initConnection();
 } on PurchaseError catch (e) {
   switch (e.code) {
-    case ErrorCode.eAlreadyInitialized:
+    case ErrorCode.AlreadyInitialized:
       print('Already initialized');
       break;
-    case ErrorCode.eNetworkError:
+    case ErrorCode.NetworkError:
       print('Network error - check connection');
       break;
     default:
@@ -641,7 +641,7 @@ Future<void> makePurchase(String sku) async {
 
     // Success handling happens in purchaseUpdated listener
   } on PurchaseError catch (e) {
-    if (e.code == ErrorCode.eUserCancelled) {
+    if (e.code == ErrorCode.UserCancelled) {
       // User cancelled - don't show error
       return;
     }

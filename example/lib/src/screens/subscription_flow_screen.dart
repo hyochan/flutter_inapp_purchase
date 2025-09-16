@@ -222,7 +222,7 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
 
         setState(() {
           _isProcessing = false;
-          if (error.code == ErrorCode.eUserCancelled) {
+          if (error.code == ErrorCode.UserCancelled) {
             _purchaseResult = '⚠️ Purchase cancelled';
           } else {
             _purchaseResult = '❌ Error: ${error.message}';

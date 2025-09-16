@@ -270,31 +270,54 @@ Standardized error codes across platforms.
 
 ```dart
 enum ErrorCode {
-  eUnknown,                           // Unknown error
-  eUserCancelled,                     // User cancelled
-  eUserError,                         // User error
-  eItemUnavailable,                   // Item unavailable
-  eRemoteError,                       // Remote server error
-  eNetworkError,                      // Network error
-  eServiceError,                      // Service error
-  eReceiptFailed,                     // Receipt validation failed
-  eReceiptFinishedFailed,             // Receipt finish failed
-  eNotPrepared,                       // Not prepared
-  eNotEnded,                          // Not ended
-  eAlreadyOwned,                      // Already owned
-  eDeveloperError,                    // Developer error
-  eBillingResponseJsonParseError,     // JSON parse error
-  eDeferredPayment,                   // Deferred payment
-  eInterrupted,                       // Interrupted
-  eIapNotAvailable,                   // IAP not available
-  ePurchaseError,                     // Purchase error
-  eSyncError,                         // Sync error
-  eTransactionValidationFailed,       // Transaction validation failed
-  eActivityUnavailable,               // Activity unavailable
-  eAlreadyPrepared,                   // Already prepared
-  ePending,                           // Pending
-  eConnectionClosed,                  // Connection closed
-  // Additional error codes...
+  Unknown,                           // Unknown error
+  UserCancelled,                     // User cancelled
+  UserError,                         // User error
+  ItemUnavailable,                   // Item unavailable
+  ProductNotAvailable,               // Product unavailable on this store
+  ProductAlreadyOwned,               // Product already purchased on Google Play
+  ReceiptFinished,                   // Receipt completed successfully
+  AlreadyOwned,                      // Product already owned (legacy mapping)
+  NetworkError,                      // Network error
+  ServiceError,                      // Store service error
+  RemoteError,                       // Remote server error
+  ReceiptFailed,                     // Receipt validation failed
+  Pending,                           // Purchase pending
+  NotEnded,                          // Transaction not ended
+  DeveloperError,                    // Developer integration error
+  ReceiptFinishedFailed,             // Receipt finish failed
+  NotPrepared,                       // Billing not prepared
+  BillingResponseJsonParseError,     // JSON parse error
+  DeferredPayment,                   // Deferred payment (awaiting approval)
+  Interrupted,                       // Flow interrupted
+  IapNotAvailable,                   // IAP not available on device
+  PurchaseError,                     // Generic purchase error
+  SyncError,                         // Synchronization error
+  TransactionValidationFailed,       // Transaction validation failed
+  ActivityUnavailable,               // Required activity unavailable (Android)
+  AlreadyPrepared,                   // Billing client already prepared
+  ConnectionClosed,                  // Connection closed unexpectedly
+  BillingUnavailable,                // Billing unavailable on device
+  PurchaseNotAllowed,                // Purchase not allowed for user
+  QuotaExceeded,                     // Subscription quota exceeded
+  FeatureNotSupported,               // Feature not supported
+  NotInitialized,                    // Module not initialized
+  AlreadyInitialized,                // Module already initialized
+  ClientInvalid,                     // iOS client invalid
+  PaymentInvalid,                    // Payment information invalid
+  PaymentNotAllowed,                 // Payment not allowed for user
+  StorekitOriginalTransactionIdNotFound, // Original transaction ID missing
+  NotSupported,                      // Operation not supported
+  TransactionFailed,                 // Transaction failed
+  TransactionInvalid,                // Transaction invalid
+  ProductNotFound,                   // Product not found
+  PurchaseFailed,                    // Purchase failed
+  TransactionNotFound,               // Transaction not found
+  RestoreFailed,                     // Restore operation failed
+  RedeemFailed,                      // Code redemption failed
+  NoWindowScene,                     // No window scene available (iOS)
+  ShowSubscriptionsFailed,           // Unable to open subscriptions UI
+  ProductLoadFailed,                 // Failed to load products
 }
 ```
 

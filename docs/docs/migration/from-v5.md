@@ -76,12 +76,12 @@ ErrorCode.E_DEVELOPER_ERROR
 **v6.0 (New):**
 
 ```dart
-// lowerCamelCase format
-ErrorCode.eUserCancelled
-ErrorCode.eNetworkError
-ErrorCode.eItemUnavailable
-ErrorCode.eAlreadyOwned
-ErrorCode.eDeveloperError
+// PascalCase format
+ErrorCode.UserCancelled
+ErrorCode.NetworkError
+ErrorCode.ItemUnavailable
+ErrorCode.AlreadyOwned
+ErrorCode.DeveloperError
 ```
 
 **Before (v5.x):**

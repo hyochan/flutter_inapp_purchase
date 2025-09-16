@@ -265,7 +265,7 @@ Purchase Token: ${purchase.purchaseToken?.substring(0, 30)}...
       _isProcessing = false;
 
       // Format error result like KMP-IAP
-      if (error.code == ErrorCode.eUserCancelled) {
+      if (error.code == ErrorCode.UserCancelled) {
         _purchaseResult = '⚠️ Purchase cancelled by user';
       } else if (error.message.contains('요청한 시간이 초과되었습니다') ||
           error.message.contains('timeout') ||
@@ -401,7 +401,7 @@ Platform: ${error.platform}
       // Do not show alert dialog if the user cancelled the purchase
       final errorString = error.toString().toLowerCase();
       final bool isUserCancelled =
-          (error is PurchaseError && error.code == ErrorCode.eUserCancelled) ||
+          (error is PurchaseError && error.code == ErrorCode.UserCancelled) ||
               errorString.contains('user_cancel') ||
               errorString.contains('user cancelled') ||
               errorString.contains('canceled') ||
