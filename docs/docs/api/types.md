@@ -259,27 +259,50 @@ enum ErrorCode {
   UserCancelled,                     // User cancelled
   UserError,                         // User error
   ItemUnavailable,                   // Item unavailable
-  RemoteError,                       // Remote server error
+  ProductNotAvailable,               // Product unavailable on this store
+  ProductAlreadyOwned,               // Product already purchased on Google Play
+  ReceiptFinished,                   // Receipt completed successfully
+  AlreadyOwned,                      // Product already owned (legacy mapping)
   NetworkError,                      // Network error
-  ServiceError,                      // Service error
+  ServiceError,                      // Store service error
+  RemoteError,                       // Remote server error
   ReceiptFailed,                     // Receipt validation failed
+  Pending,                           // Purchase pending
+  NotEnded,                          // Transaction not ended
+  DeveloperError,                    // Developer integration error
   ReceiptFinishedFailed,             // Receipt finish failed
-  NotPrepared,                       // Not prepared
-  NotEnded,                          // Not ended
-  AlreadyOwned,                      // Already owned
-  DeveloperError,                    // Developer error
+  NotPrepared,                       // Billing not prepared
   BillingResponseJsonParseError,     // JSON parse error
-  DeferredPayment,                   // Deferred payment
-  Interrupted,                       // Interrupted
-  IapNotAvailable,                   // IAP not available
-  PurchaseError,                     // Purchase error
-  SyncError,                         // Sync error
+  DeferredPayment,                   // Deferred payment (awaiting approval)
+  Interrupted,                       // Flow interrupted
+  IapNotAvailable,                   // IAP not available on device
+  PurchaseError,                     // Generic purchase error
+  SyncError,                         // Synchronization error
   TransactionValidationFailed,       // Transaction validation failed
-  ActivityUnavailable,               // Activity unavailable
-  AlreadyPrepared,                   // Already prepared
-  Pending,                           // Pending
-  ConnectionClosed,                  // Connection closed
-  // Additional error codes...
+  ActivityUnavailable,               // Required activity unavailable (Android)
+  AlreadyPrepared,                   // Billing client already prepared
+  ConnectionClosed,                  // Connection closed unexpectedly
+  BillingUnavailable,                // Billing unavailable on device
+  PurchaseNotAllowed,                // Purchase not allowed for user
+  QuotaExceeded,                     // Subscription quota exceeded
+  FeatureNotSupported,               // Feature not supported
+  NotInitialized,                    // Module not initialized
+  AlreadyInitialized,                // Module already initialized
+  ClientInvalid,                     // iOS client invalid
+  PaymentInvalid,                    // Payment information invalid
+  PaymentNotAllowed,                 // Payment not allowed for user
+  StorekitOriginalTransactionIdNotFound, // Original transaction ID missing
+  NotSupported,                      // Operation not supported
+  TransactionFailed,                 // Transaction failed
+  TransactionInvalid,                // Transaction invalid
+  ProductNotFound,                   // Product not found
+  PurchaseFailed,                    // Purchase failed
+  TransactionNotFound,               // Transaction not found
+  RestoreFailed,                     // Restore operation failed
+  RedeemFailed,                      // Code redemption failed
+  NoWindowScene,                     // No window scene available (iOS)
+  ShowSubscriptionsFailed,           // Unable to open subscriptions UI
+  ProductLoadFailed,                 // Failed to load products
 }
 ```
 

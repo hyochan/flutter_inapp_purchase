@@ -1079,7 +1079,9 @@ class FlutterInappPurchase
     if (result.code != null && result.code!.isNotEmpty) {
       final detected = iap_err.ErrorCodeUtils.fromPlatformCode(
         result.code!,
-        _platform.isIOS ? IapPlatform.ios : IapPlatform.android,
+        _platform.isIOS
+            ? iap_types.IapPlatform.ios
+            : iap_types.IapPlatform.android,
       );
       if (detected != iap_types.ErrorCode.Unknown) {
         code = detected;
