@@ -198,8 +198,7 @@ class RequestSubscriptionBuilder {
     return this;
   }
 
-  RequestSubscriptionBuilder withAndroid(
-      AndroidSubscriptionBuilder configure) {
+  RequestSubscriptionBuilder withAndroid(AndroidSubscriptionBuilder configure) {
     configure(android);
     return this;
   }

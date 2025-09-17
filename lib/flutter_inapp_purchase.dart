@@ -95,10 +95,9 @@ extension PurchaseLegacyCompat on iap_types.Purchase {
       ? (this as iap_types.PurchaseIOS).quantityIOS
       : null;
 
-  String? get originalTransactionIdentifierIOS =>
-      this is iap_types.PurchaseIOS
-          ? (this as iap_types.PurchaseIOS).originalTransactionIdentifierIOS
-          : null;
+  String? get originalTransactionIdentifierIOS => this is iap_types.PurchaseIOS
+      ? (this as iap_types.PurchaseIOS).originalTransactionIdentifierIOS
+      : null;
 
   double? get originalTransactionDateIOS => this is iap_types.PurchaseIOS
       ? (this as iap_types.PurchaseIOS).originalTransactionDateIOS
@@ -172,8 +171,7 @@ extension ProductSubscriptionLegacyCompat on iap_types.ProductSubscription {
     return null;
   }
 
-  List<iap_types.AndroidSubscriptionOfferInput>?
-      get subscriptionOffersAndroid {
+  List<iap_types.AndroidSubscriptionOfferInput>? get subscriptionOffersAndroid {
     if (this is iap_types.ProductSubscriptionAndroid) {
       final details = (this as iap_types.ProductSubscriptionAndroid)
           .subscriptionOfferDetailsAndroid;
@@ -526,8 +524,8 @@ class FlutterInappPurchase
     }
 
     final requestVariant = effectiveProps.request;
-    final isSubscription = requestVariant
-        is iap_types.RequestPurchasePropsRequestSubscription;
+    final isSubscription =
+        requestVariant is iap_types.RequestPurchasePropsRequestSubscription;
 
     try {
       if (_platform.isIOS) {

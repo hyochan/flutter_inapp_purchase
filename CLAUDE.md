@@ -59,9 +59,9 @@ final allPurchases = await iap.getAvailablePurchases(
 
 Before committing any changes, run these commands in order and ensure ALL pass:
 
-1. **Format check**: `dart format --set-exit-if-changed .`
-   - This will fail if any files need formatting (exit code 1)
-   - If it fails, run `dart format .` to fix formatting, then retry
+1. **Format check**: `git ls-files '*.dart' | grep -v '^lib/types.dart$' | xargs dart format --page-width 80 --output=none --set-exit-if-changed`
+   - This matches the CI formatter and skips the generated `lib/types.dart`
+   - If it fails, run the same command without `--set-exit-if-changed` (or drop the `--output` flag) to auto-format, then retry
    - Always format code before committing to maintain consistent style
 2. **Lint check**: `flutter analyze`
    - Fix any lint issues before committing
