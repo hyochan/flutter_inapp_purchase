@@ -148,11 +148,15 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
 
     if (Platform.isAndroid) {
       // For Android, check multiple conditions since fields can be null
-      bool condition1 = purchase.purchaseState == PurchaseState.Purchased;
-      bool condition2 = (purchase.isAcknowledgedAndroid == false &&
-          purchase.purchaseToken != null &&
-          purchase.purchaseToken!.isNotEmpty);
-      bool condition3 =
+      final bool condition1 =
+          purchase.purchaseState == PurchaseState.Purchased;
+      final bool condition2 =
+          purchase.isAcknowledgedAndroid == false &&
+              purchase.purchaseToken != null &&
+              purchase.purchaseToken!.isNotEmpty &&
+              purchase.purchaseStateAndroid ==
+                  AndroidPurchaseState.Purchased.value;
+      final bool condition3 =
           purchase.purchaseStateAndroid == AndroidPurchaseState.Purchased.value;
 
       debugPrint('  Android condition checks:');

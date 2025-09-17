@@ -95,6 +95,7 @@ enum OfferType { introductory, promotional, code, winBack }
 enum BillingClientState { disconnected, connecting, connected, closed }
 
 /// Replacement mode (Android)
+@Deprecated('Use AndroidReplacementMode')
 enum ReplacementMode {
   withTimeProration,
   chargeProratedPrice,
@@ -104,6 +105,7 @@ enum ReplacementMode {
 }
 
 /// Replace mode (Android)
+@Deprecated('Use AndroidReplacementMode')
 enum ReplaceMode {
   withTimeProration,
   chargeProratedPrice,

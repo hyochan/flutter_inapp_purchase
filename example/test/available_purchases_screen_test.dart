@@ -47,7 +47,8 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.text('No purchases found'), findsOneWidget);
+    expect(find.text('Active Purchases'), findsOneWidget);
+    expect(find.text('dev.hyo.martie.premium'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox.shrink());
   });

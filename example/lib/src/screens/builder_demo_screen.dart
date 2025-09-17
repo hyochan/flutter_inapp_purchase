@@ -87,11 +87,11 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
       // Get existing subscription token if any
       final purchases = await _iap.getAvailablePurchases();
       Purchase? existing;
-      if (purchases.isNotEmpty) {
-        existing = purchases.firstWhere(
-          (p) => p.productId == 'dev.hyo.martie.premium',
-          orElse: () => purchases.first,
-        );
+      for (final purchase in purchases) {
+        if (purchase.productId == 'dev.hyo.martie.premium') {
+          existing = purchase;
+          break;
+        }
       }
 
       // Android requires an existing purchase token to replace (proration)

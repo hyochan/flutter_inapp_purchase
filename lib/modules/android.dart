@@ -13,10 +13,13 @@ mixin FlutterInappPurchaseAndroid {
 
   /// Consumes a purchase on Android (for consumable products)
   /// @param purchaseToken - The purchase token to consume
-  Future<types.VoidResult?> consumePurchaseAndroid(
+  Future<types.VoidResult> consumePurchaseAndroid(
       {required String purchaseToken}) async {
     if (!isAndroid) {
-      return null;
+      throw PlatformException(
+        code: 'platform',
+        message: 'consumePurchaseAndroid is only supported on Android',
+      );
     }
 
     try {
@@ -24,11 +27,13 @@ mixin FlutterInappPurchaseAndroid {
         'consumePurchaseAndroid',
         {'purchaseToken': purchaseToken},
       );
-      if (response == null) return null;
+      if (response == null) {
+        return const types.VoidResult(success: false);
+      }
       return types.VoidResult.fromJson(Map<String, dynamic>.from(response));
     } catch (error) {
       debugPrint('Error consuming purchase: $error');
-      return null;
+      return const types.VoidResult(success: false);
     }
   }
 }

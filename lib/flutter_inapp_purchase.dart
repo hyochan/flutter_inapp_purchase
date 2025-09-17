@@ -1438,11 +1438,14 @@ class FlutterInappPurchase
   }
 
   @override
-  Future<iap_types.VoidResult?> consumePurchaseAndroid({
+  Future<iap_types.VoidResult> consumePurchaseAndroid({
     required String purchaseToken,
   }) async {
     if (!_platform.isAndroid) {
-      return null;
+      throw const iap_types.PurchaseError(
+        code: iap_types.ErrorCode.IapNotAvailable,
+        message: 'consumePurchaseAndroid is only available on Android',
+      );
     }
 
     try {
@@ -1450,13 +1453,15 @@ class FlutterInappPurchase
         'consumePurchaseAndroid',
         {'purchaseToken': purchaseToken},
       );
-      if (response == null) return null;
+      if (response == null) {
+        return const iap_types.VoidResult(success: false);
+      }
       return iap_types.VoidResult.fromJson(
         Map<String, dynamic>.from(response),
       );
     } catch (error) {
       debugPrint('Error consuming purchase: $error');
-      return null;
+      return const iap_types.VoidResult(success: false);
     }
   }
 
@@ -1891,7 +1896,7 @@ class FlutterInappPurchase
             continue;
           }
           // When 'all', native item contains its own type; pass through using detected type
-          final detectedType = (type == 'all')
+          final detectedType = (resolvedType == 'all')
               ? (itemMap['type']?.toString() ?? 'in-app')
               : resolvedType;
           final parsed = _parseProductFromNative(itemMap, detectedType);
