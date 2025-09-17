@@ -102,7 +102,7 @@ flutter run
 By default, this plugin depends on the published artifact:
 
 ```
-implementation "io.github.hyochan.openiap:openiap-google:1.1.0"
+implementation "io.github.hyochan.openiap:openiap-google:1.1.11"
 ```
 
 If you need to debug against a local checkout of the OpenIAP Android module:
@@ -127,9 +127,9 @@ If you need to debug against a local checkout of the OpenIAP Android module:
    Edit `android/build.gradle` dependencies to use the local project in debug only:
 
    ```
-   // implementation "io.github.hyochan.openiap:openiap-google:1.1.0"
+   // implementation "io.github.hyochan.openiap:openiap-google:1.1.11"
    debugImplementation project(":openiap")
-   releaseImplementation "io.github.hyochan.openiap:openiap-google:1.1.0"
+   releaseImplementation "io.github.hyochan.openiap:openiap-google:1.1.11"
    ```
 
 4. Sync and run
@@ -137,7 +137,7 @@ If you need to debug against a local checkout of the OpenIAP Android module:
    Run a Gradle sync from Android Studio or rebuild the Flutter module.
 
    To revert, comment out the include lines in `settings.gradle` and restore the single
-   `implementation "io.github.hyochan.openiap:openiap-google:1.1.0"` line in `android/build.gradle`.
+   `implementation "io.github.hyochan.openiap:openiap-google:1.1.11"` line in `android/build.gradle`.
 
 ### 5. Commit Your Changes
 

@@ -2,13 +2,13 @@ PODS:
   - Flutter (1.0.0)
   - flutter_inapp_purchase (0.0.1):
     - Flutter
-    - openiap (= 1.1.9)
-  - openiap (1.1.9)
+    - openiap (= 1.1.12)
+  - openiap (1.1.12)
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
   - flutter_inapp_purchase (from `.symlinks/plugins/flutter_inapp_purchase/ios`)
-  - openiap (from `https://github.com/hyodotdev/openiap-apple.git`, tag `1.1.9`)
+  - openiap (from `https://github.com/hyodotdev/openiap-apple.git`, tag `1.1.12`)
 
 EXTERNAL SOURCES:
   Flutter:
@@ -17,18 +17,18 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_inapp_purchase/ios"
   openiap:
     :git: https://github.com/hyodotdev/openiap-apple.git
-    :tag: 1.1.9
+    :tag: 1.1.12
 
 CHECKOUT OPTIONS:
   openiap:
     :git: https://github.com/hyodotdev/openiap-apple.git
-    :tag: 1.1.9
+    :tag: 1.1.12
 
 SPEC CHECKSUMS:
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
-  flutter_inapp_purchase: 2132ba52676c2848b98ea55d26cd7d2284c252a2
-  openiap: dcfa2a4dcf31259ec4b73658e7d1441babccce66
+  flutter_inapp_purchase: 8e8e96cc14bc141e3ffd432012fc9d4e347f8f71
+  openiap: e207e50cc83dc28cd00c3701421a12eacdbd163a
 
-PODFILE CHECKSUM: 7f77729f2fac4d8b3c65d064abe240d5bd87fe01
+PODFILE CHECKSUM: 9446ef2faab77e656d46b3aaf8938ab324919b93
 
 COCOAPODS: 1.15.2

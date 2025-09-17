@@ -99,7 +99,7 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
 
         if (Platform.isAndroid) {
           // For Android, check multiple conditions since fields can be null
-          bool condition1 = purchase.purchaseState == PurchaseState.purchased;
+          bool condition1 = purchase.purchaseState == PurchaseState.Purchased;
           bool condition2 = purchase.isAcknowledgedAndroid == false &&
               purchase.purchaseToken != null &&
               purchase.purchaseToken!.isNotEmpty &&
@@ -172,7 +172,7 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
           debugPrint('Refreshing subscriptions...');
           await _checkActiveSubscriptions();
           debugPrint('Subscriptions refreshed');
-        } else if (purchase.purchaseState == PurchaseState.pending ||
+        } else if (purchase.purchaseState == PurchaseState.Pending ||
             purchase.purchaseStateAndroid ==
                 AndroidPurchaseState.Unknown.value) {
           // Pending

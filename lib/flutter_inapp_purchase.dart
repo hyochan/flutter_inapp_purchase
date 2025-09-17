@@ -612,16 +612,26 @@ class FlutterInappPurchase
             );
           }
 
-          // ignore: deprecated_member_use_from_same_package
-          await requestSubscription(
-            sku,
-            obfuscatedAccountIdAndroid:
-                androidRequest.obfuscatedAccountIdAndroid,
-            obfuscatedProfileIdAndroid:
-                androidRequest.obfuscatedProfileIdAndroid,
-            purchaseTokenAndroid: androidRequest.purchaseTokenAndroid,
-            replacementModeAndroid: androidRequest.replacementModeAndroid,
-          );
+          await _channel.invokeMethod('requestPurchase', {
+            'type': TypeInApp.subs.name,
+            'skus': androidRequest.skus,
+            'productId': sku,
+            if (androidRequest.obfuscatedAccountIdAndroid != null)
+              'obfuscatedAccountId': androidRequest.obfuscatedAccountIdAndroid,
+            if (androidRequest.obfuscatedProfileIdAndroid != null)
+              'obfuscatedProfileId': androidRequest.obfuscatedProfileIdAndroid,
+            if (androidRequest.isOfferPersonalized != null)
+              'isOfferPersonalized': androidRequest.isOfferPersonalized,
+            if (androidRequest.purchaseTokenAndroid != null)
+              'purchaseToken': androidRequest.purchaseTokenAndroid,
+            if (androidRequest.replacementModeAndroid != null)
+              'replacementMode': androidRequest.replacementModeAndroid,
+            if (androidRequest.subscriptionOffers != null &&
+                androidRequest.subscriptionOffers!.isNotEmpty)
+              'subscriptionOffers': androidRequest.subscriptionOffers!
+                  .map((offer) => offer.toJson())
+                  .toList(),
+          });
         } else {
           final androidRequest =
               (requestVariant as iap_types.RequestPurchasePropsRequestPurchase)
