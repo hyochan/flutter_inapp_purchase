@@ -11,7 +11,9 @@ import dev.hyo.openiap.OpenIapModule
 import dev.hyo.openiap.listener.OpenIapPurchaseErrorListener
 import dev.hyo.openiap.listener.OpenIapPurchaseUpdateListener
 import dev.hyo.openiap.models.ProductRequest
-import dev.hyo.openiap.models.RequestPurchaseAndroidProps
+import dev.hyo.openiap.models.RequestPurchaseParams
+import dev.hyo.openiap.models.RequestSubscriptionAndroidProps
+import dev.hyo.openiap.models.RequestSubscriptionAndroidProps.SubscriptionOffer
 import dev.hyo.openiap.models.DeepLinkOptions
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -45,6 +47,21 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
 
     // OpenIAP module instance
     private var openIap: OpenIapModule? = null
+
+    private fun legacyErrorJson(
+        code: String,
+        message: String?,
+        productId: String? = null
+    ): JSONObject {
+        val payload = mutableMapOf<String, Any?>(
+            "code" to code,
+            "message" to (message ?: "")
+        )
+        if (productId != null) {
+            payload["productId"] = productId
+        }
+        return JSONObject(payload)
+    }
 
     fun setContext(context: Context?) {
         this.context = context
@@ -89,7 +106,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
         val ch = channel
         if (ch == null) {
             Log.e(TAG, "onMethodCall received for ${call.method} but channel is null. Cannot send result.")
-            result.error("E_CHANNEL_NULL", "MethodChannel is not attached", null)
+            result.error(OpenIapErrorCode.ChannelNull, "MethodChannel is not attached", null)
             return
         }
         val safe = MethodResultWrapper(result, ch)
@@ -144,7 +161,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                         channel?.invokeMethod("connection-updated", item.toString())
                         if (ok) safe.success("Billing client ready") else safe.error(call.method, "responseCode: -1", "")
                     } catch (e: Exception) {
-                        safe.error(call.method, OpenIapError.E_INIT_CONNECTION, e.message)
+                        safe.error(call.method, OpenIapErrorCode.InitConnection, e.message)
                     }
                 }
                 return
@@ -208,19 +225,19 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                                 val item = JSONObject().apply { put("connected", ok) }
                                 channel?.invokeMethod("connection-updated", item.toString())
                                 if (!ok) {
-                                    safe.error(call.method, OpenIapError.E_INIT_CONNECTION, "Failed to initialize connection")
+                                    safe.error(call.method, OpenIapErrorCode.InitConnection, "Failed to initialize connection")
                                     return@launch
                                 }
                             }
                         } catch (e: Exception) {
-                            safe.error(call.method, OpenIapError.E_SERVICE_ERROR, e.message)
+                            safe.error(call.method, OpenIapErrorCode.ServiceError, e.message)
                             return@launch
                         }
                     }
                     try {
                         val iap = openIap
                         if (iap == null) {
-                            safe.error(call.method, OpenIapError.E_NOT_PREPARED, "IAP module not initialized.")
+                            safe.error(call.method, OpenIapErrorCode.NotPrepared, "IAP module not initialized.")
                             return@launch
                         }
                         val products = iap.fetchProducts(ProductRequest(skuArr, reqType))
@@ -232,7 +249,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                         }
                         safe.success(arr.toString())
                     } catch (e: Exception) {
-                        safe.error(call.method, OpenIapError.E_QUERY_PRODUCT, e.message)
+                        safe.error(call.method, OpenIapErrorCode.QueryProduct, e.message)
                     }
                 }
             }
@@ -251,26 +268,26 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                                 val item = JSONObject().apply { put("connected", ok) }
                                 channel?.invokeMethod("connection-updated", item.toString())
                                 if (!ok) {
-                                    safe.error(call.method, OpenIapError.E_INIT_CONNECTION, "Failed to initialize connection")
+                                    safe.error(call.method, OpenIapErrorCode.InitConnection, "Failed to initialize connection")
                                     return@launch
                                 }
                             }
                         } catch (e: Exception) {
-                            safe.error(call.method, OpenIapError.E_SERVICE_ERROR, e.message)
+                            safe.error(call.method, OpenIapErrorCode.ServiceError, e.message)
                             return@launch
                         }
                     }
                     try {
                         val iap = openIap
                         if (iap == null) {
-                            safe.error(call.method, OpenIapError.E_NOT_PREPARED, "IAP module not initialized.")
+                            safe.error(call.method, OpenIapErrorCode.NotPrepared, "IAP module not initialized.")
                             return@launch
                         }
                         val purchases = iap.getAvailablePurchases(null)
                         val arr = JSONArray(purchases.map { it.toJSON() })
                         safe.success(arr.toString())
                     } catch (e: Exception) {
-                        safe.error(call.method, OpenIapError.E_SERVICE_ERROR, e.message)
+                        safe.error(call.method, OpenIapErrorCode.ServiceError, e.message)
                     }
                 }
             }
@@ -296,9 +313,9 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                 if (skusNormalized.isEmpty()) {
                     channel?.invokeMethod(
                         "purchase-error",
-                        JSONObject(OpenIapError.EmptySkuList.toJSON()).toString()
+                        legacyErrorJson(OpenIapErrorCode.EmptySkuList, "Empty SKUs provided").toString()
                     )
-                    safe.error(call.method, OpenIapError.E_EMPTY_SKU_LIST, "Empty SKUs provided")
+                    safe.error(call.method, OpenIapErrorCode.EmptySkuList, "Empty SKUs provided")
                     return
                 }
 
@@ -314,45 +331,57 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                                 val item = JSONObject().apply { put("connected", ok) }
                                 channel?.invokeMethod("connection-updated", item.toString())
                                 if (!ok) {
-                                    val err = OpenIapError.InitConnection("Failed to initialize connection").toJSON()
-                                    channel?.invokeMethod("purchase-error", JSONObject(err).toString())
-                                    safe.error(call.method, OpenIapError.E_INIT_CONNECTION, "Failed to initialize connection")
-                                    return@withLock
-                                }
+                                val err = legacyErrorJson(OpenIapErrorCode.InitConnection, "Failed to initialize connection")
+                                channel?.invokeMethod("purchase-error", err.toString())
+                                safe.error(call.method, OpenIapErrorCode.InitConnection, "Failed to initialize connection")
+                                return@withLock
                             }
-                        } catch (e: Exception) {
-                            val err = OpenIapError.BillingError(e.message ?: "Service error").toJSON()
-                            channel?.invokeMethod("purchase-error", JSONObject(err).toString())
-                            safe.error(call.method, OpenIapError.E_SERVICE_ERROR, e.message)
-                            return@withLock
                         }
-                    }
-
-                    try {
-                        val iap = openIap
-                        if (iap == null) {
-                            safe.error(call.method, OpenIapError.E_NOT_PREPARED, "IAP module not initialized.")
-                            return@launch
-                        }
-                        iap.requestPurchase(
-                            RequestPurchaseAndroidProps(
-                                skus = skusNormalized,
-                                obfuscatedAccountIdAndroid = obfuscatedAccountId,
-                                obfuscatedProfileIdAndroid = obfuscatedProfileId,
-                                isOfferPersonalized = isOfferPersonalized,
-                            ),
-                            ProductRequest.ProductRequestType.fromString(typeStr)
-                        )
-                        // Success signaled by purchase-updated event
-                        safe.success(null)
                     } catch (e: Exception) {
-                        channel?.invokeMethod(
-                            "purchase-error",
-                            JSONObject(OpenIapError.PurchaseFailed(e.message ?: "Purchase failed").toJSON()).toString()
-                        )
-                        safe.error(call.method, OpenIapError.E_PURCHASE_ERROR, e.message)
+                        val err = legacyErrorJson(OpenIapErrorCode.ServiceError, e.message)
+                        channel?.invokeMethod("purchase-error", err.toString())
+                        safe.error(call.method, OpenIapErrorCode.ServiceError, e.message)
+                        return@withLock
                     }
                 }
+
+                try {
+                    val iap = openIap
+                    if (iap == null) {
+                        safe.error(call.method, OpenIapErrorCode.NotPrepared, "IAP module not initialized.")
+                        return@launch
+                    }
+                    val offers = (params["subscriptionOffers"] as? List<*>)?.mapNotNull { entry ->
+                        val map = entry as? Map<*, *> ?: return@mapNotNull null
+                        val sku = map["sku"] as? String ?: return@mapNotNull null
+                        val offerToken = map["offerToken"] as? String ?: return@mapNotNull null
+                        SubscriptionOffer(sku = sku, offerToken = offerToken)
+                    }
+
+                    val offerList = offers ?: emptyList()
+
+                    val requestParams = RequestPurchaseParams(
+                        skus = skusNormalized,
+                        obfuscatedAccountIdAndroid = obfuscatedAccountId,
+                        obfuscatedProfileIdAndroid = obfuscatedProfileId,
+                        isOfferPersonalized = isOfferPersonalized,
+                        subscriptionOffers = offerList
+                    )
+
+                    iap.requestPurchase(
+                        requestParams,
+                        ProductRequest.ProductRequestType.fromString(typeStr)
+                    )
+                    // Success signaled by purchase-updated event
+                    safe.success(null)
+                } catch (e: Exception) {
+                    channel?.invokeMethod(
+                        "purchase-error",
+                        legacyErrorJson(OpenIapErrorCode.PurchaseError, e.message).toString()
+                    )
+                    safe.error(call.method, OpenIapErrorCode.PurchaseError, e.message)
+                }
+            }
             }
 
             // -----------------------------------------------------------------
@@ -363,13 +392,13 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                     try {
                         val iap = openIap
                         if (iap == null) {
-                            safe.error(call.method, OpenIapError.E_NOT_PREPARED, "IAP module not initialized.")
+                            safe.error(call.method, OpenIapErrorCode.NotPrepared, "IAP module not initialized.")
                             return@launch
                         }
                         val code = iap.getStorefront()
                         safe.success(code)
                     } catch (e: Exception) {
-                        safe.error(call.method, OpenIapError.E_SERVICE_ERROR, e.message)
+                        safe.error(call.method, OpenIapErrorCode.ServiceError, e.message)
                     }
                 }
             }
@@ -382,34 +411,34 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                     try {
                         val iap = openIap
                         if (iap == null) {
-                            safe.error(call.method, OpenIapError.E_NOT_PREPARED, "IAP module not initialized.")
+                            safe.error(call.method, OpenIapErrorCode.NotPrepared, "IAP module not initialized.")
                             return@launch
                         }
                         iap.deepLinkToSubscriptions(DeepLinkOptions(skuAndroid = sku, packageNameAndroid = pkg))
                         safe.success(null)
                     } catch (e: Exception) {
-                        safe.error(call.method, OpenIapError.E_SERVICE_ERROR, e.message)
+                        safe.error(call.method, OpenIapErrorCode.ServiceError, e.message)
                     }
                 }
             }
             "acknowledgePurchaseAndroid" -> {
                 val token = call.argument<String>("token") ?: call.argument<String>("purchaseToken")
                 if (token.isNullOrBlank()) {
-                    safe.error(call.method, OpenIapError.E_DEVELOPER_ERROR, "Missing purchaseToken")
+                    safe.error(call.method, OpenIapErrorCode.DeveloperError, "Missing purchaseToken")
                     return
                 }
                 scope.launch {
                     try {
                         val iap = openIap
                         if (iap == null) {
-                            safe.error(call.method, OpenIapError.E_NOT_PREPARED, "IAP module not initialized.")
+                            safe.error(call.method, OpenIapErrorCode.NotPrepared, "IAP module not initialized.")
                             return@launch
                         }
                         iap.acknowledgePurchaseAndroid(token)
                         val resp = JSONObject().apply { put("responseCode", 0) }
                         safe.success(resp.toString())
                     } catch (e: Exception) {
-                        safe.error(call.method, OpenIapError.E_SERVICE_ERROR, e.message)
+                        safe.error(call.method, OpenIapErrorCode.ServiceError, e.message)
                     }
                 }
             }
@@ -417,14 +446,14 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
             "consumePurchaseAndroid" -> {
                 val token = call.argument<String>("token") ?: call.argument<String>("purchaseToken")
                 if (token.isNullOrBlank()) {
-                    safe.error(call.method, OpenIapError.E_DEVELOPER_ERROR, "Missing purchaseToken")
+                    safe.error(call.method, OpenIapErrorCode.DeveloperError, "Missing purchaseToken")
                     return
                 }
                 scope.launch {
                     try {
                         val iap = openIap
                         if (iap == null) {
-                            safe.error(call.method, OpenIapError.E_NOT_PREPARED, "IAP module not initialized.")
+                            safe.error(call.method, OpenIapErrorCode.NotPrepared, "IAP module not initialized.")
                             return@launch
                         }
                         iap.consumePurchaseAndroid(token)
@@ -434,7 +463,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                         }
                         safe.success(resp.toString())
                     } catch (e: Exception) {
-                        safe.error(call.method, OpenIapError.E_SERVICE_ERROR, e.message)
+                        safe.error(call.method, OpenIapErrorCode.ServiceError, e.message)
                     }
                 }
             }
@@ -463,23 +492,23 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                                 val item = JSONObject().apply { put("connected", ok) }
                                 channel?.invokeMethod("connection-updated", item.toString())
                                 if (!ok) {
-                                    safe.error(call.method, OpenIapError.E_INIT_CONNECTION, "Failed to initialize connection")
+                                    safe.error(call.method, OpenIapErrorCode.InitConnection, "Failed to initialize connection")
                                     return@launch
                                 }
                             }
                         } catch (e: Exception) {
-                            safe.error(call.method, OpenIapError.E_SERVICE_ERROR, e.message)
+                            safe.error(call.method, OpenIapErrorCode.ServiceError, e.message)
                             return@launch
                         }
                     }
                     try {
                         val iap = openIap
                         if (iap == null) {
-                            safe.error(call.method, OpenIapError.E_NOT_PREPARED, "IAP module not initialized.")
+                            safe.error(call.method, OpenIapErrorCode.NotPrepared, "IAP module not initialized.")
                             return@launch
                         }
                         val products = iap.fetchProducts(
-                            ProductRequest(productIds, ProductRequest.ProductRequestType.INAPP)
+                            ProductRequest(productIds, ProductRequest.ProductRequestType.InApp)
                         )
                         val arr = JSONArray()
                         products.forEach { p ->
@@ -490,7 +519,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                         }
                         safe.success(arr.toString())
                     } catch (e: Exception) {
-                        safe.error(call.method, OpenIapError.E_QUERY_PRODUCT, e.message)
+                        safe.error(call.method, OpenIapErrorCode.QueryProduct, e.message)
                     }
                 }
             }
@@ -509,23 +538,23 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                                 val item = JSONObject().apply { put("connected", ok) }
                                 channel?.invokeMethod("connection-updated", item.toString())
                                 if (!ok) {
-                                    safe.error(call.method, OpenIapError.E_INIT_CONNECTION, "Failed to initialize connection")
+                                    safe.error(call.method, OpenIapErrorCode.InitConnection, "Failed to initialize connection")
                                     return@launch
                                 }
                             }
                         } catch (e: Exception) {
-                            safe.error(call.method, OpenIapError.E_SERVICE_ERROR, e.message)
+                            safe.error(call.method, OpenIapErrorCode.ServiceError, e.message)
                             return@launch
                         }
                     }
                     try {
                         val iap = openIap
                         if (iap == null) {
-                            safe.error(call.method, OpenIapError.E_NOT_PREPARED, "IAP module not initialized.")
+                            safe.error(call.method, OpenIapErrorCode.NotPrepared, "IAP module not initialized.")
                             return@launch
                         }
                         val products = iap.fetchProducts(
-                            ProductRequest(productIds, ProductRequest.ProductRequestType.SUBS)
+                            ProductRequest(productIds, ProductRequest.ProductRequestType.Subs)
                         )
                         val arr = JSONArray()
                         products.forEach { p ->
@@ -536,7 +565,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                         }
                         safe.success(arr.toString())
                     } catch (e: Exception) {
-                        safe.error(call.method, OpenIapError.E_QUERY_PRODUCT, e.message)
+                        safe.error(call.method, OpenIapErrorCode.QueryProduct, e.message)
                     }
                 }
             }
@@ -558,26 +587,26 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                                 val item = JSONObject().apply { put("connected", ok) }
                                 channel?.invokeMethod("connection-updated", item.toString())
                                 if (!ok) {
-                                    safe.error(call.method, OpenIapError.E_INIT_CONNECTION, "Failed to initialize connection")
+                                    safe.error(call.method, OpenIapErrorCode.InitConnection, "Failed to initialize connection")
                                     return@launch
                                 }
                             }
                         } catch (e: Exception) {
-                            safe.error(call.method, OpenIapError.E_SERVICE_ERROR, e.message)
+                            safe.error(call.method, OpenIapErrorCode.ServiceError, e.message)
                             return@launch
                         }
                     }
                     try {
                         val iap = openIap
                         if (iap == null) {
-                            safe.error(call.method, OpenIapError.E_NOT_PREPARED, "IAP module not initialized.")
+                            safe.error(call.method, OpenIapErrorCode.NotPrepared, "IAP module not initialized.")
                             return@launch
                         }
                         val purchases = iap.getAvailableItems(reqType)
                         val arr = JSONArray(purchases.map { it.toJSON() })
                         safe.success(arr.toString())
                     } catch (e: Exception) {
-                        safe.error(call.method, OpenIapError.E_SERVICE_ERROR, e.message)
+                        safe.error(call.method, OpenIapErrorCode.ServiceError, e.message)
                     }
                 }
             }
@@ -597,26 +626,26 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                                 val item = JSONObject().apply { put("connected", ok) }
                                 channel?.invokeMethod("connection-updated", item.toString())
                                 if (!ok) {
-                                    safe.error(call.method, OpenIapError.E_INIT_CONNECTION, "Failed to initialize connection")
+                                    safe.error(call.method, OpenIapErrorCode.InitConnection, "Failed to initialize connection")
                                     return@launch
                                 }
                             }
                         } catch (e: Exception) {
-                            safe.error(call.method, OpenIapError.E_SERVICE_ERROR, e.message)
+                            safe.error(call.method, OpenIapErrorCode.ServiceError, e.message)
                             return@launch
                         }
                     }
                     try {
                         val iap = openIap
                         if (iap == null) {
-                            safe.error(call.method, OpenIapError.E_NOT_PREPARED, "IAP module not initialized.")
+                            safe.error(call.method, OpenIapErrorCode.NotPrepared, "IAP module not initialized.")
                             return@launch
                         }
                         val purchases = iap.getAvailableItems(reqType)
                         val arr = JSONArray(purchases.map { it.toJSON() })
                         safe.success(arr.toString())
                     } catch (e: Exception) {
-                        safe.error(call.method, OpenIapError.E_SERVICE_ERROR, e.message)
+                        safe.error(call.method, OpenIapErrorCode.ServiceError, e.message)
                     }
                 }
             }
@@ -635,9 +664,9 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                 if (productId.isNullOrBlank()) {
                     channel?.invokeMethod(
                         "purchase-error",
-                        JSONObject(OpenIapError.BillingError("Missing productId").toJSON()).toString()
+                        legacyErrorJson(OpenIapErrorCode.DeveloperError, "Missing productId").toString()
                     )
-                    safe.error("buyItemByType", OpenIapError.E_DEVELOPER_ERROR, "Missing productId")
+                    safe.error("buyItemByType", OpenIapErrorCode.DeveloperError, "Missing productId")
                     return
                 }
 
@@ -653,42 +682,46 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                                 val item = JSONObject().apply { put("connected", ok) }
                                 channel?.invokeMethod("connection-updated", item.toString())
                                 if (!ok) {
-                                    val err = OpenIapError.InitConnection("Failed to initialize connection").toJSON()
-                                    channel?.invokeMethod("purchase-error", JSONObject(err).toString())
-                                    safe.error(call.method, OpenIapError.E_INIT_CONNECTION, "Failed to initialize connection")
+                                val err = legacyErrorJson(OpenIapErrorCode.InitConnection, "Failed to initialize connection")
+                                channel?.invokeMethod("purchase-error", err.toString())
+                                    safe.error(call.method, OpenIapErrorCode.InitConnection, "Failed to initialize connection")
                                     return@withLock
                                 }
                             }
                         } catch (e: Exception) {
-                            val err = OpenIapError.BillingError(e.message ?: "Service error").toJSON()
-                            channel?.invokeMethod("purchase-error", JSONObject(err).toString())
-                            safe.error(call.method, OpenIapError.E_SERVICE_ERROR, e.message)
+                            val err = legacyErrorJson(OpenIapErrorCode.ServiceError, e.message)
+                            channel?.invokeMethod("purchase-error", err.toString())
+                            safe.error(call.method, OpenIapErrorCode.ServiceError, e.message)
                             return@withLock
                         }
                     }
                     try {
                         val iap = openIap
                         if (iap == null) {
-                            safe.error(call.method, OpenIapError.E_NOT_PREPARED, "IAP module not initialized.")
+                            safe.error(call.method, OpenIapErrorCode.NotPrepared, "IAP module not initialized.")
                             return@launch
                         }
+                        val requestParams = RequestPurchaseParams(
+                            skus = listOf(productId),
+                            obfuscatedAccountIdAndroid = obfuscatedAccountId,
+                            obfuscatedProfileIdAndroid = obfuscatedProfileId,
+                            isOfferPersonalized = isOfferPersonalized,
+                            subscriptionOffers = emptyList()
+                        )
+
                         iap.requestPurchase(
-                            RequestPurchaseAndroidProps(
-                                skus = listOf(productId),
-                                obfuscatedAccountIdAndroid = obfuscatedAccountId,
-                                obfuscatedProfileIdAndroid = obfuscatedProfileId,
-                                isOfferPersonalized = isOfferPersonalized,
-                            ),
+                            requestParams,
                             ProductRequest.ProductRequestType.fromString(typeStr)
                         )
+                        safe.success(null)
                     } catch (e: Exception) {
                         channel?.invokeMethod(
                             "purchase-error",
-                            JSONObject(OpenIapError.PurchaseFailed(e.message ?: "Purchase failed").toJSON()).toString()
+                            legacyErrorJson(OpenIapErrorCode.PurchaseError, e.message).toString()
                         )
+                        safe.error(call.method, OpenIapErrorCode.PurchaseError, e.message)
                     }
                 }
-                safe.success(null)
             }
 
             // Finish/acknowledge/consume (compat)
@@ -696,21 +729,21 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                 logDeprecated("acknowledgePurchase", "Use acknowledgePurchaseAndroid(token) instead")
                 val token = call.argument<String>("purchaseToken")
                 if (token.isNullOrBlank()) {
-                    safe.error("acknowledgePurchase", OpenIapError.E_DEVELOPER_ERROR, "Missing purchaseToken")
+                    safe.error("acknowledgePurchase", OpenIapErrorCode.DeveloperError, "Missing purchaseToken")
                     return
                 }
                 scope.launch {
                     try {
                         val iap = openIap
                         if (iap == null) {
-                            safe.error("acknowledgePurchase", OpenIapError.E_NOT_PREPARED, "IAP module not initialized.")
+                            safe.error("acknowledgePurchase", OpenIapErrorCode.NotPrepared, "IAP module not initialized.")
                             return@launch
                         }
                         iap.acknowledgePurchaseAndroid(token)
                         val resp = JSONObject().apply { put("responseCode", 0) }
                         safe.success(resp.toString())
                     } catch (e: Exception) {
-                        safe.error("acknowledgePurchase", OpenIapError.E_SERVICE_ERROR, e.message)
+                        safe.error("acknowledgePurchase", OpenIapErrorCode.ServiceError, e.message)
                     }
                 }
             }
@@ -720,14 +753,14 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                 logDeprecated("consumeProduct", "Use finishTransaction(purchase, isConsumable=true) at higher-level API")
                 val token = call.argument<String>("purchaseToken")
                 if (token.isNullOrBlank()) {
-                    safe.error("consumeProduct", OpenIapError.E_DEVELOPER_ERROR, "Missing purchaseToken")
+                    safe.error("consumeProduct", OpenIapErrorCode.DeveloperError, "Missing purchaseToken")
                     return
                 }
                 scope.launch {
                     try {
                         val iap = openIap
                         if (iap == null) {
-                            safe.error("consumeProduct", OpenIapError.E_NOT_PREPARED, "IAP module not initialized.")
+                            safe.error("consumeProduct", OpenIapErrorCode.NotPrepared, "IAP module not initialized.")
                             return@launch
                         }
                         iap.consumePurchaseAndroid(token)
@@ -737,7 +770,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                         }
                         safe.success(resp.toString())
                     } catch (e: Exception) {
-                        safe.error("consumeProduct", OpenIapError.E_SERVICE_ERROR, e.message)
+                        safe.error("consumeProduct", OpenIapErrorCode.ServiceError, e.message)
                     }
                 }
             }
@@ -745,7 +778,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                 logDeprecated("consumePurchase", "Use finishTransaction(purchase, isConsumable=true) at higher-level API")
                 val token = call.argument<String>("purchaseToken")
                 if (token.isNullOrBlank()) {
-                    safe.error("consumePurchase", OpenIapError.E_DEVELOPER_ERROR, "Missing purchaseToken")
+                    safe.error("consumePurchase", OpenIapErrorCode.DeveloperError, "Missing purchaseToken")
                     return
                 }
                 scope.launch {
@@ -798,7 +831,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                     val payload = when (e) {
                         is OpenIapError -> JSONObject(e.toJSON())
                         else -> JSONObject(mapOf(
-                            "code" to OpenIapError.E_PURCHASE_ERROR,
+                            "code" to OpenIapErrorCode.PurchaseError,
                             "message" to (e.message ?: "Purchase error"),
                             "platform" to "android"
                         ))
