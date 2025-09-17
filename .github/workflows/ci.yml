@@ -24,10 +24,14 @@ jobs:
       - run: flutter pub get
 
       - name: Check formatting (excluding generated files)
+        shell: bash
         run: |
-          git ls-files '*.dart' \
-            | grep -v '^lib/types.dart$' \
-            | xargs dart format --page-width 80 --output=none --set-exit-if-changed
+          set -euo pipefail
+          files=$(git ls-files '*.dart' | grep -Ev '^lib/types\.dart$|\.g\.dart$|\.freezed\.dart$' || true)
+          if [[ -z "$files" ]]; then
+            exit 0
+          fi
+          printf '%s\n' "$files" | xargs dart format --page-width 80 --output=none --set-exit-if-changed
 
       # - run: flutter analyze .
 

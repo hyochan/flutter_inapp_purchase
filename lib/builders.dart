@@ -1,14 +1,14 @@
 import 'package:flutter_inapp_purchase/types.dart';
 
 /// Builder for iOS-specific purchase props
-class RequestPurchaseIOSBuilder {
+class RequestPurchaseIosBuilder {
   String sku = '';
   bool? andDangerouslyFinishTransactionAutomatically;
   String? appAccountToken;
   int? quantity;
   DiscountOfferInputIOS? withOffer;
 
-  RequestPurchaseIOSBuilder();
+  RequestPurchaseIosBuilder();
 
   RequestPurchaseIosProps build() {
     return RequestPurchaseIosProps(
@@ -23,14 +23,14 @@ class RequestPurchaseIOSBuilder {
 }
 
 /// Builder for iOS-specific subscription props
-class RequestSubscriptionIOSBuilder {
+class RequestSubscriptionIosBuilder {
   String sku = '';
   bool? andDangerouslyFinishTransactionAutomatically;
   String? appAccountToken;
   int? quantity;
   DiscountOfferInputIOS? withOffer;
 
-  RequestSubscriptionIOSBuilder();
+  RequestSubscriptionIosBuilder();
 
   RequestSubscriptionIosProps build() {
     return RequestSubscriptionIosProps(
@@ -91,7 +91,7 @@ class RequestSubscriptionAndroidBuilder {
 
 /// Unified purchase parameter builder
 class RequestPurchaseBuilder {
-  final RequestPurchaseIOSBuilder ios = RequestPurchaseIOSBuilder();
+  final RequestPurchaseIosBuilder ios = RequestPurchaseIosBuilder();
   final RequestPurchaseAndroidBuilder android = RequestPurchaseAndroidBuilder();
   ProductQueryType _type = ProductQueryType.InApp;
 
@@ -99,6 +99,12 @@ class RequestPurchaseBuilder {
 
   set type(Object value) {
     if (value is ProductQueryType) {
+      if (value == ProductQueryType.All) {
+        throw ArgumentError(
+          'ProductQueryType.All is not supported in RequestPurchaseBuilder. '
+          'Use RequestSubscriptionBuilder or specify ProductType.InApp/ProductType.Subs explicitly.',
+        );
+      }
       _type = value;
       return;
     }
@@ -134,42 +140,51 @@ class RequestPurchaseBuilder {
       return RequestPurchaseProps.inApp(request: payload);
     }
 
-    final iosSub = iosProps == null
-        ? null
-        : RequestSubscriptionIosProps(
-            sku: iosProps.sku,
-            andDangerouslyFinishTransactionAutomatically:
-                iosProps.andDangerouslyFinishTransactionAutomatically,
-            appAccountToken: iosProps.appAccountToken,
-            quantity: iosProps.quantity,
-            withOffer: iosProps.withOffer,
-          );
+    if (_type == ProductQueryType.Subs) {
+      final iosSub = iosProps == null
+          ? null
+          : RequestSubscriptionIosProps(
+              sku: iosProps.sku,
+              andDangerouslyFinishTransactionAutomatically:
+                  iosProps.andDangerouslyFinishTransactionAutomatically,
+              appAccountToken: iosProps.appAccountToken,
+              quantity: iosProps.quantity,
+              withOffer: iosProps.withOffer,
+            );
 
-    final androidSub = androidProps == null
-        ? null
-        : RequestSubscriptionAndroidProps(
-            skus: androidProps.skus,
-            isOfferPersonalized: androidProps.isOfferPersonalized,
-            obfuscatedAccountIdAndroid: androidProps.obfuscatedAccountIdAndroid,
-            obfuscatedProfileIdAndroid: androidProps.obfuscatedProfileIdAndroid,
-            purchaseTokenAndroid: null,
-            replacementModeAndroid: null,
-            subscriptionOffers: null,
-          );
+      final androidSub = androidProps == null
+          ? null
+          : RequestSubscriptionAndroidProps(
+              skus: androidProps.skus,
+              isOfferPersonalized: androidProps.isOfferPersonalized,
+              obfuscatedAccountIdAndroid:
+                  androidProps.obfuscatedAccountIdAndroid,
+              obfuscatedProfileIdAndroid:
+                  androidProps.obfuscatedProfileIdAndroid,
+              purchaseTokenAndroid: null,
+              replacementModeAndroid: null,
+              subscriptionOffers: null,
+            );
 
-    final subscriptionPayload = RequestSubscriptionPropsByPlatforms(
-      ios: iosSub,
-      android: androidSub,
+      final subscriptionPayload = RequestSubscriptionPropsByPlatforms(
+        ios: iosSub,
+        android: androidSub,
+      );
+      return RequestPurchaseProps.subs(request: subscriptionPayload);
+    }
+
+    throw ArgumentError(
+      'ProductQueryType.All is not supported in RequestPurchaseBuilder. '
+      'Use RequestSubscriptionBuilder or specify ProductType.InApp/ProductType.Subs explicitly.',
     );
-    return RequestPurchaseProps.subs(request: subscriptionPayload);
   }
 }
 
-typedef IosPurchaseBuilder = void Function(RequestPurchaseIOSBuilder builder);
+typedef IosPurchaseBuilder = void Function(RequestPurchaseIosBuilder builder);
 typedef AndroidPurchaseBuilder = void Function(
     RequestPurchaseAndroidBuilder builder);
 typedef IosSubscriptionBuilder = void Function(
-    RequestSubscriptionIOSBuilder builder);
+    RequestSubscriptionIosBuilder builder);
 typedef AndroidSubscriptionBuilder = void Function(
     RequestSubscriptionAndroidBuilder builder);
 typedef RequestBuilder = void Function(RequestPurchaseBuilder builder);
@@ -189,7 +204,7 @@ extension RequestPurchaseBuilderExtension on RequestPurchaseBuilder {
 class RequestSubscriptionBuilder {
   RequestSubscriptionBuilder();
 
-  final RequestSubscriptionIOSBuilder ios = RequestSubscriptionIOSBuilder();
+  final RequestSubscriptionIosBuilder ios = RequestSubscriptionIosBuilder();
   final RequestSubscriptionAndroidBuilder android =
       RequestSubscriptionAndroidBuilder();
 

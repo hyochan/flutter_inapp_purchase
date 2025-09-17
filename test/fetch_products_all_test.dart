@@ -55,7 +55,8 @@ void main() {
         .setMockMethodCallHandler(channel, null);
   });
 
-  test('fetchProducts detects per-item type when querying all products', () async {
+  test('fetchProducts detects per-item type when querying all products',
+      () async {
     final platform = FakePlatform(operatingSystem: 'ios');
     final iap = FlutterInappPurchase.private(platform);
 

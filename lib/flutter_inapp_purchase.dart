@@ -87,9 +87,7 @@ extension PurchaseLegacyCompat on iap_types.Purchase {
       ? (this as iap_types.PurchaseAndroid).obfuscatedProfileIdAndroid
       : null;
 
-  String? get orderIdAndroid => this is iap_types.PurchaseAndroid
-      ? (this as iap_types.PurchaseAndroid).developerPayloadAndroid
-      : null;
+  String? get orderIdAndroid => null;
 
   int? get quantityIOS => this is iap_types.PurchaseIOS
       ? (this as iap_types.PurchaseIOS).quantityIOS
@@ -1164,6 +1162,17 @@ class FlutterInappPurchase
         itemJson['transactionId']?.toString() ?? itemJson['id']?.toString();
     final quantity = (itemJson['quantity'] as num?)?.toInt() ?? 1;
 
+    final String? purchaseId = (transactionId?.isNotEmpty ?? false)
+        ? transactionId
+        : (productId.isNotEmpty ? productId : null);
+
+    if (purchaseId == null || purchaseId.isEmpty) {
+      debugPrint(
+        '[flutter_inapp_purchase] Skipping purchase with missing identifiers: $itemJson',
+      );
+      throw const FormatException('Missing purchase identifier');
+    }
+
     double transactionDate = 0;
     final transactionDateValue = itemJson['transactionDate'];
     if (transactionDateValue is num) {
@@ -1182,11 +1191,7 @@ class FlutterInappPurchase
       final purchaseState = _mapAndroidPurchaseState(stateValue).toJson();
 
       final map = <String, dynamic>{
-        'id': (transactionId?.isNotEmpty ?? false)
-            ? transactionId
-            : (productId.isNotEmpty
-                ? productId
-                : DateTime.now().millisecondsSinceEpoch.toString()),
+        'id': purchaseId,
         'productId': productId,
         'platform': iap_types.IapPlatform.Android.toJson(),
         'isAutoRenewing': itemJson['isAutoRenewing'] as bool? ??
@@ -1235,11 +1240,7 @@ class FlutterInappPurchase
     }
 
     final map = <String, dynamic>{
-      'id': (transactionId?.isNotEmpty ?? false)
-          ? transactionId
-          : (productId.isNotEmpty
-              ? productId
-              : DateTime.now().millisecondsSinceEpoch.toString()),
+      'id': purchaseId,
       'productId': productId,
       'platform': iap_types.IapPlatform.IOS.toJson(),
       'isAutoRenewing': itemJson['isAutoRenewing'] as bool? ?? false,
@@ -1977,54 +1978,45 @@ class FlutterInappPurchase
           continue;
         }
 
-        // Check if this is a subscription (typically by checking auto-renewing status)
-        // or by checking the purchase against known subscription products
-        bool isSubscription = false;
-        bool isActive = false;
-
-        if (_platform.isAndroid && purchase is iap_types.PurchaseAndroid) {
-          isSubscription = purchase.autoRenewingAndroid ?? false;
-          isActive = isSubscription &&
+        if (purchase is iap_types.PurchaseAndroid) {
+          final bool isSubscription = purchase.autoRenewingAndroid ?? false;
+          final bool isActive = isSubscription &&
               purchase.purchaseState == iap_types.PurchaseState.Purchased;
-        } else if (_platform.isIOS && purchase is iap_types.PurchaseIOS) {
-          final receipt = purchase.purchaseToken;
-          isSubscription =
-              receipt != null || purchase.productId.contains('sub');
-          isActive = (purchase.purchaseState ==
-                      iap_types.PurchaseState.Purchased ||
-                  purchase.purchaseState == iap_types.PurchaseState.Restored ||
-                  purchase.purchaseState == iap_types.PurchaseState.Deferred) &&
-              isSubscription;
-        }
 
-        if (isSubscription && isActive) {
-          // Create ActiveSubscription from Purchase
-          activeSubscriptions.add(
-            purchase.platform == iap_types.IapPlatform.Android
-                ? iap_types.ActiveSubscription(
-                    productId: purchase.productId,
-                    isActive: true,
-                    autoRenewingAndroid: (purchase as iap_types.PurchaseAndroid)
-                            .autoRenewingAndroid ??
-                        false,
-                    transactionDate: purchase.transactionDate,
-                    transactionId: purchase.id,
-                    purchaseToken: purchase.purchaseToken,
-                  )
-                : iap_types.ActiveSubscription(
-                    productId: purchase.productId,
-                    isActive: true,
-                    expirationDateIOS: purchase is iap_types.PurchaseIOS
-                        ? purchase.expirationDateIOS
-                        : null,
-                    environmentIOS: purchase is iap_types.PurchaseIOS
-                        ? purchase.environmentIOS
-                        : null,
-                    purchaseToken: purchase.purchaseToken,
-                    transactionDate: purchase.transactionDate,
-                    transactionId: purchase.id,
-                  ),
-          );
+          if (isSubscription && isActive) {
+            activeSubscriptions.add(
+              iap_types.ActiveSubscription(
+                productId: purchase.productId,
+                isActive: true,
+                autoRenewingAndroid: purchase.autoRenewingAndroid ?? false,
+                transactionDate: purchase.transactionDate,
+                transactionId: purchase.id,
+                purchaseToken: purchase.purchaseToken,
+              ),
+            );
+          }
+        } else if (purchase is iap_types.PurchaseIOS) {
+          final receipt = purchase.purchaseToken;
+          final bool isSubscription =
+              receipt != null || purchase.productId.contains('sub');
+          final bool isActive = (purchase.purchaseState ==
+                      iap_types.PurchaseState.Purchased ||
+                  purchase.purchaseState == iap_types.PurchaseState.Restored) &&
+              isSubscription;
+
+          if (isSubscription && isActive) {
+            activeSubscriptions.add(
+              iap_types.ActiveSubscription(
+                productId: purchase.productId,
+                isActive: true,
+                expirationDateIOS: purchase.expirationDateIOS,
+                environmentIOS: purchase.environmentIOS,
+                purchaseToken: purchase.purchaseToken,
+                transactionDate: purchase.transactionDate,
+                transactionId: purchase.id,
+              ),
+            );
+          }
         }
       }
 
@@ -2077,18 +2069,20 @@ class FlutterInappPurchase
       list = json.decode(result.toString()) as List<dynamic>;
     }
 
-    List<iap_types.Purchase>? decoded = list
-        .map<iap_types.Purchase>(
-          (dynamic product) => _convertFromLegacyPurchase(
-            Map<String, dynamic>.from(product as Map),
-            Map<String, dynamic>.from(
-              product,
-            ), // Pass original JSON as well
-          ),
-        )
-        .toList();
+    final purchases = <iap_types.Purchase>[];
+    for (final dynamic product in list) {
+      try {
+        final map = Map<String, dynamic>.from(product as Map);
+        final original = Map<String, dynamic>.from(product);
+        purchases.add(_convertFromLegacyPurchase(map, original));
+      } catch (error) {
+        debugPrint(
+          '[flutter_inapp_purchase] Skipping purchase due to parse error: $error',
+        );
+      }
+    }
 
-    return decoded;
+    return purchases;
   }
 
   double? _parsePrice(dynamic value) {

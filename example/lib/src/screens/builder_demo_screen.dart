@@ -40,7 +40,7 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
       await _iap.requestPurchaseWithBuilder(
         build: (RequestPurchaseBuilder r) => r
           ..type = ProductType.InApp
-          ..withIOS((RequestPurchaseIOSBuilder i) =>
+          ..withIOS((RequestPurchaseIosBuilder i) =>
               i..sku = 'dev.hyo.martie.10bulbs')
           ..withAndroid((RequestPurchaseAndroidBuilder a) =>
               a..skus = ['dev.hyo.martie.10bulbs']),
@@ -64,7 +64,7 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
       await _iap.requestPurchaseWithBuilder(
         build: (RequestPurchaseBuilder r) => r
           ..type = ProductType.Subs
-          ..withIOS((RequestPurchaseIOSBuilder i) =>
+          ..withIOS((RequestPurchaseIosBuilder i) =>
               i..sku = 'dev.hyo.martie.premium')
           ..withAndroid((RequestPurchaseAndroidBuilder a) =>
               a..skus = ['dev.hyo.martie.premium']),
@@ -199,7 +199,7 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
                       """await iap.requestPurchaseWithBuilder(
   build: (RequestPurchaseBuilder r) => r
     ..type = ProductType.InApp
-    ..withIOS((RequestPurchaseIOSBuilder i) => i
+    ..withIOS((RequestPurchaseIosBuilder i) => i
       ..sku = 'dev.hyo.martie.10bulbs'
       ..quantity = 1)
     ..withAndroid((RequestPurchaseAndroidBuilder a) => a
@@ -210,7 +210,7 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
 await iap.requestPurchaseWithBuilder(
   build: (RequestPurchaseBuilder r) => r
     ..type = ProductType.Subs
-    ..withIOS((RequestPurchaseIOSBuilder i) => i..sku = 'dev.hyo.martie.premium')
+    ..withIOS((RequestPurchaseIosBuilder i) => i..sku = 'dev.hyo.martie.premium')
     ..withAndroid((RequestPurchaseAndroidBuilder a) => a..skus = ['dev.hyo.martie.premium']),
 );
 

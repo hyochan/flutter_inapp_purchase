@@ -99,17 +99,20 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
 
         if (Platform.isAndroid) {
           // For Android, check multiple conditions since fields can be null
-          bool condition1 = purchase.purchaseState == PurchaseState.Purchased;
-          bool condition2 = (purchase.isAcknowledgedAndroid == false &&
+          bool condition1 = purchase.purchaseState == PurchaseState.purchased;
+          bool condition2 = purchase.isAcknowledgedAndroid == false &&
               purchase.purchaseToken != null &&
-              purchase.purchaseToken!.isNotEmpty);
+              purchase.purchaseToken!.isNotEmpty &&
+              purchase.purchaseStateAndroid ==
+                  AndroidPurchaseState.Purchased.value;
           bool condition3 = purchase.purchaseStateAndroid ==
               AndroidPurchaseState.Purchased.value;
 
           debugPrint('  Android condition checks:');
           debugPrint('    purchaseState == purchased: $condition1');
           debugPrint('    unacknowledged with token: $condition2');
-          debugPrint('    purchaseStateAndroid == purchased: $condition3');
+          debugPrint(
+              '    purchaseStateAndroid == AndroidPurchaseState.Purchased: $condition3');
 
           isPurchased = condition1 || condition2 || condition3;
           debugPrint('  Final isPurchased: $isPurchased');
@@ -169,7 +172,7 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
           debugPrint('Refreshing subscriptions...');
           await _checkActiveSubscriptions();
           debugPrint('Subscriptions refreshed');
-        } else if (purchase.purchaseState == PurchaseState.Pending ||
+        } else if (purchase.purchaseState == PurchaseState.pending ||
             purchase.purchaseStateAndroid ==
                 AndroidPurchaseState.Unknown.value) {
           // Pending

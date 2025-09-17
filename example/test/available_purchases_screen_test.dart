@@ -19,10 +19,10 @@ void main() {
               'id': 'txn_123',
               'productId': 'dev.hyo.martie.premium',
               'purchaseToken': 'token_abc',
-              'purchaseState': 'PURCHASED',
+              'purchaseStateAndroid': 1,
               'isAutoRenewing': true,
               'autoRenewingAndroid': true,
-              'transactionDate': 1700000000.0,
+              'transactionDate': 1700000000000.0,
             },
           ];
         case 'getPurchaseHistory':
