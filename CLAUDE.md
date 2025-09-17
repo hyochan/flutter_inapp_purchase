@@ -43,6 +43,12 @@ final allPurchases = await iap.getAvailablePurchases(
 
 ## Flutter-Specific Guidelines
 
+### Generated Files
+
+- `lib/types.dart` is generated from the OpenIAP schema. Never edit it by hand.
+- Always regenerate via `./scripts/generate-type.sh` so the file stays in sync with the upstream `openiap-dart` package.
+- If the generation script fails, fix the script or the upstream source instead of patching the output manually.
+
 ### Documentation Style
 
 - **Avoid using emojis** in documentation, especially in headings
@@ -64,6 +70,12 @@ Before committing any changes, run these commands in order and ensure ALL pass:
    - All tests must pass
 4. **Final verification**: Re-run `dart format --set-exit-if-changed .` to confirm no formatting issues
 5. Only commit if ALL checks succeed with exit code 0
+
+### Commit Message Convention
+
+- Follow the Angular commit style: `<type>: <short summary>` (50 characters max).
+- Use lowercase `type` (e.g., `feat`, `fix`, `docs`, `chore`, `test`).
+- Keep the summary concise and descriptive; avoid punctuation at the end.
 
 **Important**: 
 - Use `--set-exit-if-changed` flag to match CI behavior and catch formatting issues locally before they cause CI failures

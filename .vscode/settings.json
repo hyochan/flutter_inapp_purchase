@@ -7,6 +7,9 @@
 
   // Dart & Flutter settings
   "dart.flutterSdkPath": null,
+  "dart.doNotFormat": [
+    "lib/types.dart"
+  ],
   "[dart]": {
     "editor.rulers": [80],
     "editor.selectionHighlight": false,
