@@ -62,5 +62,5 @@
   // Docusaurus specific
   "typescript.tsdk": "docs/node_modules/typescript/lib",
   "npm.packageManager": "npm",
-  "cSpell.words": ["inapp", "Inapp"]
+  "cSpell.words": ["inapp", "Inapp", "skus"]
 }

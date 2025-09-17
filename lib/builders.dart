@@ -1,40 +1,50 @@
 import 'package:flutter_inapp_purchase/types.dart';
 
-/// iOS purchase request builder
+/// Builder for iOS-specific purchase props
 class RequestPurchaseIOSBuilder {
   String sku = '';
-  bool? andDangerouslyFinishTransactionAutomaticallyIOS;
-  String? applicationUsername;
+  bool? andDangerouslyFinishTransactionAutomatically;
   String? appAccountToken;
-  bool? simulatesAskToBuyInSandbox;
-  String? discountIdentifier;
-  String? discountTimestamp;
-  String? discountNonce;
-  String? discountSignature;
-  int quantity = 1;
-  PaymentDiscount? withOffer;
+  int? quantity;
+  DiscountOfferInputIOS? withOffer;
 
   RequestPurchaseIOSBuilder();
 
-  RequestPurchaseIOS build() {
-    return RequestPurchaseIOS(
+  RequestPurchaseIosProps build() {
+    return RequestPurchaseIosProps(
       sku: sku,
-      andDangerouslyFinishTransactionAutomaticallyIOS:
-          andDangerouslyFinishTransactionAutomaticallyIOS,
-      applicationUsername: applicationUsername,
+      andDangerouslyFinishTransactionAutomatically:
+          andDangerouslyFinishTransactionAutomatically,
       appAccountToken: appAccountToken,
-      simulatesAskToBuyInSandbox: simulatesAskToBuyInSandbox,
-      discountIdentifier: discountIdentifier,
-      discountTimestamp: discountTimestamp,
-      discountNonce: discountNonce,
-      discountSignature: discountSignature,
       quantity: quantity,
       withOffer: withOffer,
     );
   }
 }
 
-/// Android purchase request builder
+/// Builder for iOS-specific subscription props
+class RequestSubscriptionIOSBuilder {
+  String sku = '';
+  bool? andDangerouslyFinishTransactionAutomatically;
+  String? appAccountToken;
+  int? quantity;
+  DiscountOfferInputIOS? withOffer;
+
+  RequestSubscriptionIOSBuilder();
+
+  RequestSubscriptionIosProps build() {
+    return RequestSubscriptionIosProps(
+      sku: sku,
+      andDangerouslyFinishTransactionAutomatically:
+          andDangerouslyFinishTransactionAutomatically,
+      appAccountToken: appAccountToken,
+      quantity: quantity,
+      withOffer: withOffer,
+    );
+  }
+}
+
+/// Builder for Android purchase props
 class RequestPurchaseAndroidBuilder {
   List<String> skus = const [];
   String? obfuscatedAccountIdAndroid;
@@ -43,8 +53,8 @@ class RequestPurchaseAndroidBuilder {
 
   RequestPurchaseAndroidBuilder();
 
-  RequestPurchaseAndroid build() {
-    return RequestPurchaseAndroid(
+  RequestPurchaseAndroidProps build() {
+    return RequestPurchaseAndroidProps(
       skus: skus,
       obfuscatedAccountIdAndroid: obfuscatedAccountIdAndroid,
       obfuscatedProfileIdAndroid: obfuscatedProfileIdAndroid,
@@ -53,10 +63,10 @@ class RequestPurchaseAndroidBuilder {
   }
 }
 
-/// Android subscription request builder
+/// Builder for Android subscription props
 class RequestSubscriptionAndroidBuilder {
   List<String> skus = const [];
-  List<SubscriptionOfferAndroid> subscriptionOffers = const [];
+  List<AndroidSubscriptionOfferInput> subscriptionOffers = const [];
   String? obfuscatedAccountIdAndroid;
   String? obfuscatedProfileIdAndroid;
   String? purchaseTokenAndroid;
@@ -65,10 +75,11 @@ class RequestSubscriptionAndroidBuilder {
 
   RequestSubscriptionAndroidBuilder();
 
-  RequestSubscriptionAndroid build() {
-    return RequestSubscriptionAndroid(
+  RequestSubscriptionAndroidProps build() {
+    return RequestSubscriptionAndroidProps(
       skus: skus,
-      subscriptionOffers: subscriptionOffers,
+      subscriptionOffers:
+          subscriptionOffers.isEmpty ? null : subscriptionOffers,
       obfuscatedAccountIdAndroid: obfuscatedAccountIdAndroid,
       obfuscatedProfileIdAndroid: obfuscatedProfileIdAndroid,
       purchaseTokenAndroid: purchaseTokenAndroid,
@@ -78,72 +89,73 @@ class RequestSubscriptionAndroidBuilder {
   }
 }
 
-/// Unified request purchase builder
+/// Unified purchase parameter builder
 class RequestPurchaseBuilder {
-  final ios = RequestPurchaseIOSBuilder();
-  final android = RequestPurchaseAndroidBuilder();
-  String type = ProductType.inapp;
+  final RequestPurchaseIOSBuilder ios = RequestPurchaseIOSBuilder();
+  final RequestPurchaseAndroidBuilder android = RequestPurchaseAndroidBuilder();
+  ProductQueryType type = ProductQueryType.InApp;
 
   RequestPurchaseBuilder();
 
-  /// Build the final RequestPurchase object
-  RequestPurchase build() {
-    return RequestPurchase(
-      ios: ios.sku.isNotEmpty ? ios.build() : null,
-      android: android.skus.isNotEmpty ? android.build() : null,
+  RequestPurchaseProps build() {
+    final iosProps = ios.sku.isNotEmpty ? ios.build() : null;
+    final androidProps = android.skus.isNotEmpty ? android.build() : null;
+
+    if (type == ProductQueryType.InApp) {
+      final payload = RequestPurchasePropsByPlatforms(
+        ios: iosProps,
+        android: androidProps,
+      );
+      return RequestPurchaseProps.inApp(request: payload);
+    }
+
+    final iosSub = iosProps == null
+        ? null
+        : RequestSubscriptionIosProps(
+            sku: iosProps.sku,
+            andDangerouslyFinishTransactionAutomatically:
+                iosProps.andDangerouslyFinishTransactionAutomatically,
+            appAccountToken: iosProps.appAccountToken,
+            quantity: iosProps.quantity,
+            withOffer: iosProps.withOffer,
+          );
+
+    final androidSub = androidProps == null
+        ? null
+        : RequestSubscriptionAndroidProps(
+            skus: androidProps.skus,
+            isOfferPersonalized: androidProps.isOfferPersonalized,
+            obfuscatedAccountIdAndroid: androidProps.obfuscatedAccountIdAndroid,
+            obfuscatedProfileIdAndroid: androidProps.obfuscatedProfileIdAndroid,
+            purchaseTokenAndroid: null,
+            replacementModeAndroid: null,
+            subscriptionOffers: null,
+          );
+
+    final subscriptionPayload = RequestSubscriptionPropsByPlatforms(
+      ios: iosSub,
+      android: androidSub,
     );
+    return RequestPurchaseProps.subs(request: subscriptionPayload);
   }
 }
 
-/// Unified request subscription builder
-class RequestSubscriptionBuilder {
-  final ios = RequestPurchaseIOSBuilder();
-  final android = RequestSubscriptionAndroidBuilder();
-  String type = ProductType.subs;
-
-  RequestSubscriptionBuilder();
-
-  /// Build the final RequestPurchase object for subscriptions
-  RequestPurchase build() {
-    return RequestPurchase(
-      ios: ios.sku.isNotEmpty ? ios.build() : null,
-      android: android.skus.isNotEmpty ? android.build() : null,
-    );
-  }
-}
-
-// Type definitions for builder functions
-typedef IosBuilder = void Function(RequestPurchaseIOSBuilder builder);
-typedef AndroidBuilder = void Function(RequestPurchaseAndroidBuilder builder);
+typedef IosPurchaseBuilder = void Function(RequestPurchaseIOSBuilder builder);
+typedef AndroidPurchaseBuilder = void Function(
+    RequestPurchaseAndroidBuilder builder);
+typedef IosSubscriptionBuilder = void Function(
+    RequestSubscriptionIOSBuilder builder);
 typedef AndroidSubscriptionBuilder = void Function(
     RequestSubscriptionAndroidBuilder builder);
 typedef RequestBuilder = void Function(RequestPurchaseBuilder builder);
-typedef SubscriptionBuilder = void Function(RequestSubscriptionBuilder builder);
 
-/// Extensions to enable cascade notation
 extension RequestPurchaseBuilderExtension on RequestPurchaseBuilder {
-  /// Configure iOS-specific settings
-  RequestPurchaseBuilder withIOS(IosBuilder configure) {
+  RequestPurchaseBuilder withIOS(IosPurchaseBuilder configure) {
     configure(ios);
     return this;
   }
 
-  /// Configure Android-specific settings
-  RequestPurchaseBuilder withAndroid(AndroidBuilder configure) {
-    configure(android);
-    return this;
-  }
-}
-
-extension RequestSubscriptionBuilderExtension on RequestSubscriptionBuilder {
-  /// Configure iOS-specific settings
-  RequestSubscriptionBuilder withIOS(IosBuilder configure) {
-    configure(ios);
-    return this;
-  }
-
-  /// Configure Android-specific subscription settings
-  RequestSubscriptionBuilder withAndroid(AndroidSubscriptionBuilder configure) {
+  RequestPurchaseBuilder withAndroid(AndroidPurchaseBuilder configure) {
     configure(android);
     return this;
   }
