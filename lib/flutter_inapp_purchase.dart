@@ -17,6 +17,348 @@ import 'utils.dart';
 export 'types.dart';
 export 'builders.dart';
 export 'utils.dart';
+export 'enums.dart' hide IapPlatform, ErrorCode, PurchaseState;
+export 'errors.dart' show getCurrentPlatform;
+
+// ---------------------------------------------------------------------------
+// Legacy compatibility helpers (kept for existing example/tests)
+// ---------------------------------------------------------------------------
+
+extension PurchaseLegacyCompat on iap_types.Purchase {
+  String? get transactionId => id.isEmpty ? null : id;
+
+  int? get purchaseStateAndroid {
+    if (this is iap_types.PurchaseAndroid) {
+      final state = (this as iap_types.PurchaseAndroid).purchaseState;
+      switch (state) {
+        case iap_types.PurchaseState.Purchased:
+          return AndroidPurchaseState.Purchased.value;
+        case iap_types.PurchaseState.Pending:
+          return AndroidPurchaseState.Pending.value;
+        default:
+          return AndroidPurchaseState.Unknown.value;
+      }
+    }
+    return null;
+  }
+
+  TransactionState? get transactionStateIOS {
+    switch (purchaseState) {
+      case iap_types.PurchaseState.Purchased:
+        return TransactionState.purchased;
+      case iap_types.PurchaseState.Pending:
+        return TransactionState.purchasing;
+      case iap_types.PurchaseState.Failed:
+        return TransactionState.failed;
+      case iap_types.PurchaseState.Deferred:
+        return TransactionState.deferred;
+      case iap_types.PurchaseState.Restored:
+        return TransactionState.restored;
+      case iap_types.PurchaseState.Unknown:
+        return TransactionState.purchasing;
+    }
+  }
+
+  bool? get isAcknowledgedAndroid => this is iap_types.PurchaseAndroid
+      ? (this as iap_types.PurchaseAndroid).isAcknowledgedAndroid
+      : null;
+
+  bool? get autoRenewingAndroid => this is iap_types.PurchaseAndroid
+      ? (this as iap_types.PurchaseAndroid).autoRenewingAndroid
+      : null;
+
+  String? get dataAndroid => this is iap_types.PurchaseAndroid
+      ? (this as iap_types.PurchaseAndroid).dataAndroid
+      : null;
+
+  String? get signatureAndroid => this is iap_types.PurchaseAndroid
+      ? (this as iap_types.PurchaseAndroid).signatureAndroid
+      : null;
+
+  String? get packageNameAndroid => this is iap_types.PurchaseAndroid
+      ? (this as iap_types.PurchaseAndroid).packageNameAndroid
+      : null;
+
+  String? get obfuscatedAccountIdAndroid => this is iap_types.PurchaseAndroid
+      ? (this as iap_types.PurchaseAndroid).obfuscatedAccountIdAndroid
+      : null;
+
+  String? get obfuscatedProfileIdAndroid => this is iap_types.PurchaseAndroid
+      ? (this as iap_types.PurchaseAndroid).obfuscatedProfileIdAndroid
+      : null;
+
+  String? get orderIdAndroid => this is iap_types.PurchaseAndroid
+      ? (this as iap_types.PurchaseAndroid).developerPayloadAndroid
+      : null;
+
+  int? get quantityIOS => this is iap_types.PurchaseIOS
+      ? (this as iap_types.PurchaseIOS).quantityIOS
+      : null;
+
+  String? get originalTransactionIdentifierIOS =>
+      this is iap_types.PurchaseIOS
+          ? (this as iap_types.PurchaseIOS).originalTransactionIdentifierIOS
+          : null;
+
+  double? get originalTransactionDateIOS => this is iap_types.PurchaseIOS
+      ? (this as iap_types.PurchaseIOS).originalTransactionDateIOS
+      : null;
+
+  String? get environmentIOS => this is iap_types.PurchaseIOS
+      ? (this as iap_types.PurchaseIOS).environmentIOS
+      : null;
+
+  String? get transactionReceipt => purchaseToken;
+}
+
+extension ProductCommonLegacyCompat on iap_types.ProductCommon {
+  String get localizedPrice => displayPrice;
+
+  iap_types.IapPlatform get platformEnum => platform;
+
+  List<iap_types.DiscountIOS>? get discountsIOS {
+    if (this is iap_types.ProductSubscriptionIOS) {
+      return (this as iap_types.ProductSubscriptionIOS).discountsIOS;
+    }
+    return null;
+  }
+
+  String? get signatureAndroid => null;
+
+  String? get iconUrl => null;
+}
+
+extension ProductSubscriptionLegacyCompat on iap_types.ProductSubscription {
+  String? get subscriptionPeriodAndroid => null;
+
+  String? get subscriptionPeriodUnitIOS {
+    if (this is iap_types.ProductSubscriptionIOS) {
+      return (this as iap_types.ProductSubscriptionIOS)
+          .subscriptionPeriodUnitIOS
+          ?.toJson();
+    }
+    return null;
+  }
+
+  String? get subscriptionPeriodNumberIOS {
+    if (this is iap_types.ProductSubscriptionIOS) {
+      return (this as iap_types.ProductSubscriptionIOS)
+          .subscriptionPeriodNumberIOS;
+    }
+    return null;
+  }
+
+  String? get introductoryPriceNumberOfPeriodsIOS {
+    if (this is iap_types.ProductSubscriptionIOS) {
+      return (this as iap_types.ProductSubscriptionIOS)
+          .introductoryPriceNumberOfPeriodsIOS;
+    }
+    return null;
+  }
+
+  String? get introductoryPriceSubscriptionPeriodIOS {
+    if (this is iap_types.ProductSubscriptionIOS) {
+      return (this as iap_types.ProductSubscriptionIOS)
+          .introductoryPriceSubscriptionPeriodIOS
+          ?.toJson();
+    }
+    return null;
+  }
+
+  List<iap_types.DiscountIOS>? get discountsIOS {
+    if (this is iap_types.ProductSubscriptionIOS) {
+      return (this as iap_types.ProductSubscriptionIOS).discountsIOS;
+    }
+    return null;
+  }
+
+  List<iap_types.AndroidSubscriptionOfferInput>?
+      get subscriptionOffersAndroid {
+    if (this is iap_types.ProductSubscriptionAndroid) {
+      final details = (this as iap_types.ProductSubscriptionAndroid)
+          .subscriptionOfferDetailsAndroid;
+      return details
+          .map((offer) => iap_types.AndroidSubscriptionOfferInput(
+                offerToken: offer.offerToken,
+                sku: offer.basePlanId,
+              ))
+          .toList();
+    }
+    return null;
+  }
+
+  iap_types.SubscriptionInfoIOS? get subscriptionInfoIOS =>
+      this is iap_types.ProductSubscriptionIOS
+          ? (this as iap_types.ProductSubscriptionIOS).subscriptionInfoIOS
+          : null;
+
+  dynamic get subscription => subscriptionInfoIOS;
+
+  List<iap_types.AndroidSubscriptionOfferInput>?
+      get subscriptionOfferDetailsAndroid => subscriptionOffersAndroid;
+}
+
+extension ProductCommonMapCompat on iap_types.ProductCommon {
+  Map<String, dynamic> toLegacyJson() {
+    if (this is iap_types.ProductAndroid) {
+      return (this as iap_types.ProductAndroid).toJson();
+    }
+    if (this is iap_types.ProductIOS) {
+      return (this as iap_types.ProductIOS).toJson();
+    }
+    return {};
+  }
+}
+
+extension PurchaseErrorLegacyCompat on iap_types.PurchaseError {
+  iap_types.IapPlatform? get platform => null;
+  int? get responseCode => null;
+}
+
+typedef SubscriptionOfferAndroid = iap_types.AndroidSubscriptionOfferInput;
+
+/// Legacy purchase request container (pre-generated API).
+class RequestPurchase {
+  RequestPurchase({
+    this.android,
+    this.ios,
+    iap_types.ProductType? type,
+  }) : type = type ??
+            (android is RequestSubscriptionAndroid
+                ? iap_types.ProductType.Subs
+                : iap_types.ProductType.InApp);
+
+  final RequestPurchaseAndroid? android;
+  final RequestPurchaseIOS? ios;
+  final iap_types.ProductType type;
+
+  iap_types.RequestPurchaseProps toProps() {
+    if (type == iap_types.ProductType.InApp) {
+      return iap_types.RequestPurchaseProps.inApp(
+        request: iap_types.RequestPurchasePropsByPlatforms(
+          android: android?.toInAppProps(),
+          ios: ios?.toInAppProps(),
+        ),
+      );
+    }
+
+    return iap_types.RequestPurchaseProps.subs(
+      request: iap_types.RequestSubscriptionPropsByPlatforms(
+        android: (android is RequestSubscriptionAndroid)
+            ? (android as RequestSubscriptionAndroid).toSubscriptionProps()
+            : null,
+        ios: ios?.toSubscriptionProps(),
+      ),
+    );
+  }
+}
+
+class RequestPurchaseAndroid {
+  RequestPurchaseAndroid({
+    required this.skus,
+    this.obfuscatedAccountIdAndroid,
+    this.obfuscatedProfileIdAndroid,
+    this.isOfferPersonalized,
+  });
+
+  List<String> skus;
+  String? obfuscatedAccountIdAndroid;
+  String? obfuscatedProfileIdAndroid;
+  bool? isOfferPersonalized;
+
+  iap_types.RequestPurchaseAndroidProps toInAppProps() {
+    return iap_types.RequestPurchaseAndroidProps(
+      skus: skus,
+      obfuscatedAccountIdAndroid: obfuscatedAccountIdAndroid,
+      obfuscatedProfileIdAndroid: obfuscatedProfileIdAndroid,
+      isOfferPersonalized: isOfferPersonalized,
+    );
+  }
+
+  iap_types.RequestSubscriptionAndroidProps toSubscriptionProps() {
+    return iap_types.RequestSubscriptionAndroidProps(
+      skus: skus,
+      isOfferPersonalized: isOfferPersonalized,
+      obfuscatedAccountIdAndroid: obfuscatedAccountIdAndroid,
+      obfuscatedProfileIdAndroid: obfuscatedProfileIdAndroid,
+      purchaseTokenAndroid: null,
+      replacementModeAndroid: null,
+      subscriptionOffers: null,
+    );
+  }
+}
+
+class RequestSubscriptionAndroid extends RequestPurchaseAndroid {
+  RequestSubscriptionAndroid({
+    required List<String> skus,
+    this.purchaseTokenAndroid,
+    this.replacementModeAndroid,
+    this.subscriptionOffers,
+    String? obfuscatedAccountIdAndroid,
+    String? obfuscatedProfileIdAndroid,
+    bool? isOfferPersonalized,
+  }) : super(
+          skus: skus,
+          obfuscatedAccountIdAndroid: obfuscatedAccountIdAndroid,
+          obfuscatedProfileIdAndroid: obfuscatedProfileIdAndroid,
+          isOfferPersonalized: isOfferPersonalized,
+        );
+
+  final String? purchaseTokenAndroid;
+  final int? replacementModeAndroid;
+  final List<iap_types.AndroidSubscriptionOfferInput>? subscriptionOffers;
+
+  @override
+  iap_types.RequestSubscriptionAndroidProps toSubscriptionProps() {
+    return iap_types.RequestSubscriptionAndroidProps(
+      skus: skus,
+      isOfferPersonalized: isOfferPersonalized,
+      obfuscatedAccountIdAndroid: obfuscatedAccountIdAndroid,
+      obfuscatedProfileIdAndroid: obfuscatedProfileIdAndroid,
+      purchaseTokenAndroid: purchaseTokenAndroid,
+      replacementModeAndroid: replacementModeAndroid,
+      subscriptionOffers: subscriptionOffers,
+    );
+  }
+}
+
+class RequestPurchaseIOS {
+  RequestPurchaseIOS({
+    required this.sku,
+    this.quantity,
+    this.appAccountToken,
+    this.withOffer,
+    this.andDangerouslyFinishTransactionAutomatically,
+  });
+
+  final String sku;
+  final int? quantity;
+  final String? appAccountToken;
+  final iap_types.DiscountOfferInputIOS? withOffer;
+  final bool? andDangerouslyFinishTransactionAutomatically;
+
+  iap_types.RequestPurchaseIosProps toInAppProps() {
+    return iap_types.RequestPurchaseIosProps(
+      sku: sku,
+      quantity: quantity,
+      appAccountToken: appAccountToken,
+      andDangerouslyFinishTransactionAutomatically:
+          andDangerouslyFinishTransactionAutomatically,
+      withOffer: withOffer,
+    );
+  }
+
+  iap_types.RequestSubscriptionIosProps toSubscriptionProps() {
+    return iap_types.RequestSubscriptionIosProps(
+      sku: sku,
+      quantity: quantity,
+      appAccountToken: appAccountToken,
+      andDangerouslyFinishTransactionAutomatically:
+          andDangerouslyFinishTransactionAutomatically,
+      withOffer: withOffer,
+    );
+  }
+}
 
 class FlutterInappPurchase
     with FlutterInappPurchaseIOS, FlutterInappPurchaseAndroid {
@@ -155,7 +497,9 @@ class FlutterInappPurchase
 
   /// Request purchase (flutter IAP compatible)
   Future<void> requestPurchase({
-    required iap_types.RequestPurchaseProps props,
+    iap_types.RequestPurchaseProps? props,
+    @Deprecated('Use props parameter') RequestPurchase? request,
+    @Deprecated('Use props parameter') iap_types.ProductType? type,
   }) async {
     if (!_isInitialized) {
       throw const iap_types.PurchaseError(
@@ -164,14 +508,31 @@ class FlutterInappPurchase
       );
     }
 
-    final request = props.request;
-    final isSubscription =
-        request is iap_types.RequestPurchasePropsRequestSubscription;
+    final effectiveProps = props ?? request?.toProps();
+    if (effectiveProps == null) {
+      throw ArgumentError('RequestPurchaseProps are required.');
+    }
+
+    if (type != null) {
+      final expected = type == iap_types.ProductType.InApp
+          ? iap_types.ProductQueryType.InApp
+          : iap_types.ProductQueryType.Subs;
+      if (effectiveProps.type != expected) {
+        debugPrint(
+          '[flutter_inapp_purchase] Warning: ignoring deprecated type argument in requestPurchase. '
+          'props.type=${effectiveProps.type}, provided type=$type',
+        );
+      }
+    }
+
+    final requestVariant = effectiveProps.request;
+    final isSubscription = requestVariant
+        is iap_types.RequestPurchasePropsRequestSubscription;
 
     try {
       if (_platform.isIOS) {
         if (isSubscription) {
-          final iosRequest = (request).value.ios;
+          final iosRequest = (requestVariant).value.ios;
           if (iosRequest == null) {
             throw const iap_types.PurchaseError(
               code: iap_types.ErrorCode.DeveloperError,
@@ -199,7 +560,7 @@ class FlutterInappPurchase
           }
         } else {
           final iosRequest =
-              (request as iap_types.RequestPurchasePropsRequestPurchase)
+              (requestVariant as iap_types.RequestPurchasePropsRequestPurchase)
                   .value
                   .ios;
           if (iosRequest == null) {
@@ -232,7 +593,7 @@ class FlutterInappPurchase
         }
       } else if (_platform.isAndroid) {
         if (isSubscription) {
-          final androidRequest = (request).value.android;
+          final androidRequest = (requestVariant).value.android;
           if (androidRequest == null) {
             throw const iap_types.PurchaseError(
               code: iap_types.ErrorCode.DeveloperError,
@@ -267,7 +628,7 @@ class FlutterInappPurchase
           );
         } else {
           final androidRequest =
-              (request as iap_types.RequestPurchasePropsRequestPurchase)
+              (requestVariant as iap_types.RequestPurchasePropsRequestPurchase)
                   .value
                   .android;
           if (androidRequest == null) {
@@ -311,7 +672,7 @@ class FlutterInappPurchase
   /// ```dart
   /// await iap.requestPurchaseWithBuilder(
   ///   build: (r) => r
-  ///     ..type = ProductType.inapp
+  ///     ..type = ProductType.InApp
   ///     ..withIOS((i) => i
   ///       ..sku = 'product_id'
   ///       ..quantity = 1)
@@ -409,6 +770,31 @@ class FlutterInappPurchase
         message: 'Failed to get storefront: ${e.toString()}',
       );
     }
+  }
+
+  String _resolveProductType(Object type) {
+    if (type is String) {
+      return type;
+    }
+    if (type is TypeInApp) {
+      return type.name;
+    }
+    if (type is iap_types.ProductType) {
+      return type == iap_types.ProductType.InApp
+          ? TypeInApp.inapp.name
+          : TypeInApp.subs.name;
+    }
+    if (type is iap_types.ProductQueryType) {
+      switch (type) {
+        case iap_types.ProductQueryType.InApp:
+          return TypeInApp.inapp.name;
+        case iap_types.ProductQueryType.Subs:
+          return TypeInApp.subs.name;
+        case iap_types.ProductQueryType.All:
+          return 'all';
+      }
+    }
+    return TypeInApp.inapp.name;
   }
 
   /// iOS specific: Present code redemption sheet
@@ -760,13 +1146,13 @@ class FlutterInappPurchase
   }
 
   iap_types.PurchaseState _mapAndroidPurchaseState(int stateValue) {
-    final state = AndroidPurchaseState.fromValue(stateValue);
+    final state = androidPurchaseStateFromValue(stateValue);
     switch (state) {
-      case AndroidPurchaseState.purchased:
+      case AndroidPurchaseState.Purchased:
         return iap_types.PurchaseState.Purchased;
-      case AndroidPurchaseState.pending:
+      case AndroidPurchaseState.Pending:
         return iap_types.PurchaseState.Pending;
-      case AndroidPurchaseState.unspecified:
+      case AndroidPurchaseState.Unknown:
         return iap_types.PurchaseState.Unknown;
     }
   }
@@ -1444,7 +1830,7 @@ class FlutterInappPurchase
   /// OpenIAP: fetch products or subscriptions
   Future<List<T>> fetchProducts<T extends iap_types.ProductCommon>({
     required List<String> skus,
-    String type = 'in-app',
+    Object type = TypeInApp.inapp,
   }) async {
     if (!_isInitialized) {
       throw const iap_types.PurchaseError(
@@ -1454,8 +1840,9 @@ class FlutterInappPurchase
     }
 
     try {
+      final resolvedType = _resolveProductType(type);
       debugPrint(
-          '[flutter_inapp_purchase] fetchProducts called with skus: $skus, type: $type');
+          '[flutter_inapp_purchase] fetchProducts called with skus: $skus, type: $resolvedType');
 
       // Get raw data from native platform
       final List<dynamic> merged = [];
@@ -1463,7 +1850,7 @@ class FlutterInappPurchase
         // iOS supports 'all' at native layer
         final raw = await _channel.invokeMethod('fetchProducts', {
           'skus': skus,
-          'type': type,
+          'type': resolvedType,
         });
         if (raw is String) {
           merged.addAll(jsonDecode(raw) as List<dynamic>? ?? []);
@@ -1474,7 +1861,7 @@ class FlutterInappPurchase
         // Android: unified fetchProducts(type, skus)
         final raw = await _channel.invokeMethod('fetchProducts', {
           'skus': skus,
-          'type': type,
+          'type': resolvedType,
         });
         if (raw is String) {
           merged.addAll(jsonDecode(raw) as List<dynamic>? ?? []);
@@ -1508,7 +1895,7 @@ class FlutterInappPurchase
           // When 'all', native item contains its own type; pass through using detected type
           final detectedType = (type == 'all')
               ? (itemMap['type']?.toString() ?? 'in-app')
-              : type;
+              : resolvedType;
           final parsed = _parseProductFromNative(itemMap, detectedType);
           products.add(parsed);
         } catch (e) {

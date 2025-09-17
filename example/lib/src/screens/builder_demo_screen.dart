@@ -39,7 +39,7 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
     try {
       await _iap.requestPurchaseWithBuilder(
         build: (RequestPurchaseBuilder r) => r
-          ..type = ProductType.inapp
+          ..type = ProductType.InApp
           ..withIOS((RequestPurchaseIOSBuilder i) =>
               i..sku = 'dev.hyo.martie.10bulbs')
           ..withAndroid((RequestPurchaseAndroidBuilder a) =>
@@ -63,7 +63,7 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
       // Use requestPurchaseWithBuilder with type=subs
       await _iap.requestPurchaseWithBuilder(
         build: (RequestPurchaseBuilder r) => r
-          ..type = ProductType.subs
+          ..type = ProductType.Subs
           ..withIOS((RequestPurchaseIOSBuilder i) =>
               i..sku = 'dev.hyo.martie.premium')
           ..withAndroid((RequestPurchaseAndroidBuilder a) =>
@@ -86,15 +86,16 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
     try {
       // Get existing subscription token if any
       final purchases = await _iap.getAvailablePurchases();
-      final existing = purchases.firstWhere(
-        (p) => p.productId == 'dev.hyo.martie.premium',
-        orElse: () => purchases.isNotEmpty
-            ? purchases.first
-            : Purchase(productId: '', platform: IapPlatform.android),
-      );
+      Purchase? existing;
+      if (purchases.isNotEmpty) {
+        existing = purchases.firstWhere(
+          (p) => p.productId == 'dev.hyo.martie.premium',
+          orElse: () => purchases.first,
+        );
+      }
 
       // Android requires an existing purchase token to replace (proration)
-      final token = existing.purchaseToken;
+      final token = existing?.purchaseToken;
       final hasToken = token != null && token.isNotEmpty;
       // Demo: use a default proration mode for upgrade
       final int prorationMode = AndroidReplacementMode.withTimeProration.value;
@@ -108,8 +109,8 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
             ..purchaseTokenAndroid = token);
 
         await _iap.requestPurchase(
-          request: subBuilder.build(),
-          type: ProductType.subs,
+          props: subBuilder.build(),
+          type: ProductType.Subs,
         );
         setState(() => _status = 'Subscription upgrade initiated');
       } else {
@@ -118,8 +119,8 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
           ..withAndroid((RequestSubscriptionAndroidBuilder a) =>
               a..skus = ['dev.hyo.martie.premium']);
         await _iap.requestPurchase(
-          request: newSub.build(),
-          type: ProductType.subs,
+          props: newSub.build(),
+          type: ProductType.Subs,
         );
         setState(() => _status =
             'No token/proration; purchased yearly as new subscription');
@@ -197,7 +198,7 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
                     SelectableText(
                       """await iap.requestPurchaseWithBuilder(
   build: (RequestPurchaseBuilder r) => r
-    ..type = ProductType.inapp
+    ..type = ProductType.InApp
     ..withIOS((RequestPurchaseIOSBuilder i) => i
       ..sku = 'dev.hyo.martie.10bulbs'
       ..quantity = 1)
@@ -208,7 +209,7 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
 // For subscriptions (new purchase):
 await iap.requestPurchaseWithBuilder(
   build: (RequestPurchaseBuilder r) => r
-    ..type = ProductType.subs
+    ..type = ProductType.Subs
     ..withIOS((RequestPurchaseIOSBuilder i) => i..sku = 'dev.hyo.martie.premium')
     ..withAndroid((RequestPurchaseAndroidBuilder a) => a..skus = ['dev.hyo.martie.premium']),
 );
@@ -219,7 +220,7 @@ final b = RequestSubscriptionBuilder()
     ..skus = ['dev.hyo.martie.premium']
     ..replacementModeAndroid = AndroidReplacementMode.withTimeProration.value
     ..purchaseTokenAndroid = '<existing_token>');
-await iap.requestPurchase(request: b.build(), type: ProductType.subs);""",
+await iap.requestPurchase(request: b.build(), type: ProductType.Subs);""",
                       style: TextStyle(fontFamily: 'monospace', fontSize: 12),
                     ),
                   ],

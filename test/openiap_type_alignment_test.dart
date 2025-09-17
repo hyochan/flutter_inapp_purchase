@@ -1,286 +1,104 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_inapp_purchase/types.dart';
 
 void main() {
-  group('OpenIAP Type Alignment Tests', () {
-    group('Product Type Alignment', () {
-      test('Product should have OpenIAP compliant id getter', () {
-        final product = Product(
-          id: 'test_product',
-          priceString: '9.99',
-          platformEnum: IapPlatform.android,
-        );
+  group('Generated type smoke tests', () {
+    test('ProductAndroid exposes core pricing fields', () {
+      const product = ProductAndroid(
+        currency: 'USD',
+        description: 'Monthly access',
+        displayPrice: '\$9.99',
+        id: 'monthly_access',
+        nameAndroid: 'Monthly Access',
+        platform: IapPlatform.Android,
+        price: 9.99,
+        title: 'Monthly Access',
+        type: ProductType.InApp,
+      );
 
-        // OpenIAP spec: Product should have id field that maps to productId
-        expect(product.id, 'test_product');
-      });
-
-      test('Product should have required OpenIAP fields', () {
-        final product = Product(
-          id: 'test_product',
-          title: 'Test Product',
-          description: 'Test Description',
-          type: 'inapp',
-          displayPrice: '\$9.99',
-          currency: 'USD',
-          price: 9.99,
-          platformEnum: IapPlatform.android,
-        );
-
-        expect(product.id, isA<String>());
-        expect(product.title, isA<String?>());
-        expect(product.description, isA<String?>());
-        expect(product.type, isA<String>());
-        expect(product.displayPrice, isA<String>());
-        expect(product.currency, isA<String?>());
-        expect(product.price, isA<double?>());
-      });
-
-      test('Android Product should have platform-specific fields', () {
-        final product = Product(
-          id: 'android_product',
-          priceString: '9.99',
-          platformEnum: IapPlatform.android,
-          nameAndroid: 'Android Product Name',
-          oneTimePurchaseOfferDetailsAndroid: {
-            'priceAmountMicros': 9990000,
-            'priceCurrencyCode': 'USD',
-            'formattedPrice': '\$9.99',
-          },
-        );
-
-        expect(product.nameAndroid, isA<String?>());
-        expect(
-          product.oneTimePurchaseOfferDetailsAndroid,
-          isA<Map<String, dynamic>?>(),
-        );
-        expect(product.platformEnum, IapPlatform.android);
-      });
-
-      test('iOS Product should have platform-specific fields', () {
-        final product = Product(
-          id: 'ios_product',
-          priceString: '9.99',
-          platformEnum: IapPlatform.ios,
-          environmentIOS: 'Sandbox',
-          subscriptionGroupIdIOS: 'group_123',
-          promotionalOfferIdsIOS: ['offer1', 'offer2'],
-        );
-
-        expect(product.environmentIOS, isA<String?>());
-        expect(product.subscriptionGroupIdIOS, isA<String?>());
-        expect(product.promotionalOfferIdsIOS, isA<List<String>?>());
-        expect(product.platformEnum, IapPlatform.ios);
-      });
+      expect(product.id, 'monthly_access');
+      expect(product.platform, IapPlatform.Android);
+      expect(product.price, 9.99);
     });
 
-    group('Subscription Type Alignment', () {
-      test('Subscription should have OpenIAP compliant id and ids getters', () {
-        final subscription = ProductSubscription(
-          id: 'test_sub',
-          price: '9.99',
-          platform: IapPlatform.android,
-        );
+    test('ProductIOS exposes StoreKit metadata', () {
+      const product = ProductIOS(
+        currency: 'USD',
+        description: 'Premium upgrade',
+        displayNameIOS: 'Premium',
+        displayPrice: '\$4.99',
+        id: 'premium_upgrade',
+        isFamilyShareableIOS: true,
+        jsonRepresentationIOS: '{}',
+        platform: IapPlatform.IOS,
+        title: 'Premium Upgrade',
+        type: ProductType.Subs,
+        typeIOS: ProductTypeIOS.AutoRenewableSubscription,
+      );
 
-        // OpenIAP spec: Subscription should have id field that maps to productId
-        expect(subscription.id, 'test_sub');
-        expect(subscription.ids, ['test_sub']);
-      });
-
-      test('Android Subscription should have offer details structure', () {
-        final subscription = ProductSubscription(
-          id: 'android_sub',
-          price: '9.99',
-          platform: IapPlatform.android,
-          subscriptionOfferDetailsAndroid: [
-            OfferDetail(
-              basePlanId: 'monthly',
-              offerId: 'intro_offer',
-              pricingPhases: [
-                PricingPhase(
-                  priceAmount: 0.99,
-                  price: '0.99',
-                  currency: 'USD',
-                  billingPeriod: 'P1M',
-                  billingCycleCount: 3,
-                  recurrenceMode: RecurrenceMode.finiteRecurring,
-                ),
-              ],
-            ),
-          ],
-        );
-
-        expect(
-          subscription.subscriptionOfferDetailsAndroid,
-          isA<List<OfferDetail>?>(),
-        );
-        final offer = subscription.subscriptionOfferDetailsAndroid!.first;
-        expect(offer.basePlanId, 'monthly');
-        expect(offer.offerId, 'intro_offer');
-        expect(offer.pricingPhases, isA<List<PricingPhase>>());
-      });
+      expect(product.type, ProductType.Subs);
+      expect(product.typeIOS, ProductTypeIOS.AutoRenewableSubscription);
+      expect(product.platform, IapPlatform.IOS);
     });
 
-    group('Purchase Type Alignment', () {
-      test('Purchase should have OpenIAP compliant id and ids getters', () {
-        final purchase = Purchase(
-          productId: 'test_product',
-          platform: IapPlatform.android,
-          transactionId: 'txn_123',
-        );
+    test('PurchaseAndroid stores purchase token and platform data', () {
+      const purchase = PurchaseAndroid(
+        id: 'txn_android',
+        isAutoRenewing: true,
+        platform: IapPlatform.Android,
+        productId: 'monthly_access',
+        purchaseState: PurchaseState.Purchased,
+        purchaseToken: 'token_123',
+        quantity: 1,
+        transactionDate: 1700000000,
+      );
 
-        // OpenIAP spec: Purchase should have id field for transaction identifier
-        expect(purchase.id, 'txn_123');
-        expect(purchase.ids, ['test_product']);
-      });
-
-      test('Android Purchase should have platform-specific fields', () {
-        final purchase = Purchase(
-          productId: 'android_product',
-          platform: IapPlatform.android,
-          transactionId: 'GPA.123456789',
-          purchaseToken: 'android_token',
-          dataAndroid: '{"test": "data"}',
-          signatureAndroid: 'signature_123',
-          purchaseStateAndroid: 1,
-          isAcknowledgedAndroid: true,
-          packageNameAndroid: 'com.example.app',
-          obfuscatedAccountIdAndroid: 'account_123',
-        );
-
-        expect(purchase.dataAndroid, isA<String?>());
-        expect(purchase.signatureAndroid, isA<String?>());
-        expect(purchase.purchaseStateAndroid, isA<int?>());
-        expect(purchase.isAcknowledgedAndroid, isA<bool?>());
-        expect(purchase.packageNameAndroid, isA<String?>());
-        expect(purchase.obfuscatedAccountIdAndroid, isA<String?>());
-      });
-
-      test('iOS Purchase should have platform-specific fields', () {
-        final purchase = Purchase(
-          productId: 'ios_product',
-          platform: IapPlatform.ios,
-          transactionId: '2000000123456789',
-          quantityIOS: 1,
-          originalTransactionDateIOS: '2023-08-20T10:00:00Z',
-          originalTransactionIdentifierIOS: '2000000000000001',
-          environmentIOS: 'Production',
-          currencyCodeIOS: 'USD',
-          priceIOS: 9.99,
-          appBundleIdIOS: 'com.example.ios.app',
-          productTypeIOS: 'Auto-Renewable Subscription',
-          transactionReasonIOS: 'PURCHASE',
-        );
-
-        expect(purchase.quantityIOS, isA<int?>());
-        expect(purchase.originalTransactionDateIOS, isA<String?>());
-        expect(purchase.originalTransactionIdentifierIOS, isA<String?>());
-        expect(purchase.environmentIOS, isA<String?>());
-        expect(purchase.currencyCodeIOS, isA<String?>());
-        expect(purchase.priceIOS, isA<double?>());
-        expect(purchase.appBundleIdIOS, isA<String?>());
-        expect(purchase.productTypeIOS, isA<String?>());
-        expect(purchase.transactionReasonIOS, isA<String?>());
-      });
+      expect(purchase.id, 'txn_android');
+      expect(purchase.purchaseToken, 'token_123');
+      expect(purchase.platform, IapPlatform.Android);
     });
 
-    group('Pricing and Offer Type Alignment', () {
-      test('PricingPhase should match OpenIAP structure', () {
-        final phase = PricingPhase(
-          priceAmount: 9.99,
-          price: '9.99',
-          currency: 'USD',
-          billingPeriod: 'P1M',
-          billingCycleCount: 1,
-          recurrenceMode: RecurrenceMode.infiniteRecurring,
-        );
+    test('PurchaseIOS stores StoreKit specific fields', () {
+      final purchase = PurchaseIOS(
+        id: 'txn_ios',
+        isAutoRenewing: false,
+        platform: IapPlatform.IOS,
+        productId: 'premium_upgrade',
+        purchaseState: PurchaseState.Purchased,
+        quantity: 1,
+        transactionDate: 1700000100,
+        environmentIOS: 'Sandbox',
+        quantityIOS: 1,
+      );
 
-        expect(phase.priceAmount, isA<double>());
-        expect(phase.price, isA<String>());
-        expect(phase.currency, isA<String>());
-        expect(phase.billingPeriod, isA<String?>());
-        expect(phase.billingCycleCount, isA<int?>());
-        expect(phase.recurrenceMode, isA<RecurrenceMode?>());
-      });
-
-      test('OfferDetail should have nested pricingPhases structure', () {
-        final offer = OfferDetail(
-          basePlanId: 'monthly_base',
-          offerId: 'intro_offer',
-          pricingPhases: [
-            PricingPhase(
-              priceAmount: 0.99,
-              price: '0.99',
-              currency: 'USD',
-              billingPeriod: 'P1W',
-            ),
-          ],
-        );
-
-        final json = offer.toJson();
-
-        // Should match TypeScript structure with nested pricingPhases
-        expect(json['basePlanId'], 'monthly_base');
-        expect(json['offerId'], 'intro_offer');
-        expect(json['pricingPhases'], isA<Map<String, dynamic>>());
-        expect(json['pricingPhases']['pricingPhaseList'], isA<List<dynamic>>());
-
-        final phases =
-            json['pricingPhases']['pricingPhaseList'] as List<dynamic>;
-        expect(phases.length, 1);
-
-        final phase = phases.first as Map<String, dynamic>;
-        expect(phase['priceAmountMicros'], isA<String>());
-        expect(phase['formattedPrice'], '0.99');
-        expect(phase['priceCurrencyCode'], 'USD');
-        expect(phase['billingPeriod'], 'P1W');
-      });
+      expect(purchase.environmentIOS, 'Sandbox');
+      expect(purchase.quantityIOS, 1);
+      expect(purchase.platform, IapPlatform.IOS);
     });
 
-    group('Error Code Type Alignment', () {
-      test('ErrorCode enum should match OpenIAP specification', () {
-        // Test that our ErrorCode enum has the expected OpenIAP values
-        expect(ErrorCode.Unknown, isA<ErrorCode>());
-        expect(ErrorCode.UserCancelled, isA<ErrorCode>());
-        expect(ErrorCode.UserError, isA<ErrorCode>());
-        expect(ErrorCode.ItemUnavailable, isA<ErrorCode>());
-        expect(ErrorCode.ProductNotAvailable, isA<ErrorCode>());
-        expect(ErrorCode.ProductAlreadyOwned, isA<ErrorCode>());
-        expect(ErrorCode.NetworkError, isA<ErrorCode>());
-        expect(ErrorCode.AlreadyOwned, isA<ErrorCode>());
+    test('PricingPhasesAndroid round-trips through JSON', () {
+      const phases = PricingPhasesAndroid(
+        pricingPhaseList: [
+          PricingPhaseAndroid(
+            billingCycleCount: 3,
+            billingPeriod: 'P1M',
+            formattedPrice: '\$0.99',
+            priceAmountMicros: '990000',
+            priceCurrencyCode: 'USD',
+            recurrenceMode: 1,
+          ),
+        ],
+      );
+
+      final json = phases.toJson();
+      final restored = PricingPhasesAndroid.fromJson({
+        'pricingPhaseList': json['pricingPhaseList'] as List<dynamic>,
       });
 
-      test('PurchaseError should have OpenIAP compliant structure', () {
-        final error = PurchaseError(
-          code: ErrorCode.UserCancelled,
-          message: 'User cancelled the purchase',
-          platform: IapPlatform.android,
-          responseCode: 6,
-        );
-
-        expect(error.code, isA<ErrorCode>());
-        expect(error.message, isA<String>());
-        expect(error.platform, isA<IapPlatform>());
-        expect(error.responseCode, isA<int?>());
-      });
-    });
-
-    group('Platform Enum Alignment', () {
-      test('IapPlatform should have correct string representations', () {
-        expect(IapPlatform.android.toString(), contains('android'));
-        expect(IapPlatform.ios.toString(), contains('ios'));
-      });
-
-      test('Product types should be OpenIAP compliant', () {
-        expect(ProductType.inapp, 'inapp');
-        expect(ProductType.subs, 'subs');
-      });
-
-      test('RecurrenceMode should match OpenIAP enum', () {
-        expect(RecurrenceMode.infiniteRecurring, isA<RecurrenceMode>());
-        expect(RecurrenceMode.finiteRecurring, isA<RecurrenceMode>());
-        expect(RecurrenceMode.nonRecurring, isA<RecurrenceMode>());
-      });
+      expect(restored.pricingPhaseList.length, 1);
+      expect(restored.pricingPhaseList.first.priceCurrencyCode, 'USD');
     });
   });
 }

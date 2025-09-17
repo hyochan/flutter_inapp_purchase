@@ -1,5 +1,4 @@
-/// Event types for flutter_inapp_purchase (OpenIAP compliant)
-library;
+// Event types for flutter_inapp_purchase (OpenIAP compliant)
 
 import 'types.dart' as types;
 

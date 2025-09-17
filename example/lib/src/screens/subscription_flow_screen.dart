@@ -94,17 +94,17 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
         }
 
         // Handle the purchase - check multiple conditions
-        // purchaseState.purchased or purchaseStateAndroid == AndroidPurchaseState.purchased or isAcknowledgedAndroid == false (new purchase)
+        // purchaseState.purchased or purchaseStateAndroid == AndroidPurchaseState.Purchased or isAcknowledgedAndroid == false (new purchase)
         bool isPurchased = false;
 
         if (Platform.isAndroid) {
           // For Android, check multiple conditions since fields can be null
-          bool condition1 = purchase.purchaseState == PurchaseState.purchased;
+          bool condition1 = purchase.purchaseState == PurchaseState.Purchased;
           bool condition2 = (purchase.isAcknowledgedAndroid == false &&
               purchase.purchaseToken != null &&
               purchase.purchaseToken!.isNotEmpty);
           bool condition3 = purchase.purchaseStateAndroid ==
-              AndroidPurchaseState.purchased.value;
+              AndroidPurchaseState.Purchased.value;
 
           debugPrint('  Android condition checks:');
           debugPrint('    purchaseState == purchased: $condition1');
@@ -169,9 +169,9 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
           debugPrint('Refreshing subscriptions...');
           await _checkActiveSubscriptions();
           debugPrint('Subscriptions refreshed');
-        } else if (purchase.purchaseState == PurchaseState.pending ||
+        } else if (purchase.purchaseState == PurchaseState.Pending ||
             purchase.purchaseStateAndroid ==
-                AndroidPurchaseState.unspecified.value) {
+                AndroidPurchaseState.Unknown.value) {
           // Pending
           if (!mounted) return;
           setState(() {
@@ -270,7 +270,7 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
       // Use fetchProducts with Subscription type for type-safe list
       final products = await _iap.fetchProducts<ProductSubscription>(
         skus: subscriptionIds,
-        type: ProductType.subs,
+        type: ProductType.Subs,
       );
 
       debugPrint('Loaded ${products.length} subscriptions');
@@ -392,12 +392,10 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
               purchaseTokenAndroid: _currentSubscription!.purchaseToken,
               replacementModeAndroid: _selectedProrationMode,
             ),
+            type: ProductType.Subs,
           );
 
-          await _iap.requestPurchase(
-            request: request,
-            type: ProductType.subs,
-          );
+          await _iap.requestPurchase(request: request);
         } else {
           // This is a new subscription purchase
           debugPrint('Purchasing new subscription');
@@ -407,12 +405,10 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
               skus: [item.id],
               subscriptionOffers: selectedOffer != null ? [selectedOffer] : [],
             ),
+            type: ProductType.Subs,
           );
 
-          await _iap.requestPurchase(
-            request: request,
-            type: ProductType.subs,
-          );
+          await _iap.requestPurchase(request: request);
         }
       } else {
         // iOS
@@ -420,12 +416,10 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
           ios: RequestPurchaseIOS(
             sku: item.id,
           ),
+          type: ProductType.Subs,
         );
 
-        await _iap.requestPurchase(
-          request: request,
-          type: ProductType.subs,
-        );
+        await _iap.requestPurchase(request: request);
       }
 
       // Result will be handled by the purchase stream listeners
@@ -468,12 +462,10 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
               fakeToken, // Fake token that will fail on native side
           replacementModeAndroid: AndroidReplacementMode.deferred.value,
         ),
+        type: ProductType.Subs,
       );
 
-      await _iap.requestPurchase(
-        request: request,
-        type: ProductType.subs,
-      );
+      await _iap.requestPurchase(request: request);
 
       // If we get here, the purchase was attempted
       debugPrint('Purchase request sent with fake token');
@@ -515,12 +507,10 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
           purchaseTokenAndroid: testToken, // Use test token to pass validation
           replacementModeAndroid: AndroidReplacementMode.deferred.value,
         ),
+        type: ProductType.Subs,
       );
 
-      await _iap.requestPurchase(
-        request: request,
-        type: ProductType.subs,
-      );
+      await _iap.requestPurchase(request: request);
 
       debugPrint('Purchase request sent with test token');
       // Result will come through purchaseUpdatedListener

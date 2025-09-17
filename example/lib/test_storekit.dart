@@ -58,7 +58,7 @@ class _TestScreenState extends State<TestScreen> {
       setState(() => _status = 'Getting products...');
       final products = await _iap.fetchProducts(
         skus: ['dev.hyo.martie.10bulbs'],
-        type: ProductType.inapp,
+        type: ProductType.InApp,
       );
       setState(() => _status = 'Got ${products.length} products');
 

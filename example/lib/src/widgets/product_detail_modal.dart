@@ -303,8 +303,10 @@ class ProductDetailModal extends StatelessWidget {
                                                 discount.localizedPrice),
                                             _buildDetailRow(
                                                 'Type', discount.type),
-                                            _buildDetailRow('Payment Mode',
-                                                discount.paymentMode),
+                                            _buildDetailRow(
+                                              'Payment Mode',
+                                              discount.paymentMode.toJson(),
+                                            ),
                                           ],
                                         ),
                                       ),
@@ -341,8 +343,10 @@ class ProductDetailModal extends StatelessWidget {
                                                 discount.localizedPrice),
                                             _buildDetailRow(
                                                 'Type', discount.type),
-                                            _buildDetailRow('Payment Mode',
-                                                discount.paymentMode),
+                                            _buildDetailRow(
+                                              'Payment Mode',
+                                              discount.paymentMode.toJson(),
+                                            ),
                                           ],
                                         ),
                                       ),

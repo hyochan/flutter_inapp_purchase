@@ -171,7 +171,7 @@ class ErrorHandlingExample extends StatelessWidget {
                 final error = PurchaseError(
                   code: ErrorCode.UserCancelled,
                   message: 'User cancelled the purchase',
-                  platform: IapPlatform.ios,
+                  platform: IapPlatform.IOS,
                 );
 
                 return '''
@@ -190,7 +190,7 @@ isRecoverableError: ${isRecoverableError(error)}
                 final error = PurchaseError(
                   code: ErrorCode.NetworkError,
                   message: 'Network connection failed',
-                  platform: IapPlatform.android,
+                  platform: IapPlatform.Android,
                 );
 
                 return '''
@@ -249,7 +249,7 @@ isRecoverableError: ${isRecoverableError(error)}
                 final error = PurchaseError(
                   code: ErrorCode.NetworkError,
                   message: 'Network error occurred',
-                  platform: IapPlatform.ios,
+                  platform: IapPlatform.IOS,
                 );
 
                 return '''
@@ -324,7 +324,7 @@ class PurchaseWithErrorHandling extends StatelessWidget {
       throw PurchaseError(
         code: ErrorCode.NetworkError,
         message: 'Failed to connect to store',
-        platform: IapPlatform.ios,
+        platform: IapPlatform.IOS,
       );
     } catch (error) {
       // Handle the error using our utilities

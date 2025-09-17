@@ -93,7 +93,32 @@ class RequestSubscriptionAndroidBuilder {
 class RequestPurchaseBuilder {
   final RequestPurchaseIOSBuilder ios = RequestPurchaseIOSBuilder();
   final RequestPurchaseAndroidBuilder android = RequestPurchaseAndroidBuilder();
-  ProductQueryType type = ProductQueryType.InApp;
+  ProductQueryType _type = ProductQueryType.InApp;
+
+  ProductQueryType get type => _type;
+
+  set type(Object value) {
+    if (value is ProductQueryType) {
+      _type = value;
+      return;
+    }
+    if (value is ProductType) {
+      _type = value == ProductType.InApp
+          ? ProductQueryType.InApp
+          : ProductQueryType.Subs;
+      return;
+    }
+    if (value is String) {
+      final normalized = value.toLowerCase();
+      if (normalized.contains('sub')) {
+        _type = ProductQueryType.Subs;
+      } else {
+        _type = ProductQueryType.InApp;
+      }
+      return;
+    }
+    throw ArgumentError('Unsupported type assignment: $value');
+  }
 
   RequestPurchaseBuilder();
 
@@ -101,7 +126,7 @@ class RequestPurchaseBuilder {
     final iosProps = ios.sku.isNotEmpty ? ios.build() : null;
     final androidProps = android.skus.isNotEmpty ? android.build() : null;
 
-    if (type == ProductQueryType.InApp) {
+    if (_type == ProductQueryType.InApp) {
       final payload = RequestPurchasePropsByPlatforms(
         ios: iosProps,
         android: androidProps,
@@ -158,5 +183,36 @@ extension RequestPurchaseBuilderExtension on RequestPurchaseBuilder {
   RequestPurchaseBuilder withAndroid(AndroidPurchaseBuilder configure) {
     configure(android);
     return this;
+  }
+}
+
+class RequestSubscriptionBuilder {
+  RequestSubscriptionBuilder();
+
+  final RequestSubscriptionIOSBuilder ios = RequestSubscriptionIOSBuilder();
+  final RequestSubscriptionAndroidBuilder android =
+      RequestSubscriptionAndroidBuilder();
+
+  RequestSubscriptionBuilder withIOS(IosSubscriptionBuilder configure) {
+    configure(ios);
+    return this;
+  }
+
+  RequestSubscriptionBuilder withAndroid(
+      AndroidSubscriptionBuilder configure) {
+    configure(android);
+    return this;
+  }
+
+  RequestPurchaseProps build() {
+    final iosProps = ios.sku.isNotEmpty ? ios.build() : null;
+    final androidProps = android.skus.isNotEmpty ? android.build() : null;
+
+    return RequestPurchaseProps.subs(
+      request: RequestSubscriptionPropsByPlatforms(
+        ios: iosProps,
+        android: androidProps,
+      ),
+    );
   }
 }

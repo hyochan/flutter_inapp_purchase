@@ -1,5 +1,5 @@
 // Enums for flutter_inapp_purchase package
-library;
+// ignore_for_file: constant_identifier_names
 
 /// Store types
 enum Store { none, playStore, amazon, appStore }
@@ -117,18 +117,32 @@ enum TypeInApp { inapp, subs }
 
 /// Android purchase states from Google Play Billing
 enum AndroidPurchaseState {
-  unspecified(0), // UNSPECIFIED_STATE
-  purchased(1), // PURCHASED
-  pending(2); // PENDING
+  Unknown, // UNSPECIFIED_STATE
+  Purchased, // PURCHASED
+  Pending, // PENDING
+}
 
-  final int value;
-  const AndroidPurchaseState(this.value);
+AndroidPurchaseState androidPurchaseStateFromValue(int value) {
+  switch (value) {
+    case 1:
+      return AndroidPurchaseState.Purchased;
+    case 2:
+      return AndroidPurchaseState.Pending;
+    default:
+      return AndroidPurchaseState.Unknown;
+  }
+}
 
-  static AndroidPurchaseState fromValue(int value) {
-    return AndroidPurchaseState.values.firstWhere(
-      (state) => state.value == value,
-      orElse: () => AndroidPurchaseState.unspecified,
-    );
+extension AndroidPurchaseStateValue on AndroidPurchaseState {
+  int get value {
+    switch (this) {
+      case AndroidPurchaseState.Unknown:
+        return 0;
+      case AndroidPurchaseState.Purchased:
+        return 1;
+      case AndroidPurchaseState.Pending:
+        return 2;
+    }
   }
 }
 
@@ -177,13 +191,29 @@ enum PurchaseState { pending, purchased, unspecified }
 /// }
 /// ```
 enum AndroidReplacementMode {
-  unknownReplacementMode(0),
-  withTimeProration(1),
-  chargeProratedPrice(2),
-  withoutProration(3),
-  deferred(4),
-  chargeFullPrice(5);
+  unknownReplacementMode,
+  withTimeProration,
+  chargeProratedPrice,
+  withoutProration,
+  deferred,
+  chargeFullPrice,
+}
 
-  final int value;
-  const AndroidReplacementMode(this.value);
+extension AndroidReplacementModeValue on AndroidReplacementMode {
+  int get value {
+    switch (this) {
+      case AndroidReplacementMode.unknownReplacementMode:
+        return 0;
+      case AndroidReplacementMode.withTimeProration:
+        return 1;
+      case AndroidReplacementMode.chargeProratedPrice:
+        return 2;
+      case AndroidReplacementMode.withoutProration:
+        return 3;
+      case AndroidReplacementMode.deferred:
+        return 4;
+      case AndroidReplacementMode.chargeFullPrice:
+        return 5;
+    }
+  }
 }

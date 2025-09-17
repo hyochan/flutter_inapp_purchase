@@ -64,6 +64,14 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
     return uniquePurchases.values.toList();
   }
 
+  IapPlatform _platformOrDefault() {
+    try {
+      return getCurrentPlatform();
+    } catch (_) {
+      return IapPlatform.Android;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -121,7 +129,7 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
 
       // Load purchase history
       List<Purchase> purchaseHistory = [];
-      if (getCurrentPlatform() == IapPlatform.ios) {
+      if (_platformOrDefault() == IapPlatform.IOS) {
         // iOS: include expired subscriptions as history
         purchaseHistory = await _iap.getAvailablePurchases(
           const PurchaseOptions(onlyIncludeActiveItemsIOS: false),
