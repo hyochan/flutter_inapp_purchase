@@ -25,10 +25,10 @@ CHECKOUT OPTIONS:
     :tag: 1.1.9
 
 SPEC CHECKSUMS:
-  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
-  flutter_inapp_purchase: 919e64e275a3a68ed9a0b7798c3f51e591a1153f
+  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  flutter_inapp_purchase: 2132ba52676c2848b98ea55d26cd7d2284c252a2
   openiap: dcfa2a4dcf31259ec4b73658e7d1441babccce66
 
 PODFILE CHECKSUM: 7f77729f2fac4d8b3c65d064abe240d5bd87fe01
 
-COCOAPODS: 1.16.2
+COCOAPODS: 1.15.2
