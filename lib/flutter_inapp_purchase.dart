@@ -286,19 +286,14 @@ class RequestPurchaseAndroid {
 
 class RequestSubscriptionAndroid extends RequestPurchaseAndroid {
   RequestSubscriptionAndroid({
-    required List<String> skus,
+    required super.skus,
     this.purchaseTokenAndroid,
     this.replacementModeAndroid,
     this.subscriptionOffers,
-    String? obfuscatedAccountIdAndroid,
-    String? obfuscatedProfileIdAndroid,
-    bool? isOfferPersonalized,
-  }) : super(
-          skus: skus,
-          obfuscatedAccountIdAndroid: obfuscatedAccountIdAndroid,
-          obfuscatedProfileIdAndroid: obfuscatedProfileIdAndroid,
-          isOfferPersonalized: isOfferPersonalized,
-        );
+    super.obfuscatedAccountIdAndroid,
+    super.obfuscatedProfileIdAndroid,
+    super.isOfferPersonalized,
+  });
 
   final String? purchaseTokenAndroid;
   final int? replacementModeAndroid;
