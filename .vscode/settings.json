@@ -7,9 +7,7 @@
 
   // Dart & Flutter settings
   "dart.flutterSdkPath": null,
-  "dart.doNotFormat": [
-    "lib/types.dart"
-  ],
+  "dart.doNotFormat": ["lib/types.dart"],
   "[dart]": {
     "editor.rulers": [80],
     "editor.selectionHighlight": false,
@@ -65,5 +63,5 @@
   // Docusaurus specific
   "typescript.tsdk": "docs/node_modules/typescript/lib",
   "npm.packageManager": "npm",
-  "cSpell.words": ["inapp", "Inapp", "skus"]
+  "cSpell.words": ["hyochan", "inapp", "Inapp", "skus"]
 }
