@@ -7,7 +7,7 @@
 
   // Dart & Flutter settings
   "dart.flutterSdkPath": null,
-  "dart.doNotFormat": ["**/lib/types.dart"],
+  "dart.doNotFormat": ["lib/types.dart"],
   "[dart]": {
     "editor.formatOnSave": false,
     "editor.rulers": [80],
