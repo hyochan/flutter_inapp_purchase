@@ -34,6 +34,62 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
   final Set<String> _processedTransactionIds =
       {}; // Track processed transactions
 
+  String? _transactionIdFor(Purchase purchase) {
+    return purchase.id.isEmpty ? null : purchase.id;
+  }
+
+  int? _androidPurchaseStateValue(Purchase purchase) {
+    if (purchase is PurchaseAndroid) {
+      switch (purchase.purchaseState) {
+        case PurchaseState.Purchased:
+          return AndroidPurchaseState.Purchased.value;
+        case PurchaseState.Pending:
+          return AndroidPurchaseState.Pending.value;
+        case PurchaseState.Failed:
+        case PurchaseState.Deferred:
+        case PurchaseState.Restored:
+        case PurchaseState.Unknown:
+          return AndroidPurchaseState.Unknown.value;
+      }
+    }
+    return null;
+  }
+
+  TransactionState? _transactionStateForIOS(Purchase purchase) {
+    if (purchase is! PurchaseIOS) {
+      return null;
+    }
+
+    switch (purchase.purchaseState) {
+      case PurchaseState.Purchased:
+        return TransactionState.purchased;
+      case PurchaseState.Pending:
+        return TransactionState.purchasing;
+      case PurchaseState.Failed:
+        return TransactionState.failed;
+      case PurchaseState.Deferred:
+        return TransactionState.deferred;
+      case PurchaseState.Restored:
+        return TransactionState.restored;
+      case PurchaseState.Unknown:
+        return TransactionState.purchasing;
+    }
+  }
+
+  bool? _isAcknowledgedAndroid(Purchase purchase) {
+    return purchase is PurchaseAndroid ? purchase.isAcknowledgedAndroid : null;
+  }
+
+  int? _quantityForIOS(Purchase purchase) {
+    return purchase is PurchaseIOS ? purchase.quantityIOS : null;
+  }
+
+  String? _originalTransactionIdentifierForIOS(Purchase purchase) {
+    return purchase is PurchaseIOS
+        ? purchase.originalTransactionIdentifierIOS
+        : null;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -83,7 +139,8 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
         debugPrint('🎉 Purchase update received!');
         debugPrint('ProductId: ${purchase.productId}');
         debugPrint('ID: ${purchase.id}'); // OpenIAP standard
-        debugPrint('TransactionId: ${purchase.transactionId}'); // Legacy field
+        final txId = _transactionIdFor(purchase);
+        debugPrint('TransactionId: ${txId ?? 'N/A'}');
         debugPrint('PurchaseToken: ${purchase.purchaseToken}');
         debugPrint('Full purchase data: $purchase');
         _handlePurchaseUpdate(purchase);
@@ -116,17 +173,24 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
     debugPrint('🎯 Purchase update received: ${purchase.productId}');
     debugPrint('  Platform: ${purchase.platform}');
     debugPrint('  Purchase state: ${purchase.purchaseState}');
-    debugPrint('  Purchase state Android: ${purchase.purchaseStateAndroid}');
-    debugPrint('  Transaction state iOS: ${purchase.transactionStateIOS}');
-    debugPrint('  Is acknowledged: ${purchase.isAcknowledgedAndroid}');
-    debugPrint('  Transaction ID: ${purchase.transactionId}');
+    final transactionId = _transactionIdFor(purchase);
+    final androidStateValue = _androidPurchaseStateValue(purchase);
+    final iosTransactionState = _transactionStateForIOS(purchase);
+    final acknowledgedAndroid = _isAcknowledgedAndroid(purchase);
+    debugPrint('  Purchase state Android (legacy value): $androidStateValue');
+    debugPrint('  Transaction state iOS: $iosTransactionState');
+    debugPrint('  Is acknowledged Android: $acknowledgedAndroid');
+    debugPrint('  Transaction ID: ${transactionId ?? 'N/A'}');
     debugPrint('  Purchase token: ${purchase.purchaseToken}');
     debugPrint('  ID: ${purchase.id} (${purchase.id.runtimeType})');
     debugPrint('  IDs array: ${purchase.ids}');
     if (purchase.platform == IapPlatform.IOS) {
-      debugPrint('  quantityIOS: ${purchase.quantityIOS}');
+      final quantityIOS = _quantityForIOS(purchase);
+      final originalIdentifier = _originalTransactionIdentifierForIOS(purchase);
+      debugPrint('  quantityIOS: $quantityIOS');
       debugPrint(
-          '  originalTransactionIdentifierIOS: ${purchase.originalTransactionIdentifierIOS} (${purchase.originalTransactionIdentifierIOS?.runtimeType})');
+        '  originalTransactionIdentifierIOS: $originalIdentifier (${originalIdentifier?.runtimeType})',
+      );
     }
 
     if (!mounted) {
@@ -135,8 +199,6 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
     }
 
     // Check if we've already processed this transaction
-    final transactionId =
-        purchase.id.isNotEmpty ? purchase.id : purchase.transactionId;
     if (transactionId != null &&
         _processedTransactionIds.contains(transactionId)) {
       debugPrint('⚠️ Transaction already processed: $transactionId');
@@ -146,15 +208,15 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
     // Determine if purchase is successful using same logic as subscription flow
     bool isPurchased = false;
 
-    if (Platform.isAndroid) {
+    if (Platform.isAndroid && purchase is PurchaseAndroid) {
       // For Android, check multiple conditions since fields can be null
       final bool condition1 = purchase.purchaseState == PurchaseState.Purchased;
-      final bool condition2 = purchase.isAcknowledgedAndroid == false &&
+      final bool condition2 = acknowledgedAndroid == false &&
           purchase.purchaseToken != null &&
           purchase.purchaseToken!.isNotEmpty &&
-          purchase.purchaseStateAndroid == AndroidPurchaseState.Purchased.value;
+          purchase.purchaseState == PurchaseState.Purchased;
       final bool condition3 =
-          purchase.purchaseStateAndroid == AndroidPurchaseState.Purchased.value;
+          androidStateValue == AndroidPurchaseState.Purchased.value;
 
       debugPrint('  Android condition checks:');
       debugPrint('    purchaseState == purchased: $condition1');
@@ -164,14 +226,12 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
 
       isPurchased = condition1 || condition2 || condition3;
       debugPrint('  Final isPurchased: $isPurchased');
-    } else {
+    } else if (purchase is PurchaseIOS) {
       // For iOS - same logic as subscription flow
-      bool condition1 =
-          purchase.transactionStateIOS == TransactionState.purchased;
+      final bool condition1 = iosTransactionState == TransactionState.purchased;
       bool condition2 =
           purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpty;
-      bool condition3 =
-          purchase.transactionId != null && purchase.transactionId!.isNotEmpty;
+      final bool condition3 = transactionId != null;
 
       debugPrint('  iOS condition checks:');
       debugPrint('    transactionStateIOS == purchased: $condition1');
@@ -192,8 +252,8 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
 ⚠️ Purchase received but state unknown
 Platform: ${purchase.platform}
 Purchase state: ${purchase.purchaseState}
-iOS transaction state: ${purchase.transactionStateIOS}
-Android purchase state: ${purchase.purchaseStateAndroid}
+iOS transaction state: $iosTransactionState
+Android purchase state (legacy value): $androidStateValue
 Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpty}
         '''
             .trim();
@@ -204,7 +264,7 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
     debugPrint('✅ Purchase detected as successful: ${purchase.productId}');
     debugPrint('Purchase token: ${purchase.purchaseToken}');
     debugPrint('ID: ${purchase.id}'); // OpenIAP standard
-    debugPrint('Transaction ID: ${purchase.transactionId}'); // Legacy field
+    debugPrint('Transaction ID: ${transactionId ?? 'N/A'}');
 
     // Mark this transaction as processed
     if (transactionId != null) {
@@ -216,15 +276,32 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
       _isProcessing = false;
       _currentPurchase = purchase;
 
+      final truncatedReceipt = purchase.purchaseToken == null
+          ? 'N/A'
+          : purchase.purchaseToken!.substring(
+              0,
+              purchase.purchaseToken!.length > 50
+                  ? 50
+                  : purchase.purchaseToken!.length,
+            );
+      final truncatedToken = purchase.purchaseToken == null
+          ? 'N/A'
+          : purchase.purchaseToken!.substring(
+              0,
+              purchase.purchaseToken!.length > 30
+                  ? 30
+                  : purchase.purchaseToken!.length,
+            );
+
       // Format purchase result like KMP-IAP
       _purchaseResult = '''
 ✅ Purchase successful (${Platform.operatingSystem})
 Product: ${purchase.productId}
 ID: ${purchase.id.isNotEmpty ? purchase.id : "N/A"}
-Transaction ID: ${purchase.transactionId ?? "N/A"}
+Transaction ID: ${transactionId ?? "N/A"}
 Date: ${purchase.transactionDate ?? "N/A"}
-Receipt: ${purchase.transactionReceipt?.substring(0, purchase.transactionReceipt!.length > 50 ? 50 : purchase.transactionReceipt!.length)}...
-Purchase Token: ${purchase.purchaseToken?.substring(0, 30)}...
+Receipt: $truncatedReceipt...
+Purchase Token: $truncatedToken...
       '''
           .trim();
     });
@@ -232,7 +309,7 @@ Purchase Token: ${purchase.purchaseToken?.substring(0, 30)}...
     // IMPORTANT: Server-side receipt validation should be performed here
     // Send the receipt to your backend server for validation
     // Example:
-    // final isValid = await validateReceiptOnServer(purchase.transactionReceipt);
+    // final isValid = await validateReceiptOnServer(purchase.purchaseToken);
     // if (!isValid) {
     //   setState(() {
     //     _purchaseResult = '❌ Receipt validation failed';
@@ -318,7 +395,7 @@ Please try again in a few minutes.
         _purchaseResult = '''
 ❌ Error: ${error.message}
 Code: ${error.code}
-Platform: ${error.platform}
+Product ID: ${error.productId ?? 'unknown'}
         '''
             .trim();
       }
@@ -378,18 +455,18 @@ Platform: ${error.platform}
       debugPrint('Product ID: $productId');
 
       // Build platform-specific request and call unified requestPurchase
-      await _iap.requestPurchase(
-        request: RequestPurchase(
-          ios: RequestPurchaseIOS(
-            sku: productId,
-            quantity: 1,
-          ),
-          android: RequestPurchaseAndroid(
-            skus: [productId],
-          ),
-          type: ProductType.InApp,
+      final requestProps = RequestPurchase(
+        ios: RequestPurchaseIOS(
+          sku: productId,
+          quantity: 1,
         ),
-      );
+        android: RequestPurchaseAndroid(
+          skus: [productId],
+        ),
+        type: ProductType.InApp,
+      ).toProps();
+
+      await _iap.requestPurchase(requestProps);
 
       debugPrint('✅ Purchase request sent successfully');
       // Note: The actual purchase result will come through the purchaseUpdatedListener
@@ -639,7 +716,7 @@ ${purchases.map((p) => '- ${p.productId}: ${p.purchaseToken?.substring(0, 20)}..
                                     },
                               icon: const Icon(Icons.power_settings_new,
                                   size: 16),
-                              label: const Text('Reinit Connection'),
+                              label: const Text('Re-init Connection'),
                             ),
                           ],
                         ),
@@ -706,21 +783,26 @@ ${purchases.map((p) => '- ${p.productId}: ${p.purchaseToken?.substring(0, 20)}..
                             const SizedBox(height: 12),
                             ElevatedButton.icon(
                               onPressed: () {
+                                final current = _currentPurchase!;
+                                final txId =
+                                    _transactionIdFor(current) ?? 'N/A';
+                                final receipt = current.purchaseToken ?? 'N/A';
+
                                 // Copy full receipt to clipboard
                                 final fullInfo = '''
 Purchase Information:
 ====================
-Product ID: ${_currentPurchase!.productId}
-ID: ${_currentPurchase!.id}
-Transaction ID: ${_currentPurchase!.transactionId}
-Date: ${_currentPurchase!.transactionDate}
-Platform: ${_currentPurchase!.platform}
+Product ID: ${current.productId}
+ID: ${current.id}
+Transaction ID: $txId
+Date: ${current.transactionDate}
+Platform: ${current.platform}
 
 Receipt:
-${_currentPurchase!.transactionReceipt}
+$receipt
 
 Purchase Token:
-${_currentPurchase!.purchaseToken}
+${current.purchaseToken}
                                 ''';
                                 // You can add clipboard functionality here
                                 debugPrint(fullInfo);
@@ -791,7 +873,7 @@ ${_currentPurchase!.purchaseToken}
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      product.localizedPrice ?? '',
+                                      product.displayPrice,
                                       style: const TextStyle(
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold,

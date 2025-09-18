@@ -20,6 +20,10 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
   bool _connected = false;
   String? _error;
 
+  String? _transactionIdFor(Purchase purchase) {
+    return purchase.id.isEmpty ? null : purchase.id;
+  }
+
   /// Convert various date formats to milliseconds timestamp
   int _parseTimestamp(dynamic date) {
     if (date == null) return 0;
@@ -241,6 +245,7 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
   }
 
   Widget _buildAvailablePurchase(Purchase purchase) {
+    final transactionId = _transactionIdFor(purchase);
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: Padding(
@@ -294,7 +299,7 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
                 ],
               ),
             ],
-            if (purchase.transactionId != null) ...[
+            if (transactionId != null) ...[
               const SizedBox(height: 4),
               Row(
                 children: [
@@ -302,7 +307,7 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
-                      'Transaction ID: ${purchase.transactionId}',
+                      'Transaction ID: $transactionId',
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey[600],
@@ -320,6 +325,7 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
   }
 
   Widget _buildPurchaseHistoryItem(Purchase item) {
+    final transactionId = _transactionIdFor(item);
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: Padding(
@@ -373,7 +379,7 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
                 ],
               ),
             ],
-            if (item.transactionId != null) ...[
+            if (transactionId != null) ...[
               const SizedBox(height: 4),
               Row(
                 children: [
@@ -381,7 +387,7 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
-                      'Transaction ID: ${item.transactionId}',
+                      'Transaction ID: $transactionId',
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey[600],

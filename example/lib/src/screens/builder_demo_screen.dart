@@ -108,20 +108,14 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
             ..replacementModeAndroid = prorationMode
             ..purchaseTokenAndroid = token);
 
-        await _iap.requestPurchase(
-          props: subBuilder.build(),
-          type: ProductType.Subs,
-        );
+        await _iap.requestPurchase(subBuilder.build());
         setState(() => _status = 'Subscription upgrade initiated');
       } else {
         // Fallback to a new subscription purchase (no replacement)
         final newSub = RequestSubscriptionBuilder()
           ..withAndroid((RequestSubscriptionAndroidBuilder a) =>
               a..skus = ['dev.hyo.martie.premium']);
-        await _iap.requestPurchase(
-          props: newSub.build(),
-          type: ProductType.Subs,
-        );
+        await _iap.requestPurchase(newSub.build());
         setState(() => _status =
             'No token/proration; purchased yearly as new subscription');
       }

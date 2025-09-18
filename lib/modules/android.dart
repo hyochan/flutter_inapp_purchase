@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 
@@ -13,29 +11,36 @@ mixin FlutterInappPurchaseAndroid {
 
   /// Consumes a purchase on Android (for consumable products)
   /// @param purchaseToken - The purchase token to consume
-  Future<types.VoidResult> consumePurchaseAndroid(
-      {required String purchaseToken}) async {
-    if (!isAndroid) {
-      throw PlatformException(
-        code: 'platform',
-        message: 'consumePurchaseAndroid is only supported on Android',
-      );
-    }
+  types.MutationConsumePurchaseAndroidHandler get consumePurchaseAndroid =>
+      (String purchaseToken) async {
+        if (!isAndroid) {
+          throw PlatformException(
+            code: 'platform',
+            message: 'consumePurchaseAndroid is only supported on Android',
+          );
+        }
 
-    try {
-      final response = await channel.invokeMethod<Map<dynamic, dynamic>>(
-        'consumePurchaseAndroid',
-        {'purchaseToken': purchaseToken},
-      );
-      if (response == null) {
-        return const types.VoidResult(success: false);
-      }
-      return types.VoidResult.fromJson(Map<String, dynamic>.from(response));
-    } catch (error) {
-      debugPrint('Error consuming purchase: $error');
-      return const types.VoidResult(success: false);
-    }
-  }
+        try {
+          final dynamic response = await channel.invokeMethod(
+            'consumePurchaseAndroid',
+            {'purchaseToken': purchaseToken},
+          );
+
+          if (response is Map) {
+            final map = Map<String, dynamic>.from(response);
+            return map['success'] as bool? ?? true;
+          }
+
+          if (response is bool) {
+            return response;
+          }
+
+          return true;
+        } catch (error) {
+          debugPrint('Error consuming purchase: $error');
+          return false;
+        }
+      };
 }
 
 /// In-app message model for Android

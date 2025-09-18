@@ -49,6 +49,66 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
     'Immediate and Charge Full Price': 5,
   };
 
+  List<SubscriptionOfferAndroid> _androidOffersFor(ProductCommon item) {
+    if (item is ProductSubscriptionAndroid) {
+      return item.subscriptionOfferDetailsAndroid
+          .map(
+            (offer) => SubscriptionOfferAndroid(
+              offerToken: offer.offerToken,
+              sku: offer.basePlanId,
+            ),
+          )
+          .toList();
+    }
+    return const <SubscriptionOfferAndroid>[];
+  }
+
+  String? _transactionIdFor(Purchase purchase) {
+    return purchase.id.isEmpty ? null : purchase.id;
+  }
+
+  int? _androidPurchaseStateValue(Purchase purchase) {
+    if (purchase is PurchaseAndroid) {
+      switch (purchase.purchaseState) {
+        case PurchaseState.Purchased:
+          return AndroidPurchaseState.Purchased.value;
+        case PurchaseState.Pending:
+          return AndroidPurchaseState.Pending.value;
+        case PurchaseState.Failed:
+        case PurchaseState.Deferred:
+        case PurchaseState.Restored:
+        case PurchaseState.Unknown:
+          return AndroidPurchaseState.Unknown.value;
+      }
+    }
+    return null;
+  }
+
+  TransactionState? _transactionStateForIOS(Purchase purchase) {
+    if (purchase is! PurchaseIOS) {
+      return null;
+    }
+
+    switch (purchase.purchaseState) {
+      case PurchaseState.Purchased:
+        return TransactionState.purchased;
+      case PurchaseState.Pending:
+        return TransactionState.purchasing;
+      case PurchaseState.Failed:
+        return TransactionState.failed;
+      case PurchaseState.Deferred:
+        return TransactionState.deferred;
+      case PurchaseState.Restored:
+        return TransactionState.restored;
+      case PurchaseState.Unknown:
+        return TransactionState.purchasing;
+    }
+  }
+
+  bool? _isAcknowledgedAndroid(Purchase purchase) {
+    return purchase is PurchaseAndroid ? purchase.isAcknowledgedAndroid : null;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -71,13 +131,19 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
         debugPrint('🎯 Purchase updated: ${purchase.productId}');
         debugPrint('  Platform: ${purchase.platform}');
         debugPrint('  Purchase state: ${purchase.purchaseState}');
+        final transactionId = _transactionIdFor(purchase);
+        final androidStateValue = _androidPurchaseStateValue(purchase);
+        final iosTransactionState = _transactionStateForIOS(purchase);
+        final acknowledgedAndroid = _isAcknowledgedAndroid(purchase);
         debugPrint(
-            '  Purchase state Android: ${purchase.purchaseStateAndroid}');
-        debugPrint('  Transaction state iOS: ${purchase.transactionStateIOS}');
-        debugPrint('  Is acknowledged: ${purchase.isAcknowledgedAndroid}');
-        debugPrint('  Transaction ID: ${purchase.transactionId}');
+            '  Purchase state Android (legacy value): $androidStateValue');
+        debugPrint('  Transaction state iOS: $iosTransactionState');
+        debugPrint('  Is acknowledged Android: $acknowledgedAndroid');
+        debugPrint('  Transaction ID: ${transactionId ?? 'N/A'}');
         debugPrint('  Purchase token: ${purchase.purchaseToken}');
-        debugPrint('  Auto renewing: ${purchase.autoRenewingAndroid}');
+        if (purchase is PurchaseAndroid) {
+          debugPrint('  Auto renewing: ${purchase.autoRenewingAndroid}');
+        }
 
         if (!mounted) {
           debugPrint('  ⚠️ Widget not mounted, ignoring update');
@@ -85,11 +151,10 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
         }
 
         // Check for duplicate processing
-        final transactionId =
-            purchase.transactionId ?? purchase.purchaseToken ?? '';
-        if (transactionId.isNotEmpty &&
-            _processedTransactionIds.contains(transactionId)) {
-          debugPrint('  ⚠️ Transaction already processed: $transactionId');
+        final transactionKey = transactionId ?? purchase.purchaseToken ?? '';
+        if (transactionKey.isNotEmpty &&
+            _processedTransactionIds.contains(transactionKey)) {
+          debugPrint('  ⚠️ Transaction already processed: $transactionKey');
           return;
         }
 
@@ -97,16 +162,16 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
         // purchaseState.purchased or purchaseStateAndroid == AndroidPurchaseState.Purchased or isAcknowledgedAndroid == false (new purchase)
         bool isPurchased = false;
 
-        if (Platform.isAndroid) {
+        if (Platform.isAndroid && purchase is PurchaseAndroid) {
           // For Android, check multiple conditions since fields can be null
-          bool condition1 = purchase.purchaseState == PurchaseState.Purchased;
-          bool condition2 = purchase.isAcknowledgedAndroid == false &&
+          final bool condition1 =
+              purchase.purchaseState == PurchaseState.Purchased;
+          final bool condition2 = acknowledgedAndroid == false &&
               purchase.purchaseToken != null &&
               purchase.purchaseToken!.isNotEmpty &&
-              purchase.purchaseStateAndroid ==
-                  AndroidPurchaseState.Purchased.value;
-          bool condition3 = purchase.purchaseStateAndroid ==
-              AndroidPurchaseState.Purchased.value;
+              purchase.purchaseState == PurchaseState.Purchased;
+          final bool condition3 =
+              androidStateValue == AndroidPurchaseState.Purchased.value;
 
           debugPrint('  Android condition checks:');
           debugPrint('    purchaseState == purchased: $condition1');
@@ -116,15 +181,14 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
 
           isPurchased = condition1 || condition2 || condition3;
           debugPrint('  Final isPurchased: $isPurchased');
-        } else {
+        } else if (purchase is PurchaseIOS) {
           // For iOS - simpler logic like purchase_flow_screen.dart
           // iOS purchase updates with valid tokens indicate successful purchases
-          bool condition1 =
-              purchase.transactionStateIOS == TransactionState.purchased;
+          final bool condition1 =
+              iosTransactionState == TransactionState.purchased;
           bool condition2 = purchase.purchaseToken != null &&
               purchase.purchaseToken!.isNotEmpty;
-          bool condition3 = purchase.transactionId != null &&
-              purchase.transactionId!.isNotEmpty;
+          final bool condition3 = transactionId != null;
 
           debugPrint('  iOS condition checks:');
           debugPrint('    transactionStateIOS == purchased: $condition1');
@@ -142,8 +206,8 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
           debugPrint('  _isProcessing before setState: $_isProcessing');
 
           // Mark as processed
-          if (transactionId.isNotEmpty) {
-            _processedTransactionIds.add(transactionId);
+          if (transactionKey.isNotEmpty) {
+            _processedTransactionIds.add(transactionKey);
           }
 
           // Update UI immediately
@@ -173,8 +237,7 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
           await _checkActiveSubscriptions();
           debugPrint('Subscriptions refreshed');
         } else if (purchase.purchaseState == PurchaseState.Pending ||
-            purchase.purchaseStateAndroid ==
-                AndroidPurchaseState.Unknown.value) {
+            androidStateValue == AndroidPurchaseState.Unknown.value) {
           // Pending
           if (!mounted) return;
           setState(() {
@@ -184,10 +247,9 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
           // Unknown state - log for debugging
           debugPrint('❓ Unknown purchase state');
           debugPrint('  Purchase state: ${purchase.purchaseState}');
+          debugPrint('  Transaction state iOS: $iosTransactionState');
           debugPrint(
-              '  Transaction state iOS: ${purchase.transactionStateIOS}');
-          debugPrint(
-              '  Purchase state Android: ${purchase.purchaseStateAndroid}');
+              '  Purchase state Android (legacy value): $androidStateValue');
           debugPrint(
               '  Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpty}');
 
@@ -198,10 +260,10 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
 ⚠️ Purchase received but state unknown
 Platform: ${purchase.platform}
 Purchase state: ${purchase.purchaseState}
-iOS transaction state: ${purchase.transactionStateIOS}
-Android purchase state: ${purchase.purchaseStateAndroid}
+iOS transaction state: $iosTransactionState
+Android purchase state (legacy value): $androidStateValue
 Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpty}
-            '''
+          '''
                 .trim();
           });
         }
@@ -365,15 +427,11 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
 
     try {
       // Check for Android offers
-      SubscriptionOfferAndroid? selectedOffer;
-      final hasOffers =
-          item is ProductSubscription && item.subscriptionOffersAndroid != null;
-      if (Platform.isAndroid && hasOffers) {
-        final offers = (item as ProductSubscription).subscriptionOffersAndroid!;
-        if (offers.isNotEmpty) {
-          selectedOffer = offers.first;
-          debugPrint('Using offer token: ${selectedOffer.offerToken}');
-        }
+      final androidOffers = _androidOffersFor(item);
+      final SubscriptionOfferAndroid? selectedOffer =
+          androidOffers.isNotEmpty ? androidOffers.first : null;
+      if (selectedOffer != null) {
+        debugPrint('Using offer token: ${selectedOffer.offerToken}');
       }
 
       // Request subscription using the new API
@@ -388,41 +446,43 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
           debugPrint(
               'Using purchase token: ${_currentSubscription!.purchaseToken}');
 
-          final request = RequestPurchase(
+          final requestProps = RequestPurchase(
             android: RequestSubscriptionAndroid(
               skus: [item.id],
-              subscriptionOffers: selectedOffer != null ? [selectedOffer] : [],
+              subscriptionOffers:
+                  selectedOffer != null ? [selectedOffer] : androidOffers,
               purchaseTokenAndroid: _currentSubscription!.purchaseToken,
               replacementModeAndroid: _selectedProrationMode,
             ),
             type: ProductType.Subs,
           );
 
-          await _iap.requestPurchase(request: request);
+          await _iap.requestPurchase(requestProps.toProps());
         } else {
           // This is a new subscription purchase
           debugPrint('Purchasing new subscription');
 
-          final request = RequestPurchase(
+          final requestProps = RequestPurchase(
             android: RequestSubscriptionAndroid(
               skus: [item.id],
-              subscriptionOffers: selectedOffer != null ? [selectedOffer] : [],
+              subscriptionOffers:
+                  selectedOffer != null ? [selectedOffer] : androidOffers,
             ),
             type: ProductType.Subs,
           );
 
-          await _iap.requestPurchase(request: request);
+          await _iap.requestPurchase(requestProps.toProps());
         }
       } else {
         // iOS
-        final request = RequestPurchase(
+        final requestProps = RequestPurchase(
           ios: RequestPurchaseIOS(
             sku: item.id,
           ),
           type: ProductType.Subs,
         );
 
-        await _iap.requestPurchase(request: request);
+        await _iap.requestPurchase(requestProps.toProps());
       }
 
       // Result will be handled by the purchase stream listeners
@@ -455,12 +515,10 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
           'fake_token_for_testing_${DateTime.now().millisecondsSinceEpoch}';
       debugPrint('Using fake token: $fakeToken');
 
-      final request = RequestPurchase(
+      final requestProps = RequestPurchase(
         android: RequestSubscriptionAndroid(
           skus: [item.id],
-          subscriptionOffers: item is ProductSubscription
-              ? (item.subscriptionOffersAndroid ?? [])
-              : [],
+          subscriptionOffers: _androidOffersFor(item),
           purchaseTokenAndroid:
               fakeToken, // Fake token that will fail on native side
           replacementModeAndroid: AndroidReplacementMode.deferred.value,
@@ -468,7 +526,7 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
         type: ProductType.Subs,
       );
 
-      await _iap.requestPurchase(request: request);
+      await _iap.requestPurchase(requestProps.toProps());
 
       // If we get here, the purchase was attempted
       debugPrint('Purchase request sent with fake token');
@@ -501,19 +559,17 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
       debugPrint('Using test token: ${testToken.substring(0, 20)}...');
 
       // Test with empty string - but pass validation by using a non-empty token
-      final request = RequestPurchase(
+      final requestProps = RequestPurchase(
         android: RequestSubscriptionAndroid(
           skus: [item.id],
-          subscriptionOffers: item is ProductSubscription
-              ? (item.subscriptionOffersAndroid ?? [])
-              : [],
+          subscriptionOffers: _androidOffersFor(item),
           purchaseTokenAndroid: testToken, // Use test token to pass validation
           replacementModeAndroid: AndroidReplacementMode.deferred.value,
         ),
         type: ProductType.Subs,
       );
 
-      await _iap.requestPurchase(request: request);
+      await _iap.requestPurchase(requestProps.toProps());
 
       debugPrint('Purchase request sent with test token');
       // Result will come through purchaseUpdatedListener
@@ -622,7 +678,7 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
                     ),
                   ),
                   Text(
-                    subscription.localizedPrice ??
+                    subscription.displayPrice ??
                         subscription.price?.toString() ??
                         '',
                     style: const TextStyle(
