@@ -9,32 +9,33 @@ import AdFitTopFixed from "@site/src/uis/AdFitTopFixed";
 
 <AdFitTopFixed />
 
-Complete reference for flutter_inapp_purchase v6.0.0 - A unified API for implementing in-app purchases across iOS and Android platforms.
+Complete reference for flutter_inapp_purchase v6.7.0 - A unified API for implementing in-app purchases across iOS and Android platforms.
 
 ## Available APIs
 
-### 🏪 Core Methods
+### Core Methods
 Essential methods for initializing connections, loading products, and processing purchases.
 
 - **Connection Management**: `initConnection()`, `finalize()`
-- **Product Loading**: `getProducts()`, `getSubscriptions()`
-- **Purchase Processing**: `requestPurchase()`, `requestSubscription()`
+- **Product Loading**: `requestProducts()`
+- **Purchase Processing**: `requestPurchase()`
+- **Purchase History**: `getAvailablePurchases([PurchaseOptions?])`
 - **Transaction Management**: `finishTransaction()`, `consumePurchase()`
 
-### 📱 Platform-Specific Methods
+### Platform-Specific Methods
 Access iOS and Android specific features and capabilities.
 
 - **iOS Features**: Offer code redemption, subscription management, StoreKit 2 support
 - **Android Features**: Billing client state, pending purchases, deep links
 
-### 🎧 Event Listeners (Open IAP Spec)
+### Event Listeners (Open IAP Spec)
 Real-time streams for monitoring purchase events and connection states.
 
 - **purchaseUpdatedListener**: Stream for successful purchase updates
 - **purchaseErrorListener**: Stream for purchase errors
 - **Connection Events**: Store connection status updates
 
-### 🔧 Types & Enums
+### Types & Enums
 Comprehensive type definitions for type-safe development.
 
 - **Request Objects**: Platform-specific purchase and product requests

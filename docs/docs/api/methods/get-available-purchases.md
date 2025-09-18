@@ -5,23 +5,29 @@ title: getAvailablePurchases
 
 # getAvailablePurchases()
 
-Retrieves all non-consumed purchases made by the user.
+Retrieves non-consumed purchases with optional filters for platform-specific behavior.
 
 ## Overview
 
-The `getAvailablePurchases()` method returns a list of purchases that haven't been consumed or finished. This is useful for restoring purchases, checking subscription status, and handling incomplete transactions.
+The `getAvailablePurchases()` method returns a list of purchases that haven't been consumed or finished. Use it to restore purchases, check subscription status, and handle incomplete transactions. On iOS you can pass `PurchaseOptions` to include expired subscriptions or publish restored receipts to the purchase event stream.
 
 ## Signatures
 
 ### expo-iap Compatible
 ```dart
-Future<List<Purchase>> getAvailablePurchases()
+Future<List<Purchase>> getAvailablePurchases([PurchaseOptions? options])
 ```
 
 ### Legacy Method
 ```dart
 Future<List<Purchase>?> getAvailableItemsIOS()
 ```
+
+## Parameters
+
+| Parameter | Type               | Required | Default | Description |
+| --------- | ------------------ | -------- | ------- | ----------- |
+| `options` | `PurchaseOptions?` | No       | `null`  | Controls whether expired iOS receipts are included and if restored purchases should be re-emitted via `purchaseUpdated` |
 
 ## Returns
 
@@ -48,8 +54,16 @@ A list of active purchases including:
 ### Basic Usage
 
 ```dart
-// Get all available purchases
+// Active purchases only (default)
 final purchases = await FlutterInappPurchase.instance.getAvailablePurchases();
+
+// Include expired iOS subscriptions and publish them to purchaseUpdated
+final allPurchases = await FlutterInappPurchase.instance.getAvailablePurchases(
+  PurchaseOptions(
+    onlyIncludeActiveItemsIOS: false,
+    alsoPublishToEventListenerIOS: true,
+  ),
+);
 
 for (var purchase in purchases) {
   print('Active purchase: ${purchase.productId}');

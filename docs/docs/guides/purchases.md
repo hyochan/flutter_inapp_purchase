@@ -9,7 +9,7 @@ import AdFitTopFixed from "@site/src/uis/AdFitTopFixed";
 
 <AdFitTopFixed />
 
-Complete guide to implementing in-app purchases with flutter_inapp_purchase v6.0.0, covering everything from basic setup to advanced purchase handling.
+Complete guide to implementing in-app purchases with flutter_inapp_purchase v6.7.0, covering everything from basic setup to advanced purchase handling.
 
 ## Purchase Flow Overview
 
@@ -166,7 +166,7 @@ Future<void> _handlePurchase(String productId) async {
 }
 ```
 
-## New Platform-Specific API (v2.7.0+)
+## New Platform-Specific API (v6.7.0+)
 
 ### New Product Loading API
 
@@ -175,7 +175,7 @@ Future<void> _loadProducts() async {
   try {
     // Use requestProducts (new API)
     await FlutterInappPurchase.instance.requestProducts(
-      productIds: productIds,
+      skus: productIds,
       type: PurchaseType.inapp,
     );
 
@@ -196,7 +196,7 @@ final products = await FlutterInappPurchase.instance.getProducts(productIds);
 final subscriptions = await FlutterInappPurchase.instance.getSubscriptions(subscriptionIds);
 ```
 
-## New Subscription API (v2.7.0+)
+## New Subscription API (v6.7.0+)
 
 ### Subscription Purchase
 
@@ -274,7 +274,7 @@ class ProductInfo {
     try {
       // Request products from store
       await FlutterInappPurchase.instance.requestProducts(
-        productIds: productIds,
+        skus: productIds,
         type: PurchaseType.inapp,
       );
 
@@ -701,4 +701,4 @@ class PurchaseService {
 }
 ```
 
-This guide covers the complete purchase flow using the actual flutter_inapp_purchase v6.0.0 API, with examples based on the working code from your project.
+This guide covers the complete purchase flow using the actual flutter_inapp_purchase v6.7.0 API, with examples based on the working code from your project.

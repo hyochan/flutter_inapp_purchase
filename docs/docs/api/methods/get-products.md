@@ -5,17 +5,17 @@ title: requestProducts
 
 # requestProducts()
 
-Fetches product or subscription information with unified API (v2.7.0+).
+Fetches product or subscription information with unified API (v6.7.0+).
 
 ## Overview
 
-The `requestProducts()` method fetches product information for the specified product IDs from the App Store (iOS) or Google Play Store (Android). This replaces the deprecated `getProducts()` and `getSubscriptions()` methods with a unified API that uses a type parameter to distinguish between regular products and subscriptions.
+The `requestProducts()` method fetches product information for the specified store SKUs from the App Store (iOS) or Google Play Store (Android). This replaces the deprecated `getProducts()` and `getSubscriptions()` methods with a unified API that uses a type parameter to distinguish between regular products and subscriptions.
 
 ## Signature
 
 ```dart
 Future<List<ProductCommon>> requestProducts({
-  required List<String> productIds,
+  required List<String> skus,
   PurchaseType type = PurchaseType.inapp,
 })
 ```
@@ -24,7 +24,7 @@ Future<List<ProductCommon>> requestProducts({
 
 | Parameter | Type           | Required | Default   | Description                                                                |
 | --------- | -------------- | -------- | --------- | -------------------------------------------------------------------------- |
-| `productIds` | `List<String>` | Yes      | -         | List of product identifiers to fetch                                       |
+| `skus` | `List<String>` | Yes      | -         | List of store product identifiers to fetch                                |
 | `type`    | `PurchaseType` | No       | `PurchaseType.inapp` | Product type: `PurchaseType.inapp` (regular) or `PurchaseType.subs` (subscriptions) |
 
 ## Returns
@@ -39,7 +39,7 @@ Future<List<ProductCommon>> requestProducts({
 ```dart
 try {
   List<ProductCommon> products = await FlutterInappPurchase.instance.requestProducts(
-    productIds: ['coins_100', 'coins_500', 'remove_ads'],
+    skus: ['coins_100', 'coins_500', 'remove_ads'],
     type: PurchaseType.inapp,
   );
 
@@ -58,7 +58,7 @@ try {
 ```dart
 try {
   List<ProductCommon> subscriptions = await FlutterInappPurchase.instance.requestProducts(
-    productIds: ['premium_monthly', 'premium_yearly'],
+    skus: ['premium_monthly', 'premium_yearly'],
     type: PurchaseType.subs,
   );
 
@@ -80,13 +80,13 @@ class ProductService {
     try {
       // Load regular products
       final products = await FlutterInappPurchase.instance.requestProducts(
-        productIds: ['coins_100', 'remove_ads'],
+        skus: ['coins_100', 'remove_ads'],
         type: PurchaseType.inapp,
       );
 
       // Load subscriptions
       final subscriptions = await FlutterInappPurchase.instance.requestProducts(
-        productIds: ['premium_monthly', 'premium_yearly'],
+        skus: ['premium_monthly', 'premium_yearly'],
         type: PurchaseType.subs,
       );
 
@@ -166,7 +166,7 @@ final subscriptions = await FlutterInappPurchase.instance.getSubscriptions(subsc
 // New unified method
 final products = await FlutterInappPurchase.instance.requestProducts(
   skus: productIds,
-  type: 'inapp',
+  type: PurchaseType.inapp,
 );
 
 final subscriptions = await FlutterInappPurchase.instance.requestProducts(

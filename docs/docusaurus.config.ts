@@ -51,10 +51,6 @@ const config: Config = {
               label: "6.4 (Current)",
               path: "",
             },
-            "6.3": {
-              label: "6.3",
-              path: "6.3",
-            },
           },
           lastVersion: "current",
         },

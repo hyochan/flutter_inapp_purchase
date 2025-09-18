@@ -98,7 +98,7 @@ Ends the connection to the platform's billing service. Should be called when the
 
 ```dart
 Future<List<ProductCommon>> requestProducts({
-  required List<String> productIds,
+  required List<String> skus,
   PurchaseType type = PurchaseType.inapp,
 })
 ```
@@ -107,7 +107,7 @@ Fetches product information from the store.
 
 **Parameters:**
 
-- `productIds`: List of product identifiers
+- `skus`: List of product identifiers
 - `type`: Product type (optional, defaults to `PurchaseType.inapp`)
 
 **Returns:**
@@ -118,7 +118,7 @@ Fetches product information from the store.
 
 ```dart
 final products = await FlutterInappPurchase.instance.requestProducts(
-  productIds: ['com.example.premium', 'com.example.pro'],
+  skus: ['com.example.premium', 'com.example.pro'],
   type: PurchaseType.inapp,
 );
 ```
@@ -203,18 +203,32 @@ Completes a transaction and removes it from the queue.
 #### getAvailablePurchases()
 
 ```dart
-Future<List<Purchase>> getAvailablePurchases()
+Future<List<Purchase>> getAvailablePurchases([PurchaseOptions? options])
 ```
 
-Retrieves all non-consumed purchases.
-
-#### getPurchaseHistories()
+Retrieves available (unfinished) purchases. Pass `PurchaseOptions` to include expired iOS subscriptions or publish restored purchases through the event stream.
 
 ```dart
+// Active purchases only (default)
+final activePurchases = await FlutterInappPurchase.instance.getAvailablePurchases();
+
+// Include expired iOS subscriptions and re-emit through purchaseUpdated listener
+final allPurchases = await FlutterInappPurchase.instance.getAvailablePurchases(
+  PurchaseOptions(
+    onlyIncludeActiveItemsIOS: false,
+    alsoPublishToEventListenerIOS: true,
+  ),
+);
+```
+
+#### getPurchaseHistories() _(deprecated)_
+
+```dart
+@deprecated
 Future<List<Purchase>> getPurchaseHistories()
 ```
 
-Retrieves the user's purchase history.
+Legacy method for retrieving historical purchases. Use `getAvailablePurchases()` with `PurchaseOptions` instead.
 
 ### Platform-Specific Methods
 

@@ -5,7 +5,7 @@ title: FAQ
 
 # Frequently Asked Questions
 
-Common questions and answers about flutter_inapp_purchase v6.0.0, covering implementation, platform differences, best practices, and migration.
+Common questions and answers about flutter_inapp_purchase v6.7.0, covering implementation, platform differences, best practices, and migration.
 
 ## General Questions
 
@@ -26,15 +26,15 @@ Currently supported platforms:
 - **iOS** (12.0+) - Uses StoreKit 2 (iOS 15.0+) with fallback to StoreKit 1
 - **Android** (minSdkVersion 21) - Uses Google Play Billing Client v8
 
-### What's new in v6.0.0?
+### What's new in v6.7.0?
 
-Major changes in v6.0.0:
+Major changes in v6.7.0:
 
 ```dart
 // Old API (v5.x)
 await FlutterInappPurchase.instance.requestPurchase('product_id');
 
-// New API (v6.0.0)
+// New API (v6.7.0)
 await FlutterInappPurchase.instance.requestPurchase(
   request: RequestPurchase(
     ios: RequestPurchaseIOS(
@@ -51,10 +51,10 @@ await FlutterInappPurchase.instance.requestPurchase(
 
 Key improvements:
 
-- Platform-specific request objects
-- Better type safety
-- Enhanced error handling
-- Improved subscription support
+- Direct parameters for `requestProducts()` (no `RequestProductsParams`)
+- Platform-specific request objects for `requestPurchase()`
+- `PurchaseOptions` for controlling `getAvailablePurchases()` behavior
+- Enhanced type safety and error handling
 - StoreKit 2 support for iOS
 
 ## Implementation Questions
@@ -87,10 +87,10 @@ FlutterInappPurchase.purchaseError.listen((error) {
 });
 
 // 4. Load products
-final products = await FlutterInappPurchase.instance.getProducts([
-  'product_id_1',
-  'product_id_2',
-]);
+final products = await FlutterInappPurchase.instance.requestProducts(
+  skus: ['product_id_1', 'product_id_2'],
+  type: PurchaseType.inapp,
+);
 
 // 5. Request purchase
 await FlutterInappPurchase.instance.requestPurchase(
@@ -122,7 +122,9 @@ class ProductTypeHandler {
   // Non-consumable products
   Future<void> purchaseNonConsumable(String productId) async {
     // Check if already owned first
-    final availablePurchases = await FlutterInappPurchase.instance.getAvailablePurchases();
+    final availablePurchases = await FlutterInappPurchase.instance.getAvailablePurchases(
+      const PurchaseOptions(onlyIncludeActiveItemsIOS: true),
+    );
     final alreadyOwned = availablePurchases.any((purchase) => purchase.productId == productId);
 
     if (alreadyOwned) {
@@ -478,7 +480,7 @@ Key migration steps:
 // Old (v5.x)
 await _iap.requestPurchase('product_id');
 
-// New (v6.0.0)
+// New (v6.7.0)
 await _iap.requestPurchase(
   request: RequestPurchase(
     ios: RequestPurchaseIOS(sku: 'product_id', quantity: 1),
@@ -491,7 +493,7 @@ await _iap.requestPurchase(
 // Old (v5.x)
 await _iap.requestSubscription('subscription_id');
 
-// New (v6.0.0)
+// New (v6.7.0)
 await _iap.requestPurchase(
   request: RequestPurchase(
     ios: RequestPurchaseIOS(sku: 'subscription_id'),
@@ -514,7 +516,7 @@ FlutterInappPurchase.purchaseUpdated.listen((purchase) {
 
 ### What breaking changes should I be aware of?
 
-Major breaking changes in v6.0.0:
+Major breaking changes in v6.7.0:
 
 1. **Request API Changed**
 

@@ -5,7 +5,7 @@ title: Offer Code Redemption
 
 # Offer Code Redemption
 
-Guide to implementing promotional offer codes and subscription management with flutter_inapp_purchase v6.0.0, covering iOS and Android platforms.
+Guide to implementing promotional offer codes and subscription management with flutter_inapp_purchase v6.7.0, covering iOS and Android platforms.
 
 ## Overview
 

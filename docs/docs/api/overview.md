@@ -27,9 +27,11 @@ class FlutterInappPurchase {
   });
 
   // Purchase management
-  Future<void> requestPurchase(String sku);
-  Future<void> requestSubscription(String sku);
-  Future<List<Purchase>> getAvailablePurchases();
+  Future<void> requestPurchase({
+    required RequestPurchase request,
+    required PurchaseType type,
+  });
+  Future<List<Purchase>> getAvailablePurchases([PurchaseOptions? options]);
 
   // Transaction management
   Future<String?> finishTransaction(Purchase purchase, {bool isConsumable = false});
@@ -157,22 +159,32 @@ List<IapItem> subscriptions = await FlutterInappPurchase.instance
 #### requestPurchase()
 
 ```dart
-Future<void> requestPurchase(String sku) async
+Future<void> requestPurchase({
+  required RequestPurchase request,
+  required PurchaseType type,
+}) async
 ```
 
-Initiates a purchase for the specified product.
+Initiates a purchase using platform-specific request payloads.
 
 **Parameters**:
 
-- `sku`: Product identifier to purchase
-
-**Throws**: `PlatformException` if purchase fails
+- `request`: Platform-specific purchase request
+- `type`: Product type to purchase (`PurchaseType.inapp` or `PurchaseType.subs`)
 
 **Example**:
 
 ```dart
+final request = RequestPurchase(
+  ios: RequestPurchaseIOS(sku: 'remove_ads', quantity: 1),
+  android: RequestPurchaseAndroid(skus: ['remove_ads']),
+);
+
 try {
-  await FlutterInappPurchase.instance.requestPurchase('remove_ads');
+  await FlutterInappPurchase.instance.requestPurchase(
+    request: request,
+    type: PurchaseType.inapp,
+  );
   // Purchase result delivered via purchaseUpdated stream
 } catch (e) {
   // Handle purchase error
@@ -182,12 +194,12 @@ try {
 #### getAvailablePurchases()
 
 ```dart
-Future<List<Purchase>> getAvailablePurchases() async
+Future<List<Purchase>> getAvailablePurchases([PurchaseOptions? options]) async
 ```
 
-Retrieves all available purchases (including pending and non-consumed).
+Retrieves available purchases. Pass `PurchaseOptions` to include expired iOS subscriptions or re-emit receipts through the purchase event stream.
 
-**Returns**: List of purchases or null
+**Returns**: List of available purchases
 
 ### Transaction Management
 
@@ -337,7 +349,13 @@ var products = await FlutterInappPurchase.instance.requestProducts(
 );
 
 // 4. Request purchase
-await FlutterInappPurchase.instance.requestPurchase(productId);
+await FlutterInappPurchase.instance.requestPurchase(
+  request: RequestPurchase(
+    ios: RequestPurchaseIOS(sku: productId, quantity: 1),
+    android: RequestPurchaseAndroid(skus: [productId]),
+  ),
+  type: PurchaseType.inapp,
+);
 
 // 5. Handle in listener
 void handlePurchase(Purchase purchase) {
@@ -355,11 +373,19 @@ var subs = await FlutterInappPurchase.instance.requestProducts(
 );
 
 // 2. Request subscription
-await FlutterInappPurchase.instance.requestSubscription(subId);
+await FlutterInappPurchase.instance.requestPurchase(
+  request: RequestPurchase(
+    ios: RequestPurchaseIOS(sku: subId, quantity: 1),
+    android: RequestPurchaseAndroid(skus: [subId]),
+  ),
+  type: PurchaseType.subs,
+);
 
 // 3. Check active subscriptions
-var purchases = await FlutterInappPurchase.instance.getAvailablePurchases();
-var activeSubs = purchases?.where((p) => isSubscriptionActive(p));
+var purchases = await FlutterInappPurchase.instance.getAvailablePurchases(
+  const PurchaseOptions(onlyIncludeActiveItemsIOS: true),
+);
+var activeSubs = purchases.where((p) => isSubscriptionActive(p));
 ```
 
 ## Next Steps

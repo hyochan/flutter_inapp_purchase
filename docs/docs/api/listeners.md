@@ -5,7 +5,7 @@ sidebar_position: 4
 
 # Event Listeners
 
-Real-time event streams for monitoring purchase transactions, connection states, and other IAP events in flutter_inapp_purchase v6.0.0.
+Real-time event streams for monitoring purchase transactions, connection states, and other IAP events in flutter_inapp_purchase v6.7.0.
 
 ## Core Event Streams
 

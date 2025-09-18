@@ -34,6 +34,38 @@ await FlutterInappPurchase.instance.requestPurchase(
 );
 ```
 
+## PurchaseOptions
+
+Configuration used by `getAvailablePurchases()` to control receipt filtering on iOS.
+
+```dart
+class PurchaseOptions {
+  final bool? onlyIncludeActiveItemsIOS;
+  final bool? alsoPublishToEventListenerIOS;
+
+  const PurchaseOptions({
+    this.onlyIncludeActiveItemsIOS,
+    this.alsoPublishToEventListenerIOS,
+  });
+}
+```
+
+### Properties
+
+- `onlyIncludeActiveItemsIOS` — When `true` (default), excludes expired subscriptions. Set to `false` to include expired receipts for compliance or historical checks.
+- `alsoPublishToEventListenerIOS` — When `true`, replays restored purchases through the `purchaseUpdated` event stream in addition to the method return value.
+
+### Example
+
+```dart
+final purchases = await FlutterInappPurchase.instance.getAvailablePurchases(
+  PurchaseOptions(
+    onlyIncludeActiveItemsIOS: false,
+    alsoPublishToEventListenerIOS: true,
+  ),
+);
+```
+
 ## BaseProduct
 
 Abstract base class for all product types.

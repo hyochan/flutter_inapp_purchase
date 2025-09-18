@@ -5,7 +5,7 @@ title: Troubleshooting
 
 # Troubleshooting
 
-Common issues and solutions when working with flutter_inapp_purchase v6.0.0.
+Common issues and solutions when working with flutter_inapp_purchase v6.7.0.
 
 ## Transaction ID Issues
 
@@ -45,10 +45,10 @@ Common issues and solutions when working with flutter_inapp_purchase v6.0.0.
 
 **Cause**: Both purchase method and transaction listener send duplicate events.
 
-**Solution**: This is fixed in v6.0.0 with duplicate event prevention.
+**Solution**: This is fixed in v6.x with duplicate event prevention.
 
 ```dart
-// v6.0.0 automatically prevents duplicate events
+// v6.x automatically prevents duplicate events
 final purchase = await FlutterInappPurchase.instance.requestPurchase(
   RequestPurchase(ios: RequestPurchaseIOS(sku: 'product_id'))
 );
@@ -61,10 +61,10 @@ final purchase = await FlutterInappPurchase.instance.requestPurchase(
 
 **Problem**: `purchaseToken` is null on iOS in older versions.
 
-**Solution**: Upgrade to v6.0.0 which includes JWS representation:
+**Solution**: Upgrade to v6.x which includes JWS representation:
 
 ```dart
-// v6.0.0+ - purchaseToken now available on iOS
+// v6.x - purchaseToken now available on iOS
 purchase.purchaseToken; // Contains JWS for server validation
 
 // DEPRECATED - use purchaseToken instead
@@ -73,7 +73,7 @@ purchase.jwsRepresentationIOS; // [DEPRECATED] Use purchaseToken instead
 
 ### Server Validation with Unified Token
 
-**New in v6.0.0**: Use the same `purchaseToken` field for both platforms:
+**New in v6.x**: Use the same `purchaseToken` field for both platforms:
 
 ```dart
 // Cross-platform server validation
@@ -98,7 +98,7 @@ Before troubleshooting, ensure you have completed the basic setup:
 
 - [ ] Flutter SDK 3.0.0 or higher
 - [ ] Dart SDK 2.17.0 or higher
-- [ ] flutter_inapp_purchase v6.0.0 added to `pubspec.yaml`
+- [ ] flutter_inapp_purchase v6.x added to `pubspec.yaml`
 - [ ] Run `flutter pub get` after adding dependency
 
 ### Project Configuration
@@ -232,7 +232,7 @@ class ProductLoadingTroubleshooter {
     // 2. Try loading products with error handling
     try {
       await FlutterInappPurchase.instance.requestProducts(
-        productIds: productIds,
+        skus: productIds,
         type: PurchaseType.inapp,
       );
 

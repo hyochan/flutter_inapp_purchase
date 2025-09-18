@@ -5,7 +5,7 @@ sidebar_position: 3
 
 # Core Methods
 
-Essential methods for implementing in-app purchases with flutter_inapp_purchase v6.0.0. All methods support both iOS and Android platforms with unified APIs.
+Essential methods for implementing in-app purchases with flutter_inapp_purchase v6.7.0. All methods support both iOS and Android platforms with unified APIs.
 
 ⚠️ **Platform Differences**: While the API is unified, there are important differences between iOS and Android implementations. Each method documents platform-specific behavior.
 
@@ -84,14 +84,14 @@ Loads product information from the store.
 
 ```dart
 Future<List<BaseProduct>> requestProducts({
-  required List<String> productIds,
+  required List<String> skus,
   PurchaseType type = PurchaseType.inapp,
 }) async
 ```
 
 **Parameters**:
 
-- `productIds` - List of product identifiers
+- `skus` - List of product identifiers
 - `type` - Product type (optional, defaults to `PurchaseType.inapp`)
 
 **Returns**: List of products with pricing and metadata
@@ -101,7 +101,7 @@ Future<List<BaseProduct>> requestProducts({
 ```dart
 try {
   final products = await FlutterInappPurchase.instance.requestProducts(
-    productIds: ['product_1', 'product_2', 'premium_upgrade'],
+    skus: ['product_1', 'product_2', 'premium_upgrade'],
     type: PurchaseType.inapp,
   );
 
@@ -363,15 +363,32 @@ if (Platform.isAndroid) {
 
 ### getAvailablePurchases()
 
-Gets all available (unconsumed) purchases.
+Gets available purchases and restores them with optional filtering.
 
 ```dart
-Future<List<Purchase>> getAvailablePurchases() async
+Future<List<Purchase>> getAvailablePurchases([PurchaseOptions? options]) async
 ```
+
+**Parameters**:
+
+- `options` *(optional)* - Control which receipts are returned on iOS and whether they are emitted through the purchase update listener.
 
 **Returns**: List of available purchases
 
-**Example**:
+**Examples**:
+
+```dart
+// Default: Active purchases only
+final purchases = await FlutterInappPurchase.instance.getAvailablePurchases();
+
+// Include expired iOS subscriptions and publish to the purchaseUpdated stream
+final allPurchases = await FlutterInappPurchase.instance.getAvailablePurchases(
+  PurchaseOptions(
+    onlyIncludeActiveItemsIOS: false,
+    alsoPublishToEventListenerIOS: true,
+  ),
+);
+```
 
 ```dart
 try {
@@ -389,30 +406,16 @@ try {
 
 ---
 
-### getPurchaseHistories()
+### getPurchaseHistories() _(deprecated)_
 
-Gets purchase history including consumed items.
+Retrieves purchase history including consumed items. Use `getAvailablePurchases()` with `PurchaseOptions` instead.
 
 ```dart
+@deprecated
 Future<List<Purchase>> getPurchaseHistories() async
 ```
 
-**Returns**: List of historical purchases
-
-**Example**:
-
-```dart
-try {
-  final history = await FlutterInappPurchase.instance.getPurchaseHistories();
-
-  print('Purchase history: ${history.length} items');
-  for (final purchase in history) {
-    print('${purchase.productId} - ${purchase.transactionDate}');
-  }
-} catch (e) {
-  print('Failed to get purchase history: $e');
-}
-```
+**Note**: This API remains for backward compatibility but will be removed in a future release.
 
 ---
 
@@ -618,7 +621,7 @@ class ProductManager {
     }
 
     _cachedProducts = await FlutterInappPurchase.instance.requestProducts(
-      productIds: skus,
+      skus: skus,
       type: PurchaseType.inapp,
     );
     _lastFetch = DateTime.now();

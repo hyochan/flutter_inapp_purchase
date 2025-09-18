@@ -5,7 +5,7 @@ sidebar_position: 2
 
 # Types
 
-Comprehensive type definitions for flutter_inapp_purchase v6.0.0. All types are fully documented with TypeScript-style definitions for complete type safety.
+Comprehensive type definitions for flutter_inapp_purchase v6.7.0. All types are fully documented with TypeScript-style definitions for complete type safety.
 
 ## Core Types
 
@@ -479,7 +479,7 @@ IAPPlatform getCurrentPlatform();
 3. **Type Safety**: All optional fields are properly nullable
 4. **Platform Separation**: Clear distinction between iOS and Android types
 
-✨ **New in v6.0.0:**
+✨ **New in v6.7.0:**
 
 1. **Unified Purchase Token**: `purchaseToken` field now works consistently across platforms:
 

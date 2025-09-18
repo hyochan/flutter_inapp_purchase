@@ -5,7 +5,7 @@ sidebar_position: 5
 
 # Error Codes
 
-Comprehensive error handling reference for flutter_inapp_purchase v6.0.0. This guide covers all error codes, their meanings, and how to handle them effectively.
+Comprehensive error handling reference for flutter_inapp_purchase v6.7.0. This guide covers all error codes, their meanings, and how to handle them effectively.
 
 ## ErrorCode Enum
 
