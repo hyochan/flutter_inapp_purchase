@@ -3,6 +3,7 @@ import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
+import 'package:flutter_inapp_purchase/extensions/purchase_helpers.dart';
 import '../widgets/product_detail_modal.dart';
 
 class PurchaseFlowScreen extends StatefulWidget {
@@ -33,62 +34,6 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
   StreamSubscription<PurchaseError>? _purchaseErrorSubscription;
   final Set<String> _processedTransactionIds =
       {}; // Track processed transactions
-
-  String? _transactionIdFor(Purchase purchase) {
-    return purchase.id.isEmpty ? null : purchase.id;
-  }
-
-  int? _androidPurchaseStateValue(Purchase purchase) {
-    if (purchase is PurchaseAndroid) {
-      switch (purchase.purchaseState) {
-        case PurchaseState.Purchased:
-          return AndroidPurchaseState.Purchased.value;
-        case PurchaseState.Pending:
-          return AndroidPurchaseState.Pending.value;
-        case PurchaseState.Failed:
-        case PurchaseState.Deferred:
-        case PurchaseState.Restored:
-        case PurchaseState.Unknown:
-          return AndroidPurchaseState.Unknown.value;
-      }
-    }
-    return null;
-  }
-
-  TransactionState? _transactionStateForIOS(Purchase purchase) {
-    if (purchase is! PurchaseIOS) {
-      return null;
-    }
-
-    switch (purchase.purchaseState) {
-      case PurchaseState.Purchased:
-        return TransactionState.purchased;
-      case PurchaseState.Pending:
-        return TransactionState.purchasing;
-      case PurchaseState.Failed:
-        return TransactionState.failed;
-      case PurchaseState.Deferred:
-        return TransactionState.deferred;
-      case PurchaseState.Restored:
-        return TransactionState.restored;
-      case PurchaseState.Unknown:
-        return TransactionState.purchasing;
-    }
-  }
-
-  bool? _isAcknowledgedAndroid(Purchase purchase) {
-    return purchase is PurchaseAndroid ? purchase.isAcknowledgedAndroid : null;
-  }
-
-  int? _quantityForIOS(Purchase purchase) {
-    return purchase is PurchaseIOS ? purchase.quantityIOS : null;
-  }
-
-  String? _originalTransactionIdentifierForIOS(Purchase purchase) {
-    return purchase is PurchaseIOS
-        ? purchase.originalTransactionIdentifierIOS
-        : null;
-  }
 
   @override
   void initState() {
@@ -139,7 +84,7 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
         debugPrint('🎉 Purchase update received!');
         debugPrint('ProductId: ${purchase.productId}');
         debugPrint('ID: ${purchase.id}'); // OpenIAP standard
-        final txId = _transactionIdFor(purchase);
+        final txId = purchase.transactionIdFor;
         debugPrint('TransactionId: ${txId ?? 'N/A'}');
         debugPrint('PurchaseToken: ${purchase.purchaseToken}');
         debugPrint('Full purchase data: $purchase');
@@ -173,10 +118,10 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
     debugPrint('🎯 Purchase update received: ${purchase.productId}');
     debugPrint('  Platform: ${purchase.platform}');
     debugPrint('  Purchase state: ${purchase.purchaseState}');
-    final transactionId = _transactionIdFor(purchase);
-    final androidStateValue = _androidPurchaseStateValue(purchase);
-    final iosTransactionState = _transactionStateForIOS(purchase);
-    final acknowledgedAndroid = _isAcknowledgedAndroid(purchase);
+    final transactionId = purchase.transactionIdFor;
+    final androidStateValue = purchase.androidPurchaseStateValue;
+    final iosTransactionState = purchase.iosTransactionState;
+    final acknowledgedAndroid = purchase.androidIsAcknowledged;
     debugPrint('  Purchase state Android (legacy value): $androidStateValue');
     debugPrint('  Transaction state iOS: $iosTransactionState');
     debugPrint('  Is acknowledged Android: $acknowledgedAndroid');
@@ -185,8 +130,8 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
     debugPrint('  ID: ${purchase.id} (${purchase.id.runtimeType})');
     debugPrint('  IDs array: ${purchase.ids}');
     if (purchase.platform == IapPlatform.IOS) {
-      final quantityIOS = _quantityForIOS(purchase);
-      final originalIdentifier = _originalTransactionIdentifierForIOS(purchase);
+      final quantityIOS = purchase.iosQuantity;
+      final originalIdentifier = purchase.iosOriginalTransactionId;
       debugPrint('  quantityIOS: $quantityIOS');
       debugPrint(
         '  originalTransactionIdentifierIOS: $originalIdentifier (${originalIdentifier?.runtimeType})',
@@ -784,8 +729,7 @@ ${purchases.map((p) => '- ${p.productId}: ${p.purchaseToken?.substring(0, 20)}..
                             ElevatedButton.icon(
                               onPressed: () {
                                 final current = _currentPurchase!;
-                                final txId =
-                                    _transactionIdFor(current) ?? 'N/A';
+                                final txId = current.transactionIdFor ?? 'N/A';
                                 final receipt = current.purchaseToken ?? 'N/A';
 
                                 // Copy full receipt to clipboard

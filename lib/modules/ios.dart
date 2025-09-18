@@ -121,8 +121,13 @@ mixin FlutterInappPurchaseIOS {
   /// Clear pending transactions (iOS only)
   Future<bool> clearTransactionIOS() async {
     if (!isIOS) return false;
-    await channel.invokeMethod('clearTransactionIOS');
-    return true;
+    try {
+      await channel.invokeMethod('clearTransactionIOS');
+      return true;
+    } catch (error) {
+      debugPrint('Error clearing pending transactions: $error');
+      return false;
+    }
   }
 
   /// Get the currently promoted product (iOS 11+)
@@ -140,8 +145,13 @@ mixin FlutterInappPurchaseIOS {
     if (!isIOS) {
       return false;
     }
-    await channel.invokeMethod('requestPurchaseOnPromotedProductIOS');
-    return true;
+    try {
+      await channel.invokeMethod('requestPurchaseOnPromotedProductIOS');
+      return true;
+    } catch (error) {
+      debugPrint('Error requesting promoted product purchase: $error');
+      return false;
+    }
   }
 
   /// Shows manage subscriptions screen (iOS)

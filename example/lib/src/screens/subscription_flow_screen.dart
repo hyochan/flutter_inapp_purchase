@@ -3,6 +3,7 @@ import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
+import 'package:flutter_inapp_purchase/extensions/purchase_helpers.dart';
 import '../widgets/product_detail_modal.dart';
 
 class SubscriptionFlowScreen extends StatefulWidget {
@@ -63,52 +64,6 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
     return const <SubscriptionOfferAndroid>[];
   }
 
-  String? _transactionIdFor(Purchase purchase) {
-    return purchase.id.isEmpty ? null : purchase.id;
-  }
-
-  int? _androidPurchaseStateValue(Purchase purchase) {
-    if (purchase is PurchaseAndroid) {
-      switch (purchase.purchaseState) {
-        case PurchaseState.Purchased:
-          return AndroidPurchaseState.Purchased.value;
-        case PurchaseState.Pending:
-          return AndroidPurchaseState.Pending.value;
-        case PurchaseState.Failed:
-        case PurchaseState.Deferred:
-        case PurchaseState.Restored:
-        case PurchaseState.Unknown:
-          return AndroidPurchaseState.Unknown.value;
-      }
-    }
-    return null;
-  }
-
-  TransactionState? _transactionStateForIOS(Purchase purchase) {
-    if (purchase is! PurchaseIOS) {
-      return null;
-    }
-
-    switch (purchase.purchaseState) {
-      case PurchaseState.Purchased:
-        return TransactionState.purchased;
-      case PurchaseState.Pending:
-        return TransactionState.purchasing;
-      case PurchaseState.Failed:
-        return TransactionState.failed;
-      case PurchaseState.Deferred:
-        return TransactionState.deferred;
-      case PurchaseState.Restored:
-        return TransactionState.restored;
-      case PurchaseState.Unknown:
-        return TransactionState.purchasing;
-    }
-  }
-
-  bool? _isAcknowledgedAndroid(Purchase purchase) {
-    return purchase is PurchaseAndroid ? purchase.isAcknowledgedAndroid : null;
-  }
-
   @override
   void initState() {
     super.initState();
@@ -131,10 +86,10 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
         debugPrint('🎯 Purchase updated: ${purchase.productId}');
         debugPrint('  Platform: ${purchase.platform}');
         debugPrint('  Purchase state: ${purchase.purchaseState}');
-        final transactionId = _transactionIdFor(purchase);
-        final androidStateValue = _androidPurchaseStateValue(purchase);
-        final iosTransactionState = _transactionStateForIOS(purchase);
-        final acknowledgedAndroid = _isAcknowledgedAndroid(purchase);
+        final transactionId = purchase.transactionIdFor;
+        final androidStateValue = purchase.androidPurchaseStateValue;
+        final iosTransactionState = purchase.iosTransactionState;
+        final acknowledgedAndroid = purchase.androidIsAcknowledged;
         debugPrint(
             '  Purchase state Android (legacy value): $androidStateValue');
         debugPrint('  Transaction state iOS: $iosTransactionState');

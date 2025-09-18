@@ -17,6 +17,7 @@ import 'utils.dart';
 export 'types.dart';
 export 'builders.dart';
 export 'utils.dart';
+export 'extensions/purchase_helpers.dart';
 export 'enums.dart' hide IapPlatform, ErrorCode, PurchaseState;
 export 'errors.dart' show getCurrentPlatform;
 
@@ -577,7 +578,7 @@ class FlutterInappPurchase
 
             final dynamic result =
                 await _channel.invokeMethod('getAvailableItems', args);
-            final items = extractPurchases(json.encode(result)) ?? [];
+            final items = extractPurchases(result) ?? [];
             return items
                 .where((p) =>
                     p.productId.isNotEmpty &&
@@ -1295,7 +1296,7 @@ class FlutterInappPurchase
         if (_platform.isIOS) {
           final dynamic result =
               await _channel.invokeMethod('getPendingTransactionsIOS');
-          final purchases = extractPurchases(json.encode(result)) ?? [];
+          final purchases = extractPurchases(result) ?? [];
           return purchases
               .whereType<gentype.PurchaseIOS>()
               .toList(growable: false);

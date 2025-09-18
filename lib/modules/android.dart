@@ -1,5 +1,7 @@
-import 'package:flutter/services.dart';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../types.dart' as types;
 import '../enums.dart' as legacy;
@@ -13,6 +15,11 @@ mixin FlutterInappPurchaseAndroid {
   /// @param purchaseToken - The purchase token to consume
   types.MutationConsumePurchaseAndroidHandler get consumePurchaseAndroid =>
       (String purchaseToken) async {
+        if (purchaseToken.trim().isEmpty) {
+          debugPrint('consumePurchaseAndroid: empty purchaseToken');
+          return false;
+        }
+
         if (!isAndroid) {
           throw PlatformException(
             code: 'platform',
@@ -31,11 +38,22 @@ mixin FlutterInappPurchaseAndroid {
             return map['success'] as bool? ?? true;
           }
 
+          if (response is String) {
+            try {
+              final map = jsonDecode(response) as Map<String, dynamic>;
+              return (map['responseCode'] as int? ?? -1) == 0;
+            } catch (error) {
+              debugPrint(
+                  'consumePurchaseAndroid: failed to decode response $response -> $error');
+              return false;
+            }
+          }
+
           if (response is bool) {
             return response;
           }
 
-          return true;
+          return false;
         } catch (error) {
           debugPrint('Error consuming purchase: $error');
           return false;

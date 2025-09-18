@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
+import 'package:flutter_inapp_purchase/extensions/purchase_helpers.dart';
 
 class AvailablePurchasesScreen extends StatefulWidget {
   const AvailablePurchasesScreen({Key? key}) : super(key: key);
@@ -19,10 +20,6 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
   bool _loading = false;
   bool _connected = false;
   String? _error;
-
-  String? _transactionIdFor(Purchase purchase) {
-    return purchase.id.isEmpty ? null : purchase.id;
-  }
 
   /// Convert various date formats to milliseconds timestamp
   int _parseTimestamp(dynamic date) {
@@ -245,7 +242,7 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
   }
 
   Widget _buildAvailablePurchase(Purchase purchase) {
-    final transactionId = _transactionIdFor(purchase);
+    final transactionId = purchase.transactionIdFor;
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: Padding(
@@ -325,7 +322,7 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
   }
 
   Widget _buildPurchaseHistoryItem(Purchase item) {
-    final transactionId = _transactionIdFor(item);
+    final transactionId = item.transactionIdFor;
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: Padding(

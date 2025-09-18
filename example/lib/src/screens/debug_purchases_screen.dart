@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
+import 'package:flutter_inapp_purchase/extensions/purchase_helpers.dart';
 import 'package:flutter_inapp_purchase/types.dart' as gentype;
 
 class DebugPurchasesScreen extends StatefulWidget {
@@ -16,10 +17,6 @@ class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
   List<gentype.Purchase> _purchases = [];
   bool _isLoading = false;
   String _debugInfo = '';
-
-  String? _transactionIdFor(gentype.Purchase purchase) {
-    return purchase.id.isEmpty ? null : purchase.id;
-  }
 
   @override
   void initState() {
@@ -269,7 +266,7 @@ class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
                               Text(
                                   'Transaction Date: ${purchase.transactionDate}'),
                               Text(
-                                  'Transaction ID: ${_transactionIdFor(purchase) ?? 'N/A'}'),
+                                  'Transaction ID: ${purchase.transactionIdFor ?? 'N/A'}'),
                               const SizedBox(height: 8),
                               // Show product type
                               Container(
