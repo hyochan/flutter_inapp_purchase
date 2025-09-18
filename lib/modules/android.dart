@@ -1,7 +1,7 @@
-import 'dart:async';
+import 'dart:convert';
 
-import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../types.dart' as types;
 import '../enums.dart' as legacy;
@@ -13,29 +13,52 @@ mixin FlutterInappPurchaseAndroid {
 
   /// Consumes a purchase on Android (for consumable products)
   /// @param purchaseToken - The purchase token to consume
-  Future<types.VoidResult> consumePurchaseAndroid(
-      {required String purchaseToken}) async {
-    if (!isAndroid) {
-      throw PlatformException(
-        code: 'platform',
-        message: 'consumePurchaseAndroid is only supported on Android',
-      );
-    }
+  types.MutationConsumePurchaseAndroidHandler get consumePurchaseAndroid =>
+      (String purchaseToken) async {
+        if (purchaseToken.trim().isEmpty) {
+          debugPrint('consumePurchaseAndroid: empty purchaseToken');
+          return false;
+        }
 
-    try {
-      final response = await channel.invokeMethod<Map<dynamic, dynamic>>(
-        'consumePurchaseAndroid',
-        {'purchaseToken': purchaseToken},
-      );
-      if (response == null) {
-        return const types.VoidResult(success: false);
-      }
-      return types.VoidResult.fromJson(Map<String, dynamic>.from(response));
-    } catch (error) {
-      debugPrint('Error consuming purchase: $error');
-      return const types.VoidResult(success: false);
-    }
-  }
+        if (!isAndroid) {
+          throw PlatformException(
+            code: 'platform',
+            message: 'consumePurchaseAndroid is only supported on Android',
+          );
+        }
+
+        try {
+          final dynamic response = await channel.invokeMethod(
+            'consumePurchaseAndroid',
+            {'purchaseToken': purchaseToken},
+          );
+
+          if (response is Map) {
+            final map = Map<String, dynamic>.from(response);
+            return map['success'] as bool? ?? true;
+          }
+
+          if (response is String) {
+            try {
+              final map = jsonDecode(response) as Map<String, dynamic>;
+              return (map['responseCode'] as int? ?? -1) == 0;
+            } catch (error) {
+              debugPrint(
+                  'consumePurchaseAndroid: failed to decode response $response -> $error');
+              return false;
+            }
+          }
+
+          if (response is bool) {
+            return response;
+          }
+
+          return false;
+        } catch (error) {
+          debugPrint('Error consuming purchase: $error');
+          return false;
+        }
+      };
 }
 
 /// In-app message model for Android

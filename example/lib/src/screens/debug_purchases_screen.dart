@@ -2,7 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
-import 'package:flutter_inapp_purchase/types.dart' as iap_types;
+import 'package:flutter_inapp_purchase/extensions/purchase_helpers.dart';
+import 'package:flutter_inapp_purchase/types.dart' as gentype;
 
 class DebugPurchasesScreen extends StatefulWidget {
   const DebugPurchasesScreen({Key? key}) : super(key: key);
@@ -13,7 +14,7 @@ class DebugPurchasesScreen extends StatefulWidget {
 
 class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
   late FlutterInappPurchase _iap;
-  List<iap_types.Purchase> _purchases = [];
+  List<gentype.Purchase> _purchases = [];
   bool _isLoading = false;
   String _debugInfo = '';
 
@@ -71,7 +72,7 @@ class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
         productId.contains('consumable');
   }
 
-  Future<void> _consumePurchase(iap_types.Purchase purchase) async {
+  Future<void> _consumePurchase(gentype.Purchase purchase) async {
     if (purchase.purchaseToken == null) {
       _showAlert('Error', 'No purchase token available');
       return;
@@ -83,14 +84,18 @@ class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
 
     try {
       final result = await _iap.consumePurchaseAndroid(
-        purchaseToken: purchase.purchaseToken!,
+        purchase.purchaseToken!,
       );
 
       setState(() {
         _debugInfo = 'Consume result: $result';
       });
 
-      _showAlert('Success', 'Purchase consumed successfully');
+      if (result) {
+        _showAlert('Success', 'Purchase consumed successfully');
+      } else {
+        _showAlert('Warning', 'Consume request completed but reported false');
+      }
 
       // Reload purchases
       await _loadPurchases();
@@ -102,7 +107,7 @@ class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
     }
   }
 
-  Future<void> _cancelSubscription(iap_types.Purchase purchase) async {
+  Future<void> _cancelSubscription(gentype.Purchase purchase) async {
     setState(() {
       _debugInfo =
           'Opening subscription management for ${purchase.productId}...';
@@ -261,7 +266,7 @@ class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
                               Text(
                                   'Transaction Date: ${purchase.transactionDate}'),
                               Text(
-                                  'Transaction ID: ${purchase.transactionId ?? 'N/A'}'),
+                                  'Transaction ID: ${purchase.transactionIdFor ?? 'N/A'}'),
                               const SizedBox(height: 8),
                               // Show product type
                               Container(

@@ -1,19 +1,20 @@
 ---
-slug: 6.0.0-rc-release
-title: Version 6.0.0-rc.1 - StoreKit 2 & Billing Client v8 Support
+slug: 6.0-rc-release
+title: Version 6.0-rc.1 - StoreKit 2 & Billing Client v8 Support
 authors: [hyochan]
 tags: [release, storekit2, billing-client-v8, flutter, in-app-purchase]
+date: 2025-08-01
 ---
 
-# 🚀 flutter_inapp_purchase 6.0.0-rc.1 Release Candidate
+# 🚀 flutter_inapp_purchase 6.0-rc.1 Release Candidate
 
-We're excited to announce the release candidate of **flutter_inapp_purchase 6.0.0-rc.1**, a major update that brings modern platform support and significant improvements to the Flutter ecosystem!
+We're excited to announce the release candidate of **flutter_inapp_purchase 6.0-rc.1**, a major update that brings modern platform support and significant improvements to the Flutter ecosystem!
 
 > ⚠️ **Note**: This is a Release Candidate version. While feature-complete and tested, it may still contain bugs. Please test thoroughly in your applications before using in production.
 
-![flutter_inapp_purchase 6.0.0 Release](/img/logo.png)
+![flutter_inapp_purchase 6.0 Release](/img/logo.png)
 
-## ✨ What's New in 6.0.0-rc.1
+## ✨ What's New in 6.0-rc.1
 
 ### 🍎 iOS StoreKit 2 Support
 
@@ -66,7 +67,7 @@ This is a **major version update** with some breaking changes. Key changes inclu
 
 ## 🎯 Cross-Platform Compatibility
 
-flutter_inapp_purchase 6.0.0 maintains **99% API compatibility** with [expo-iap](https://github.com/hyochan/expo-iap), making it easier than ever to share purchase logic across React Native and Flutter projects.
+flutter_inapp_purchase 6.0 maintains **99% API compatibility** with [expo-iap](https://github.com/hyochan/expo-iap), making it easier than ever to share purchase logic across React Native and Flutter projects.
 
 ## 📊 Performance Improvements
 
@@ -146,7 +147,7 @@ dependencies:
 Or use the command:
 
 ```bash
-flutter pub add flutter_inapp_purchase:^6.0.0-rc.1
+flutter pub add flutter_inapp_purchase:^6.0-rc.1
 ```
 
 ## 🔍 What We Need From You

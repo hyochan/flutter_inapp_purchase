@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 
+import '../types.dart' as types;
+
 /// iOS-specific IAP functionality as a mixin
 mixin FlutterInappPurchaseIOS {
   MethodChannel get channel;
@@ -102,21 +104,30 @@ mixin FlutterInappPurchaseIOS {
   }
 
   /// Presents the code redemption sheet (iOS 14+)
-  Future<void> presentCodeRedemptionSheetIOS() async {
-    if (!isIOS) {
-      throw PlatformException(
-        code: operatingSystem,
-        message: 'presentCodeRedemptionSheetIOS is only supported on iOS',
-      );
-    }
+  types.MutationPresentCodeRedemptionSheetIOSHandler
+      get presentCodeRedemptionSheetIOS => () async {
+            if (!isIOS) {
+              throw PlatformException(
+                code: operatingSystem,
+                message:
+                    'presentCodeRedemptionSheetIOS is only supported on iOS',
+              );
+            }
 
-    await channel.invokeMethod('presentCodeRedemptionSheetIOS');
-  }
+            await channel.invokeMethod('presentCodeRedemptionSheetIOS');
+            return true;
+          };
 
   /// Clear pending transactions (iOS only)
-  Future<void> clearTransactionIOS() async {
-    if (!isIOS) return;
-    await channel.invokeMethod('clearTransactionIOS');
+  Future<bool> clearTransactionIOS() async {
+    if (!isIOS) return false;
+    try {
+      await channel.invokeMethod('clearTransactionIOS');
+      return true;
+    } catch (error) {
+      debugPrint('Error clearing pending transactions: $error');
+      return false;
+    }
   }
 
   /// Get the currently promoted product (iOS 11+)
@@ -130,22 +141,32 @@ mixin FlutterInappPurchaseIOS {
   }
 
   /// Request purchase on promoted product (iOS 11+)
-  Future<void> requestPurchaseOnPromotedProductIOS() async {
-    if (!isIOS) return;
-    await channel.invokeMethod('requestPurchaseOnPromotedProductIOS');
+  Future<bool> requestPurchaseOnPromotedProductIOS() async {
+    if (!isIOS) {
+      return false;
+    }
+    try {
+      await channel.invokeMethod('requestPurchaseOnPromotedProductIOS');
+      return true;
+    } catch (error) {
+      debugPrint('Error requesting promoted product purchase: $error');
+      return false;
+    }
   }
 
   /// Shows manage subscriptions screen (iOS)
-  Future<void> showManageSubscriptionsIOS() async {
-    if (!isIOS) {
-      throw PlatformException(
-        code: operatingSystem,
-        message: 'showManageSubscriptionsIOS is only supported on iOS',
-      );
-    }
+  types.MutationShowManageSubscriptionsIOSHandler
+      get showManageSubscriptionsIOS => () async {
+            if (!isIOS) {
+              throw PlatformException(
+                code: operatingSystem,
+                message: 'showManageSubscriptionsIOS is only supported on iOS',
+              );
+            }
 
-    await channel.invokeMethod('showManageSubscriptionsIOS');
-  }
+            await channel.invokeMethod('showManageSubscriptionsIOS');
+            return const <PurchaseIOS>[];
+          };
 
   /// Gets available items (iOS-only convenience that parses to typed purchases)
   Future<List<Purchase>?> getAvailableItemsIOS() async {

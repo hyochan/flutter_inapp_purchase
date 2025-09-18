@@ -66,7 +66,7 @@ Basic implementation steps:
 ```dart
 // 1. Import the package
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
-import 'package:flutter_inapp_purchase/types.dart' as iap_types;
+import 'package:flutter_inapp_purchase/types.dart' as gentype;
 
 // 2. Initialize connection
 await FlutterInappPurchase.instance.initConnection();

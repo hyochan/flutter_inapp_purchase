@@ -49,6 +49,10 @@ final allPurchases = await iap.getAvailablePurchases(
 - Always regenerate via `./scripts/generate-type.sh` so the file stays in sync with the upstream `openiap-dart` package.
 - If the generation script fails, fix the script or the upstream source instead of patching the output manually.
 
+### Using `lib/types.dart`
+
+- Follow the generated-handler convention documented in `CONVENTION.md` so exported APIs stay aligned with the OpenIAP schema.
+
 ### Documentation Style
 
 - **Avoid using emojis** in documentation, especially in headings

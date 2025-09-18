@@ -93,8 +93,8 @@ void main() {
 
     test('getPendingTransactionsIOS returns purchases list', () async {
       final list = await iap.getPendingTransactionsIOS();
-      expect(list, isNotNull);
-      expect(list!.length, 1);
+      expect(list, isA<List<PurchaseIOS>>());
+      expect(list.length, 1);
       expect(list.first.productId, 'com.example.prod1');
       expect(calls.last.method, 'getPendingTransactionsIOS');
     });

@@ -1,9 +1,13 @@
 # CHANGELOG
 
+## 6.7.1
+
+- Follow-up fixes & refinements for 6.7.0
+
 ## 6.7.0
 
 - fix(android): honor subscription offerToken
-- refactor: align openiap-gql@1.0.2 https://github.com/hyodotdev/openiap-gql/releases/tag/1.0.2
+- refactor: align [openiap-gql@1.0.2](https://github.com/hyodotdev/openiap-gql/releases/tag/1.0.2)
 - migration: integrate `openiap-google@1.1.11`
 - migration: integrate `openiap-apple@1.1.12`
 

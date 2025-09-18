@@ -1,0 +1,53 @@
+import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
+
+extension PurchaseHelpers on Purchase {
+  String? get transactionIdFor => id.isEmpty ? null : id;
+
+  int? get androidPurchaseStateValue {
+    if (this is! PurchaseAndroid) {
+      return null;
+    }
+    switch ((this as PurchaseAndroid).purchaseState) {
+      case PurchaseState.Purchased:
+        return AndroidPurchaseState.Purchased.value;
+      case PurchaseState.Pending:
+        return AndroidPurchaseState.Pending.value;
+      case PurchaseState.Failed:
+      case PurchaseState.Deferred:
+      case PurchaseState.Restored:
+      case PurchaseState.Unknown:
+        return AndroidPurchaseState.Unknown.value;
+    }
+  }
+
+  TransactionState? get iosTransactionState {
+    if (this is! PurchaseIOS) {
+      return null;
+    }
+    switch ((this as PurchaseIOS).purchaseState) {
+      case PurchaseState.Purchased:
+        return TransactionState.purchased;
+      case PurchaseState.Pending:
+        return TransactionState.purchasing;
+      case PurchaseState.Failed:
+        return TransactionState.failed;
+      case PurchaseState.Deferred:
+        return TransactionState.deferred;
+      case PurchaseState.Restored:
+        return TransactionState.restored;
+      case PurchaseState.Unknown:
+        return TransactionState.purchasing;
+    }
+  }
+
+  bool? get androidIsAcknowledged => this is PurchaseAndroid
+      ? (this as PurchaseAndroid).isAcknowledgedAndroid
+      : null;
+
+  int? get iosQuantity =>
+      this is PurchaseIOS ? (this as PurchaseIOS).quantityIOS : null;
+
+  String? get iosOriginalTransactionId => this is PurchaseIOS
+      ? (this as PurchaseIOS).originalTransactionIdentifierIOS
+      : null;
+}
