@@ -3,7 +3,8 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 
-import '../types.dart';
+import '../types.dart' as types;
+import '../enums.dart' as legacy;
 
 /// Android-specific IAP functionality as a mixin
 mixin FlutterInappPurchaseAndroid {
@@ -12,20 +13,27 @@ mixin FlutterInappPurchaseAndroid {
 
   /// Consumes a purchase on Android (for consumable products)
   /// @param purchaseToken - The purchase token to consume
-  Future<bool> consumePurchaseAndroid({required String purchaseToken}) async {
+  Future<types.VoidResult> consumePurchaseAndroid(
+      {required String purchaseToken}) async {
     if (!isAndroid) {
-      return false;
+      throw PlatformException(
+        code: 'platform',
+        message: 'consumePurchaseAndroid is only supported on Android',
+      );
     }
 
     try {
-      final result =
-          await channel.invokeMethod<bool>('consumePurchaseAndroid', {
-        'purchaseToken': purchaseToken,
-      });
-      return result ?? false;
+      final response = await channel.invokeMethod<Map<dynamic, dynamic>>(
+        'consumePurchaseAndroid',
+        {'purchaseToken': purchaseToken},
+      );
+      if (response == null) {
+        return const types.VoidResult(success: false);
+      }
+      return types.VoidResult.fromJson(Map<String, dynamic>.from(response));
     } catch (error) {
       debugPrint('Error consuming purchase: $error');
-      return false;
+      return const types.VoidResult(success: false);
     }
   }
 }
@@ -34,7 +42,7 @@ mixin FlutterInappPurchaseAndroid {
 class InAppMessage {
   final String messageId;
   final String campaignName;
-  final InAppMessageType messageType;
+  final legacy.InAppMessageType messageType;
 
   InAppMessage({
     required this.messageId,
@@ -44,9 +52,10 @@ class InAppMessage {
 
   factory InAppMessage.fromMap(Map<String, dynamic> map) {
     return InAppMessage(
-      messageId: map['messageId'] as String,
-      campaignName: map['campaignName'] as String,
-      messageType: InAppMessageType.values[map['messageType'] as int],
+      messageId: map['messageId']?.toString() ?? '',
+      campaignName: map['campaignName']?.toString() ?? '',
+      messageType: legacy
+          .InAppMessageType.values[(map['messageType'] as num?)?.toInt() ?? 0],
     );
   }
 

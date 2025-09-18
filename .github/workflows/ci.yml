@@ -23,7 +23,15 @@ jobs:
 
       - run: flutter pub get
 
-      - run: dart format --page-width 80 --trailing-commas automate --output=none --set-exit-if-changed .
+      - name: Check formatting (excluding generated files)
+        shell: bash
+        run: |
+          set -euo pipefail
+          files=$(git ls-files '*.dart' | grep -Ev '^lib/types\.dart$|\.g\.dart$|\.freezed\.dart$' || true)
+          if [[ -z "$files" ]]; then
+            exit 0
+          fi
+          printf '%s\n' "$files" | xargs dart format --page-width 80 --output=none --set-exit-if-changed
 
       # - run: flutter analyze .
 

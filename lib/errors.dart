@@ -2,14 +2,14 @@
 library errors;
 
 import 'dart:io';
-import 'enums.dart';
+import 'types.dart';
 
 /// Get current platform
 IapPlatform getCurrentPlatform() {
   if (Platform.isIOS) {
-    return IapPlatform.ios;
+    return IapPlatform.IOS;
   } else if (Platform.isAndroid) {
-    return IapPlatform.android;
+    return IapPlatform.Android;
   }
   throw UnsupportedError('Platform not supported');
 }
@@ -19,15 +19,12 @@ class ErrorCodeMapping {
   static const Map<ErrorCode, int> ios = {
     // OpenIAP standard error codes
     ErrorCode.Unknown: 0,
-    ErrorCode.UserCancelled: 2, // SKErrorPaymentCancelled
-    ErrorCode.NetworkError: 1, // SKErrorClientInvalid
+    ErrorCode.UserCancelled: 2,
+    ErrorCode.NetworkError: 1,
     ErrorCode.ItemUnavailable: 3,
     ErrorCode.ServiceError: 4,
     ErrorCode.ReceiptFailed: 5,
     ErrorCode.AlreadyOwned: 6,
-    ErrorCode.ProductNotAvailable: 7,
-    ErrorCode.ProductAlreadyOwned: 8,
-    ErrorCode.UserError: 9,
     ErrorCode.RemoteError: 10,
     ErrorCode.ReceiptFinished: 11,
     ErrorCode.Pending: 12,
@@ -49,13 +46,10 @@ class ErrorCodeMapping {
   };
 
   static const Map<ErrorCode, String> android = {
-    // OpenIAP standard error codes
     ErrorCode.Unknown: 'E_UNKNOWN',
     ErrorCode.UserCancelled: 'E_USER_CANCELLED',
     ErrorCode.UserError: 'E_USER_ERROR',
     ErrorCode.ItemUnavailable: 'E_ITEM_UNAVAILABLE',
-    ErrorCode.ProductNotAvailable: 'E_PRODUCT_NOT_AVAILABLE',
-    ErrorCode.ProductAlreadyOwned: 'E_PRODUCT_ALREADY_OWNED',
     ErrorCode.AlreadyOwned: 'E_ALREADY_OWNED',
     ErrorCode.NetworkError: 'E_NETWORK_ERROR',
     ErrorCode.ServiceError: 'E_SERVICE_ERROR',
@@ -65,7 +59,6 @@ class ErrorCodeMapping {
     ErrorCode.Pending: 'E_PENDING',
     ErrorCode.NotEnded: 'E_NOT_ENDED',
     ErrorCode.DeveloperError: 'E_DEVELOPER_ERROR',
-    // Legacy codes for compatibility
     ErrorCode.ReceiptFinishedFailed: 'E_RECEIPT_FINISHED_FAILED',
     ErrorCode.NotPrepared: 'E_NOT_PREPARED',
     ErrorCode.BillingResponseJsonParseError:
@@ -79,6 +72,12 @@ class ErrorCodeMapping {
     ErrorCode.ActivityUnavailable: 'E_ACTIVITY_UNAVAILABLE',
     ErrorCode.AlreadyPrepared: 'E_ALREADY_PREPARED',
     ErrorCode.ConnectionClosed: 'E_CONNECTION_CLOSED',
+    ErrorCode.BillingUnavailable: 'E_BILLING_UNAVAILABLE',
+    ErrorCode.SkuNotFound: 'E_SKU_NOT_FOUND',
+    ErrorCode.SkuOfferMismatch: 'E_SKU_OFFER_MISMATCH',
+    ErrorCode.ItemNotOwned: 'E_ITEM_NOT_OWNED',
+    ErrorCode.FeatureNotSupported: 'E_FEATURE_NOT_SUPPORTED',
+    ErrorCode.EmptySkuList: 'E_EMPTY_SKU_LIST',
   };
 }
 
@@ -91,11 +90,11 @@ ErrorCode _normalizeToErrorCode(dynamic error) {
   if (code is String) {
     // OpenIAP uses normalized string codes across platforms; reuse mapping
     // used for Android since codes are identical.
-    return ErrorCodeUtils.fromPlatformCode(code, IapPlatform.android);
+    return ErrorCodeUtils.fromPlatformCode(code, IapPlatform.Android);
   }
   if (code is int) {
     // Legacy iOS numeric codes
-    return ErrorCodeUtils.fromPlatformCode(code, IapPlatform.ios);
+    return ErrorCodeUtils.fromPlatformCode(code, IapPlatform.IOS);
   }
   return ErrorCode.Unknown;
 }
@@ -109,10 +108,9 @@ String getUserFriendlyErrorMessage(dynamic error) {
     case ErrorCode.NetworkError:
       return 'Network connection error. Please check your internet connection and try again.';
     case ErrorCode.ItemUnavailable:
-    case ErrorCode.ProductNotAvailable:
+    case ErrorCode.SkuNotFound:
       return 'This item is not available for purchase';
     case ErrorCode.AlreadyOwned:
-    case ErrorCode.ProductAlreadyOwned:
       return 'You already own this item';
     case ErrorCode.DeferredPayment:
       return 'Payment is pending approval';
@@ -258,7 +256,7 @@ class ErrorCodeUtils {
 
   /// Maps an ErrorCode enum to platform-specific code
   static dynamic toPlatformCode(ErrorCode errorCode, IapPlatform platform) {
-    if (platform == IapPlatform.ios) {
+    if (platform == IapPlatform.IOS) {
       return ErrorCodeMapping.ios[errorCode] ?? 0;
     } else {
       return ErrorCodeMapping.android[errorCode] ?? 'E_UNKNOWN';
@@ -267,7 +265,7 @@ class ErrorCodeUtils {
 
   /// Checks if an error code is valid for the specified platform
   static bool isValidForPlatform(ErrorCode errorCode, IapPlatform platform) {
-    if (platform == IapPlatform.ios) {
+    if (platform == IapPlatform.IOS) {
       return ErrorCodeMapping.ios.containsKey(errorCode);
     } else {
       return ErrorCodeMapping.android.containsKey(errorCode);

@@ -123,7 +123,7 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
     debugPrint('  Purchase token: ${purchase.purchaseToken}');
     debugPrint('  ID: ${purchase.id} (${purchase.id.runtimeType})');
     debugPrint('  IDs array: ${purchase.ids}');
-    if (purchase.platform == IapPlatform.ios) {
+    if (purchase.platform == IapPlatform.IOS) {
       debugPrint('  quantityIOS: ${purchase.quantityIOS}');
       debugPrint(
           '  originalTransactionIdentifierIOS: ${purchase.originalTransactionIdentifierIOS} (${purchase.originalTransactionIdentifierIOS?.runtimeType})');
@@ -148,18 +148,19 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
 
     if (Platform.isAndroid) {
       // For Android, check multiple conditions since fields can be null
-      bool condition1 = purchase.purchaseState == PurchaseState.purchased;
-      bool condition2 = (purchase.isAcknowledgedAndroid == false &&
+      final bool condition1 = purchase.purchaseState == PurchaseState.Purchased;
+      final bool condition2 = purchase.isAcknowledgedAndroid == false &&
           purchase.purchaseToken != null &&
-          purchase.purchaseToken!.isNotEmpty);
-      bool condition3 =
-          purchase.purchaseStateAndroid == AndroidPurchaseState.purchased.value;
+          purchase.purchaseToken!.isNotEmpty &&
+          purchase.purchaseStateAndroid == AndroidPurchaseState.Purchased.value;
+      final bool condition3 =
+          purchase.purchaseStateAndroid == AndroidPurchaseState.Purchased.value;
 
       debugPrint('  Android condition checks:');
       debugPrint('    purchaseState == purchased: $condition1');
       debugPrint('    unacknowledged with token: $condition2');
       debugPrint(
-          '    purchaseStateAndroid == AndroidPurchaseState.purchased: $condition3');
+          '    purchaseStateAndroid == AndroidPurchaseState.Purchased: $condition3');
 
       isPurchased = condition1 || condition2 || condition3;
       debugPrint('  Final isPurchased: $isPurchased');
@@ -332,7 +333,7 @@ Platform: ${error.platform}
       // Use fetchProducts with Product type for type-safe list
       final products = await _iap.fetchProducts<Product>(
         skus: productIds,
-        type: ProductType.inapp,
+        type: ProductType.InApp,
       );
 
       debugPrint(
@@ -386,8 +387,8 @@ Platform: ${error.platform}
           android: RequestPurchaseAndroid(
             skus: [productId],
           ),
+          type: ProductType.InApp,
         ),
-        type: ProductType.inapp,
       );
 
       debugPrint('✅ Purchase request sent successfully');

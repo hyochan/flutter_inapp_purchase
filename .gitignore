@@ -5,6 +5,7 @@
 .pub/
 pubspec.lock
 
+.build/
 build/
 .claude/
 

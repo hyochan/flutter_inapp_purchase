@@ -1,30 +1,20 @@
-/// Event types for flutter_inapp_purchase (OpenIAP compliant)
-library;
+// Event types for flutter_inapp_purchase (OpenIAP compliant)
 
-import 'types.dart';
+import 'types.dart' as types;
 
-/// Event types enum (OpenIAP compliant)
-enum IapEvent {
-  /// Purchase successful or updated
-  purchaseUpdated,
-
-  /// Purchase failed or cancelled
-  purchaseError,
-
-  /// Promoted product clicked (iOS)
-  promotedProductIos,
-}
+/// Alias to the generated event enum so callers keep using the familiar name.
+typedef IapEvent = types.IapEvent;
 
 /// Purchase updated event payload
 class PurchaseUpdatedEvent {
-  final Purchase purchase;
+  final types.Purchase purchase;
 
   PurchaseUpdatedEvent({required this.purchase});
 }
 
 /// Purchase error event payload
 class PurchaseErrorEvent {
-  final PurchaseError error;
+  final types.PurchaseError error;
 
   PurchaseErrorEvent({required this.error});
 }

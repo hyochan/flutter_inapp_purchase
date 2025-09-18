@@ -43,6 +43,12 @@ final allPurchases = await iap.getAvailablePurchases(
 
 ## Flutter-Specific Guidelines
 
+### Generated Files
+
+- `lib/types.dart` is generated from the OpenIAP schema. Never edit it by hand.
+- Always regenerate via `./scripts/generate-type.sh` so the file stays in sync with the upstream `openiap-dart` package.
+- If the generation script fails, fix the script or the upstream source instead of patching the output manually.
+
 ### Documentation Style
 
 - **Avoid using emojis** in documentation, especially in headings
@@ -53,9 +59,9 @@ final allPurchases = await iap.getAvailablePurchases(
 
 Before committing any changes, run these commands in order and ensure ALL pass:
 
-1. **Format check**: `dart format --set-exit-if-changed .`
-   - This will fail if any files need formatting (exit code 1)
-   - If it fails, run `dart format .` to fix formatting, then retry
+1. **Format check**: `git ls-files '*.dart' | grep -v '^lib/types.dart$' | xargs dart format --page-width 80 --output=none --set-exit-if-changed`
+   - This matches the CI formatter and skips the generated `lib/types.dart`
+   - If it fails, run the same command without `--set-exit-if-changed` (or drop the `--output` flag) to auto-format, then retry
    - Always format code before committing to maintain consistent style
 2. **Lint check**: `flutter analyze`
    - Fix any lint issues before committing
@@ -64,6 +70,12 @@ Before committing any changes, run these commands in order and ensure ALL pass:
    - All tests must pass
 4. **Final verification**: Re-run `dart format --set-exit-if-changed .` to confirm no formatting issues
 5. Only commit if ALL checks succeed with exit code 0
+
+### Commit Message Convention
+
+- Follow the Angular commit style: `<type>: <short summary>` (50 characters max).
+- Use lowercase `type` (e.g., `feat`, `fix`, `docs`, `chore`, `test`).
+- Keep the summary concise and descriptive; avoid punctuation at the end.
 
 **Important**: 
 - Use `--set-exit-if-changed` flag to match CI behavior and catch formatting issues locally before they cause CI failures

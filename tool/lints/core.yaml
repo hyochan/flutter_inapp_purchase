@@ -1,0 +1,37 @@
+# Copied from flutter_lints 3.0.2 (lib/core.yaml)
+# See https://github.com/dart-lang/lints for updates.
+
+linter:
+  rules:
+    - avoid_empty_else
+    - avoid_relative_lib_imports
+    - avoid_shadowing_type_parameters
+    - avoid_types_as_parameter_names
+    - await_only_futures
+    - camel_case_extensions
+    - camel_case_types
+    - collection_methods_unrelated_type
+    - curly_braces_in_flow_control_structures
+    - dangling_library_doc_comments
+    - depend_on_referenced_packages
+    - empty_catches
+    - file_names
+    - hash_and_equals
+    - implicit_call_tearoffs
+    - no_duplicate_case_values
+    - non_constant_identifier_names
+    - null_check_on_nullable_type_parameter
+    - package_prefixed_library_names
+    - prefer_generic_function_type_aliases
+    - prefer_is_empty
+    - prefer_is_not_empty
+    - prefer_iterable_whereType
+    - prefer_typing_uninitialized_variables
+    - provide_deprecation_message
+    - secure_pubspec_urls
+    - type_literal_in_constant_pattern
+    - unnecessary_overrides
+    - unrelated_type_equality_checks
+    - use_string_in_part_of_directives
+    - valid_regexps
+    - void_checks

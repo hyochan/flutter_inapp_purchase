@@ -7,7 +7,6 @@ on:
   issue_comment:
     types: [created]
 
-# Ensure only one run per-issue at a time and avoid duplicates
 concurrency:
   group: ci-gemini-pr-${{ github.event.issue.number }}
   cancel-in-progress: true
@@ -16,6 +15,7 @@ permissions:
   contents: write
   issues: write
   pull-requests: write
+  id-token: write
 
 jobs:
   analyze-and-pr:
@@ -46,7 +46,12 @@ jobs:
         id: analyze-pr
         uses: google-github-actions/run-gemini-cli@v0
         timeout-minutes: 20
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          # Code Assist settings
+          use_gemini_code_assist: true
+          gemini_model: "gemini-2.5-pro"
           prompt: |
             You are an expert Flutter developer helping with the flutter_inapp_purchase package.
 
@@ -91,35 +96,16 @@ jobs:
           settings: |
             {
               "tools": [
-                {
-                  "name": "gh",
-                  "description": "GitHub CLI for creating branches and PRs"
-                },
-                {
-                  "name": "git",
-                  "description": "Git commands for version control"
-                },
-                {
-                  "name": "flutter",
-                  "description": "Flutter CLI for testing and analysis"
-                },
-                {
-                  "name": "dart",
-                  "description": "Dart CLI for formatting and analysis"
-                }
+                { "name": "gh", "description": "GitHub CLI for creating branches and PRs" },
+                { "name": "git", "description": "Git commands for version control" },
+                { "name": "flutter", "description": "Flutter CLI for testing and analysis" },
+                { "name": "dart", "description": "Dart CLI for formatting and analysis" }
               ],
               "repositories": [
-                {
-                  "path": ".",
-                  "instructions": "Refer to CLAUDE.md for conventions. Keep changes minimal, add tests, and follow pre-commit checks."
-                }
+                { "path": ".", "instructions": "Refer to CLAUDE.md for conventions. Keep changes minimal, add tests, and follow pre-commit checks." }
               ],
               "model": "gemini-1.5-flash"
             }
-
-          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Comment on issue with result
         if: always()
