@@ -455,6 +455,20 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
         }
 
         try {
+          bool hasResolvableIdentifier(gentype.Purchase purchase) {
+            final token = purchase.purchaseToken;
+            if (token != null && token.isNotEmpty) {
+              return true;
+            }
+            if (purchase is gentype.PurchaseIOS) {
+              return purchase.transactionId.isNotEmpty;
+            }
+            if (purchase is gentype.PurchaseAndroid) {
+              return purchase.transactionId?.isNotEmpty ?? false;
+            }
+            return purchase.id.isNotEmpty;
+          }
+
           if (_platform.isAndroid) {
             // Android unified available items
             final dynamic result =
@@ -468,9 +482,8 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
             );
             // Filter out incomplete purchases (must have productId and either purchaseToken or transactionId)
             return items
-                .where((p) =>
-                    p.productId.isNotEmpty &&
-                    (p.purchaseToken != null && p.purchaseToken!.isNotEmpty))
+                .where(
+                    (p) => p.productId.isNotEmpty && hasResolvableIdentifier(p))
                 .toList();
           } else if (_platform.isIOS) {
             // On iOS, pass both iOS-specific options to native method
@@ -486,9 +499,8 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
                   _acknowledgedAndroidPurchaseTokens,
             );
             return items
-                .where((p) =>
-                    p.productId.isNotEmpty &&
-                    (p.purchaseToken != null && p.purchaseToken!.isNotEmpty))
+                .where(
+                    (p) => p.productId.isNotEmpty && hasResolvableIdentifier(p))
                 .toList();
           }
           return const <gentype.Purchase>[];

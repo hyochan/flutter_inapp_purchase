@@ -262,6 +262,7 @@ gentype.Purchase convertFromLegacyPurchase(
               originalJson?['obfuscatedProfileIdAndroid']?.toString(),
       'packageNameAndroid': itemJson['packageNameAndroid']?.toString(),
       'signatureAndroid': itemJson['signatureAndroid']?.toString(),
+      'transactionId': transactionId,
     };
 
     final purchaseToken = itemJson['purchaseToken']?.toString();
@@ -323,6 +324,7 @@ gentype.Purchase convertFromLegacyPurchase(
       'revocationDateIOS':
           (originalJson?['revocationDateIOS'] as num?)?.toDouble(),
       'revocationReasonIOS': originalJson?['revocationReasonIOS']?.toString(),
+      'transactionId': transactionId ?? purchaseId,
     };
 
     return gentype.PurchaseIOS.fromJson(map);

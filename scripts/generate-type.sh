@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ZIP_URL="https://github.com/hyodotdev/openiap-gql/releases/download/1.0.6/openiap-dart.zip"
+ZIP_URL="https://github.com/hyodotdev/openiap-gql/releases/download/1.0.8/openiap-dart.zip"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 TARGET_FILE="${REPO_ROOT}/lib/types.dart"
