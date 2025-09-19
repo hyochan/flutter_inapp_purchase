@@ -4,6 +4,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 import 'package:flutter_inapp_purchase/extensions/purchase_helpers.dart';
 
+import '../widgets/purchase_detail_view.dart';
+
 class AvailablePurchasesScreen extends StatefulWidget {
   const AvailablePurchasesScreen({Key? key}) : super(key: key);
 
@@ -161,42 +163,6 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
     }
   }
 
-  String _formatTransactionDate(dynamic transactionDate) {
-    if (transactionDate == null) return 'Unknown';
-
-    try {
-      DateTime? date;
-
-      if (transactionDate is String) {
-        // First try to parse as ISO 8601 date string
-        date = DateTime.tryParse(transactionDate);
-        if (date == null) {
-          // If that fails, try to parse as milliseconds string
-          final milliseconds = int.tryParse(transactionDate) ?? 0;
-          if (milliseconds > 0) {
-            date = DateTime.fromMillisecondsSinceEpoch(milliseconds);
-          }
-        }
-      } else if (transactionDate is num) {
-        // Direct numeric timestamp
-        date = DateTime.fromMillisecondsSinceEpoch(transactionDate.toInt());
-      } else if (transactionDate is DateTime) {
-        // Already a DateTime object
-        date = transactionDate;
-      }
-
-      if (date == null) {
-        return 'Unknown';
-      }
-
-      return date.toLocal().toString().split('.')[0];
-    } catch (e) {
-      debugPrint(
-          'Error formatting transaction date: $e, date value: $transactionDate');
-      return 'Unknown';
-    }
-  }
-
   Future<void> _restorePurchases() async {
     setState(() {
       _loading = true;
@@ -241,21 +207,85 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
     }
   }
 
+  Future<void> _showPurchaseDetails(Purchase purchase) async {
+    if (!mounted) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
+            child: DraggableScrollableSheet(
+              expand: false,
+              initialChildSize: 0.85,
+              minChildSize: 0.4,
+              maxChildSize: 0.95,
+              builder: (context, controller) {
+                return SingleChildScrollView(
+                  controller: controller,
+                  padding: const EdgeInsets.all(16),
+                  child: PurchaseDataView(
+                    purchase: purchase,
+                    statusLabel: 'Purchase Data',
+                    statusColor: Colors.blue.shade600,
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildAvailablePurchase(Purchase purchase) {
-    final transactionId = purchase.transactionIdFor;
+    return _buildPurchaseSummaryCard(
+      purchase: purchase,
+      statusLabel: 'Active',
+      statusColor: Colors.green.shade600,
+    );
+  }
+
+  Widget _buildPurchaseHistoryItem(Purchase item) {
+    return _buildPurchaseSummaryCard(
+      purchase: item,
+      statusLabel: 'History',
+      statusColor: Colors.blueGrey.shade600,
+    );
+  }
+
+  Widget _buildPurchaseSummaryCard({
+    required Purchase purchase,
+    required String statusLabel,
+    required Color statusColor,
+  }) {
+    final infoChips = <Widget>[
+      _infoChip('State: ${purchase.purchaseState.name}')
+    ];
+
+    infoChips.add(
+        _infoChip('Platform: ${purchase.platform.toJson().toLowerCase()}'));
+    infoChips.add(_infoChip('Quantity: ${purchase.quantity}'));
+    infoChips.add(_infoChip('Auto renew: ${purchase.isAutoRenewing}'));
+
     return Card(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
                   child: Text(
-                    purchase.productId,
+                    purchase.productId.isEmpty
+                        ? 'Unknown product'
+                        : purchase.productId,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -266,139 +296,69 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.green[100],
-                    borderRadius: BorderRadius.circular(4),
+                    color: statusColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: statusColor),
                   ),
                   child: Text(
-                    'Active',
+                    statusLabel,
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.green[700],
                       fontWeight: FontWeight.w600,
+                      color: statusColor,
                     ),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 8),
-            if (purchase.transactionDate != null) ...[
-              Row(
-                children: [
-                  Icon(Icons.calendar_today, size: 14, color: Colors.grey[600]),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Purchased: ${_formatTransactionDate(purchase.transactionDate)}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                ],
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: infoChips,
+            ),
+            if (purchase.transactionDate != 0) ...[
+              const SizedBox(height: 12),
+              Text(
+                'Transaction: ${_formatReadableDate(purchase.transactionDate)}',
+                style: const TextStyle(fontSize: 12, color: Colors.black54),
               ),
             ],
-            if (transactionId != null) ...[
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Icon(Icons.receipt, size: 14, color: Colors.grey[600]),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      'Transaction ID: $transactionId',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => _showPurchaseDetails(purchase),
+                icon: const Icon(Icons.receipt_long, size: 18),
+                label: const Text('View Purchase Data'),
               ),
-            ],
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildPurchaseHistoryItem(Purchase item) {
-    final transactionId = item.transactionIdFor;
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    item.productId.isEmpty ? 'Unknown Product' : item.productId,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    'History',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[700],
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            if (item.transactionDate != null) ...[
-              Row(
-                children: [
-                  Icon(Icons.calendar_today, size: 14, color: Colors.grey[600]),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Purchased: ${_formatTransactionDate(item.transactionDate)}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                ],
-              ),
-            ],
-            if (transactionId != null) ...[
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Icon(Icons.receipt, size: 14, color: Colors.grey[600]),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      'Transaction ID: $transactionId',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ],
-        ),
+  Widget _infoChip(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade200,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
       ),
     );
+  }
+
+  String _formatReadableDate(double timestamp) {
+    if (timestamp == 0) {
+      return 'Unknown';
+    }
+    final date = DateTime.fromMillisecondsSinceEpoch(timestamp.round());
+    return date.toLocal().toString().split('.').first;
   }
 
   @override

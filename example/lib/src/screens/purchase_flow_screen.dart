@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 import 'package:flutter_inapp_purchase/extensions/purchase_helpers.dart';
 import '../widgets/product_detail_modal.dart';
+import '../widgets/purchase_detail_view.dart';
 
 class PurchaseFlowScreen extends StatefulWidget {
   const PurchaseFlowScreen({Key? key}) : super(key: key);
@@ -518,6 +519,40 @@ Product ID: ${error.productId ?? 'unknown'}
     }
   }
 
+  Future<void> _showPurchaseDetails(Purchase purchase) async {
+    if (!mounted) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
+            child: DraggableScrollableSheet(
+              expand: false,
+              initialChildSize: 0.85,
+              minChildSize: 0.4,
+              maxChildSize: 0.95,
+              builder: (context, controller) {
+                return SingleChildScrollView(
+                  controller: controller,
+                  padding: const EdgeInsets.all(16),
+                  child: PurchaseDataView(
+                    purchase: purchase,
+                    statusLabel: 'Latest Purchase',
+                    statusColor: Colors.blue.shade600,
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -737,42 +772,13 @@ ${purchases.map((p) => '- ${p.productId}: ${p.purchaseToken?.substring(0, 20)}..
                           ),
                           if (_currentPurchase != null) ...[
                             const SizedBox(height: 12),
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                final current = _currentPurchase!;
-                                final txId = current.transactionIdFor ?? 'N/A';
-                                final receipt = current.purchaseToken ?? 'N/A';
-
-                                // Copy full receipt to clipboard
-                                final fullInfo = '''
-Purchase Information:
-====================
-Product ID: ${current.productId}
-ID: ${current.id}
-Transaction ID: $txId
-Date: ${current.transactionDate}
-Platform: ${current.platform}
-
-Receipt:
-$receipt
-
-Purchase Token:
-${current.purchaseToken}
-                                ''';
-                                // You can add clipboard functionality here
-                                debugPrint(fullInfo);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content:
-                                        Text('Purchase info logged to console'),
-                                  ),
-                                );
-                              },
-                              icon: const Icon(Icons.info_outline, size: 18),
-                              label: const Text('View Full Details'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue,
-                                foregroundColor: Colors.white,
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton.icon(
+                                onPressed: () =>
+                                    _showPurchaseDetails(_currentPurchase!),
+                                icon: const Icon(Icons.receipt_long, size: 18),
+                                label: const Text('View Purchase Data'),
                               ),
                             ),
                           ],

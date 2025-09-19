@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 import 'package:flutter_inapp_purchase/extensions/purchase_helpers.dart';
+
 import '../widgets/product_detail_modal.dart';
+import '../widgets/purchase_detail_view.dart';
 
 class SubscriptionFlowScreen extends StatefulWidget {
   const SubscriptionFlowScreen({Key? key}) : super(key: key);
@@ -593,6 +595,133 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
     }
   }
 
+  Future<void> _showPurchaseDetails(Purchase purchase) async {
+    if (!mounted) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
+            child: DraggableScrollableSheet(
+              expand: false,
+              initialChildSize: 0.85,
+              minChildSize: 0.4,
+              maxChildSize: 0.95,
+              builder: (context, controller) {
+                return SingleChildScrollView(
+                  controller: controller,
+                  padding: const EdgeInsets.all(16),
+                  child: PurchaseDataView(
+                    purchase: purchase,
+                    statusLabel: 'Subscription Purchase',
+                    statusColor: Colors.blue.shade600,
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildActiveSubscriptionCard(Purchase purchase) {
+    final isCurrent = _currentSubscription?.productId == purchase.productId;
+    final chips = <Widget>[
+      _infoChip('State: ${purchase.purchaseState.name}'),
+      _infoChip('Platform: ${purchase.platform.toJson().toLowerCase()}'),
+      _infoChip('Quantity: ${purchase.quantity}'),
+      _infoChip('Auto renew: ${purchase.isAutoRenewing}')
+    ];
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    purchase.productId.isEmpty
+                        ? 'Unknown product'
+                        : purchase.productId,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: (isCurrent
+                            ? Colors.green.shade600
+                            : Colors.blueGrey.shade600)
+                        .withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: isCurrent
+                          ? Colors.green.shade600
+                          : Colors.blueGrey.shade600,
+                    ),
+                  ),
+                  child: Text(
+                    isCurrent ? 'Current' : 'Restored',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: isCurrent
+                          ? Colors.green.shade700
+                          : Colors.blueGrey.shade700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: chips,
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => _showPurchaseDetails(purchase),
+                icon: const Icon(Icons.receipt_long, size: 18),
+                label: const Text('View Purchase Data'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _infoChip(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade200,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+      ),
+    );
+  }
+
   Widget _buildSubscriptionTier(ProductCommon subscription) {
     final isCurrentSubscription =
         _currentSubscription?.productId == subscription.id;
@@ -905,6 +1034,20 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
 
                         const SizedBox(height: 24),
 
+                        if (_activeSubscriptions.isNotEmpty) ...[
+                          const Text(
+                            'Active Subscriptions',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          ..._activeSubscriptions
+                              .map(_buildActiveSubscriptionCard),
+                          const SizedBox(height: 24),
+                        ],
+
                         // Available Subscriptions
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1011,30 +1154,51 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
                                     : Colors.orange.shade50,
                             child: Padding(
                               padding: const EdgeInsets.all(12),
-                              child: Row(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Expanded(
-                                    child: Text(
-                                      _purchaseResult!,
-                                      style: TextStyle(
-                                        color: _purchaseResult!.contains('✅')
-                                            ? Colors.green
-                                            : _purchaseResult!.contains('❌')
-                                                ? Colors.red
-                                                : Colors.orange,
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          _purchaseResult!,
+                                          style: TextStyle(
+                                            color: _purchaseResult!
+                                                    .contains('✅')
+                                                ? Colors.green
+                                                : _purchaseResult!.contains('❌')
+                                                    ? Colors.red
+                                                    : Colors.orange,
+                                          ),
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.close, size: 18),
+                                        onPressed: () {
+                                          setState(() {
+                                            _purchaseResult = null;
+                                          });
+                                        },
+                                        padding: EdgeInsets.zero,
+                                        constraints: const BoxConstraints(),
+                                      ),
+                                    ],
+                                  ),
+                                  if (_currentSubscription != null) ...[
+                                    const SizedBox(height: 12),
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: OutlinedButton.icon(
+                                        onPressed: () => _showPurchaseDetails(
+                                            _currentSubscription!),
+                                        icon: const Icon(Icons.receipt_long,
+                                            size: 18),
+                                        label: const Text('View Purchase Data'),
                                       ),
                                     ),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.close, size: 18),
-                                    onPressed: () {
-                                      setState(() {
-                                        _purchaseResult = null;
-                                      });
-                                    },
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(),
-                                  ),
+                                  ],
                                 ],
                               ),
                             ),
