@@ -108,14 +108,14 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
             ..replacementModeAndroid = prorationMode
             ..purchaseTokenAndroid = token);
 
-        await _iap.requestPurchase(subBuilder.build().toProps());
+        await _iap.requestPurchase(subBuilder.build());
         setState(() => _status = 'Subscription upgrade initiated');
       } else {
         // Fallback to a new subscription purchase (no replacement)
         final newSub = RequestSubscriptionBuilder()
           ..withAndroid((RequestSubscriptionAndroidBuilder a) =>
               a..skus = ['dev.hyo.martie.premium']);
-        await _iap.requestPurchase(newSub.build().toProps());
+        await _iap.requestPurchase(newSub.build());
         setState(() => _status =
             'No token/proration; purchased yearly as new subscription');
       }
@@ -214,7 +214,7 @@ final b = RequestSubscriptionBuilder()
     ..skus = ['dev.hyo.martie.premium']
     ..replacementModeAndroid = AndroidReplacementMode.withTimeProration.value
     ..purchaseTokenAndroid = '<existing_token>');
-await iap.requestPurchase(b.build().toProps());""",
+await iap.requestPurchase(b.build());""",
                       style: TextStyle(fontFamily: 'monospace', fontSize: 12),
                     ),
                   ],

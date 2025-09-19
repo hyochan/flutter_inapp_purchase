@@ -201,6 +201,21 @@ extension RequestPurchaseBuilderExtension on RequestPurchaseBuilder {
   }
 }
 
+mixin RequestPurchaseBuilderApi {
+  MutationRequestPurchaseHandler get requestPurchase;
+
+  /// DSL-like request purchase method with builder pattern.
+  Future<void> requestPurchaseWithBuilder({
+    required RequestBuilder build,
+  }) async {
+    final builder = RequestPurchaseBuilder();
+    build(builder);
+    final props = builder.build();
+
+    await requestPurchase(props);
+  }
+}
+
 class RequestSubscriptionBuilder {
   RequestSubscriptionBuilder();
 

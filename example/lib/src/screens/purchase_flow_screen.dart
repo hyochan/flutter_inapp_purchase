@@ -265,7 +265,10 @@ Purchase Token: $truncatedToken...
     // After successful server validation, finish the transaction
     // For consumable products (like bulb packs), set isConsumable to true
     try {
-      await _iap.finishTransaction(purchase, isConsumable: true);
+      await _iap.finishTransaction(
+        purchase: purchase.toInput(),
+        isConsumable: true,
+      );
       debugPrint('Transaction finished successfully');
       if (!mounted) return;
       setState(() {
@@ -352,14 +355,21 @@ Product ID: ${error.productId ?? 'unknown'}
 
     try {
       debugPrint('🔍 Loading products for IDs: ${productIds.join(", ")}');
-      // Use fetchProducts with Product type for type-safe list
-      final products = await _iap.fetchProducts<Product>(
-        skus: productIds,
-        type: ProductType.InApp,
+      final result = await _iap.fetchProducts(
+        ProductRequest(
+          skus: productIds,
+          type: ProductQueryType.InApp,
+        ),
       );
 
-      debugPrint(
-          '📦 Received ${products.length} products from requestProducts');
+      List<Product> products;
+      if (result is FetchProductsResultProducts) {
+        products = result.value ?? const <Product>[];
+      } else {
+        products = const <Product>[];
+      }
+
+      debugPrint('📦 Received ${products.length} products from fetchProducts');
 
       // Clear and store original products
       _originalProducts.clear();
@@ -377,7 +387,7 @@ Product ID: ${error.productId ?? 'unknown'}
 
       if (!mounted) return;
       setState(() {
-        _products = products;
+        _products = List<ProductCommon>.from(products);
       });
     } catch (e) {
       debugPrint('Error loading products: $e');
@@ -400,16 +410,17 @@ Product ID: ${error.productId ?? 'unknown'}
       debugPrint('Product ID: $productId');
 
       // Build platform-specific request and call unified requestPurchase
-      final requestProps = RequestPurchase(
-        ios: RequestPurchaseIOS(
-          sku: productId,
-          quantity: 1,
+      final requestProps = RequestPurchaseProps.inApp(
+        request: RequestPurchasePropsByPlatforms(
+          ios: RequestPurchaseIosProps(
+            sku: productId,
+            quantity: 1,
+          ),
+          android: RequestPurchaseAndroidProps(
+            skus: [productId],
+          ),
         ),
-        android: RequestPurchaseAndroid(
-          skus: [productId],
-        ),
-        type: ProductType.InApp,
-      ).toProps();
+      );
 
       await _iap.requestPurchase(requestProps);
 

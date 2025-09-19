@@ -13,17 +13,16 @@ void main() {
   });
 
   test('extractPurchases skips entries missing identifiers', () {
-    final iap = FlutterInappPurchase.private(
-      FakePlatform(operatingSystem: 'android'),
-    );
-
-    final result = iap.extractPurchases(
+    final result = extractPurchases(
       <Map<String, dynamic>>[
         <String, dynamic>{
           'platform': 'android',
           'purchaseStateAndroid': 1,
         },
       ],
+      platformIsAndroid: true,
+      platformIsIOS: false,
+      acknowledgedAndroidPurchaseTokens: <String, bool>{},
     );
 
     expect(result, isEmpty);

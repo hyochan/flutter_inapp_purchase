@@ -38,6 +38,24 @@
       "internalConsoleOptions": "neverOpen"
     },
     {
+      "name": "Open Xcode",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "/usr/bin/open",
+      "runtimeArgs": ["-a", "Xcode"],
+      "console": "internalConsole",
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": "Open Android Studio",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "/usr/bin/open",
+      "runtimeArgs": ["-a", "Android Studio"],
+      "console": "internalConsole",
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
       "name": "Flutter: Attach to Device",
       "type": "dart",
       "request": "attach"

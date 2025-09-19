@@ -180,7 +180,9 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
           // Acknowledge/finish the transaction
           try {
             debugPrint('Calling finishTransaction...');
-            await _iap.finishTransaction(purchase);
+            await _iap.finishTransaction(
+              purchase: purchase.toInput(),
+            );
             debugPrint('Transaction finished successfully');
           } catch (e) {
             debugPrint('Error finishing transaction: $e');
@@ -287,11 +289,19 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
     setState(() => _isLoadingProducts = true);
 
     try {
-      // Use fetchProducts with Subscription type for type-safe list
-      final products = await _iap.fetchProducts<ProductSubscription>(
-        skus: subscriptionIds,
-        type: ProductType.Subs,
+      final result = await _iap.fetchProducts(
+        ProductRequest(
+          skus: subscriptionIds,
+          type: ProductQueryType.Subs,
+        ),
       );
+
+      List<ProductSubscription> products;
+      if (result is FetchProductsResultSubscriptions) {
+        products = result.value ?? const <ProductSubscription>[];
+      } else {
+        products = const <ProductSubscription>[];
+      }
 
       debugPrint('Loaded ${products.length} subscriptions');
 
@@ -401,43 +411,46 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
           debugPrint(
               'Using purchase token: ${_currentSubscription!.purchaseToken}');
 
-          final requestProps = RequestPurchase(
-            android: RequestSubscriptionAndroid(
-              skus: [item.id],
-              subscriptionOffers:
-                  selectedOffer != null ? [selectedOffer] : androidOffers,
-              purchaseTokenAndroid: _currentSubscription!.purchaseToken,
-              replacementModeAndroid: _selectedProrationMode,
+          final requestProps = RequestPurchaseProps.subs(
+            request: RequestSubscriptionPropsByPlatforms(
+              android: RequestSubscriptionAndroidProps(
+                skus: [item.id],
+                subscriptionOffers:
+                    selectedOffer != null ? [selectedOffer] : androidOffers,
+                purchaseTokenAndroid: _currentSubscription!.purchaseToken,
+                replacementModeAndroid: _selectedProrationMode,
+              ),
             ),
-            type: ProductType.Subs,
           );
 
-          await _iap.requestPurchase(requestProps.toProps());
+          await _iap.requestPurchase(requestProps);
         } else {
           // This is a new subscription purchase
           debugPrint('Purchasing new subscription');
 
-          final requestProps = RequestPurchase(
-            android: RequestSubscriptionAndroid(
-              skus: [item.id],
-              subscriptionOffers:
-                  selectedOffer != null ? [selectedOffer] : androidOffers,
+          final requestProps = RequestPurchaseProps.subs(
+            request: RequestSubscriptionPropsByPlatforms(
+              android: RequestSubscriptionAndroidProps(
+                skus: [item.id],
+                subscriptionOffers:
+                    selectedOffer != null ? [selectedOffer] : androidOffers,
+              ),
             ),
-            type: ProductType.Subs,
           );
 
-          await _iap.requestPurchase(requestProps.toProps());
+          await _iap.requestPurchase(requestProps);
         }
       } else {
         // iOS
-        final requestProps = RequestPurchase(
-          ios: RequestPurchaseIOS(
-            sku: item.id,
+        final requestProps = RequestPurchaseProps.subs(
+          request: RequestSubscriptionPropsByPlatforms(
+            ios: RequestSubscriptionIosProps(
+              sku: item.id,
+            ),
           ),
-          type: ProductType.Subs,
         );
 
-        await _iap.requestPurchase(requestProps.toProps());
+        await _iap.requestPurchase(requestProps);
       }
 
       // Result will be handled by the purchase stream listeners
@@ -470,18 +483,19 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
           'fake_token_for_testing_${DateTime.now().millisecondsSinceEpoch}';
       debugPrint('Using fake token: $fakeToken');
 
-      final requestProps = RequestPurchase(
-        android: RequestSubscriptionAndroid(
-          skus: [item.id],
-          subscriptionOffers: _androidOffersFor(item),
-          purchaseTokenAndroid:
-              fakeToken, // Fake token that will fail on native side
-          replacementModeAndroid: AndroidReplacementMode.deferred.value,
+      final requestProps = RequestPurchaseProps.subs(
+        request: RequestSubscriptionPropsByPlatforms(
+          android: RequestSubscriptionAndroidProps(
+            skus: [item.id],
+            subscriptionOffers: _androidOffersFor(item),
+            purchaseTokenAndroid:
+                fakeToken, // Fake token that will fail on native side
+            replacementModeAndroid: AndroidReplacementMode.deferred.value,
+          ),
         ),
-        type: ProductType.Subs,
       );
 
-      await _iap.requestPurchase(requestProps.toProps());
+      await _iap.requestPurchase(requestProps);
 
       // If we get here, the purchase was attempted
       debugPrint('Purchase request sent with fake token');
@@ -514,17 +528,19 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
       debugPrint('Using test token: ${testToken.substring(0, 20)}...');
 
       // Test with empty string - but pass validation by using a non-empty token
-      final requestProps = RequestPurchase(
-        android: RequestSubscriptionAndroid(
-          skus: [item.id],
-          subscriptionOffers: _androidOffersFor(item),
-          purchaseTokenAndroid: testToken, // Use test token to pass validation
-          replacementModeAndroid: AndroidReplacementMode.deferred.value,
+      final requestProps = RequestPurchaseProps.subs(
+        request: RequestSubscriptionPropsByPlatforms(
+          android: RequestSubscriptionAndroidProps(
+            skus: [item.id],
+            subscriptionOffers: _androidOffersFor(item),
+            purchaseTokenAndroid:
+                testToken, // Use test token to pass validation
+            replacementModeAndroid: AndroidReplacementMode.deferred.value,
+          ),
         ),
-        type: ProductType.Subs,
       );
 
-      await _iap.requestPurchase(requestProps.toProps());
+      await _iap.requestPurchase(requestProps);
 
       debugPrint('Purchase request sent with test token');
       // Result will come through purchaseUpdatedListener
