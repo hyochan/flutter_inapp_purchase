@@ -6,15 +6,23 @@ import android.app.Application.ActivityLifecycleCallbacks
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
+import dev.hyo.openiap.AndroidSubscriptionOfferInput
+import dev.hyo.openiap.DeepLinkOptions
+import dev.hyo.openiap.FetchProductsResult
+import dev.hyo.openiap.FetchProductsResultProducts
+import dev.hyo.openiap.FetchProductsResultSubscriptions
 import dev.hyo.openiap.OpenIapError
 import dev.hyo.openiap.OpenIapModule
+import dev.hyo.openiap.ProductQueryType
+import dev.hyo.openiap.ProductRequest
+import dev.hyo.openiap.Purchase
+import dev.hyo.openiap.RequestPurchaseAndroidProps
+import dev.hyo.openiap.RequestPurchaseProps
+import dev.hyo.openiap.RequestPurchasePropsByPlatforms
+import dev.hyo.openiap.RequestSubscriptionAndroidProps
+import dev.hyo.openiap.RequestSubscriptionPropsByPlatforms
 import dev.hyo.openiap.listener.OpenIapPurchaseErrorListener
 import dev.hyo.openiap.listener.OpenIapPurchaseUpdateListener
-import dev.hyo.openiap.models.ProductRequest
-import dev.hyo.openiap.models.RequestPurchaseParams
-import dev.hyo.openiap.models.RequestSubscriptionAndroidProps
-import dev.hyo.openiap.models.RequestSubscriptionAndroidProps.SubscriptionOffer
-import dev.hyo.openiap.models.DeepLinkOptions
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
@@ -26,6 +34,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.json.JSONArray
 import org.json.JSONObject
+import java.util.Locale
 
 /**
  * AndroidInappPurchasePlugin (OpenIAP-backed)
@@ -47,6 +56,100 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
 
     // OpenIAP module instance
     private var openIap: OpenIapModule? = null
+
+    private fun parseQueryType(raw: String?): ProductQueryType {
+        val normalized = raw?.lowercase(Locale.ROOT) ?: "inapp"
+        return when {
+            normalized == "all" -> ProductQueryType.All
+            normalized.contains("sub") -> ProductQueryType.Subs
+            normalized.contains("consumable") -> ProductQueryType.InApp
+            normalized == "in-app" || normalized == "inapp" || normalized == "in_app" -> ProductQueryType.InApp
+            else -> ProductQueryType.InApp
+        }
+    }
+
+    private fun parsePurchaseType(raw: String?): ProductQueryType {
+        val type = parseQueryType(raw)
+        return if (type == ProductQueryType.Subs) ProductQueryType.Subs else ProductQueryType.InApp
+    }
+
+    private fun fetchResultToJsonArray(
+        result: FetchProductsResult,
+        addProductIdFallback: Boolean = false
+    ): JSONArray {
+        val entries: List<Map<String, Any?>> = when (result) {
+            is FetchProductsResultProducts -> result.value?.map { it.toJson() }
+                ?: emptyList()
+            is FetchProductsResultSubscriptions -> result.value?.map { it.toJson() }
+                ?: emptyList()
+            else -> emptyList<Map<String, Any?>>()
+        }
+        val array = JSONArray()
+        entries.forEach { entry ->
+            val obj = JSONObject(entry)
+            if (addProductIdFallback && !obj.has("productId")) {
+                val id = entry["id"] as? String
+                if (!id.isNullOrBlank()) {
+                    obj.put("productId", id)
+                }
+            }
+            array.put(obj)
+        }
+        return array
+    }
+
+    private fun purchasesToJsonArray(purchases: List<Purchase>): JSONArray {
+        val array = JSONArray()
+        purchases.forEach { purchase ->
+            array.put(JSONObject(purchase.toJson()))
+        }
+        return array
+    }
+
+    private fun buildRequestPurchaseProps(
+        type: ProductQueryType,
+        skus: List<String>,
+        obfuscatedAccountId: String?,
+        obfuscatedProfileId: String?,
+        isOfferPersonalized: Boolean,
+        subscriptionOffers: List<AndroidSubscriptionOfferInput>,
+        purchaseTokenAndroid: String?,
+        replacementModeAndroid: Int?
+    ): RequestPurchaseProps {
+        return when (type) {
+            ProductQueryType.Subs -> {
+                val androidProps = RequestSubscriptionAndroidProps(
+                    isOfferPersonalized = isOfferPersonalized,
+                    obfuscatedAccountIdAndroid = obfuscatedAccountId,
+                    obfuscatedProfileIdAndroid = obfuscatedProfileId,
+                    purchaseTokenAndroid = purchaseTokenAndroid,
+                    replacementModeAndroid = replacementModeAndroid,
+                    skus = skus,
+                    subscriptionOffers = subscriptionOffers.takeIf { it.isNotEmpty() }
+                )
+                RequestPurchaseProps(
+                    request = RequestPurchaseProps.Request.Subscription(
+                        RequestSubscriptionPropsByPlatforms(android = androidProps)
+                    ),
+                    type = ProductQueryType.Subs
+                )
+            }
+            else -> {
+                val androidProps = RequestPurchaseAndroidProps(
+                    isOfferPersonalized = isOfferPersonalized,
+                    obfuscatedAccountIdAndroid = obfuscatedAccountId,
+                    obfuscatedProfileIdAndroid = obfuscatedProfileId,
+                    skus = skus
+                )
+                RequestPurchaseProps(
+                    request = RequestPurchaseProps.Request.Purchase(
+                        RequestPurchasePropsByPlatforms(android = androidProps)
+                    ),
+                    type = ProductQueryType.InApp
+                )
+            }
+        }
+    }
 
     private fun legacyErrorJson(
         code: String,
@@ -221,12 +324,12 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
         when (call.method) {
             // Expo parity: fetchProducts(type, skuArr[])
             "fetchProducts" -> {
-                val typeStr = call.argument<String>("type") ?: "inapp"
+                val typeStr = call.argument<String>("type")
                 val skuArr = call.argument<List<String>>("skuArr")
                     ?: call.argument<List<String>>("skus")
                     ?: call.argument<List<String>>("productIds")
                     ?: emptyList()
-                val reqType = ProductRequest.ProductRequestType.fromString(typeStr)
+                val queryType = parseQueryType(typeStr)
                 scope.launch {
                     // Ensure connection
                     connectionMutex.withLock {
@@ -254,13 +357,8 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                             safe.error(OpenIapError.NotPrepared.CODE, OpenIapError.NotPrepared.MESSAGE, "IAP module not initialized.")
                             return@launch
                         }
-                        val products = iap.fetchProducts(ProductRequest(skuArr, reqType))
-                        val arr = JSONArray()
-                        products.forEach { p ->
-                            val map = p.toJSON()
-                            val obj = JSONObject(map)
-                            arr.put(obj)
-                        }
+                        val result = iap.fetchProducts(ProductRequest(skuArr, queryType))
+                        val arr = fetchResultToJsonArray(result)
                         safe.success(arr.toString())
                     } catch (e: Exception) {
                         safe.error(OpenIapError.QueryProduct.CODE, OpenIapError.QueryProduct.MESSAGE, e.message)
@@ -298,7 +396,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                             return@launch
                         }
                         val purchases = iap.getAvailablePurchases(null)
-                        val arr = JSONArray(purchases.map { it.toJSON() })
+                        val arr = purchasesToJsonArray(purchases)
                         safe.success(arr.toString())
                     } catch (e: Exception) {
                         safe.error(OpenIapError.BillingError.CODE, OpenIapError.BillingError.MESSAGE, e.message)
@@ -311,7 +409,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
             // Expo parity: requestPurchase(params)
             "requestPurchase" -> {
                 val params = call.arguments as? Map<*, *> ?: emptyMap<String, Any?>()
-                val typeStr = params["type"] as? String ?: "inapp"
+                val typeStr = params["type"] as? String
                 val skus: List<String> =
                     (params["skus"] as? List<*>)?.filterIsInstance<String>()
                         ?: (params["skuArr"] as? List<*>)?.filterIsInstance<String>()
@@ -322,6 +420,8 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                 val obfuscatedProfileId =
                     (params["obfuscatedProfileIdAndroid"] ?: params["obfuscatedProfileId"]) as? String
                 val isOfferPersonalized = params["isOfferPersonalized"] as? Boolean ?: false
+                val purchaseTokenAndroid = params["purchaseTokenAndroid"] as? String
+                val replacementModeAndroid = (params["replacementModeAndroid"] as? Number)?.toInt()
 
                 // Validate SKUs
                 if (skusNormalized.isEmpty()) {
@@ -369,23 +469,22 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                         val map = entry as? Map<*, *> ?: return@mapNotNull null
                         val sku = map["sku"] as? String ?: return@mapNotNull null
                         val offerToken = map["offerToken"] as? String ?: return@mapNotNull null
-                        SubscriptionOffer(sku = sku, offerToken = offerToken)
-                    }
+                        AndroidSubscriptionOfferInput(sku = sku, offerToken = offerToken)
+                    } ?: emptyList()
 
-                    val offerList = offers ?: emptyList()
-
-                    val requestParams = RequestPurchaseParams(
+                    val purchaseType = parsePurchaseType(typeStr)
+                    val requestProps = buildRequestPurchaseProps(
+                        type = purchaseType,
                         skus = skusNormalized,
-                        obfuscatedAccountIdAndroid = obfuscatedAccountId,
-                        obfuscatedProfileIdAndroid = obfuscatedProfileId,
+                        obfuscatedAccountId = obfuscatedAccountId,
+                        obfuscatedProfileId = obfuscatedProfileId,
                         isOfferPersonalized = isOfferPersonalized,
-                        subscriptionOffers = offerList
+                        subscriptionOffers = offers,
+                        purchaseTokenAndroid = purchaseTokenAndroid,
+                        replacementModeAndroid = replacementModeAndroid
                     )
 
-                    iap.requestPurchase(
-                        requestParams,
-                        ProductRequest.ProductRequestType.fromString(typeStr)
-                    )
+                    iap.requestPurchase(requestProps)
                     // Success signaled by purchase-updated event
                     safe.success(null)
                 } catch (e: Exception) {
@@ -521,16 +620,10 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                             safe.error(OpenIapError.NotPrepared.CODE, OpenIapError.NotPrepared.MESSAGE, "IAP module not initialized.")
                             return@launch
                         }
-                        val products = iap.fetchProducts(
-                            ProductRequest(productIds, ProductRequest.ProductRequestType.InApp)
+                        val result = iap.fetchProducts(
+                            ProductRequest(productIds, ProductQueryType.InApp)
                         )
-                        val arr = JSONArray()
-                        products.forEach { p ->
-                            val map = p.toJSON()
-                            val obj = JSONObject(map)
-                            if (!obj.has("productId")) obj.put("productId", map["id"])
-                            arr.put(obj)
-                        }
+                        val arr = fetchResultToJsonArray(result, addProductIdFallback = true)
                         safe.success(arr.toString())
                     } catch (e: Exception) {
                         safe.error(OpenIapError.QueryProduct.CODE, OpenIapError.QueryProduct.MESSAGE, e.message)
@@ -567,16 +660,10 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                             safe.error(OpenIapError.NotPrepared.CODE, OpenIapError.NotPrepared.MESSAGE, "IAP module not initialized.")
                             return@launch
                         }
-                        val products = iap.fetchProducts(
-                            ProductRequest(productIds, ProductRequest.ProductRequestType.Subs)
+                        val result = iap.fetchProducts(
+                            ProductRequest(productIds, ProductQueryType.Subs)
                         )
-                        val arr = JSONArray()
-                        products.forEach { p ->
-                            val map = p.toJSON()
-                            val obj = JSONObject(map)
-                            if (!obj.has("productId")) obj.put("productId", map["id"])
-                            arr.put(obj)
-                        }
+                        val arr = fetchResultToJsonArray(result, addProductIdFallback = true)
                         safe.success(arr.toString())
                     } catch (e: Exception) {
                         safe.error(OpenIapError.QueryProduct.CODE, OpenIapError.QueryProduct.MESSAGE, e.message)
@@ -588,7 +675,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
             "getAvailableItemsByType" -> {
                 logDeprecated("getAvailableItemsByType", "Use getAvailableItems() instead")
                 val typeStr = call.argument<String>("type") ?: "inapp"
-                val reqType = ProductRequest.ProductRequestType.fromString(typeStr)
+                val reqType = parsePurchaseType(typeStr)
                 scope.launch {
                     // Ensure connection for legacy path
                     connectionMutex.withLock {
@@ -617,7 +704,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                             return@launch
                         }
                         val purchases = iap.getAvailableItems(reqType)
-                        val arr = JSONArray(purchases.map { it.toJSON() })
+                        val arr = purchasesToJsonArray(purchases)
                         safe.success(arr.toString())
                     } catch (e: Exception) {
                         safe.error(OpenIapError.BillingError.CODE, OpenIapError.BillingError.MESSAGE, e.message)
@@ -627,7 +714,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
             "getPurchaseHistoryByType" -> {
                 logDeprecated("getPurchaseHistoryByType", "Use getAvailableItems() instead")
                 val typeStr = call.argument<String>("type") ?: "inapp"
-                val reqType = ProductRequest.ProductRequestType.fromString(typeStr)
+                val reqType = parsePurchaseType(typeStr)
                 scope.launch {
                     // Ensure connection for legacy path
                     connectionMutex.withLock {
@@ -656,7 +743,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                             return@launch
                         }
                         val purchases = iap.getAvailableItems(reqType)
-                        val arr = JSONArray(purchases.map { it.toJSON() })
+                        val arr = purchasesToJsonArray(purchases)
                         safe.success(arr.toString())
                     } catch (e: Exception) {
                         safe.error(OpenIapError.BillingError.CODE, OpenIapError.BillingError.MESSAGE, e.message)
@@ -667,7 +754,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
             // Legacy/compat purchase flow
             "buyItemByType" -> {
                 logDeprecated("buyItemByType", "Use requestPurchase(params) instead")
-                val typeStr = call.argument<String>("type") ?: "inapp"
+                val typeStr = call.argument<String>("type")
                 val productId = call.argument<String>("productId")
                     ?: call.argument<String>("sku")
                     ?: call.argument<ArrayList<String>>("skus")?.firstOrNull()
@@ -715,18 +802,20 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                             safe.error(OpenIapError.NotPrepared.CODE, OpenIapError.NotPrepared.MESSAGE, "IAP module not initialized.")
                             return@launch
                         }
-                        val requestParams = RequestPurchaseParams(
-                            skus = listOf(productId),
-                            obfuscatedAccountIdAndroid = obfuscatedAccountId,
-                            obfuscatedProfileIdAndroid = obfuscatedProfileId,
+                        val skus = listOf(productId)
+                        val purchaseType = parsePurchaseType(typeStr)
+                        val requestProps = buildRequestPurchaseProps(
+                            type = purchaseType,
+                            skus = skus,
+                            obfuscatedAccountId = obfuscatedAccountId,
+                            obfuscatedProfileId = obfuscatedProfileId,
                             isOfferPersonalized = isOfferPersonalized,
-                            subscriptionOffers = emptyList()
+                            subscriptionOffers = emptyList(),
+                            purchaseTokenAndroid = null,
+                            replacementModeAndroid = null
                         )
 
-                        iap.requestPurchase(
-                            requestParams,
-                            ProductRequest.ProductRequestType.fromString(typeStr)
-                        )
+                        iap.requestPurchase(requestProps)
                         safe.success(null)
                     } catch (e: Exception) {
                         channel?.invokeMethod(
@@ -832,7 +921,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
         openIap?.addPurchaseUpdateListener(OpenIapPurchaseUpdateListener { p ->
             scope.launch {
                 try {
-                    val payload = JSONObject(p.toJSON())
+                    val payload = JSONObject(p.toJson())
                     channel?.invokeMethod("purchase-updated", payload.toString())
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to send purchase-updated", e)
