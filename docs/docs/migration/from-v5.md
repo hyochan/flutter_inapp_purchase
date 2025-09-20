@@ -16,14 +16,14 @@ This guide helps you migrate your existing flutter_inapp_purchase implementation
 
 ### Breaking Changes
 
-#### Simplified requestProducts API
+#### Simplified fetchProducts API
 
-The `requestProducts` method now accepts direct parameters instead of a wrapper object:
+The `fetchProducts` method now accepts direct parameters instead of a wrapper object:
 
 **Before (v6.3.x):**
 
 ```dart
-final products = await iap.requestProducts(
+final products = await iap.fetchProducts(
   RequestProductsParams(
     skus: ['product_id'],
     type: PurchaseType.inapp,
@@ -34,7 +34,7 @@ final products = await iap.requestProducts(
 **After (v6.7.0):**
 
 ```dart
-final products = await iap.requestProducts(
+final products = await iap.fetchProducts(
   skus: ['product_id'],
   type: PurchaseType.inapp,  // Optional, defaults to PurchaseType.inapp
 );
@@ -87,15 +87,15 @@ ErrorCode.DeveloperError
 **Before (v5.x):**
 
 ```dart
-Future<List<IAPItem>> getProducts(List<String> skus) async
+Future<List<IAPItem>> legacyProductLoader(List<String> skus) async
 Future<String> requestPurchase(String sku) async
 ```
 
 **After (v6.x):**
 
 ```dart
-Future<List<IapItem>> getProducts(List<String> skus) async
-Future<void> requestPurchase(String sku) async
+Future<FetchProductsResult> fetchProducts(ProductRequest request) async
+Future<void> requestPurchase(RequestPurchaseProps params) async
 ```
 
 ### 2. Method Return Types
@@ -290,7 +290,7 @@ Here's a complete before/after example:
 class _MyAppState extends State<MyApp> {
   StreamSubscription _purchaseUpdatedSubscription;
   StreamSubscription _purchaseErrorSubscription;
-  List<IAPItem> _items = [];
+  List<ProductCommon> _items = [];
   List<Purchase> _purchases = [];
 
   @override
@@ -321,7 +321,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future _getProduct() async {
-    List<IAPItem> items = await FlutterInappPurchase.instance.requestProducts(skus: _kProductIds, type: 'inapp');
+    List<IAPItem> items = await FlutterInappPurchase.instance.fetchProducts(skus: _kProductIds, type: 'inapp');
     setState(() {
       _items = items;
     });
@@ -335,7 +335,7 @@ class _MyAppState extends State<MyApp> {
 class _MyAppState extends State<MyApp> {
   StreamSubscription? _purchaseUpdatedSubscription;
   StreamSubscription? _purchaseErrorSubscription;
-  List<IapItem> _items = [];
+  List<ProductCommon> _items = [];
   List<Purchase> _purchases = [];
 
   @override
@@ -391,8 +391,13 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _getProduct() async {
     try {
-      List<IapItem> items = await FlutterInappPurchase.instance
-          .getProducts(_kProductIds);
+      final result = await FlutterInappPurchase.instance.fetchProducts(
+        ProductRequest(
+          skus: _kProductIds,
+          type: ProductQueryType.InApp,
+        ),
+      );
+      final items = result.inAppProducts();
       setState(() {
         _items = items;
       });

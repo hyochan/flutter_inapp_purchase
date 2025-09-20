@@ -597,7 +597,13 @@ class ValidationHelper {
       }
 
       // Check if product exists
-      final products = await FlutterInappPurchase.instance.getProducts([productId]);
+      final result = await FlutterInappPurchase.instance.fetchProducts(
+        ProductRequest(
+          skus: [productId],
+          type: ProductQueryType.InApp,
+        ),
+      );
+      final products = result.inAppProducts();
       if (products.isEmpty) {
         throw PurchaseError(
           code: ErrorCode.ProductNotFound,
@@ -664,7 +670,12 @@ class ErrorTesting {
 
   static Future<void> _testInvalidProduct() async {
     try {
-      await FlutterInappPurchase.instance.getProducts(['invalid_product_id']);
+      await FlutterInappPurchase.instance.fetchProducts(
+        ProductRequest(
+          skus: ['invalid_product_id'],
+          type: ProductQueryType.InApp,
+        ),
+      );
     } catch (e) {
       print('Expected error for invalid product: $e');
     }

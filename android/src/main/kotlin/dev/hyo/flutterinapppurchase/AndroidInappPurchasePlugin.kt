@@ -16,11 +16,7 @@ import dev.hyo.openiap.OpenIapModule
 import dev.hyo.openiap.ProductQueryType
 import dev.hyo.openiap.ProductRequest
 import dev.hyo.openiap.Purchase
-import dev.hyo.openiap.RequestPurchaseAndroidProps
 import dev.hyo.openiap.RequestPurchaseProps
-import dev.hyo.openiap.RequestPurchasePropsByPlatforms
-import dev.hyo.openiap.RequestSubscriptionAndroidProps
-import dev.hyo.openiap.RequestSubscriptionPropsByPlatforms
 import dev.hyo.openiap.listener.OpenIapPurchaseErrorListener
 import dev.hyo.openiap.listener.OpenIapPurchaseUpdateListener
 import io.flutter.plugin.common.MethodCall
@@ -116,38 +112,34 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
         purchaseTokenAndroid: String?,
         replacementModeAndroid: Int?
     ): RequestPurchaseProps {
+        val androidPayload = mutableMapOf<String, Any?>().apply {
+            put(KEY_SKUS, skus)
+            put(KEY_IS_OFFER_PERSONALIZED, isOfferPersonalized)
+            obfuscatedAccountId?.let { put(KEY_OBFUSCATED_ACCOUNT, it) }
+            obfuscatedProfileId?.let { put(KEY_OBFUSCATED_PROFILE, it) }
+        }
+
+        val root = mutableMapOf<String, Any?>(
+            KEY_TYPE to type.toJson()
+        )
+
         return when (type) {
             ProductQueryType.Subs -> {
-                val androidProps = RequestSubscriptionAndroidProps(
-                    isOfferPersonalized = isOfferPersonalized,
-                    obfuscatedAccountIdAndroid = obfuscatedAccountId,
-                    obfuscatedProfileIdAndroid = obfuscatedProfileId,
-                    purchaseTokenAndroid = purchaseTokenAndroid,
-                    replacementModeAndroid = replacementModeAndroid,
-                    skus = skus,
-                    subscriptionOffers = subscriptionOffers.takeIf { it.isNotEmpty() }
-                )
-                RequestPurchaseProps(
-                    request = RequestPurchaseProps.Request.Subscription(
-                        RequestSubscriptionPropsByPlatforms(android = androidProps)
-                    ),
-                    type = ProductQueryType.Subs
-                )
+                purchaseTokenAndroid?.let { androidPayload[KEY_PURCHASE_TOKEN] = it }
+                replacementModeAndroid?.let { androidPayload[KEY_REPLACEMENT_MODE] = it }
+                if (subscriptionOffers.isNotEmpty()) {
+                    androidPayload[KEY_SUBSCRIPTION_OFFERS] = subscriptionOffers.map { it.toJson() }
+                }
+                root[KEY_REQUEST_SUBSCRIPTION] = mapOf(KEY_ANDROID to androidPayload)
+                RequestPurchaseProps.fromJson(root)
             }
-            else -> {
-                val androidProps = RequestPurchaseAndroidProps(
-                    isOfferPersonalized = isOfferPersonalized,
-                    obfuscatedAccountIdAndroid = obfuscatedAccountId,
-                    obfuscatedProfileIdAndroid = obfuscatedProfileId,
-                    skus = skus
-                )
-                RequestPurchaseProps(
-                    request = RequestPurchaseProps.Request.Purchase(
-                        RequestPurchasePropsByPlatforms(android = androidProps)
-                    ),
-                    type = ProductQueryType.InApp
-                )
+            ProductQueryType.InApp -> {
+                root[KEY_REQUEST_PURCHASE] = mapOf(KEY_ANDROID to androidPayload)
+                RequestPurchaseProps.fromJson(root)
             }
+            ProductQueryType.All -> throw IllegalArgumentException(
+                "type must be InApp or Subs when requesting a purchase"
+            )
         }
     }
 
@@ -302,7 +294,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
         }
 
         // Lazily init connection on demand
-        if (!connectionReady && call.method in setOf("fetchProducts", "getAvailableItems", "getStorefrontAndroid", "requestPurchase", "getProducts", "getSubscriptions", "getAvailableItemsByType", "getPurchaseHistoryByType", "buyItemByType", "acknowledgePurchase", "consumeProduct", "consumePurchase", "acknowledgePurchaseAndroid", "consumePurchaseAndroid")) {
+        if (!connectionReady && call.method in setOf("fetchProducts", "getAvailableItems", "getStorefrontAndroid", "requestPurchase", "getAvailableItemsByType", "getPurchaseHistoryByType", "buyItemByType", "acknowledgePurchase", "consumeProduct", "consumePurchase", "acknowledgePurchaseAndroid", "consumePurchaseAndroid")) {
             // Best-effort prepare connection
             scope.launch {
                 connectionMutex.withLock {
@@ -581,95 +573,6 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                 }
             }
 
-            // -----------------------------------------------------------------
-            // Legacy/compat API (Deprecated)
-            // NOTE: These endpoints are kept for backwards compatibility only
-            // and will be removed in 7.0.0. Please migrate to:
-            //  - fetchProducts(type, skuArr)
-            //  - getAvailableItems()
-            //  - requestPurchase(params)
-            // -----------------------------------------------------------------
-            // Legacy/compat product queries
-            "getProducts" -> {
-                logDeprecated("getProducts", "Use fetchProducts(type, skuArr) instead")
-                val productIds = call.argument<ArrayList<String>>("productIds") ?: arrayListOf()
-                scope.launch {
-                    // Ensure connection for legacy path
-                    connectionMutex.withLock {
-                        try {
-                            attachListenersIfNeeded()
-                            openIap?.setActivity(activity)
-                            if (!connectionReady) {
-                                val ok = openIap?.initConnection() ?: false
-                                connectionReady = ok
-                                val item = JSONObject().apply { put("connected", ok) }
-                                channel?.invokeMethod("connection-updated", item.toString())
-                                if (!ok) {
-                                    safe.error(OpenIapError.InitConnection.CODE, OpenIapError.InitConnection.MESSAGE, "Failed to initialize connection")
-                                    return@launch
-                                }
-                            }
-                        } catch (e: Exception) {
-                            safe.error(OpenIapError.BillingError.CODE, OpenIapError.BillingError.MESSAGE, e.message)
-                            return@launch
-                        }
-                    }
-                    try {
-                        val iap = openIap
-                        if (iap == null) {
-                            safe.error(OpenIapError.NotPrepared.CODE, OpenIapError.NotPrepared.MESSAGE, "IAP module not initialized.")
-                            return@launch
-                        }
-                        val result = iap.fetchProducts(
-                            ProductRequest(productIds, ProductQueryType.InApp)
-                        )
-                        val arr = fetchResultToJsonArray(result, addProductIdFallback = true)
-                        safe.success(arr.toString())
-                    } catch (e: Exception) {
-                        safe.error(OpenIapError.QueryProduct.CODE, OpenIapError.QueryProduct.MESSAGE, e.message)
-                    }
-                }
-            }
-            "getSubscriptions" -> {
-                logDeprecated("getSubscriptions", "Use fetchProducts(type, skuArr) with type=subs")
-                val productIds = call.argument<ArrayList<String>>("productIds") ?: arrayListOf()
-                scope.launch {
-                    // Ensure connection for legacy path
-                    connectionMutex.withLock {
-                        try {
-                            attachListenersIfNeeded()
-                            openIap?.setActivity(activity)
-                            if (!connectionReady) {
-                                val ok = openIap?.initConnection() ?: false
-                                connectionReady = ok
-                                val item = JSONObject().apply { put("connected", ok) }
-                                channel?.invokeMethod("connection-updated", item.toString())
-                                if (!ok) {
-                                    safe.error(OpenIapError.InitConnection.CODE, OpenIapError.InitConnection.MESSAGE, "Failed to initialize connection")
-                                    return@launch
-                                }
-                            }
-                        } catch (e: Exception) {
-                            safe.error(OpenIapError.BillingError.CODE, OpenIapError.BillingError.MESSAGE, e.message)
-                            return@launch
-                        }
-                    }
-                    try {
-                        val iap = openIap
-                        if (iap == null) {
-                            safe.error(OpenIapError.NotPrepared.CODE, OpenIapError.NotPrepared.MESSAGE, "IAP module not initialized.")
-                            return@launch
-                        }
-                        val result = iap.fetchProducts(
-                            ProductRequest(productIds, ProductQueryType.Subs)
-                        )
-                        val arr = fetchResultToJsonArray(result, addProductIdFallback = true)
-                        safe.success(arr.toString())
-                    } catch (e: Exception) {
-                        safe.error(OpenIapError.QueryProduct.CODE, OpenIapError.QueryProduct.MESSAGE, e.message)
-                    }
-                }
-            }
 
             // Legacy/compat purchases queries
             "getAvailableItemsByType" -> {
@@ -952,5 +855,17 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
     companion object {
         private const val TAG = "InappPurchasePlugin"
         private const val PLAY_STORE_URL = "https://play.google.com/store/account/subscriptions"
+
+        private const val KEY_REQUEST_SUBSCRIPTION = "requestSubscription"
+        private const val KEY_REQUEST_PURCHASE = "requestPurchase"
+        private const val KEY_ANDROID = "android"
+        private const val KEY_TYPE = "type"
+        private const val KEY_SKUS = "skus"
+        private const val KEY_IS_OFFER_PERSONALIZED = "isOfferPersonalized"
+        private const val KEY_OBFUSCATED_ACCOUNT = "obfuscatedAccountIdAndroid"
+        private const val KEY_OBFUSCATED_PROFILE = "obfuscatedProfileIdAndroid"
+        private const val KEY_PURCHASE_TOKEN = "purchaseTokenAndroid"
+        private const val KEY_REPLACEMENT_MODE = "replacementModeAndroid"
+        private const val KEY_SUBSCRIPTION_OFFERS = "subscriptionOffers"
     }
 }

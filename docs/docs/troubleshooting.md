@@ -113,7 +113,7 @@ flutter pub upgrade
 
 ### Products Not Loading
 
-**Problem:** `getProducts()` returns empty list
+**Problem:** `fetchProducts()` returns empty list
 
 **Debugging Steps:**
 
@@ -123,8 +123,13 @@ flutter pub upgrade
    FlutterInappPurchase.instance.setDebugMode(true);
    
    // Check exact product ID matching
-   final products = await FlutterInappPurchase.instance
-       .requestProducts(skus: ['exact.product.id.from.store'], type: 'inapp');
+   final result = await FlutterInappPurchase.instance.fetchProducts(
+     ProductRequest(
+       skus: ['exact.product.id.from.store'],
+       type: ProductQueryType.InApp,
+     ),
+   );
+   final products = result.inAppProducts();
    ```
 
 2. **Check store console:**
@@ -191,7 +196,7 @@ flutter pub upgrade
 
 2. **Verify product exists:**
    ```dart
-   final products = await FlutterInappPurchase.instance.requestProducts(skus: [productId], type: 'inapp');
+   final products = await FlutterInappPurchase.instance.fetchProducts(skus: [productId], type: 'inapp');
    if (products.isEmpty) {
      print('Product not found: $productId');
      return;
@@ -417,7 +422,7 @@ Future<void> debugConnection() async {
     
     // Test with known product
     final products = await FlutterInappPurchase.instance
-        .requestProducts(skus: ['android.test.purchased'], type: 'inapp'); // Android test product
+        .fetchProducts(skus: ['android.test.purchased'], type: 'inapp'); // Android test product
     print('Test products: ${products.length}');
   } catch (e) {
     print('Debug error: $e');

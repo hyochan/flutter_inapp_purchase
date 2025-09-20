@@ -100,7 +100,13 @@ import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 await FlutterInappPurchase.instance.initConnection();
 
 // Get products
-final products = await FlutterInappPurchase.instance.getProducts(['product_id']);
+final result = await FlutterInappPurchase.instance.fetchProducts(
+  ProductRequest(
+    skus: ['product_id'],
+    type: ProductQueryType.InApp,
+  ),
+);
+final products = result.inAppProducts();
 
 // Make a purchase
 await FlutterInappPurchase.instance.requestPurchaseSimple(

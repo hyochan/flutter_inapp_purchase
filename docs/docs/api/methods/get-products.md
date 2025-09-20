@@ -1,196 +1,145 @@
 ---
 sidebar_position: 2
-title: requestProducts
+title: fetchProducts
 ---
 
-# requestProducts()
+# fetchProducts()
 
-Fetches product or subscription information with unified API (v6.7.0+).
-
-## Overview
-
-The `requestProducts()` method fetches product information for the specified store SKUs from the App Store (iOS) or Google Play Store (Android). This replaces the deprecated `getProducts()` and `getSubscriptions()` methods with a unified API that uses a type parameter to distinguish between regular products and subscriptions.
+`fetchProducts()` is the unified way to load in-app products or subscriptions from the store, consolidating the legacy helpers into a single API.
 
 ## Signature
 
 ```dart
-Future<List<ProductCommon>> requestProducts({
-  required List<String> skus,
-  PurchaseType type = PurchaseType.inapp,
-})
+Future<FetchProductsResult> fetchProducts(ProductRequest params)
 ```
 
 ## Parameters
 
-| Parameter | Type           | Required | Default   | Description                                                                |
-| --------- | -------------- | -------- | --------- | -------------------------------------------------------------------------- |
-| `skus` | `List<String>` | Yes      | -         | List of store product identifiers to fetch                                |
-| `type`    | `PurchaseType` | No       | `PurchaseType.inapp` | Product type: `PurchaseType.inapp` (regular) or `PurchaseType.subs` (subscriptions) |
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `params.skus` | `List<String>` | ✅ | Store identifiers to query (Google Play product IDs / App Store product identifiers) |
+| `params.type` | `ProductQueryType?` | ❌ | `ProductQueryType.InApp` (default) or `ProductQueryType.Subs` |
 
-## Returns
+## Return Value
 
-- **Type**: `Future<List<ProductCommon>>`
-- **Description**: A list of product items with pricing and metadata
+The method resolves to a `FetchProductsResult` sealed type:
+
+- `FetchProductsResultProducts` – wraps a `List<Product>` when querying in-app items
+- `FetchProductsResultSubscriptions` – wraps a `List<ProductSubscription>` when querying subscriptions
+
+Use the helper extensions from `package:flutter_inapp_purchase/flutter_inapp_purchase.dart` (`result.inAppProducts()`, `result.subscriptionProducts()`, `result.allProducts()`) to convert the union into strongly typed lists.
 
 ## Usage Examples
 
-### Fetch Regular Products
+### Fetch in-app products
 
 ```dart
-try {
-  List<ProductCommon> products = await FlutterInappPurchase.instance.requestProducts(
-    skus: ['coins_100', 'coins_500', 'remove_ads'],
-    type: PurchaseType.inapp,
-  );
+final result = await FlutterInappPurchase.instance.fetchProducts(
+  ProductRequest(
+    skus: ['coins_100', 'remove_ads'],
+    type: ProductQueryType.InApp,
+  ),
+);
 
-  for (var product in products) {
-    print('Product: ${product.title}');
-    print('Price: ${product.displayPrice}');
-    print('Currency: ${product.currency}');
-  }
-} catch (e) {
-  print('Failed to fetch products: $e');
+final products = result.inAppProducts();
+for (final product in products) {
+  print('${product.title}: ${product.displayPrice}');
 }
 ```
 
-### Fetch Subscriptions
+### Fetch subscriptions
 
 ```dart
-try {
-  List<ProductCommon> subscriptions = await FlutterInappPurchase.instance.requestProducts(
+final result = await FlutterInappPurchase.instance.fetchProducts(
+  ProductRequest(
     skus: ['premium_monthly', 'premium_yearly'],
-    type: PurchaseType.subs,
-  );
+    type: ProductQueryType.Subs,
+  ),
+);
 
-  for (var subscription in subscriptions) {
-    print('Subscription: ${subscription.title}');
-    print('Price: ${subscription.displayPrice}');
-    print('Description: ${subscription.description}');
-  }
-} catch (e) {
-  print('Failed to fetch subscriptions: $e');
+final subscriptions = result.subscriptionProducts();
+for (final sub in subscriptions) {
+  print('${sub.title}: ${sub.displayPrice}');
+  print('Period: ${sub.subscriptionPeriodUnitIOS ?? sub.subscriptionInfoAndroid?.billingPeriod}');
 }
 ```
 
-### Combined Example
+### Fetch both types
 
 ```dart
-class ProductService {
-  Future<void> loadAllProducts() async {
-    try {
-      // Load regular products
-      final products = await FlutterInappPurchase.instance.requestProducts(
-        skus: ['coins_100', 'remove_ads'],
-        type: PurchaseType.inapp,
-      );
+Future<void> loadCatalog() async {
+  final inApps = await FlutterInappPurchase.instance.fetchProducts(
+    ProductRequest(skus: ['coins_100', 'remove_ads'], type: ProductQueryType.InApp),
+  );
+  final subs = await FlutterInappPurchase.instance.fetchProducts(
+    ProductRequest(skus: ['premium_monthly'], type: ProductQueryType.Subs),
+  );
 
-      // Load subscriptions
-      final subscriptions = await FlutterInappPurchase.instance.requestProducts(
-        skus: ['premium_monthly', 'premium_yearly'],
-        type: PurchaseType.subs,
-      );
+  final allProducts = [
+    ...inApps.allProducts(),
+    ...subs.allProducts(),
+  ];
 
-      print('Loaded ${products.length} products');
-      print('Loaded ${subscriptions.length} subscriptions');
-
-    } catch (e) {
-      print('Error loading products: $e');
-    }
+  for (final item in allProducts) {
+    debugPrint('Loaded ${item.id} (${item.displayPrice})');
   }
 }
 ```
-
-## Product Types
-
-### 'inapp' Type
-
-- **Consumables**: Items that can be purchased multiple times (coins, gems)
-- **Non-consumables**: Items purchased once and owned forever (remove ads, premium features)
-
-### 'subs' Type
-
-- **Auto-renewable subscriptions**: Recurring subscriptions with automatic renewal
-- **Non-renewing subscriptions**: Fixed-duration subscriptions without auto-renewal
 
 ## Error Handling
 
 ```dart
 try {
-  final products = await FlutterInappPurchase.instance.requestProducts(
-    skus: productIds,
-    type: PurchaseType.inapp,
+  final result = await FlutterInappPurchase.instance.fetchProducts(
+    ProductRequest(skus: productIds, type: ProductQueryType.InApp),
   );
 
+  final products = result.inAppProducts();
   if (products.isEmpty) {
-    print('No products found for the given SKUs');
+    debugPrint('No products returned for: $productIds');
   }
-
-} catch (e) {
-  if (e.toString().contains('E_NOT_PREPARED')) {
-    print('Store not initialized');
-  } else if (e.toString().contains('E_NETWORK')) {
-    print('Network error - check internet connection');
-  } else {
-    print('Unknown error: $e');
+} on PurchaseError catch (error) {
+  switch (error.code) {
+    case ErrorCode.NotPrepared:
+      debugPrint('Call initConnection() before fetching products');
+      break;
+    case ErrorCode.NetworkError:
+      debugPrint('Network error – prompt the user to retry');
+      break;
+    default:
+      debugPrint('Unexpected store error: ${error.message}');
   }
 }
 ```
 
-## Platform Differences
+## Platform Notes
 
 ### iOS
 
-- Products must be configured in App Store Connect
-- Products must be in "Ready to Submit" or "Approved" status
-- Bundle ID must match exactly
+- Products must be visible in App Store Connect (Ready for Sale or Approved)
+- The bundle identifier must match the app querying the products
+- StoreKit 2 caching means results may be served from a local cache on subsequent calls
 
 ### Android
 
-- Products must be active in Google Play Console
-- App must be uploaded to at least Internal Testing
-- Package name must match exactly
+- Products must be active in Google Play Console (Internal Testing track or above)
+- Billing client v8 requires the app to be signed with a certificate added to Play Console
+- Only SKUs that belong to the current package can be queried
 
-## Migration from Old API
+## Migration Notes
 
-### Before (Deprecated)
+- Replace `requestProducts()` calls with `fetchProducts(ProductRequest(...))`
+- Convert the returned `FetchProductsResult` using `inAppProducts()`, `subscriptionProducts()`, or `allProducts()` depending on the query type
+- Replace any legacy product-loading helpers in your codebase with `fetchProducts()`
 
-```dart
-// Old separate methods
-final products = await FlutterInappPurchase.instance.getProducts(productIds);
-final subscriptions = await FlutterInappPurchase.instance.getSubscriptions(subscriptionIds);
-```
+## Related APIs
 
-### After (Recommended)
-
-```dart
-// New unified method
-final products = await FlutterInappPurchase.instance.requestProducts(
-  skus: productIds,
-  type: PurchaseType.inapp,
-);
-
-final subscriptions = await FlutterInappPurchase.instance.requestProducts(
-  skus: subscriptionIds,
-  type: PurchaseType.subs,
-);
-```
-
-## Best Practices
-
-1. **Cache Results**: Store product information to reduce API calls
-2. **Handle Empty Results**: Always check if the returned list is empty
-3. **Error Recovery**: Implement retry logic for network failures
-4. **Type Safety**: Use the correct type parameter for your products
-5. **SKU Validation**: Ensure SKUs match exactly with store configuration
-
-## Related Methods
-
-- [`requestPurchase()`](./request-purchase) - Request a product purchase
-- [`requestSubscription()`](./request-subscription) - Request a subscription purchase
-- [`getAvailablePurchases()`](./get-available-purchases) - Get user's current purchases
+- [`requestPurchase()`](./request-purchase) – Start the purchase flow
+- [`getAvailablePurchases()`](./get-available-purchases) – Restore owned items
+- [`fetchProducts()` helper extensions](../../guides/products#fetchproducts-helper-extensions)
 
 ## See Also
 
-- [Products Guide](../../guides/products) - Detailed product implementation guide
-- [Subscriptions Guide](../../guides/subscriptions) - Subscription-specific implementation
-- [Troubleshooting](../../troubleshooting) - Common issues and solutions
+- [Products Guide](../../guides/products) – Designing product catalogs
+- [Subscriptions Guide](../../guides/subscriptions) – Subscription-specific flows
+- [Troubleshooting](../../troubleshooting) – Diagnostics for common failures

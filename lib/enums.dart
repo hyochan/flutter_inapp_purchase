@@ -181,14 +181,24 @@ enum PurchaseState { pending, purchased, unspecified }
 /// final purchases = await FlutterInappPurchase.instance.getAvailablePurchases();
 /// if (purchases.isEmpty) {
 ///   // User has no subscription - purchase new one WITHOUT replacement mode
-///   await FlutterInappPurchase.instance.requestSubscription('premium_monthly');
+///   await FlutterInappPurchase.instance.requestPurchaseWithBuilder(
+///     build: (builder) {
+///       builder.type = ProductQueryType.Subs;
+///       builder.android.skus = ['premium_monthly'];
+///     },
+///   );
 /// } else {
 ///   // User has subscription - can upgrade/downgrade WITH replacement mode
 ///   final existingSub = purchases.first;
-///   await FlutterInappPurchase.instance.requestSubscription(
-///     'premium_yearly',
-///     replacementModeAndroid: AndroidReplacementMode.withTimeProration.value,
-///     purchaseTokenAndroid: existingSub.purchaseToken,
+///   await FlutterInappPurchase.instance.requestPurchaseWithBuilder(
+///     build: (builder) {
+///       builder.type = ProductQueryType.Subs;
+///       builder.android
+///         ..skus = ['premium_yearly']
+///         ..purchaseTokenAndroid = existingSub.purchaseToken
+///         ..replacementModeAndroid =
+///             AndroidReplacementMode.withTimeProration.value;
+///     },
 ///   );
 /// }
 /// ```

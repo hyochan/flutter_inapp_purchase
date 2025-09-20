@@ -157,7 +157,13 @@ final productIds = [
 ];
 
 // Test with actual product IDs from App Store Connect
-final products = await FlutterInappPurchase.instance.getProducts(productIds);
+final result = await FlutterInappPurchase.instance.fetchProducts(
+  ProductRequest(
+    skus: productIds,
+    type: ProductQueryType.InApp,
+  ),
+);
+final products = result.inAppProducts();
 debugPrint('Found ${products.length} products');
 ```
 
@@ -196,9 +202,13 @@ Future<void> testAndroidConnection() async {
     debugPrint('Android connection result: $result');
 
     // Test product loading
-    final products = await FlutterInappPurchase.instance.getProducts([
-      'your_product_id_from_play_console'
-    ]);
+    final result = await FlutterInappPurchase.instance.fetchProducts(
+      ProductRequest(
+        skus: ['your_product_id_from_play_console'],
+        type: ProductQueryType.InApp,
+      ),
+    );
+    final products = result.inAppProducts();
     debugPrint('Loaded ${products.length} products');
   } catch (e) {
     debugPrint('Android connection failed: $e');
@@ -208,11 +218,11 @@ Future<void> testAndroidConnection() async {
 
 ## Common Issues
 
-### requestProducts() returns an empty array
+### fetchProducts() returns an empty array
 
 **Symptoms:**
 
-- `getProducts()` or `requestProducts()` returns empty list
+- `fetchProducts()` returns empty list
 - Products configured in store but not loading
 
 **Solutions:**
@@ -231,12 +241,18 @@ class ProductLoadingTroubleshooter {
 
     // 2. Try loading products with error handling
     try {
-      await FlutterInappPurchase.instance.requestProducts(
+      await FlutterInappPurchase.instance.fetchProducts(
         skus: productIds,
         type: PurchaseType.inapp,
       );
 
-      final products = await FlutterInappPurchase.instance.getProducts(productIds);
+      final result = await FlutterInappPurchase.instance.fetchProducts(
+        ProductRequest(
+          skus: productIds,
+          type: ProductQueryType.InApp,
+        ),
+      );
+      final products = result.inAppProducts();
 
       if (products.isEmpty) {
         debugPrint('❌ No products loaded');

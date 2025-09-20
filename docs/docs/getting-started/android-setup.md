@@ -74,16 +74,21 @@ class _AndroidStoreExampleState extends State<AndroidStoreExample> {
 
     // Get products if connected
     if (_isAvailable) {
-      await _getProducts();
-      await _getSubscriptions();
+      await _loadProducts();
+      await _loadSubscriptions();
     }
   }
 
-  Future<void> _getProducts() async {
+  Future<void> _loadProducts() async {
     try {
-      final products = await FlutterInappPurchase.instance.getProducts(
-        androidProductIds.where((id) => !id.contains('subscription')).toList(),
+      final result = await FlutterInappPurchase.instance.fetchProducts(
+        ProductRequest(
+          skus:
+              androidProductIds.where((id) => !id.contains('subscription')).toList(),
+          type: ProductQueryType.InApp,
+        ),
       );
+      final products = result.inAppProducts();
       setState(() {
         _products = products;
       });
@@ -92,11 +97,15 @@ class _AndroidStoreExampleState extends State<AndroidStoreExample> {
     }
   }
 
-  Future<void> _getSubscriptions() async {
+  Future<void> _loadSubscriptions() async {
     try {
-      final subscriptions = await FlutterInappPurchase.instance.getSubscriptions(
-        androidProductIds.where((id) => id.contains('subscription')).toList(),
+      final result = await FlutterInappPurchase.instance.fetchProducts(
+        ProductRequest(
+          skus: androidProductIds.where((id) => id.contains('subscription')).toList(),
+          type: ProductQueryType.Subs,
+        ),
       );
+      final subscriptions = result.subscriptionProducts();
       setState(() {
         _subscriptions = subscriptions;
       });
@@ -354,20 +363,28 @@ Future<void> _storePendingPurchase(PurchaseResult purchase) async {
 // Get detailed product information
 Future<void> getProductDetails() async {
   try {
-    final products = await FlutterInappPurchase.instance.getProducts(androidProductIds);
+    final result = await FlutterInappPurchase.instance.fetchProducts(
+      ProductRequest(
+        skus: androidProductIds,
+        type: ProductQueryType.InApp,
+      ),
+    );
+    final products = result.inAppProducts();
 
     for (var product in products) {
       print('Product ID: ${product.productId}');
       print('Title: ${product.title}');
       print('Description: ${product.description}');
-      print('Price: ${product.localizedPrice}');
+      print('Price: ${product.displayPrice}');
       print('Currency: ${product.currency}');
 
       // Android-specific details
-      if (product.productDetailsAndroid != null) {
-        final details = product.productDetailsAndroid!;
-        print('Product type: ${details.productType}');
-        print('One-time purchase offer: ${details.oneTimePurchaseOfferDetails}');
+      if (product is Product) {
+        final offer = product.oneTimePurchaseOfferDetailsAndroid;
+        print('Product type: ${product.type}');
+        if (offer != null) {
+          print('One-time offer price: ${offer.formattedPrice}');
+        }
       }
     }
   } catch (error) {

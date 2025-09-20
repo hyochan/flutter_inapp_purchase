@@ -73,13 +73,19 @@ class _IOSStoreExampleState extends State<IOSStoreExample> {
 
     // Get products if connected
     if (_isAvailable) {
-      await _getProducts();
+      await _loadProducts();
     }
   }
 
-  Future<void> _getProducts() async {
+  Future<void> _loadProducts() async {
     try {
-      final products = await FlutterInappPurchase.instance.getProducts(iosProductIds);
+      final result = await FlutterInappPurchase.instance.fetchProducts(
+        ProductRequest(
+          skus: iosProductIds,
+          type: ProductQueryType.InApp,
+        ),
+      );
+      final products = result.inAppProducts();
       setState(() {
         _products = products;
       });
@@ -343,7 +349,7 @@ void showErrorDialog(String message) {
 
 ### Products Not Loading
 
-**Problem**: `getProducts()` returns empty list or throws error
+**Problem**: `fetchProducts()` returns empty list or throws error
 **Solutions**:
 
 - Verify product IDs match exactly between code and App Store Connect

@@ -78,33 +78,33 @@ Future<void> finalize() async
 
 ## Product Loading
 
-### requestProducts()
+### fetchProducts()
 
 Loads product information from the store.
 
 ```dart
-Future<List<BaseProduct>> requestProducts({
-  required List<String> skus,
-  PurchaseType type = PurchaseType.inapp,
-}) async
+Future<FetchProductsResult> fetchProducts(ProductRequest params) async
 ```
 
 **Parameters**:
 
-- `skus` - List of product identifiers
-- `type` - Product type (optional, defaults to `PurchaseType.inapp`)
+- `params.skus` - List of product identifiers
+- `params.type` - Optional `ProductQueryType` (`InApp` or `Subs`)
 
-**Returns**: List of products with pricing and metadata
+**Returns**: `FetchProductsResult` union. Use the helper extensions from `package:flutter_inapp_purchase/flutter_inapp_purchase.dart` to convert into strongly typed lists.
 
 **Example**:
 
 ```dart
 try {
-  final products = await FlutterInappPurchase.instance.requestProducts(
-    skus: ['product_1', 'product_2', 'premium_upgrade'],
-    type: PurchaseType.inapp,
+  final result = await FlutterInappPurchase.instance.fetchProducts(
+    ProductRequest(
+      skus: ['product_1', 'premium_upgrade'],
+      type: ProductQueryType.InApp,
+    ),
   );
 
+  final products = result.inAppProducts();
   for (final product in products) {
     print('Product: ${product.id}');
     print('Price: ${product.displayPrice}');
@@ -117,69 +117,8 @@ try {
 
 **Platform Differences**:
 
-- **iOS**: Uses `SKProductsRequest` (StoreKit)
+- **iOS**: Uses StoreKit 2 product APIs
 - **Android**: Uses `querySkuDetails()` (Billing Client)
-
----
-
-### getProducts()
-
-Legacy method for loading in-app products.
-
-```dart
-Future<List<IapItem>> getProducts(List<String> skus) async
-```
-
-**Parameters**:
-
-- `skus` - List of product identifiers
-
-**Returns**: List of `IapItem` objects
-
-**Example**:
-
-```dart
-final products = await FlutterInappPurchase.instance.getProducts([
-  'coins_100',
-  'coins_500',
-  'remove_ads'
-]);
-
-for (final product in products) {
-  print('${product.title}: ${product.localizedPrice}');
-}
-```
-
----
-
-### getSubscriptions()
-
-Legacy method for loading subscription products.
-
-```dart
-Future<List<IapItem>> getSubscriptions(List<String> skus) async
-```
-
-**Parameters**:
-
-- `skus` - List of subscription identifiers
-
-**Returns**: List of subscription `IapItem` objects with subscription-specific metadata
-
-**Example**:
-
-```dart
-final subscriptions = await FlutterInappPurchase.instance.getSubscriptions([
-  'premium_monthly',
-  'premium_yearly'
-]);
-
-for (final sub in subscriptions) {
-  print('${sub.title}: ${sub.localizedPrice}');
-  print('Period: ${sub.subscriptionPeriodAndroid}'); // Android
-  print('Period: ${sub.subscriptionPeriodUnitIOS}'); // iOS
-}
-```
 
 ## Purchase Processing
 
@@ -594,17 +533,20 @@ class ProductManager {
   static DateTime? _lastFetch;
   static const _cacheTimeout = Duration(hours: 1);
 
-  static Future<List<BaseProduct>> getProducts(List<String> skus) async {
+  static Future<List<BaseProduct>> fetchInAppProducts(List<String> skus) async {
     if (_cachedProducts != null &&
         _lastFetch != null &&
         DateTime.now().difference(_lastFetch!) < _cacheTimeout) {
       return _cachedProducts!;
     }
 
-    _cachedProducts = await FlutterInappPurchase.instance.requestProducts(
-      skus: skus,
-      type: PurchaseType.inapp,
+    final result = await FlutterInappPurchase.instance.fetchProducts(
+      ProductRequest(
+        skus: skus,
+        type: ProductQueryType.InApp,
+      ),
     );
+    _cachedProducts = result.inAppProducts();
     _lastFetch = DateTime.now();
 
     return _cachedProducts!;

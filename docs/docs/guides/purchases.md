@@ -173,14 +173,15 @@ Future<void> _handlePurchase(String productId) async {
 ```dart
 Future<void> _loadProducts() async {
   try {
-    // Use requestProducts (new API)
-    await FlutterInappPurchase.instance.requestProducts(
-      skus: productIds,
-      type: PurchaseType.inapp,
+    final result = await FlutterInappPurchase.instance.fetchProducts(
+      ProductRequest(
+        skus: productIds,
+        type: ProductQueryType.InApp,
+      ),
     );
 
     // Get products from provider or state management
-    final products = await FlutterInappPurchase.instance.getProducts(productIds);
+    final products = result.inAppProducts();
     debugPrint('Loaded ${products.length} products');
   } catch (e) {
     debugPrint('Error loading products: $e');
@@ -188,20 +189,12 @@ Future<void> _loadProducts() async {
 }
 ```
 
-### Legacy API (Still Supported)
-
-```dart
-// Legacy method - still works but deprecated
-final products = await FlutterInappPurchase.instance.getProducts(productIds);
-final subscriptions = await FlutterInappPurchase.instance.getSubscriptions(subscriptionIds);
-```
-
 ## New Subscription API (v6.7.0+)
 
 ### Subscription Purchase
 
 ```dart
-Future<void> requestSubscription(String productId) async {
+Future<void> requestPurchase(String productId) async {
   await FlutterInappPurchase.instance.requestPurchase(
     request: RequestPurchase(
       ios: RequestPurchaseIOS(sku: productId),
@@ -216,7 +209,7 @@ Future<void> requestSubscription(String productId) async {
 
 ```dart
 // Legacy method - still supported
-await FlutterInappPurchase.instance.requestSubscription(productId);
+await FlutterInappPurchase.instance.requestPurchase(productId);
 ```
 
 ## Important Notes
@@ -270,22 +263,24 @@ Future<void> _handlePurchaseUpdate(Purchase purchasedItem) async {
 
 ```dart
 class ProductInfo {
-  static Future<List<IapItem>> loadProductInformation(List<String> productIds) async {
+  static Future<List<ProductCommon>> loadProductInformation(List<String> productIds) async {
     try {
       // Request products from store
-      await FlutterInappPurchase.instance.requestProducts(
-        skus: productIds,
-        type: PurchaseType.inapp,
+      final result = await FlutterInappPurchase.instance.fetchProducts(
+        ProductRequest(
+          skus: productIds,
+          type: ProductQueryType.InApp,
+        ),
       );
 
       // Get product details
-      final products = await FlutterInappPurchase.instance.getProducts(productIds);
+      final products = result.inAppProducts();
 
       for (final product in products) {
         debugPrint('Product: ${product.productId}');
         debugPrint('Title: ${product.title}');
         debugPrint('Description: ${product.description}');
-        debugPrint('Price: ${product.localizedPrice}');
+        debugPrint('Price: ${product.displayPrice}');
         debugPrint('Currency: ${product.currency}');
       }
 

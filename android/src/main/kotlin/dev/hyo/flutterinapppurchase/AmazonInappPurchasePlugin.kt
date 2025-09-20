@@ -69,20 +69,6 @@ class AmazonInappPurchasePlugin : MethodCallHandler {
             "showInAppMessages" -> {
                 safeResult!!.success("in app messages not supported for amazon")
             }
-            "getProducts",
-            "getSubscriptions" -> {
-                if (Log.isLoggable(TAG, Log.DEBUG)) Log.d(TAG, call.method)
-                val ids = call.argument<ArrayList<String>>("productIds")
-                    ?: call.argument<ArrayList<String>>("skus")
-                if (ids.isNullOrEmpty()) {
-                    safeResult!!.error(TAG, "E_INVALID_ARGS", "Missing or empty 'productIds'.")
-                    return
-                }
-                if (Log.isLoggable(TAG, Log.DEBUG)) {
-                    Log.d(TAG, "Requesting product data for ${ids.size} ids")
-                }
-                PurchasingService.getProductData(ids.toSet())
-            }
             "getAvailableItemsByType" -> {
                 val type = call.argument<String>("type")
                 if (Log.isLoggable(TAG, Log.DEBUG)) Log.d(TAG, "gaibt=$type")

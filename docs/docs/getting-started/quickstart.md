@@ -75,26 +75,30 @@ class _SimpleStoreState extends State<SimpleStore> {
     });
 
     // Load products and purchases
-    await _getProducts();
+    await _loadProducts();
     await _getPurchases();
   }
 
   // Get available products
-  Future<void> _getProducts() async {
+  Future<void> _loadProducts() async {
     try {
       // Get consumable products
-      List<ProductCommon> products =
-          await FlutterInappPurchase.instance.requestProducts(
-            skus: _productIds,
-            type: PurchaseType.inapp,
-          );
+      final inAppResult = await FlutterInappPurchase.instance.fetchProducts(
+        ProductRequest(
+          skus: _productIds,
+          type: ProductQueryType.InApp,
+        ),
+      );
+      final products = inAppResult.inAppProducts();
 
       // Get subscriptions
-      List<ProductCommon> subscriptions =
-          await FlutterInappPurchase.instance.requestProducts(
-            skus: _subscriptionIds,
-            type: PurchaseType.subs,
-          );
+      final subResult = await FlutterInappPurchase.instance.fetchProducts(
+        ProductRequest(
+          skus: _subscriptionIds,
+          type: ProductQueryType.Subs,
+        ),
+      );
+      final subscriptions = subResult.subscriptionProducts();
 
       setState(() {
         _products = products;
@@ -163,7 +167,7 @@ class _SimpleStoreState extends State<SimpleStore> {
   }
 
   // Request a subscription
-  Future<void> _requestSubscription(String productId) async {
+  Future<void> _requestPurchase(String productId) async {
     try {
       await FlutterInappPurchase.instance.requestPurchase(
         request: RequestPurchase(
@@ -256,7 +260,7 @@ class _SimpleStoreState extends State<SimpleStore> {
                 subtitle: Text(subscription.description ?? ''),
                 trailing: TextButton(
                   child: Text(subscription.localizedPrice ?? ''),
-                  onPressed: () => _requestSubscription(subscription.productId!),
+                  onPressed: () => _requestPurchase(subscription.productId!),
                 ),
                 leading: _isPurchased(subscription.productId!)
                     ? Icon(Icons.check_circle, color: Colors.green)
@@ -308,11 +312,11 @@ Fetch products using their IDs:
 ```dart
 // Regular products
 List<ProductCommon> products = await FlutterInappPurchase.instance
-    .requestProducts(skus: ['product_id_1', 'product_id_2'], type: PurchaseType.inapp);
+    .fetchProducts(skus: ['product_id_1', 'product_id_2'], type: PurchaseType.inapp);
 
 // Subscriptions
 List<ProductCommon> subscriptions = await FlutterInappPurchase.instance
-    .requestProducts(skus: ['subscription_id_1', 'subscription_id_2'], type: PurchaseType.subs);
+    .fetchProducts(skus: ['subscription_id_1', 'subscription_id_2'], type: PurchaseType.subs);
 ```
 
 ### 3. Purchase Flow

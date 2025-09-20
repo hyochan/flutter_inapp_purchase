@@ -26,7 +26,7 @@
 - iOS: Ensure `product.id` is always populated in `fetchProducts()` (fixes cases where id was empty on iOS). The parser now resolves id from the first non-empty of: `productId` → `id` → `sku` → `productIdentifier` (#550). In debug builds, logs which key was used.
   `withOpacity` in example UI.
 - refactor: remove overridden field in `PurchaseIOS` (use `super.expirationDateIOS`).
-- refactor: locally suppress legacy `jwsRepresentation` mapping and deprecated `requestSubscription` calls kept for backward compatibility.
+- refactor: locally suppress legacy `jwsRepresentation` mapping and deprecated `requestPurchase` calls kept for backward compatibility.
 
 ### Changed
 
@@ -59,7 +59,7 @@
 ### Deprecated
 
 - Methods (removal in 6.6.0):
-  - `requestProducts()` → use `fetchProducts()`
+  - `fetchProducts()` → use `fetchProducts()`
   - `purchaseAsync()` → use `requestPurchase()`
   - `requestPurchaseAuto()` → use `requestPurchase()`
   - `finalize()` → use `endConnection()`
@@ -202,11 +202,11 @@
 
 ### Breaking Changes
 
-- **Simplified requestProducts API**: The `requestProducts` method now accepts direct parameters instead of a wrapper object (Fixes [#527](https://github.com/hyochan/flutter_inapp_purchase/issues/527))
+- **Simplified fetchProducts API**: The `fetchProducts` method now accepts direct parameters instead of a wrapper object (Fixes [#527](https://github.com/hyochan/flutter_inapp_purchase/issues/527))
 
   ```dart
   // Before (6.3.x)
-  final products = await iap.requestProducts(
+  final products = await iap.fetchProducts(
     RequestProductsParams(
       skus: ['product_id'],
       type: PurchaseType.inapp,
@@ -214,7 +214,7 @@
   );
 
   // After (6.4.0)
-  final products = await iap.requestProducts(
+  final products = await iap.fetchProducts(
     skus: ['product_id'],
     type: PurchaseType.inapp,  // Optional, defaults to PurchaseType.inapp
   );
@@ -364,7 +364,7 @@ We understand there have been several breaking changes recently. We sincerely ap
 
 ### Bug Fixes
 
-- **Critical Fix**: Fixed iOS subscription loading issue where `requestProducts` with `PurchaseType.subs` returned empty arrays
+- **Critical Fix**: Fixed iOS subscription loading issue where `fetchProducts` with `PurchaseType.subs` returned empty arrays
   - iOS now correctly uses `getItems` method instead of unsupported `getSubscriptions`
   - Resolves GitHub issues where users couldn't load subscription products on iOS
 - Fixed type casting errors in purchase data conversion
@@ -660,7 +660,7 @@ Support for Amazon devices with Google Play sideloaded (#313)
 - Removed `deveoperId` and `accountId` when requesting `purchase` or `subscription` in `android`.
 - Added `obfuscatedAccountIdAndroid` and `obfuscatedProfileIdAndroid` when requesting `purchase` or `subscription` in `android`.
 - Removed `developerPayload` in `android`.
-- Added `purchaseTokenAndroid` as an optional parameter to `requestPurchase` and `requestSubscription`.
+- Added `purchaseTokenAndroid` as an optional parameter to `requestPurchase` and `requestPurchase`.
 
 ## 2.3.1
 
@@ -762,7 +762,7 @@ Republishing since sourcode seems not merged correctly.
 
 ## 2.0.0+4
 
-- Add `deveoperId` and `accountId` when requesting `purchase` or `subscription` in `android`. Find out more in `requestPurchase` and `requestSubscription`.
+- Add `deveoperId` and `accountId` when requesting `purchase` or `subscription` in `android`. Find out more in `requestPurchase` and `requestPurchase`.
 
 ## 2.0.0+3
 
@@ -797,7 +797,7 @@ Republishing since sourcode seems not merged correctly.
   - Update test codes.
 - Renamed methods
   - `buyProduct` to `requestPurchase`.
-  - `buySubscription` to `requestSubscription`.
+  - `buySubscription` to `requestPurchase`.
 
 [iOS]
 

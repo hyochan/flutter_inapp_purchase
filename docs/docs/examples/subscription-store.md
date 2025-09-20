@@ -83,7 +83,7 @@ class _SubscriptionStoreState extends State<SubscriptionStore> {
   Future<void> _loadSubscriptions() async {
     try {
       final subscriptions = await FlutterInappPurchase.instance
-          .requestProducts(skus: _subscriptionIds, type: 'subs');
+          .fetchProducts(skus: _subscriptionIds, type: 'subs');
 
       setState(() {
         _subscriptions = subscriptions;
@@ -139,9 +139,9 @@ class _SubscriptionStoreState extends State<SubscriptionStore> {
     _showError('Purchase failed');
   }
 
-  Future<void> _requestSubscription(String productId) async {
+  Future<void> _requestPurchase(String productId) async {
     try {
-      await FlutterInappPurchase.instance.requestSubscription(productId);
+      await FlutterInappPurchase.instance.requestPurchase(productId);
     } catch (e) {
       _showError('Failed to request subscription: $e');
     }
@@ -394,7 +394,7 @@ class _SubscriptionStoreState extends State<SubscriptionStore> {
               ),
             )
           : ElevatedButton(
-              onPressed: () => _requestSubscription(subscription.productId!),
+              onPressed: () => _requestPurchase(subscription.productId!),
               style: ElevatedButton.styleFrom(
                 backgroundColor: color,
                 foregroundColor: Colors.white,

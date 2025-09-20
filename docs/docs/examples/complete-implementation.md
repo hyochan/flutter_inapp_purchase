@@ -103,18 +103,30 @@ class IAPService {
     ));
   }
 
-  Future<List<IapItem>> getProducts(List<String> productIds) async {
+  Future<List<ProductCommon>> fetchInAppProducts(List<String> productIds) async {
     try {
-      return await FlutterInappPurchase.instance.requestProducts(skus: productIds, type: 'inapp');
+      final result = await FlutterInappPurchase.instance.fetchProducts(
+        ProductRequest(
+          skus: productIds,
+          type: ProductQueryType.InApp,
+        ),
+      );
+      return result.inAppProducts();
     } catch (e) {
       print('Failed to get products: $e');
       return [];
     }
   }
 
-  Future<List<IapItem>> getSubscriptions(List<String> subscriptionIds) async {
+  Future<List<ProductCommon>> fetchSubscriptionProducts(List<String> subscriptionIds) async {
     try {
-      return await FlutterInappPurchase.instance.requestProducts(skus: subscriptionIds, type: 'subs');
+      final result = await FlutterInappPurchase.instance.fetchProducts(
+        ProductRequest(
+          skus: subscriptionIds,
+          type: ProductQueryType.Subs,
+        ),
+      );
+      return result.subscriptionProducts();
     } catch (e) {
       print('Failed to get subscriptions: $e');
       return [];
@@ -125,8 +137,8 @@ class IAPService {
     await FlutterInappPurchase.instance.requestPurchase(productId);
   }
 
-  Future<void> requestSubscription(String productId) async {
-    await FlutterInappPurchase.instance.requestSubscription(productId);
+  Future<void> requestPurchase(String productId) async {
+    await FlutterInappPurchase.instance.requestPurchase(productId);
   }
 
   Future<List<Purchase>> getAvailablePurchases() async {
@@ -267,8 +279,8 @@ import '../services/iap_service.dart';
 class StoreProvider extends ChangeNotifier {
   final IAPService _iapService = IAPService();
 
-  List<IapItem> _products = [];
-  List<IapItem> _subscriptions = [];
+  List<ProductCommon> _products = [];
+  List<ProductCommon> _subscriptions = [];
   List<Purchase> _purchases = [];
 
   bool _isInitialized = false;
@@ -276,8 +288,8 @@ class StoreProvider extends ChangeNotifier {
   String? _error;
 
   // Getters
-  List<IapItem> get products => _products;
-  List<IapItem> get subscriptions => _subscriptions;
+  List<ProductCommon> get products => _products;
+  List<ProductCommon> get subscriptions => _subscriptions;
   List<Purchase> get purchases => _purchases;
   bool get isInitialized => _isInitialized;
   bool get isLoading => _isLoading;
@@ -312,8 +324,8 @@ class StoreProvider extends ChangeNotifier {
       final subscriptionIds = ProductConfig.getAllSubscriptionIds();
 
       final results = await Future.wait([
-        _iapService.getProducts(productIds),
-        _iapService.getSubscriptions(subscriptionIds),
+        _iapService.fetchInAppProducts(productIds),
+        _iapService.fetchSubscriptionProducts(subscriptionIds),
       ]);
 
       _products = results[0];
@@ -349,7 +361,7 @@ class StoreProvider extends ChangeNotifier {
   Future<void> purchaseSubscription(String productId) async {
     try {
       _error = null;
-      await _iapService.requestSubscription(productId);
+      await _iapService.requestPurchase(productId);
     } catch (e) {
       _error = e.toString();
       notifyListeners();
