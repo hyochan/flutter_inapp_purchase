@@ -992,6 +992,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
               'purchaseToken': purchaseToken,
             },
           );
+          final didAcknowledgeSucceed = _didAndroidAcknowledgeSucceed(result);
           parseAndLogAndroidResponse(
             result,
             successLog:
@@ -999,7 +1000,13 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
             failureLog:
                 '[FlutterInappPurchase] Android: Failed to parse acknowledge response',
           );
-          _acknowledgedAndroidPurchaseTokens[purchaseToken] = true;
+          if (didAcknowledgeSucceed) {
+            _acknowledgedAndroidPurchaseTokens[purchaseToken] = true;
+          } else if (kDebugMode) {
+            debugPrint(
+              '[FlutterInappPurchase] Android: Acknowledge response indicated failure; will retry later ($maskedToken)',
+            );
+          }
           return;
         }
 
@@ -1240,6 +1247,50 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           );
         }
       };
+
+  bool _didAndroidAcknowledgeSucceed(dynamic response) {
+    if (response == null) {
+      return false;
+    }
+
+    if (response is bool) {
+      return response;
+    }
+
+    Map<String, dynamic>? parsed;
+
+    if (response is String) {
+      try {
+        final dynamic decoded = jsonDecode(response);
+        if (decoded is Map<String, dynamic>) {
+          parsed = decoded;
+        } else {
+          return false;
+        }
+      } catch (_) {
+        return false;
+      }
+    } else if (response is Map<dynamic, dynamic>) {
+      parsed = Map<String, dynamic>.from(response);
+    }
+
+    if (parsed != null) {
+      final dynamic code = parsed['responseCode'];
+      if (code is num && code == 0) {
+        return true;
+      }
+      if (code is String && int.tryParse(code) == 0) {
+        return true;
+      }
+
+      final bool? success = parsed['success'] as bool?;
+      if (success != null) {
+        return success;
+      }
+    }
+
+    return false;
+  }
 
   // MARK: - StoreKit 2 specific methods
 
