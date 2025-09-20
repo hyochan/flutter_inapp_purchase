@@ -163,7 +163,7 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
     });
 
     try {
-      final products = await _iap.requestProducts(
+      final products = await _iap.fetchProducts(
         skus: _productIds,
         type: PurchaseType.inapp,
       );
@@ -694,7 +694,7 @@ await _iap.initConnection();
 ### 2. Product Loading
 
 ```dart
-final products = await _iap.requestProducts(
+final products = await _iap.fetchProducts(
   skus: _productIds,
   type: PurchaseType.inapp,
 );

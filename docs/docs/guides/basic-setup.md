@@ -200,13 +200,19 @@ class IAPService {
   }
 
   /// Get available products
-  Future<List<IapItem>> getProducts() async {
+  Future<List<ProductCommon>> fetchInAppProducts() async {
     if (!_isInitialized) {
       throw Exception('IAP Service not initialized');
     }
 
     try {
-      final products = await FlutterInappPurchase.instance.getProducts(_productIds);
+      final result = await FlutterInappPurchase.instance.fetchProducts(
+        ProductRequest(
+          skus: _productIds,
+          type: ProductQueryType.InApp,
+        ),
+      );
+      final products = result.inAppProducts();
       print('📦 Found ${products.length} products');
       return products;
     } catch (e) {
@@ -216,13 +222,19 @@ class IAPService {
   }
 
   /// Get available subscriptions
-  Future<List<IapItem>> getSubscriptions() async {
+  Future<List<ProductCommon>> fetchSubscriptions() async {
     if (!_isInitialized) {
       throw Exception('IAP Service not initialized');
     }
 
     try {
-      final subscriptions = await FlutterInappPurchase.instance.getSubscriptions(_subscriptionIds);
+      final result = await FlutterInappPurchase.instance.fetchProducts(
+        ProductRequest(
+          skus: _subscriptionIds,
+          type: ProductQueryType.Subs,
+        ),
+      );
+      final subscriptions = result.subscriptionProducts();
       print('📑 Found ${subscriptions.length} subscriptions');
       return subscriptions;
     } catch (e) {
@@ -357,8 +369,8 @@ class _StoreScreenState extends State<StoreScreen> {
       }
 
       // Load products and subscriptions
-      final products = await _iapService.getProducts();
-      final subscriptions = await _iapService.getSubscriptions();
+      final products = await _iapService.fetchInAppProducts();
+      final subscriptions = await _iapService.fetchSubscriptions();
 
       setState(() {
         _products = products;

@@ -94,10 +94,10 @@ Ends the connection to the platform's billing service. Should be called when the
 
 ### Product Management
 
-#### requestProducts()
+#### fetchProducts()
 
 ```dart
-Future<List<ProductCommon>> requestProducts({
+Future<List<ProductCommon>> fetchProducts({
   required List<String> skus,
   PurchaseType type = PurchaseType.inapp,
 })
@@ -117,16 +117,16 @@ Fetches product information from the store.
 **Example:**
 
 ```dart
-final products = await FlutterInappPurchase.instance.requestProducts(
+final products = await FlutterInappPurchase.instance.fetchProducts(
   skus: ['com.example.premium', 'com.example.pro'],
   type: PurchaseType.inapp,
 );
 ```
 
-#### requestProducts()
+#### fetchProducts()
 
 ```dart
-Future<List<IapItem>> requestProducts({
+Future<List<IapItem>> fetchProducts({
   required List<String> skus,
   PurchaseType type = PurchaseType.inapp,
 })
@@ -136,22 +136,6 @@ Unified method to retrieve products or subscriptions.
 
 - `type: 'inapp'` - for regular products (consumables and non-consumables)
 - `type: 'subs'` - for subscription products
-
-#### getProducts() [Deprecated]
-
-```dart
-Future<List<IapItem>> getProducts(List<String> productIds)
-```
-
-Legacy method to retrieve non-subscription products. Use `requestProducts()` instead.
-
-#### getSubscriptions() [Deprecated]
-
-```dart
-Future<List<IapItem>> getSubscriptions(List<String> productIds)
-```
-
-Legacy method to retrieve subscription products. Use `requestProducts()` instead.
 
 ### Purchase Management
 
@@ -356,6 +340,6 @@ class StoreService {
 This class maintains backward compatibility with the original API while also providing expo-iap compatible methods. When migrating from expo-iap, you can use the new methods that match the expo-iap interface:
 
 - `initConnection()` instead of `initialize()`
-- `requestProducts()` with type parameter instead of separate `getProducts()`/`getSubscriptions()` methods
+- `fetchProducts()` with `ProductQueryType` to load products and subscriptions
 - `purchaseUpdatedListener` instead of `purchaseUpdated`
 - `purchaseErrorListener` instead of `purchaseError`

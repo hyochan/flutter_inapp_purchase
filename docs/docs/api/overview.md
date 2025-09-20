@@ -21,7 +21,7 @@ class FlutterInappPurchase {
   Future<String?> endConnection();
 
   // Product management
-  Future<List<IapItem>> requestProducts({
+  Future<List<IapItem>> fetchProducts({
     required List<String> skus,
     PurchaseType type = PurchaseType.inapp,
   });
@@ -124,10 +124,10 @@ if (result == 'Billing is unavailable') {
 
 ### Product Management
 
-#### requestProducts()
+#### fetchProducts()
 
 ```dart
-Future<List<IapItem>> requestProducts({
+Future<List<IapItem>> fetchProducts({
   required List<String> skus,
   PurchaseType type = PurchaseType.inapp,
 }) async
@@ -147,11 +147,11 @@ Fetches product or subscription information for the given SKUs.
 ```dart
 // Get regular products (consumables and non-consumables)
 List<IapItem> products = await FlutterInappPurchase.instance
-    .requestProducts(skus: ['coin_pack_100', 'remove_ads'], type: PurchaseType.inapp);
+    .fetchProducts(skus: ['coin_pack_100', 'remove_ads'], type: PurchaseType.inapp);
 
 // Get subscriptions
 List<IapItem> subscriptions = await FlutterInappPurchase.instance
-    .requestProducts(skus: ['premium_monthly', 'premium_yearly'], type: PurchaseType.subs);
+    .fetchProducts(skus: ['premium_monthly', 'premium_yearly'], type: PurchaseType.subs);
 ```
 
 ### Purchase Management
@@ -299,7 +299,7 @@ Future<Map<String, dynamic>?> validateReceiptIos({
 Future<String?> getPromotedProduct() async
 
 // Request product info
-Future<List<IapItem>> getProductsIOS(List<String> skus) async
+Future<FetchProductsResult> fetchProductsIOS(ProductRequest request)
 ```
 
 ### Android Specific
@@ -343,7 +343,7 @@ await FlutterInappPurchase.instance.initialize();
 FlutterInappPurchase.instance.purchaseUpdatedListener.listen(handlePurchase);
 
 // 3. Load products
-var products = await FlutterInappPurchase.instance.requestProducts(
+var products = await FlutterInappPurchase.instance.fetchProducts(
   skus: productIds,
   type: PurchaseType.inapp
 );
@@ -367,7 +367,7 @@ void handlePurchase(Purchase purchase) {
 
 ```dart
 // 1. Load subscriptions
-var subs = await FlutterInappPurchase.instance.requestProducts(
+var subs = await FlutterInappPurchase.instance.fetchProducts(
   skus: subIds,
   type: PurchaseType.subs
 );

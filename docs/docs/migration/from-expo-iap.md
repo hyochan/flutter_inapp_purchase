@@ -54,7 +54,7 @@ class MyStore extends StatefulWidget {
 }
 
 class _MyStoreState extends State<MyStore> {
-  List<IapItem> products = [];
+  List<ProductCommon> products = [];
 
   @override
   void initState() {
@@ -63,8 +63,14 @@ class _MyStoreState extends State<MyStore> {
   }
 
   Future<void> _initializeStore() async {
-    await FlutterInappPurchase.instance.initialize();
-    products = await FlutterInappPurchase.instance.getProducts(productIds);
+    await FlutterInappPurchase.instance.initConnection();
+    final result = await FlutterInappPurchase.instance.fetchProducts(
+      ProductRequest(
+        skus: productIds,
+        type: ProductQueryType.InApp,
+      ),
+    );
+    products = result.inAppProducts();
     setState(() {});
   }
 }
@@ -92,12 +98,22 @@ const subscriptions = await getProducts({
 
 ```dart
 // Fetch products
-final products = await FlutterInappPurchase.instance
-    .requestProducts(skus: ['product1', 'product2'], type: 'inapp');
+final inAppResult = await FlutterInappPurchase.instance.fetchProducts(
+  ProductRequest(
+    skus: ['product1', 'product2'],
+    type: ProductQueryType.InApp,
+  ),
+);
+final products = inAppResult.inAppProducts();
 
 // Fetch subscriptions
-final subscriptions = await FlutterInappPurchase.instance
-    .requestProducts(skus: ['sub1', 'sub2'], type: 'subs');
+final subResult = await FlutterInappPurchase.instance.fetchProducts(
+  ProductRequest(
+    skus: ['sub1', 'sub2'],
+    type: ProductQueryType.Subs,
+  ),
+);
+final subscriptions = subResult.subscriptionProducts();
 ```
 
 ### Purchase Flow
@@ -318,7 +334,7 @@ class Store extends StatefulWidget {
 
 class _StoreState extends State<Store> {
   StreamSubscription? _purchaseSubscription;
-  List<IapItem> products = [];
+  List<ProductCommon> products = [];
   bool connected = false;
 
   final List<String> productIds = ['coins_100', 'remove_ads'];
@@ -337,23 +353,28 @@ class _StoreState extends State<Store> {
 
   Future<void> _initializeStore() async {
     try {
-      await FlutterInappPurchase.instance.initialize();
+      await FlutterInappPurchase.instance.initConnection();
       connected = true;
 
       _purchaseSubscription = FlutterInappPurchase
           .purchaseUpdated.listen(_handlePurchase);
 
-      await _getProducts();
+      await _loadProducts();
     } catch (e) {
       print('Store initialization failed: $e');
     }
   }
 
-  Future<void> _getProducts() async {
+  Future<void> _loadProducts() async {
     if (connected) {
       try {
-        final items = await FlutterInappPurchase.instance
-            .requestProducts(skus: productIds, type: 'inapp');
+        final result = await FlutterInappPurchase.instance.fetchProducts(
+          ProductRequest(
+            skus: productIds,
+            type: ProductQueryType.InApp,
+          ),
+        );
+        final items = result.inAppProducts();
         setState(() {
           products = items;
         });

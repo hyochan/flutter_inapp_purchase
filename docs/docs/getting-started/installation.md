@@ -236,7 +236,13 @@ Future<void> _testConnection() async {
     print('Connection result: $result');
 
     // Test product fetching
-    final products = await iap.getProducts(['test_product_id']);
+    final result = await iap.fetchProducts(
+      ProductRequest(
+        skus: ['test_product_id'],
+        type: ProductQueryType.InApp,
+      ),
+    );
+    final products = result.inAppProducts();
     print('Found ${products.length} products');
 
   } catch (e) {

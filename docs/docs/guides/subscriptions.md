@@ -59,7 +59,7 @@ class SubscriptionManager {
 
   Future<void> loadSubscriptions() async {
     try {
-      _subscriptions = await _iap.requestProducts(
+      _subscriptions = await _iap.fetchProducts(
         skus: _subscriptionIds,
         type: PurchaseType.subs,
       );

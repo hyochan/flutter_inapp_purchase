@@ -51,7 +51,7 @@ await FlutterInappPurchase.instance.requestPurchase(
 
 Key improvements:
 
-- Direct parameters for `requestProducts()` (no `RequestProductsParams`)
+- Direct parameters for `fetchProducts()` (no `RequestProductsParams`)
 - Platform-specific request objects for `requestPurchase()`
 - `PurchaseOptions` for controlling `getAvailablePurchases()` behavior
 - Enhanced type safety and error handling
@@ -87,7 +87,7 @@ FlutterInappPurchase.purchaseError.listen((error) {
 });
 
 // 4. Load products
-final products = await FlutterInappPurchase.instance.requestProducts(
+final products = await FlutterInappPurchase.instance.fetchProducts(
   skus: ['product_id_1', 'product_id_2'],
   type: PurchaseType.inapp,
 );
@@ -491,7 +491,7 @@ await _iap.requestPurchase(
 
 // 2. Update subscription requests
 // Old (v5.x)
-await _iap.requestSubscription('subscription_id');
+await _iap.requestPurchase('subscription_id');
 
 // New (v6.7.0)
 await _iap.requestPurchase(
@@ -644,12 +644,20 @@ class ProductLoadingDiagnostics {
 
     // 4. Try loading products
     try {
-      final products = await FlutterInappPurchase.instance.getProducts(testIds);
+      final result = await FlutterInappPurchase.instance.fetchProducts(
+        ProductRequest(
+          skus: testIds,
+          type: Platform.isIOS
+              ? ProductQueryType.InApp
+              : ProductQueryType.InApp,
+        ),
+      );
+      final products = result.inAppProducts();
       debugPrint('✓ Loaded ${products.length} products');
 
       for (final product in products) {
-        debugPrint('Product: ${product.productId} - ${product.title}');
-        debugPrint('Price: ${product.localizedPrice}');
+        debugPrint('Product: ${product.id} - ${product.title}');
+        debugPrint('Price: ${product.displayPrice}');
       }
     } catch (e) {
       debugPrint('✗ Product loading failed: $e');
@@ -728,7 +736,12 @@ class PerformanceOptimization {
   static Future<void> preloadProducts() async {
     // Load products early in app lifecycle
     final productIds = ['product1', 'product2', 'product3'];
-    await ProductCache.getProducts(productIds);
+    await FlutterInappPurchase.instance.fetchProducts(
+      ProductRequest(
+        skus: productIds,
+        type: ProductQueryType.InApp,
+      ),
+    );
   }
 
   // 2. Prepare purchase flow

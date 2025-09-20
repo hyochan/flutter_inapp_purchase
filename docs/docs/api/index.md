@@ -17,7 +17,7 @@ Complete reference for flutter_inapp_purchase v6.7.0 - A unified API for impleme
 Essential methods for initializing connections, loading products, and processing purchases.
 
 - **Connection Management**: `initConnection()`, `finalize()`
-- **Product Loading**: `requestProducts()`
+- **Product Loading**: `fetchProducts()`
 - **Purchase Processing**: `requestPurchase()`
 - **Purchase History**: `getAvailablePurchases([PurchaseOptions?])`
 - **Transaction Management**: `finishTransaction()`, `consumePurchase()`

@@ -2,26 +2,21 @@
 
 ## API Changes
 
-### requestProducts API (Updated)
-The `requestProducts` method now uses direct parameters instead of a parameter object:
+### fetchProducts API (Updated)
+The `fetchProducts` method now uses the OpenIAP `ProductRequest` input and returns a `FetchProductsResult` union:
 
 ```dart
-// Old API (removed):
-final products = await iap.requestProducts(
-  RequestProductsParams(
+final result = await iap.fetchProducts(
+  ProductRequest(
     skus: ['product_id'],
-    type: PurchaseType.inapp,
+    type: ProductQueryType.InApp, // Optional, defaults to InApp
   ),
 );
 
-// New API:
-final products = await iap.requestProducts(
-  skus: ['product_id'],
-  type: PurchaseType.inapp,  // Optional, defaults to PurchaseType.inapp
-);
+final products = result.inAppProducts();
 ```
 
-The `RequestProductsParams` class has been removed to simplify the API.
+Helper extensions (`inAppProducts()`, `subscriptionProducts()`, `allProducts()`) are available from `flutter_inapp_purchase.dart` to safely unwrap the union into typed lists.
 
 ### getAvailablePurchases API (v6.4.6+)
 The `getAvailablePurchases` method now supports `PurchaseOptions` for OpenIAP compliance:
@@ -100,7 +95,7 @@ Before committing any changes, run these commands in order and ensure ALL pass:
 
 ### API Method Naming
 
-- Functions that depend on event results should use `request` prefix (e.g., `requestPurchase`, `requestSubscription`)
+- Functions that depend on event results should use `request` prefix (e.g., `requestPurchase`, `requestPurchaseWithBuilder`)
 - Follow OpenIAP terminology: <https://www.openiap.dev/docs/apis#terminology>
 - Do not use generic prefixes like `get`, `find` - refer to the official terminology
 

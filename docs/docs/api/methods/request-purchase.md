@@ -275,9 +275,9 @@ Future<void> safePurchase(String productId) async {
 
 ## Related Methods
 
-- [`getProducts()`](./get-products.md) - Fetch products before purchasing
+- [`fetchProducts()`](./get-products.md) - Fetch products before purchasing
 - [`finishTransaction()`](./finish-transaction.md) - Complete the purchase
-- [`requestSubscription()`](./request-subscription.md) - Legacy subscription method
+- [`requestPurchase()`](./request-subscription.md) - Legacy subscription method
 
 ## Platform Notes
 

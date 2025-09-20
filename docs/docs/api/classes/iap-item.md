@@ -175,16 +175,19 @@ Returns a string representation of the item with all properties.
 
 ```dart
 // Fetching products
-List<IapItem> products = await FlutterInappPurchase.instance.getProducts([
-  'com.example.premium',
-  'com.example.pro',
-]);
+final result = await FlutterInappPurchase.instance.fetchProducts(
+  ProductRequest(
+    skus: ['com.example.premium', 'com.example.pro'],
+    type: ProductQueryType.InApp,
+  ),
+);
+final products = result.inAppProducts();
 
 // Accessing product information
-for (var product in products) {
-  print('Product ID: ${product.productId}');
+for (final product in products) {
+  print('Product ID: ${product.id}');
   print('Title: ${product.title}');
-  print('Price: ${product.localizedPrice}');
+  print('Price: ${product.displayPrice}');
   print('Description: ${product.description}');
 
   // Check iOS-specific information

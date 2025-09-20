@@ -71,59 +71,32 @@ void dispose() {
 
 ## 🛍️ Product Management
 
-### getProducts()
+### fetchProducts()
 
-Retrieve a list of consumable and non-consumable products.
+Load products or subscriptions using the OpenIAP request schema.
 
 ```dart
-Future<List<IapItem>> getProducts(List<String> productIds)
+Future<FetchProductsResult> fetchProducts(ProductRequest request)
 ```
-
-**Parameters:**
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `productIds` | `List<String>` | List of product IDs to fetch |
-
-**Returns:** `Future<List<IapItem>>` - List of available products
 
 **Example:**
 
 ```dart
-final products = await FlutterInappPurchase.instance.getProducts([
-  'premium_upgrade',
-  'remove_ads',
-  'extra_lives'
-]);
+final inAppResult = await FlutterInappPurchase.instance.fetchProducts(
+  ProductRequest(
+    skus: ['premium_upgrade', 'extra_lives'],
+    type: ProductQueryType.InApp,
+  ),
+);
+final products = inAppResult.inAppProducts();
 
-for (var product in products) {
-  print('Product: ${product.title} - ${product.localizedPrice}');
-}
-```
-
----
-
-### getSubscriptions()
-
-Retrieve a list of subscription products.
-
-```dart
-Future<List<IapItem>> getSubscriptions(List<String> subscriptionIds)
-```
-
-**Parameters:**
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `subscriptionIds` | `List<String>` | List of subscription IDs to fetch |
-
-**Returns:** `Future<List<IapItem>>` - List of available subscriptions
-
-**Example:**
-
-```dart
-final subscriptions = await FlutterInappPurchase.instance.getSubscriptions([
-  'monthly_premium',
-  'yearly_premium'
-]);
+final subsResult = await FlutterInappPurchase.instance.fetchProducts(
+  ProductRequest(
+    skus: ['monthly_premium'],
+    type: ProductQueryType.Subs,
+  ),
+);
+final subscriptions = subsResult.subscriptionProducts();
 ```
 
 ## 💳 Purchase Management
