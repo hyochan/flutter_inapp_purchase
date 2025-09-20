@@ -205,7 +205,16 @@ gentype.Purchase convertFromLegacyPurchase(
   final productId = itemJson['productId']?.toString() ?? '';
   final transactionId =
       itemJson['transactionId']?.toString() ?? itemJson['id']?.toString();
-  final quantity = (itemJson['quantity'] as num?)?.toInt() ?? 1;
+  final dynamic quantityValue = itemJson['quantity'];
+  int quantity = 1;
+  if (quantityValue is num) {
+    quantity = quantityValue.toInt();
+  } else if (quantityValue is String) {
+    final parsedQuantity = int.tryParse(quantityValue.trim());
+    if (parsedQuantity != null) {
+      quantity = parsedQuantity;
+    }
+  }
 
   final String? purchaseId = (transactionId?.isNotEmpty ?? false)
       ? transactionId
@@ -230,9 +239,9 @@ gentype.Purchase convertFromLegacyPurchase(
   }
 
   if (platformIsAndroid) {
-    final stateValue = itemJson['purchaseStateAndroid'] as int? ??
-        itemJson['purchaseState'] as int? ??
-        1;
+    final stateValue = _coerceAndroidPurchaseState(
+      itemJson['purchaseStateAndroid'] ?? itemJson['purchaseState'],
+    );
     final purchaseState = _mapAndroidPurchaseState(stateValue).toJson();
 
     final map = <String, dynamic>{
@@ -673,6 +682,38 @@ gentype.PurchaseState _parsePurchaseStateIOS(dynamic value) {
     }
   }
   return gentype.PurchaseState.Unknown;
+}
+
+int _coerceAndroidPurchaseState(dynamic value) {
+  if (value == null) {
+    return AndroidPurchaseState.Purchased.value;
+  }
+  if (value is int) {
+    return value;
+  }
+  if (value is num) {
+    return value.toInt();
+  }
+  if (value is String) {
+    final trimmed = value.trim();
+    final parsed = int.tryParse(trimmed);
+    if (parsed != null) {
+      return parsed;
+    }
+    switch (trimmed.toLowerCase()) {
+      case 'purchased':
+      case 'purchase_state_purchased':
+        return AndroidPurchaseState.Purchased.value;
+      case 'pending':
+      case 'purchase_state_pending':
+        return AndroidPurchaseState.Pending.value;
+      case 'unspecified':
+      case 'unknown':
+      case 'purchase_state_unspecified':
+        return AndroidPurchaseState.Unknown.value;
+    }
+  }
+  return AndroidPurchaseState.Purchased.value;
 }
 
 gentype.PurchaseState _mapAndroidPurchaseState(int stateValue) {
