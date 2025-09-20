@@ -31,15 +31,19 @@ void main() {
               return <String, dynamic>{'countryCode': 'US'};
             case 'getPromotedProductIOS':
               return <String, dynamic>{
+                'currency': 'USD',
+                'description': 'Desc',
+                'displayNameIOS': 'Prod 1',
+                'displayPrice': '\$0.99',
                 'id': 'com.example.prod1',
-                'productIdentifier': 'com.example.prod1',
-                'localizedTitle': 'Prod 1',
-                'localizedDescription': 'Desc',
+                'isFamilyShareableIOS': false,
+                'jsonRepresentationIOS': '{}',
+                'platform': 'IOS',
                 'price': 0.99,
-                'priceLocale': <String, dynamic>{
-                  'currencyCode': 'USD',
-                  'currencySymbol': '\$',
-                },
+                'subscriptionInfoIOS': null,
+                'title': 'Prod 1',
+                'type': 'IN_APP',
+                'typeIOS': 'CONSUMABLE',
               };
             case 'getPendingTransactionsIOS':
               // Return a list of purchases (as native would)
@@ -84,10 +88,9 @@ void main() {
     });
 
     test('getPromotedProduct returns structured map', () async {
-      final data = await iap.getPromotedProductIOS();
-      expect(data, isA<Map<String, dynamic>>());
-      expect(data!['id'], 'com.example.prod1');
-      expect(data['productIdentifier'], 'com.example.prod1');
+      final product = await iap.getPromotedProductIOS();
+      expect(product, isA<ProductIOS>());
+      expect(product!.id, 'com.example.prod1');
       expect(calls.last.method, 'getPromotedProductIOS');
     });
 

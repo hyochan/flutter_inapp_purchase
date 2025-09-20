@@ -1,7 +1,21 @@
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 
 extension PurchaseHelpers on Purchase {
-  String? get transactionIdFor => id.isEmpty ? null : id;
+  String? get transactionIdFor {
+    if (this is PurchaseIOS) {
+      final value = (this as PurchaseIOS).transactionId;
+      if (value.isNotEmpty) {
+        return value;
+      }
+    } else if (this is PurchaseAndroid) {
+      final value = (this as PurchaseAndroid).transactionId;
+      if (value != null && value.isNotEmpty) {
+        return value;
+      }
+    }
+
+    return id.isEmpty ? null : id;
+  }
 
   int? get androidPurchaseStateValue {
     if (this is! PurchaseAndroid) {

@@ -30,7 +30,7 @@ The generated signatures (`QueryFetchProductsHandler`, `MutationFinishTransactio
 
 ### Keep API surfaces self-contained
 
-- `lib/flutter_inapp_purchase.dart` should expose only the generated API handlers. Avoid introducing private helper methods inside that file; derive request payloads inline or delegate to the platform modules in `lib/modules/` when logic needs to be shared.
+- `lib/flutter_inapp_purchase.dart` should expose only the generated API handlers. Avoid introducing private helper methods inside that file; derive request payloads inline or delegate to shared helpers in `lib/helpers.dart` when logic needs to be shared.
 - When a reusable helper becomes unavoidable, place it in `lib/utils.dart` (or the relevant platform module) so the primary API surface stays aligned with the generated schema.
 
 ### Avoid manual shapes
@@ -48,3 +48,7 @@ Future<void> finishTransaction(Map<String, dynamic> args) async {
 ```
 
 Hand-written maps or ad-hoc DTOs drift from the generated schema and are harder to maintain. Import `lib/types.dart` and wire the provided handler typedefs instead of recreating argument or result types.
+
+### Keep throwaway helpers local
+
+- If a helper is only used inside a single method (less than three call sites), prefer declaring it inside that method instead of adding private class-level or top-level functions. This keeps utility clutter down and makes intent clearer when reading the code.

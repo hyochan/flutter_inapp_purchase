@@ -55,6 +55,7 @@ void main() {
         purchaseState: PurchaseState.Purchased,
         quantity: 1,
         transactionDate: 1700000300,
+        transactionId: 'txn_ios',
         environmentIOS: 'Production',
         subscriptionGroupIdIOS: 'group_a',
       );

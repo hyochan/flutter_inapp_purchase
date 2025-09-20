@@ -25,17 +25,29 @@ void main() {
           case 'isEligibleForIntroOffer':
             return true;
           case 'getSubscriptionStatus':
-            return <String, dynamic>{'status': 'active'};
-          case 'getSubscriptionGroup':
-            return 'group1';
-          case 'getAppStoreCountry':
-            return 'US';
+            return <Map<String, dynamic>>[
+              <String, dynamic>{
+                'state': 'active',
+              },
+            ];
           case 'presentCodeRedemptionSheetIOS':
             return null;
           case 'clearTransactionIOS':
             return null;
           case 'getPromotedProductIOS':
-            return 'sku.promoted';
+            return <String, dynamic>{
+              'currency': 'USD',
+              'description': 'Promoted product',
+              'displayNameIOS': 'Promoted',
+              'displayPrice': '\$0.99',
+              'id': 'sku.promoted',
+              'isFamilyShareableIOS': false,
+              'jsonRepresentationIOS': '{}',
+              'platform': 'IOS',
+              'title': 'Promoted product',
+              'type': 'IN_APP',
+              'typeIOS': 'CONSUMABLE',
+            };
           case 'getAvailableItems':
             // Return JSON string to exercise parsing path
             return jsonEncode([
@@ -46,8 +58,18 @@ void main() {
             ]);
           case 'getAppTransaction':
             return <String, dynamic>{
-              'appAppleId': '123',
+              'appId': 123,
+              'appTransactionId': 'tx-1',
+              'appVersion': '1.0.0',
+              'appVersionId': 1,
               'bundleId': 'com.example',
+              'deviceVerification': 'sig',
+              'deviceVerificationNonce': 'nonce',
+              'environment': 'Sandbox',
+              'originalAppVersion': '1.0.0',
+              'originalPlatform': 'IOS',
+              'originalPurchaseDate': 1700000000000,
+              'signedDate': 1700000000000,
             };
           case 'getPurchaseHistoriesIOS':
             return jsonEncode([
@@ -77,12 +99,9 @@ void main() {
 
     test('eligibility and subscription helpers', () async {
       expect(await iapIOS.isEligibleForIntroOfferIOS('sku'), true);
-      expect(
-        await iapIOS.getSubscriptionStatusIOS('sku'),
-        containsPair('status', 'active'),
-      );
-      expect(await iapIOS.getSubscriptionGroupIOS('sku'), 'group1');
-      expect(await iapIOS.getAppStoreCountryIOS(), 'US');
+      final subscriptionStatuses = await iapIOS.subscriptionStatusIOS('sku');
+      expect(subscriptionStatuses, hasLength(1));
+      expect(subscriptionStatuses.first.state, 'active');
     });
 
     test('presentCodeRedemptionSheetIOS only on iOS', () async {
@@ -99,7 +118,7 @@ void main() {
     test('promoted product & available items parsing', () async {
       final promoted = await iapIOS.getPromotedProductIOS();
       expect(promoted, isNotNull);
-      expect(promoted!['productIdentifier'], 'sku.promoted');
+      expect(promoted!.id, 'sku.promoted');
 
       final items = await iapIOS.getAvailableItemsIOS();
       expect(items, isNotNull);
@@ -107,11 +126,13 @@ void main() {
     });
 
     test('app transaction (typed) and histories', () async {
-      final txMap = await iapIOS.getAppTransactionIOS();
-      expect(txMap, isNotNull);
-      // Typed parsing expects full iOS 18.4+ schema; with partial map it returns null
+      final tx = await iapIOS.getAppTransactionIOS();
+      expect(tx, isNotNull);
+      expect(tx!.bundleId, 'com.example');
+
       final typed = await iapIOS.getAppTransactionTypedIOS();
-      expect(typed, isNull);
+      expect(typed, isNotNull);
+      expect(typed!.appTransactionId, 'tx-1');
 
       final histories = await iapIOS.getPurchaseHistoriesIOS();
       expect(histories.length, 1);

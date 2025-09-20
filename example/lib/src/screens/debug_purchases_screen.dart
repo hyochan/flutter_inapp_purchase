@@ -5,6 +5,8 @@ import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 import 'package:flutter_inapp_purchase/extensions/purchase_helpers.dart';
 import 'package:flutter_inapp_purchase/types.dart' as gentype;
 
+import '../widgets/purchase_detail_view.dart';
+
 class DebugPurchasesScreen extends StatefulWidget {
   const DebugPurchasesScreen({Key? key}) : super(key: key);
 
@@ -244,6 +246,20 @@ class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
                     itemCount: _purchases.length,
                     itemBuilder: (context, index) {
                       final purchase = _purchases[index];
+                      final isSubscription =
+                          _isSubscription(purchase.productId);
+                      final isConsumable = _isConsumable(purchase.productId);
+                      final statusLabel = isSubscription
+                          ? 'Subscription'
+                          : isConsumable
+                              ? 'Consumable'
+                              : 'Non-consumable';
+                      final statusColor = isSubscription
+                          ? Colors.blue.shade600
+                          : isConsumable
+                              ? Colors.green.shade600
+                              : Colors.grey.shade600;
+
                       return Card(
                         margin: const EdgeInsets.only(bottom: 16),
                         child: Padding(
@@ -251,57 +267,16 @@ class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                'Product: ${purchase.productId}',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                  'Token: ${purchase.purchaseToken?.substring(0, 20)}...'),
-                              Text(
-                                  'Purchase State: ${purchase.purchaseState?.toString().split('.').last ?? 'N/A'}'),
-                              Text(
-                                  'Transaction Date: ${purchase.transactionDate}'),
-                              Text(
-                                  'Transaction ID: ${purchase.transactionIdFor ?? 'N/A'}'),
-                              const SizedBox(height: 8),
-                              // Show product type
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: _isSubscription(purchase.productId)
-                                      ? Colors.blue.withValues(alpha: 0.1)
-                                      : _isConsumable(purchase.productId)
-                                          ? Colors.green.withValues(alpha: 0.1)
-                                          : Colors.grey.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  _isSubscription(purchase.productId)
-                                      ? 'Subscription'
-                                      : _isConsumable(purchase.productId)
-                                          ? 'Consumable'
-                                          : 'Non-Consumable',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: _isSubscription(purchase.productId)
-                                        ? Colors.blue
-                                        : _isConsumable(purchase.productId)
-                                            ? Colors.green
-                                            : Colors.grey,
-                                  ),
-                                ),
+                              PurchaseDataView(
+                                purchase: purchase,
+                                statusLabel: statusLabel,
+                                statusColor: statusColor,
+                                sectionSpacing: 12,
+                                fieldSpacing: 6,
                               ),
                               const SizedBox(height: 16),
                               if (purchase.purchaseToken != null) ...[
-                                // Show different buttons based on product type
-                                if (_isConsumable(purchase.productId) &&
-                                    Platform.isAndroid)
+                                if (isConsumable && Platform.isAndroid)
                                   SizedBox(
                                     width: double.infinity,
                                     child: CupertinoButton(
@@ -312,7 +287,7 @@ class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
                                           const Text('Consume This Purchase'),
                                     ),
                                   )
-                                else if (_isSubscription(purchase.productId))
+                                else if (isSubscription)
                                   SizedBox(
                                     width: double.infinity,
                                     child: CupertinoButton(
@@ -322,8 +297,7 @@ class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
                                       child: const Text('Cancel Subscription'),
                                     ),
                                   )
-                                else if (!_isConsumable(purchase.productId))
-                                  // Non-consumable products - show info only
+                                else if (!isConsumable)
                                   Container(
                                     width: double.infinity,
                                     padding: const EdgeInsets.all(12),

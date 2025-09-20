@@ -258,21 +258,6 @@ class CrossPlatformOfferHandler {
 ```dart
 class AppStoreInfo {
   final _iap = FlutterInappPurchase.instance;
-  
-  /// Get App Store country code (iOS only)
-  Future<String?> getAppStoreCountry() async {
-    if (!Platform.isIOS) return null;
-    
-    try {
-      final country = await _iap.getAppStoreCountryIOS();
-      debugPrint('App Store country: $country');
-      return country;
-    } catch (e) {
-      debugPrint('Failed to get App Store country: $e');
-      return null;
-    }
-  }
-  
   /// Get promoted product (iOS only)
   Future<String?> getPromotedProduct() async {
     if (!Platform.isIOS) return null;

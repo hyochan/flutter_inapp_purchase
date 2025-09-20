@@ -10,180 +10,180 @@ import 'dart:async';
 // MARK: - Enums
 
 enum ErrorCode {
-  Unknown('UNKNOWN'),
-  UserCancelled('USER_CANCELLED'),
-  UserError('USER_ERROR'),
-  ItemUnavailable('ITEM_UNAVAILABLE'),
-  RemoteError('REMOTE_ERROR'),
-  NetworkError('NETWORK_ERROR'),
-  ServiceError('SERVICE_ERROR'),
-  ReceiptFailed('RECEIPT_FAILED'),
-  ReceiptFinished('RECEIPT_FINISHED'),
-  ReceiptFinishedFailed('RECEIPT_FINISHED_FAILED'),
-  NotPrepared('NOT_PREPARED'),
-  NotEnded('NOT_ENDED'),
-  AlreadyOwned('ALREADY_OWNED'),
-  DeveloperError('DEVELOPER_ERROR'),
-  BillingResponseJsonParseError('BILLING_RESPONSE_JSON_PARSE_ERROR'),
-  DeferredPayment('DEFERRED_PAYMENT'),
-  Interrupted('INTERRUPTED'),
-  IapNotAvailable('IAP_NOT_AVAILABLE'),
-  PurchaseError('PURCHASE_ERROR'),
-  SyncError('SYNC_ERROR'),
-  TransactionValidationFailed('TRANSACTION_VALIDATION_FAILED'),
-  ActivityUnavailable('ACTIVITY_UNAVAILABLE'),
-  AlreadyPrepared('ALREADY_PREPARED'),
-  Pending('PENDING'),
-  ConnectionClosed('CONNECTION_CLOSED'),
-  InitConnection('INIT_CONNECTION'),
-  ServiceDisconnected('SERVICE_DISCONNECTED'),
-  QueryProduct('QUERY_PRODUCT'),
-  SkuNotFound('SKU_NOT_FOUND'),
-  SkuOfferMismatch('SKU_OFFER_MISMATCH'),
-  ItemNotOwned('ITEM_NOT_OWNED'),
-  BillingUnavailable('BILLING_UNAVAILABLE'),
-  FeatureNotSupported('FEATURE_NOT_SUPPORTED'),
-  EmptySkuList('EMPTY_SKU_LIST');
+  Unknown('unknown'),
+  UserCancelled('user-cancelled'),
+  UserError('user-error'),
+  ItemUnavailable('item-unavailable'),
+  RemoteError('remote-error'),
+  NetworkError('network-error'),
+  ServiceError('service-error'),
+  ReceiptFailed('receipt-failed'),
+  ReceiptFinished('receipt-finished'),
+  ReceiptFinishedFailed('receipt-finished-failed'),
+  NotPrepared('not-prepared'),
+  NotEnded('not-ended'),
+  AlreadyOwned('already-owned'),
+  DeveloperError('developer-error'),
+  BillingResponseJsonParseError('billing-response-json-parse-error'),
+  DeferredPayment('deferred-payment'),
+  Interrupted('interrupted'),
+  IapNotAvailable('iap-not-available'),
+  PurchaseError('purchase-error'),
+  SyncError('sync-error'),
+  TransactionValidationFailed('transaction-validation-failed'),
+  ActivityUnavailable('activity-unavailable'),
+  AlreadyPrepared('already-prepared'),
+  Pending('pending'),
+  ConnectionClosed('connection-closed'),
+  InitConnection('init-connection'),
+  ServiceDisconnected('service-disconnected'),
+  QueryProduct('query-product'),
+  SkuNotFound('sku-not-found'),
+  SkuOfferMismatch('sku-offer-mismatch'),
+  ItemNotOwned('item-not-owned'),
+  BillingUnavailable('billing-unavailable'),
+  FeatureNotSupported('feature-not-supported'),
+  EmptySkuList('empty-sku-list');
 
   const ErrorCode(this.value);
   final String value;
 
   factory ErrorCode.fromJson(String value) {
     switch (value) {
+      case 'unknown':
       case 'UNKNOWN':
-        return ErrorCode.Unknown;
       case 'Unknown':
         return ErrorCode.Unknown;
+      case 'user-cancelled':
       case 'USER_CANCELLED':
-        return ErrorCode.UserCancelled;
       case 'UserCancelled':
         return ErrorCode.UserCancelled;
+      case 'user-error':
       case 'USER_ERROR':
-        return ErrorCode.UserError;
       case 'UserError':
         return ErrorCode.UserError;
+      case 'item-unavailable':
       case 'ITEM_UNAVAILABLE':
-        return ErrorCode.ItemUnavailable;
       case 'ItemUnavailable':
         return ErrorCode.ItemUnavailable;
+      case 'remote-error':
       case 'REMOTE_ERROR':
-        return ErrorCode.RemoteError;
       case 'RemoteError':
         return ErrorCode.RemoteError;
+      case 'network-error':
       case 'NETWORK_ERROR':
-        return ErrorCode.NetworkError;
       case 'NetworkError':
         return ErrorCode.NetworkError;
+      case 'service-error':
       case 'SERVICE_ERROR':
-        return ErrorCode.ServiceError;
       case 'ServiceError':
         return ErrorCode.ServiceError;
+      case 'receipt-failed':
       case 'RECEIPT_FAILED':
-        return ErrorCode.ReceiptFailed;
       case 'ReceiptFailed':
         return ErrorCode.ReceiptFailed;
+      case 'receipt-finished':
       case 'RECEIPT_FINISHED':
-        return ErrorCode.ReceiptFinished;
       case 'ReceiptFinished':
         return ErrorCode.ReceiptFinished;
+      case 'receipt-finished-failed':
       case 'RECEIPT_FINISHED_FAILED':
-        return ErrorCode.ReceiptFinishedFailed;
       case 'ReceiptFinishedFailed':
         return ErrorCode.ReceiptFinishedFailed;
+      case 'not-prepared':
       case 'NOT_PREPARED':
-        return ErrorCode.NotPrepared;
       case 'NotPrepared':
         return ErrorCode.NotPrepared;
+      case 'not-ended':
       case 'NOT_ENDED':
-        return ErrorCode.NotEnded;
       case 'NotEnded':
         return ErrorCode.NotEnded;
+      case 'already-owned':
       case 'ALREADY_OWNED':
-        return ErrorCode.AlreadyOwned;
       case 'AlreadyOwned':
         return ErrorCode.AlreadyOwned;
+      case 'developer-error':
       case 'DEVELOPER_ERROR':
-        return ErrorCode.DeveloperError;
       case 'DeveloperError':
         return ErrorCode.DeveloperError;
+      case 'billing-response-json-parse-error':
       case 'BILLING_RESPONSE_JSON_PARSE_ERROR':
-        return ErrorCode.BillingResponseJsonParseError;
       case 'BillingResponseJsonParseError':
         return ErrorCode.BillingResponseJsonParseError;
+      case 'deferred-payment':
       case 'DEFERRED_PAYMENT':
-        return ErrorCode.DeferredPayment;
       case 'DeferredPayment':
         return ErrorCode.DeferredPayment;
+      case 'interrupted':
       case 'INTERRUPTED':
-        return ErrorCode.Interrupted;
       case 'Interrupted':
         return ErrorCode.Interrupted;
+      case 'iap-not-available':
       case 'IAP_NOT_AVAILABLE':
-        return ErrorCode.IapNotAvailable;
       case 'IapNotAvailable':
         return ErrorCode.IapNotAvailable;
+      case 'purchase-error':
       case 'PURCHASE_ERROR':
-        return ErrorCode.PurchaseError;
       case 'PurchaseError':
         return ErrorCode.PurchaseError;
+      case 'sync-error':
       case 'SYNC_ERROR':
-        return ErrorCode.SyncError;
       case 'SyncError':
         return ErrorCode.SyncError;
+      case 'transaction-validation-failed':
       case 'TRANSACTION_VALIDATION_FAILED':
-        return ErrorCode.TransactionValidationFailed;
       case 'TransactionValidationFailed':
         return ErrorCode.TransactionValidationFailed;
+      case 'activity-unavailable':
       case 'ACTIVITY_UNAVAILABLE':
-        return ErrorCode.ActivityUnavailable;
       case 'ActivityUnavailable':
         return ErrorCode.ActivityUnavailable;
+      case 'already-prepared':
       case 'ALREADY_PREPARED':
-        return ErrorCode.AlreadyPrepared;
       case 'AlreadyPrepared':
         return ErrorCode.AlreadyPrepared;
+      case 'pending':
       case 'PENDING':
-        return ErrorCode.Pending;
       case 'Pending':
         return ErrorCode.Pending;
+      case 'connection-closed':
       case 'CONNECTION_CLOSED':
-        return ErrorCode.ConnectionClosed;
       case 'ConnectionClosed':
         return ErrorCode.ConnectionClosed;
+      case 'init-connection':
       case 'INIT_CONNECTION':
-        return ErrorCode.InitConnection;
       case 'InitConnection':
         return ErrorCode.InitConnection;
+      case 'service-disconnected':
       case 'SERVICE_DISCONNECTED':
-        return ErrorCode.ServiceDisconnected;
       case 'ServiceDisconnected':
         return ErrorCode.ServiceDisconnected;
+      case 'query-product':
       case 'QUERY_PRODUCT':
-        return ErrorCode.QueryProduct;
       case 'QueryProduct':
         return ErrorCode.QueryProduct;
+      case 'sku-not-found':
       case 'SKU_NOT_FOUND':
-        return ErrorCode.SkuNotFound;
       case 'SkuNotFound':
         return ErrorCode.SkuNotFound;
+      case 'sku-offer-mismatch':
       case 'SKU_OFFER_MISMATCH':
-        return ErrorCode.SkuOfferMismatch;
       case 'SkuOfferMismatch':
         return ErrorCode.SkuOfferMismatch;
+      case 'item-not-owned':
       case 'ITEM_NOT_OWNED':
-        return ErrorCode.ItemNotOwned;
       case 'ItemNotOwned':
         return ErrorCode.ItemNotOwned;
+      case 'billing-unavailable':
       case 'BILLING_UNAVAILABLE':
-        return ErrorCode.BillingUnavailable;
       case 'BillingUnavailable':
         return ErrorCode.BillingUnavailable;
+      case 'feature-not-supported':
       case 'FEATURE_NOT_SUPPORTED':
-        return ErrorCode.FeatureNotSupported;
       case 'FeatureNotSupported':
         return ErrorCode.FeatureNotSupported;
+      case 'empty-sku-list':
       case 'EMPTY_SKU_LIST':
-        return ErrorCode.EmptySkuList;
       case 'EmptySkuList':
         return ErrorCode.EmptySkuList;
     }
@@ -194,25 +194,25 @@ enum ErrorCode {
 }
 
 enum IapEvent {
-  PurchaseUpdated('PURCHASE_UPDATED'),
-  PurchaseError('PURCHASE_ERROR'),
-  PromotedProductIOS('PROMOTED_PRODUCT_IOS');
+  PurchaseUpdated('purchase-updated'),
+  PurchaseError('purchase-error'),
+  PromotedProductIOS('promoted-product-ios');
 
   const IapEvent(this.value);
   final String value;
 
   factory IapEvent.fromJson(String value) {
     switch (value) {
+      case 'purchase-updated':
       case 'PURCHASE_UPDATED':
-        return IapEvent.PurchaseUpdated;
       case 'PurchaseUpdated':
         return IapEvent.PurchaseUpdated;
+      case 'purchase-error':
       case 'PURCHASE_ERROR':
-        return IapEvent.PurchaseError;
       case 'PurchaseError':
         return IapEvent.PurchaseError;
+      case 'promoted-product-ios':
       case 'PROMOTED_PRODUCT_IOS':
-        return IapEvent.PromotedProductIOS;
       case 'PromotedProductIOS':
         return IapEvent.PromotedProductIOS;
     }
@@ -223,18 +223,19 @@ enum IapEvent {
 }
 
 enum IapPlatform {
-  IOS('IOS'),
-  Android('ANDROID');
+  IOS('ios'),
+  Android('android');
 
   const IapPlatform(this.value);
   final String value;
 
   factory IapPlatform.fromJson(String value) {
     switch (value) {
+      case 'ios':
       case 'IOS':
         return IapPlatform.IOS;
+      case 'android':
       case 'ANDROID':
-        return IapPlatform.Android;
       case 'Android':
         return IapPlatform.Android;
     }
@@ -245,30 +246,30 @@ enum IapPlatform {
 }
 
 enum PaymentModeIOS {
-  Empty('EMPTY'),
-  FreeTrial('FREE_TRIAL'),
-  PayAsYouGo('PAY_AS_YOU_GO'),
-  PayUpFront('PAY_UP_FRONT');
+  Empty('empty'),
+  FreeTrial('free-trial'),
+  PayAsYouGo('pay-as-you-go'),
+  PayUpFront('pay-up-front');
 
   const PaymentModeIOS(this.value);
   final String value;
 
   factory PaymentModeIOS.fromJson(String value) {
     switch (value) {
+      case 'empty':
       case 'EMPTY':
-        return PaymentModeIOS.Empty;
       case 'Empty':
         return PaymentModeIOS.Empty;
+      case 'free-trial':
       case 'FREE_TRIAL':
-        return PaymentModeIOS.FreeTrial;
       case 'FreeTrial':
         return PaymentModeIOS.FreeTrial;
+      case 'pay-as-you-go':
       case 'PAY_AS_YOU_GO':
-        return PaymentModeIOS.PayAsYouGo;
       case 'PayAsYouGo':
         return PaymentModeIOS.PayAsYouGo;
+      case 'pay-up-front':
       case 'PAY_UP_FRONT':
-        return PaymentModeIOS.PayUpFront;
       case 'PayUpFront':
         return PaymentModeIOS.PayUpFront;
     }
@@ -279,25 +280,25 @@ enum PaymentModeIOS {
 }
 
 enum ProductQueryType {
-  InApp('IN_APP'),
-  Subs('SUBS'),
-  All('ALL');
+  InApp('in-app'),
+  Subs('subs'),
+  All('all');
 
   const ProductQueryType(this.value);
   final String value;
 
   factory ProductQueryType.fromJson(String value) {
     switch (value) {
+      case 'in-app':
       case 'IN_APP':
-        return ProductQueryType.InApp;
       case 'InApp':
         return ProductQueryType.InApp;
+      case 'subs':
       case 'SUBS':
-        return ProductQueryType.Subs;
       case 'Subs':
         return ProductQueryType.Subs;
+      case 'all':
       case 'ALL':
-        return ProductQueryType.All;
       case 'All':
         return ProductQueryType.All;
     }
@@ -308,20 +309,20 @@ enum ProductQueryType {
 }
 
 enum ProductType {
-  InApp('IN_APP'),
-  Subs('SUBS');
+  InApp('in-app'),
+  Subs('subs');
 
   const ProductType(this.value);
   final String value;
 
   factory ProductType.fromJson(String value) {
     switch (value) {
+      case 'in-app':
       case 'IN_APP':
-        return ProductType.InApp;
       case 'InApp':
         return ProductType.InApp;
+      case 'subs':
       case 'SUBS':
-        return ProductType.Subs;
       case 'Subs':
         return ProductType.Subs;
     }
@@ -332,30 +333,30 @@ enum ProductType {
 }
 
 enum ProductTypeIOS {
-  Consumable('CONSUMABLE'),
-  NonConsumable('NON_CONSUMABLE'),
-  AutoRenewableSubscription('AUTO_RENEWABLE_SUBSCRIPTION'),
-  NonRenewingSubscription('NON_RENEWING_SUBSCRIPTION');
+  Consumable('consumable'),
+  NonConsumable('non-consumable'),
+  AutoRenewableSubscription('auto-renewable-subscription'),
+  NonRenewingSubscription('non-renewing-subscription');
 
   const ProductTypeIOS(this.value);
   final String value;
 
   factory ProductTypeIOS.fromJson(String value) {
     switch (value) {
+      case 'consumable':
       case 'CONSUMABLE':
-        return ProductTypeIOS.Consumable;
       case 'Consumable':
         return ProductTypeIOS.Consumable;
+      case 'non-consumable':
       case 'NON_CONSUMABLE':
-        return ProductTypeIOS.NonConsumable;
       case 'NonConsumable':
         return ProductTypeIOS.NonConsumable;
+      case 'auto-renewable-subscription':
       case 'AUTO_RENEWABLE_SUBSCRIPTION':
-        return ProductTypeIOS.AutoRenewableSubscription;
       case 'AutoRenewableSubscription':
         return ProductTypeIOS.AutoRenewableSubscription;
+      case 'non-renewing-subscription':
       case 'NON_RENEWING_SUBSCRIPTION':
-        return ProductTypeIOS.NonRenewingSubscription;
       case 'NonRenewingSubscription':
         return ProductTypeIOS.NonRenewingSubscription;
     }
@@ -366,40 +367,40 @@ enum ProductTypeIOS {
 }
 
 enum PurchaseState {
-  Pending('PENDING'),
-  Purchased('PURCHASED'),
-  Failed('FAILED'),
-  Restored('RESTORED'),
-  Deferred('DEFERRED'),
-  Unknown('UNKNOWN');
+  Pending('pending'),
+  Purchased('purchased'),
+  Failed('failed'),
+  Restored('restored'),
+  Deferred('deferred'),
+  Unknown('unknown');
 
   const PurchaseState(this.value);
   final String value;
 
   factory PurchaseState.fromJson(String value) {
     switch (value) {
+      case 'pending':
       case 'PENDING':
-        return PurchaseState.Pending;
       case 'Pending':
         return PurchaseState.Pending;
+      case 'purchased':
       case 'PURCHASED':
-        return PurchaseState.Purchased;
       case 'Purchased':
         return PurchaseState.Purchased;
+      case 'failed':
       case 'FAILED':
-        return PurchaseState.Failed;
       case 'Failed':
         return PurchaseState.Failed;
+      case 'restored':
       case 'RESTORED':
-        return PurchaseState.Restored;
       case 'Restored':
         return PurchaseState.Restored;
+      case 'deferred':
       case 'DEFERRED':
-        return PurchaseState.Deferred;
       case 'Deferred':
         return PurchaseState.Deferred;
+      case 'unknown':
       case 'UNKNOWN':
-        return PurchaseState.Unknown;
       case 'Unknown':
         return PurchaseState.Unknown;
     }
@@ -410,20 +411,20 @@ enum PurchaseState {
 }
 
 enum SubscriptionOfferTypeIOS {
-  Introductory('INTRODUCTORY'),
-  Promotional('PROMOTIONAL');
+  Introductory('introductory'),
+  Promotional('promotional');
 
   const SubscriptionOfferTypeIOS(this.value);
   final String value;
 
   factory SubscriptionOfferTypeIOS.fromJson(String value) {
     switch (value) {
+      case 'introductory':
       case 'INTRODUCTORY':
-        return SubscriptionOfferTypeIOS.Introductory;
       case 'Introductory':
         return SubscriptionOfferTypeIOS.Introductory;
+      case 'promotional':
       case 'PROMOTIONAL':
-        return SubscriptionOfferTypeIOS.Promotional;
       case 'Promotional':
         return SubscriptionOfferTypeIOS.Promotional;
     }
@@ -434,35 +435,35 @@ enum SubscriptionOfferTypeIOS {
 }
 
 enum SubscriptionPeriodIOS {
-  Day('DAY'),
-  Week('WEEK'),
-  Month('MONTH'),
-  Year('YEAR'),
-  Empty('EMPTY');
+  Day('day'),
+  Week('week'),
+  Month('month'),
+  Year('year'),
+  Empty('empty');
 
   const SubscriptionPeriodIOS(this.value);
   final String value;
 
   factory SubscriptionPeriodIOS.fromJson(String value) {
     switch (value) {
+      case 'day':
       case 'DAY':
-        return SubscriptionPeriodIOS.Day;
       case 'Day':
         return SubscriptionPeriodIOS.Day;
+      case 'week':
       case 'WEEK':
-        return SubscriptionPeriodIOS.Week;
       case 'Week':
         return SubscriptionPeriodIOS.Week;
+      case 'month':
       case 'MONTH':
-        return SubscriptionPeriodIOS.Month;
       case 'Month':
         return SubscriptionPeriodIOS.Month;
+      case 'year':
       case 'YEAR':
-        return SubscriptionPeriodIOS.Year;
       case 'Year':
         return SubscriptionPeriodIOS.Year;
+      case 'empty':
       case 'EMPTY':
-        return SubscriptionPeriodIOS.Empty;
       case 'Empty':
         return SubscriptionPeriodIOS.Empty;
     }
@@ -1318,6 +1319,7 @@ class PurchaseAndroid extends Purchase implements PurchaseCommon {
     required this.quantity,
     this.signatureAndroid,
     required this.transactionDate,
+    this.transactionId,
   });
 
   final bool? autoRenewingAndroid;
@@ -1337,6 +1339,7 @@ class PurchaseAndroid extends Purchase implements PurchaseCommon {
   final int quantity;
   final String? signatureAndroid;
   final double transactionDate;
+  final String? transactionId;
 
   factory PurchaseAndroid.fromJson(Map<String, dynamic> json) {
     return PurchaseAndroid(
@@ -1359,6 +1362,7 @@ class PurchaseAndroid extends Purchase implements PurchaseCommon {
       quantity: json['quantity'] as int,
       signatureAndroid: json['signatureAndroid'] as String?,
       transactionDate: (json['transactionDate'] as num).toDouble(),
+      transactionId: json['transactionId'] as String?,
     );
   }
 
@@ -1383,6 +1387,7 @@ class PurchaseAndroid extends Purchase implements PurchaseCommon {
       'quantity': quantity,
       'signatureAndroid': signatureAndroid,
       'transactionDate': transactionDate,
+      'transactionId': transactionId,
     };
   }
 }
@@ -1446,6 +1451,7 @@ class PurchaseIOS extends Purchase implements PurchaseCommon {
     this.storefrontCountryCodeIOS,
     this.subscriptionGroupIdIOS,
     required this.transactionDate,
+    required this.transactionId,
     this.transactionReasonIOS,
     this.webOrderLineItemIdIOS,
   });
@@ -1478,6 +1484,7 @@ class PurchaseIOS extends Purchase implements PurchaseCommon {
   final String? storefrontCountryCodeIOS;
   final String? subscriptionGroupIdIOS;
   final double transactionDate;
+  final String transactionId;
   final String? transactionReasonIOS;
   final String? webOrderLineItemIdIOS;
 
@@ -1518,6 +1525,7 @@ class PurchaseIOS extends Purchase implements PurchaseCommon {
       storefrontCountryCodeIOS: json['storefrontCountryCodeIOS'] as String?,
       subscriptionGroupIdIOS: json['subscriptionGroupIdIOS'] as String?,
       transactionDate: (json['transactionDate'] as num).toDouble(),
+      transactionId: json['transactionId'] as String,
       transactionReasonIOS: json['transactionReasonIOS'] as String?,
       webOrderLineItemIdIOS: json['webOrderLineItemIdIOS'] as String?,
     );
@@ -1555,6 +1563,7 @@ class PurchaseIOS extends Purchase implements PurchaseCommon {
       'storefrontCountryCodeIOS': storefrontCountryCodeIOS,
       'subscriptionGroupIdIOS': subscriptionGroupIdIOS,
       'transactionDate': transactionDate,
+      'transactionId': transactionId,
       'transactionReasonIOS': transactionReasonIOS,
       'webOrderLineItemIdIOS': webOrderLineItemIdIOS,
     };

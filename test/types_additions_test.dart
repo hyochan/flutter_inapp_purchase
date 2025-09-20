@@ -52,6 +52,7 @@ void main() {
         purchaseState: PurchaseState.Purchased,
         quantity: 1,
         transactionDate: 1700000000,
+        transactionId: 't',
         expirationDateIOS: 1700005000,
       );
       expect(p.expirationDateIOS, 1700005000);

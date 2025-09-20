@@ -496,25 +496,6 @@ if (Platform.isIOS) {
 
 ---
 
-#### getAppStoreCountryIOS()
-
-Gets the App Store country code.
-
-```dart
-Future<String?> getAppStoreCountryIOS() async
-```
-
-**Returns**: Country code or null
-
-**Example**:
-
-```dart
-if (Platform.isIOS) {
-  final country = await FlutterInappPurchase.instance.getAppStoreCountryIOS();
-  print('App Store country: $country');
-}
-```
-
 ### Android-Specific Methods
 
 #### deepLinkToSubscriptionsAndroid()

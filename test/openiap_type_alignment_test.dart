@@ -69,6 +69,7 @@ void main() {
         purchaseState: PurchaseState.Purchased,
         quantity: 1,
         transactionDate: 1700000100,
+        transactionId: 'txn_ios',
         environmentIOS: 'Sandbox',
         quantityIOS: 1,
       );

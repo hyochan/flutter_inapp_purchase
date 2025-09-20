@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 6.7.2
+
+- refactor: align [openiap-gql@1.0.6](https://github.com/hyodotdev/openiap-gql/releases/tag/1.0.6)
+- migration: integrate `openiap-google@1.1.12`
+- feat: purchase helper extensions; product prices now use displayPrice and transaction IDs shown only when available.
+- refactor: api migrated to a generated, typed handler surface; purchase requests now use a single props object and result types simplified.
+- docs: added conventions guide, multiple blog/FAQ updates, and CHANGELOG entry for 6.7.1.
+
 ## 6.7.1
 
 - Follow-up fixes & refinements for 6.7.0
