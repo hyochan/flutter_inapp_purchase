@@ -291,13 +291,6 @@ class PlatformSpecificHandler {
       debugPrint('Failed to open subscription management: $e');
     }
 
-    // Get connection state
-    try {
-      final state = await FlutterInappPurchase.instance.getConnectionStateAndroid();
-      debugPrint('Android connection state: $state');
-    } catch (e) {
-      debugPrint('Failed to get connection state: $e');
-    }
   }
 }
 ```
@@ -804,7 +797,7 @@ class ConnectionManagement {
   // Clean up on app termination
   static Future<void> cleanup() async {
     try {
-      await FlutterInappPurchase.instance.finalize();
+      await FlutterInappPurchase.instance.endConnection();
       debugPrint('IAP connection closed');
     } catch (e) {
       debugPrint('Failed to close IAP connection: $e');

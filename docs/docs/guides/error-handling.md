@@ -14,25 +14,33 @@ Proper error handling is crucial for a smooth user experience in in-app purchase
 ## Error Types and Categories
 
 ### User Errors
+
 Errors caused by user actions or decisions:
+
 - User cancelled purchase
 - Payment method issues
 - Parental controls/restrictions
 
 ### System Errors
+
 Errors related to system or service availability:
+
 - Network connectivity issues
 - Store service unavailable
 - Billing service unavailable
 
 ### Developer Errors
+
 Errors due to configuration or implementation issues:
+
 - Product not found
 - Invalid product IDs
 - Missing permissions
 
 ### Transaction Errors
+
 Errors during the purchase process:
+
 - Payment processing failures
 - Transaction timeouts
 - Duplicate purchases
@@ -49,10 +57,10 @@ class IAPErrorHandler {
   }) {
     // Log the error
     _logError(error, context, metadata);
-    
+
     // Determine error type
     final errorInfo = _categorizeError(error);
-    
+
     // Handle based on type
     switch (errorInfo.category) {
       case ErrorCategory.user:
@@ -71,7 +79,7 @@ class IAPErrorHandler {
         _handleUnknownError(errorInfo);
     }
   }
-  
+
   static ErrorInfo _categorizeError(dynamic error) {
     if (error is PurchaseError) {
       return _categorizePurchaseError(error);
@@ -86,7 +94,7 @@ class IAPErrorHandler {
       );
     }
   }
-  
+
   static ErrorInfo _categorizePurchaseError(PurchaseError error) {
     switch (error.code) {
       case ErrorCode.E_USER_CANCELLED:
@@ -97,7 +105,7 @@ class IAPErrorHandler {
           isRetryable: true,
           userMessage: 'Purchase cancelled',
         );
-        
+
       case ErrorCode.E_NETWORK_ERROR:
         return ErrorInfo(
           category: ErrorCategory.system,
@@ -106,7 +114,7 @@ class IAPErrorHandler {
           isRetryable: true,
           userMessage: 'Please check your internet connection',
         );
-        
+
       case ErrorCode.E_DEVELOPER_ERROR:
         return ErrorInfo(
           category: ErrorCategory.developer,
@@ -115,7 +123,7 @@ class IAPErrorHandler {
           isRetryable: false,
           userMessage: 'Service temporarily unavailable',
         );
-        
+
       default:
         return ErrorInfo(
           category: ErrorCategory.unknown,
@@ -148,7 +156,7 @@ class ErrorInfo {
   final String? userMessage;
   final Duration? retryDelay;
   final Map<String, dynamic>? metadata;
-  
+
   ErrorInfo({
     required this.category,
     required this.code,
@@ -172,7 +180,7 @@ class UserErrorHandler {
       case 'E_USER_CANCELLED':
         // Don't show error for user cancellation
         break;
-        
+
       case 'E_PAYMENT_NOT_ALLOWED':
         _showErrorDialog(
           title: 'Purchases Not Allowed',
@@ -181,7 +189,7 @@ class UserErrorHandler {
           actions: [_createSettingsAction()],
         );
         break;
-        
+
       case 'E_PRODUCT_ALREADY_OWNED':
         _showErrorDialog(
           title: 'Already Purchased',
@@ -189,12 +197,12 @@ class UserErrorHandler {
           actions: [_createRestoreAction(), _createCancelAction()],
         );
         break;
-        
+
       default:
         _showGenericErrorDialog(error.userMessage);
     }
   }
-  
+
   static void _showErrorDialog({
     required String title,
     required String message,
@@ -210,7 +218,7 @@ class UserErrorHandler {
       ),
     );
   }
-  
+
   static Widget _createRestoreAction() {
     return TextButton(
       onPressed: () async {
@@ -220,7 +228,7 @@ class UserErrorHandler {
       child: Text('Restore'),
     );
   }
-  
+
   static Widget _createSettingsAction() {
     return TextButton(
       onPressed: () {
@@ -242,7 +250,7 @@ class UserErrorHandler {
 class SystemErrorHandler {
   static const int maxRetries = 3;
   static const Duration baseDelay = Duration(seconds: 2);
-  
+
   static Future<void> handleSystemError(
     ErrorInfo error, {
     required Function() retryOperation,
@@ -251,20 +259,20 @@ class SystemErrorHandler {
       case 'E_NETWORK_ERROR':
         await _handleNetworkError(retryOperation);
         break;
-        
+
       case 'E_SERVICE_ERROR':
       case 'E_BILLING_UNAVAILABLE':
         await _handleServiceError(error, retryOperation);
         break;
-        
+
       default:
         _showSystemErrorDialog(error);
     }
   }
-  
+
   static Future<void> _handleNetworkError(Function() retryOperation) async {
     final hasConnection = await ConnectivityService.hasConnection();
-    
+
     if (!hasConnection) {
       _showNetworkErrorDialog();
     } else {
@@ -272,21 +280,21 @@ class SystemErrorHandler {
       await _retryWithBackoff(retryOperation);
     }
   }
-  
+
   static Future<void> _handleServiceError(
     ErrorInfo error,
     Function() retryOperation,
   ) async {
     // Show loading indicator
     LoadingService.show('Retrying...');
-    
+
     try {
       // Wait before retry
       await Future.delayed(Duration(seconds: 5));
-      
+
       // Retry the operation
       await retryOperation();
-      
+
     } catch (e) {
       // Retry failed - show error to user
       _showServiceUnavailableDialog();
@@ -294,7 +302,7 @@ class SystemErrorHandler {
       LoadingService.hide();
     }
   }
-  
+
   static Future<void> _retryWithBackoff(Function() operation) async {
     for (int attempt = 1; attempt <= maxRetries; attempt++) {
       try {
@@ -306,14 +314,14 @@ class SystemErrorHandler {
           _showRetryFailedDialog();
           break;
         }
-        
+
         // Wait with exponential backoff
         final delay = baseDelay * (1 << (attempt - 1));
         await Future.delayed(delay);
       }
     }
   }
-  
+
   static void _showNetworkErrorDialog() {
     UserErrorHandler._showErrorDialog(
       title: 'No Internet Connection',
@@ -338,28 +346,28 @@ class DeveloperErrorHandler {
   static void handleDeveloperError(ErrorInfo error) {
     // Log detailed error for developers
     _logDeveloperError(error);
-    
+
     switch (error.code) {
       case 'E_NOT_INITIALIZED':
         _handleNotInitialized();
         break;
-        
+
       case 'E_ITEM_UNAVAILABLE':
         _handleItemUnavailable(error);
         break;
-        
+
       case 'E_DEVELOPER_ERROR':
         _handleConfigurationError(error);
         break;
-        
+
       default:
         _handleGenericDeveloperError(error);
     }
   }
-  
+
   static Future<void> _handleNotInitialized() async {
     print('IAP not initialized - attempting to initialize');
-    
+
     try {
       await FlutterInappPurchase.instance.initConnection();
       print('IAP initialization successful');
@@ -368,26 +376,26 @@ class DeveloperErrorHandler {
       _showGenericErrorToUser();
     }
   }
-  
+
   static void _handleItemUnavailable(ErrorInfo error) {
     print('Product not available: ${error.message}');
-    
+
     // Check if products are configured correctly
     _validateProductConfiguration();
-    
+
     // Show user-friendly message
     UserErrorHandler._showErrorDialog(
       title: 'Product Unavailable',
       message: 'This item is currently not available. Please try again later.',
     );
   }
-  
+
   static void _handleConfigurationError(ErrorInfo error) {
     print('Configuration error: ${error.message}');
-    
+
     // Don't expose technical details to users
     _showGenericErrorToUser();
-    
+
     // Report to crash analytics
     CrashReporting.recordError(
       'IAP Configuration Error',
@@ -395,18 +403,18 @@ class DeveloperErrorHandler {
       error.metadata,
     );
   }
-  
+
   static void _validateProductConfiguration() {
     // Validate that products are configured in stores
     const expectedProducts = [
       'com.example.premium',
       'com.example.remove_ads',
     ];
-    
+
     print('Expected products: $expectedProducts');
     print('Verify these are configured in App Store Connect and Play Console');
   }
-  
+
   static void _showGenericErrorToUser() {
     UserErrorHandler._showErrorDialog(
       title: 'Service Unavailable',
@@ -430,29 +438,29 @@ class TransactionErrorRecovery {
       case 'E_PURCHASE_FAILED':
         await _handlePurchaseFailure(productId);
         break;
-        
+
       case 'E_TRANSACTION_TIMEOUT':
         await _handleTransactionTimeout(productId);
         break;
-        
+
       case 'E_DUPLICATE_PURCHASE':
         await _handleDuplicatePurchase(productId);
         break;
-        
+
       default:
         await _handleGenericTransactionError(error, productId);
     }
   }
-  
+
   static Future<void> _handlePurchaseFailure(String productId) async {
     // Check if there are pending transactions
     final pendingPurchases = await FlutterInappPurchase.instance
         .getAvailablePurchases();
-    
+
     final pendingForProduct = pendingPurchases
         .where((p) => p.productId == productId)
         .toList();
-    
+
     if (pendingForProduct.isNotEmpty) {
       // There's a pending purchase - try to complete it
       await _completePendingPurchase(pendingForProduct.first);
@@ -461,7 +469,7 @@ class TransactionErrorRecovery {
       _showRetryPurchaseDialog(productId);
     }
   }
-  
+
   static Future<void> _handleTransactionTimeout(String productId) async {
     // Show message that transaction is still processing
     UserErrorHandler._showErrorDialog(
@@ -483,19 +491,19 @@ class TransactionErrorRecovery {
       ],
     );
   }
-  
+
   static Future<void> _completePendingPurchase(Purchase purchase) async {
     try {
       // Verify the purchase
       final isValid = await PurchaseValidator.validate(purchase);
-      
+
       if (isValid) {
         // Deliver content
         await ContentDelivery.deliver(purchase.productId);
-        
+
         // Finish transaction
         await FlutterInappPurchase.instance.finishTransaction(purchase);
-        
+
         // Notify user
         _showPurchaseCompletedMessage();
       } else {
@@ -506,17 +514,17 @@ class TransactionErrorRecovery {
       _showGenericErrorToUser();
     }
   }
-  
+
   static Future<void> _checkPurchaseStatus(String productId) async {
     LoadingService.show('Checking purchase status...');
-    
+
     try {
       final purchases = await FlutterInappPurchase.instance
           .getAvailablePurchases();
-      
+
       final purchase = purchases
           .firstWhere((p) => p.productId == productId, orElse: () => null);
-      
+
       if (purchase != null) {
         await _completePendingPurchase(purchase);
       } else {
@@ -539,7 +547,7 @@ class TransactionErrorRecovery {
 class AutomaticErrorRecovery {
   static final Map<String, int> _retryCount = {};
   static const int maxAutoRetries = 2;
-  
+
   static Future<bool> attemptRecovery(
     ErrorInfo error,
     String operationId,
@@ -548,36 +556,36 @@ class AutomaticErrorRecovery {
     if (!error.isRetryable) {
       return false;
     }
-    
+
     final retries = _retryCount[operationId] ?? 0;
     if (retries >= maxAutoRetries) {
       return false;
     }
-    
+
     _retryCount[operationId] = retries + 1;
-    
+
     try {
       // Wait before retry
       if (error.retryDelay != null) {
         await Future.delayed(error.retryDelay!);
       }
-      
+
       // Attempt recovery based on error type
       await _performRecovery(error);
-      
+
       // Retry original operation
       await operation();
-      
+
       // Success - clear retry count
       _retryCount.remove(operationId);
       return true;
-      
+
     } catch (e) {
       print('Auto recovery failed: $e');
       return false;
     }
   }
-  
+
   static Future<void> _performRecovery(ErrorInfo error) async {
     switch (error.category) {
       case ErrorCategory.system:
@@ -591,7 +599,7 @@ class AutomaticErrorRecovery {
         break;
     }
   }
-  
+
   static Future<void> _recoverFromSystemError(ErrorInfo error) async {
     switch (error.code) {
       case 'E_NOT_INITIALIZED':
@@ -602,21 +610,21 @@ class AutomaticErrorRecovery {
         break;
     }
   }
-  
+
   static Future<void> _waitForNetworkRecovery() async {
     // Wait for network to become available
     const maxWait = Duration(seconds: 30);
     const checkInterval = Duration(seconds: 2);
-    
+
     final stopTime = DateTime.now().add(maxWait);
-    
+
     while (DateTime.now().isBefore(stopTime)) {
       if (await ConnectivityService.hasConnection()) {
         return; // Network recovered
       }
       await Future.delayed(checkInterval);
     }
-    
+
     throw Exception('Network recovery timeout');
   }
 }
@@ -628,7 +636,7 @@ class AutomaticErrorRecovery {
 class ManualRecoveryOptions {
   static void showRecoveryDialog(ErrorInfo error, String operationId) {
     final recoveryOptions = _getRecoveryOptions(error);
-    
+
     showDialog(
       context: NavigationService.context,
       builder: (context) => AlertDialog(
@@ -645,7 +653,7 @@ class ManualRecoveryOptions {
             ),
           ],
         ),
-        actions: recoveryOptions.map((option) => 
+        actions: recoveryOptions.map((option) =>
           TextButton(
             onPressed: () {
               Navigator.pop(context);
@@ -657,10 +665,10 @@ class ManualRecoveryOptions {
       ),
     );
   }
-  
+
   static List<RecoveryOption> _getRecoveryOptions(ErrorInfo error) {
     final options = <RecoveryOption>[];
-    
+
     // Always offer retry for retryable errors
     if (error.isRetryable) {
       options.add(RecoveryOption(
@@ -668,7 +676,7 @@ class ManualRecoveryOptions {
         action: () => _retryLastOperation(),
       ));
     }
-    
+
     // Error-specific options
     switch (error.category) {
       case ErrorCategory.user:
@@ -679,7 +687,7 @@ class ManualRecoveryOptions {
           ));
         }
         break;
-        
+
       case ErrorCategory.system:
         options.add(RecoveryOption(
           label: 'Check Connection',
@@ -687,13 +695,13 @@ class ManualRecoveryOptions {
         ));
         break;
     }
-    
+
     // Always offer contact support
     options.add(RecoveryOption(
       label: 'Contact Support',
       action: () => SupportService.openSupportChat(),
     ));
-    
+
     return options;
   }
 }
@@ -701,7 +709,7 @@ class ManualRecoveryOptions {
 class RecoveryOption {
   final String label;
   final VoidCallback action;
-  
+
   RecoveryOption({required this.label, required this.action});
 }
 ```
@@ -728,7 +736,7 @@ class ErrorLogging {
       'device_info': _getDeviceInfo(),
       'metadata': metadata,
     };
-    
+
     // Log to console in debug mode
     if (kDebugMode) {
       print('IAP Error: ${json.encode(errorData)}');
@@ -736,12 +744,12 @@ class ErrorLogging {
         print('Stack trace: $stackTrace');
       }
     }
-    
+
     // Send to analytics in production
     if (kReleaseMode) {
       AnalyticsService.logError('iap_error', errorData);
     }
-    
+
     // Send to crash reporting
     CrashReporting.recordError(
       error,
@@ -749,7 +757,7 @@ class ErrorLogging {
       context: errorData,
     );
   }
-  
+
   static void logErrorPattern(String pattern, Map<String, dynamic> data) {
     AnalyticsService.logEvent('iap_error_pattern', {
       'pattern': pattern,
@@ -768,36 +776,36 @@ class ErrorMetrics {
   static final Map<String, int> _errorCounts = {};
   static final Map<String, DateTime> _firstOccurrence = {};
   static Timer? _reportingTimer;
-  
+
   static void recordError(String errorCode) {
     _errorCounts[errorCode] = (_errorCounts[errorCode] ?? 0) + 1;
     _firstOccurrence[errorCode] ??= DateTime.now();
-    
+
     _scheduleReporting();
   }
-  
+
   static void _scheduleReporting() {
     _reportingTimer?.cancel();
     _reportingTimer = Timer(Duration(minutes: 5), _reportMetrics);
   }
-  
+
   static void _reportMetrics() {
     for (final entry in _errorCounts.entries) {
       final errorCode = entry.key;
       final count = entry.value;
-      
+
       ErrorLogging.logErrorPattern(errorCode, {
         'count': count,
         'first_occurrence': _firstOccurrence[errorCode]?.toIso8601String(),
         'last_occurrence': DateTime.now().toIso8601String(),
       });
     }
-    
+
     // Reset counters
     _errorCounts.clear();
     _firstOccurrence.clear();
   }
-  
+
   static Map<String, int> getErrorSummary() {
     return Map.from(_errorCounts);
   }
@@ -812,11 +820,11 @@ class ErrorMetrics {
 class ErrorSimulator {
   static bool enableSimulation = false;
   static double simulationRate = 0.1; // 10% error rate
-  
+
   static void maybeThrowTestError(String operation) {
     if (!enableSimulation) return;
     if (Random().nextDouble() > simulationRate) return;
-    
+
     final errorTypes = [
       PurchaseError(
         code: ErrorCode.E_NETWORK_ERROR,
@@ -829,11 +837,11 @@ class ErrorSimulator {
         platform: IAPPlatform.android,
       ),
     ];
-    
+
     final randomError = errorTypes[Random().nextInt(errorTypes.length)];
     throw randomError;
   }
-  
+
   static Future<void> simulateSpecificError(ErrorCode errorCode) async {
     throw PurchaseError(
       code: errorCode,
@@ -854,10 +862,10 @@ class ErrorTestSuite {
     await testServiceUnavailableError();
     await testProductNotFoundError();
     await testDuplicatePurchaseError();
-    
+
     print('All error handling tests completed');
   }
-  
+
   static Future<void> testUserCancellationError() async {
     try {
       await ErrorSimulator.simulateSpecificError(ErrorCode.E_USER_CANCELLED);
@@ -867,7 +875,7 @@ class ErrorTestSuite {
       print('✓ User cancellation error handled correctly');
     }
   }
-  
+
   static Future<void> testNetworkError() async {
     try {
       await ErrorSimulator.simulateSpecificError(ErrorCode.E_NETWORK_ERROR);
@@ -877,7 +885,7 @@ class ErrorTestSuite {
       print('✓ Network error handled correctly');
     }
   }
-  
+
   // Add more test methods...
 }
 ```
@@ -906,4 +914,3 @@ class ErrorTestSuite {
 - [Purchases Guide](./purchases.md) - Purchase implementation
 - [Subscriptions Guide](./subscriptions.md) - Subscription handling
 - [API Types](../api/types/error-codes.md) - Error code reference
-- [Testing Guide](./testing.md) - Testing error scenarios

@@ -185,20 +185,6 @@ class AndroidSubscriptionManager {
       debugPrint('Failed to open subscription management: $e');
     }
   }
-  
-  /// Get Android billing connection state
-  Future<String?> getConnectionState() async {
-    if (!Platform.isAndroid) return null;
-    
-    try {
-      final state = await _iap.getConnectionStateAndroid();
-      debugPrint('Android connection state: $state');
-      return state;
-    } catch (e) {
-      debugPrint('Failed to get connection state: $e');
-      return null;
-    }
-  }
 }
 ```
 

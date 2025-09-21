@@ -795,7 +795,7 @@ class ConnectionManagement {
   // Clean up on app termination
   static Future<void> cleanup() async {
     try {
-      await FlutterInappPurchase.instance.finalize();
+      await FlutterInappPurchase.instance.endConnection();
       debugPrint('IAP connection closed');
     } catch (e) {
       debugPrint('Failed to close IAP connection: $e');

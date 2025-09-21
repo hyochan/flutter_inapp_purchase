@@ -334,7 +334,6 @@ void checkPlatformFeatures() {
     // Can use Android-specific methods like:
     // - consumePurchaseAndroid()
     // - deepLinkToSubscriptionsAndroid()
-    // - getConnectionStateAndroid()
   }
 }
 ```

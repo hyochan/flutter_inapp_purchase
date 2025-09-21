@@ -273,6 +273,29 @@ Future<void> safePurchase(String productId) async {
 }
 ```
 
+## Using the Builder DSL
+
+`requestPurchaseWithBuilder` exposes a fluent builder for composing
+platform-specific purchase parameters without manual object construction.
+
+```dart
+await FlutterInappPurchase.instance.requestPurchaseWithBuilder(
+  build: (RequestPurchaseBuilder r) => r
+    ..type = ProductType.Subs
+    ..withIOS((RequestPurchaseIosBuilder i) => i..sku = 'your.sku1')
+    ..withAndroid(
+      (RequestPurchaseAndroidBuilder a) => a..skus = ['your.sku1'],
+    ),
+);
+```
+
+Use the builder when you:
+
+- Need to configure different options per platform.
+- Prefer a DSL-style API with chained modifiers.
+- Want safeguards against unsupported `ProductType.All` usage—the builder only
+  allows in-app or subscription types.
+
 ## Related Methods
 
 - [`fetchProducts()`](./get-products.md) - Fetch products before purchasing

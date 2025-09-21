@@ -101,7 +101,7 @@ class _IapProviderWidgetState extends State<IapProviderWidget> {
 
   Future<void> _endConnection() async {
     try {
-      await _iap.finalize();
+      await _iap.endConnection();
       setState(() {
         _connected = false;
       });

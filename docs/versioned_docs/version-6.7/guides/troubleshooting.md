@@ -435,7 +435,8 @@ class ConnectionDiagnostics {
     if (Platform.isIOS) {
       await _checkIOSConnection();
     } else if (Platform.isAndroid) {
-      await _checkAndroidConnection();
+      debugPrint('🤖 Android connection established via initConnection()');
+      debugPrint('💡 Use connectionUpdated stream for ongoing state changes.');
     }
 
     // Test 3: Product loading test
@@ -460,24 +461,6 @@ class ConnectionDiagnostics {
     }
   }
 
-  static Future<void> _checkAndroidConnection() async {
-    debugPrint('🤖 Checking Android connection...');
-
-    try {
-      final connectionState = await FlutterInappPurchase.instance.getConnectionStateAndroid();
-      debugPrint('Android connection state: $connectionState');
-
-      if (connectionState != 'connected') {
-        debugPrint('❌ Android billing service not connected');
-        debugPrint('💡 Check: Google Play Services, Play Store app updates');
-        return;
-      }
-
-      debugPrint('✅ Android billing service connected');
-    } catch (e) {
-      debugPrint('❌ Android connection check failed: $e');
-    }
-  }
 }
 ```
 

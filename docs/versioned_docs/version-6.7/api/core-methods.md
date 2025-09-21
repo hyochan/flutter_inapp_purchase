@@ -68,14 +68,6 @@ try {
 
 ---
 
-### finalize()
-
-Alternative name for `endConnection()` for backward compatibility.
-
-```dart
-Future<void> finalize() async
-```
-
 ## Product Loading
 
 ### fetchProducts()
@@ -168,54 +160,30 @@ try {
 - **iOS**: Single `sku`, supports `quantity` and promotional offers
 - **Android**: Array of `skus`, supports obfuscated user IDs
 
+### requestPurchaseWithBuilder()
+
+Builder-based helper for configuring platform-specific purchase parameters via
+`RequestPurchaseBuilder`.
+
+```dart
+await FlutterInappPurchase.instance.requestPurchaseWithBuilder(
+  build: (RequestPurchaseBuilder r) => r
+    ..type = ProductType.Subs
+    ..withIOS((RequestPurchaseIosBuilder i) => i..sku = 'your.sku1')
+    ..withAndroid(
+      (RequestPurchaseAndroidBuilder a) => a..skus = ['your.sku1'],
+    ),
+);
+```
+
+**Tips**:
+
+- Assign `ProductType.InApp` or `ProductType.Subs` explicitly via `type`.
+- Configure only the platforms you need; unmodified builders are ignored.
+- Internally this feeds into `requestPurchase` with the generated
+  `RequestPurchaseProps`.
+
 ---
-
-### requestPurchaseAuto()
-
-Simplified purchase method with automatic platform detection.
-
-```dart
-Future<void> requestPurchaseAuto({
-  required String sku,
-  required PurchaseType type,
-  // iOS-specific optional parameters
-  bool? andDangerouslyFinishTransactionAutomaticallyIOS,
-  String? appAccountToken,
-  int? quantity,
-  PaymentDiscount? withOffer,
-  // Android-specific optional parameters
-  String? obfuscatedAccountIdAndroid,
-  String? obfuscatedProfileIdAndroid,
-  bool? isOfferPersonalized,
-  String? purchaseToken,
-  int? offerTokenIndex,
-  int? prorationMode,
-  // Android subscription-specific
-  int? replacementModeAndroid,
-  List<SubscriptionOfferAndroid>? subscriptionOffers,
-}) async
-```
-
-**Parameters**:
-
-- `sku` - Product identifier
-- `type` - Purchase type
-- Platform-specific optional parameters
-
-**Example**:
-
-```dart
-try {
-  await FlutterInappPurchase.instance.requestPurchaseAuto(
-    sku: 'premium_upgrade',
-    type: PurchaseType.inapp,
-    quantity: 1,  // iOS only
-    obfuscatedAccountIdAndroid: 'user_123',  // Android only
-  );
-} catch (e) {
-  print('Auto purchase failed: $e');
-}
-```
 
 ## Transaction Management
 
@@ -343,21 +311,6 @@ try {
 }
 ```
 
----
-
-### getPurchaseHistories() _(deprecated)_
-
-Retrieves purchase history including consumed items. Use `getAvailablePurchases()` with `PurchaseOptions` instead.
-
-```dart
-@deprecated
-Future<List<Purchase>> getPurchaseHistories() async
-```
-
-**Note**: This API remains for backward compatibility but will be removed in a future release.
-
----
-
 ### restorePurchases()
 
 Restores previous purchases (primarily for iOS).
@@ -454,27 +407,6 @@ if (Platform.isAndroid) {
   } catch (e) {
     print('Failed to open subscription management: $e');
   }
-}
-```
-
----
-
-#### getConnectionStateAndroid()
-
-Gets the current billing client connection state.
-
-```dart
-Future<int> getConnectionStateAndroid() async
-```
-
-**Returns**: Connection state code
-
-**Example**:
-
-```dart
-if (Platform.isAndroid) {
-  final state = await FlutterInappPurchase.instance.getConnectionStateAndroid();
-  print('Billing client state: $state');
 }
 ```
 

@@ -42,3 +42,13 @@ in-app-purchase:
   label: In-App Purchase
   permalink: /in-app-purchase
   description: In-app purchase implementation and best practices
+
+ios:
+  label: iOS
+  permalink: /ios
+  description: Apple iOS platform updates
+
+openiap:
+  label: OpenIAP
+  permalink: /openiap
+  description: OpenIAP ecosystem updates

@@ -361,62 +361,6 @@ class IAPListenerManager {
 }
 ```
 
-### Widget Integration
-
-```dart
-class IAPWidget extends StatefulWidget {
-  @override
-  _IAPWidgetState createState() => _IAPWidgetState();
-}
-
-class _IAPWidgetState extends State<IAPWidget> {
-  final IAPListenerManager _listenerManager = IAPListenerManager();
-  bool _isConnected = false;
-  
-  @override
-  void initState() {
-    super.initState();
-    _initializeIAP();
-  }
-  
-  Future<void> _initializeIAP() async {
-    try {
-      // Start listening before initializing connection
-      _listenerManager.startListening();
-      
-      // Initialize connection
-      await FlutterInappPurchase.instance.initConnection();
-      
-      setState(() {
-        _isConnected = true;
-      });
-    } catch (e) {
-      print('IAP initialization failed: $e');
-    }
-  }
-  
-  @override
-  void dispose() {
-    _listenerManager.stopListening();
-    super.dispose();
-  }
-  
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('In-App Purchases'),
-      ),
-      body: _isConnected
-        ? PurchaseContent()
-        : Center(
-            child: CircularProgressIndicator(),
-          ),
-    );
-  }
-}
-```
-
 ## Error Handling Best Practices
 
 ### 1. Null Safety

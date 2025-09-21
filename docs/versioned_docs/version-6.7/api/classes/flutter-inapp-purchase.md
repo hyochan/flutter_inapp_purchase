@@ -199,15 +199,6 @@ final allPurchases = await FlutterInappPurchase.instance.getAvailablePurchases(
 );
 ```
 
-#### getPurchaseHistories() _(deprecated)_
-
-```dart
-@deprecated
-Future<List<Purchase>> getPurchaseHistories()
-```
-
-Legacy method for retrieving historical purchases. Use `getAvailablePurchases()` with `PurchaseOptions` instead.
-
 ### Platform-Specific Methods
 
 #### iOS Only

@@ -84,15 +84,15 @@ const config: Config = {
       },
       items: [
         {
+          type: "docsVersionDropdown",
+          position: "left",
+          dropdownActiveClassDisabled: true,
+        },
+        {
           type: "docSidebar",
           sidebarId: "docsSidebar",
           position: "left",
           label: "Docs",
-        },
-        {
-          type: "docsVersionDropdown",
-          position: "left",
-          dropdownActiveClassDisabled: true,
         },
         { to: "/blog", label: "Blog", position: "left" },
         {
