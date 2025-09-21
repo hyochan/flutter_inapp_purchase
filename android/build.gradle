@@ -1,3 +1,9 @@
+import groovy.json.JsonSlurper
+
+def openiapVersionsFile = new File(rootDir.parentFile, 'openiap-versions.json')
+def openiapVersions = new JsonSlurper().parse(openiapVersionsFile)
+def openiapGoogleVersion = openiapVersions['google']
+
 group 'dev.hyo.flutterinapppurchase'
 version '1.0-SNAPSHOT'
 
@@ -51,8 +57,8 @@ android {
 }
 
 dependencies {
-    // OpenIAP Google billing wrapper (1.1.0) includes Google Play Billing
-    implementation "io.github.hyochan.openiap:openiap-google:1.2.6"
+    // OpenIAP Google billing wrapper includes Google Play Billing
+    implementation "io.github.hyochan.openiap:openiap-google:${openiapGoogleVersion}"
 
     // For local debugging with a checked-out module, you can switch to:
     //   debugImplementation project(":openiap")

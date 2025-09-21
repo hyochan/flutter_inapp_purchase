@@ -1,6 +1,11 @@
 # CocoaPods trunk CDN (ensures latest specs like openiap 1.1.9)
 source 'https://cdn.cocoapods.org/'
 
+require 'json'
+
+openiap_versions_path = File.expand_path('../../openiap-versions.json', __dir__)
+openiap_versions = JSON.parse(File.read(openiap_versions_path))
+
 # Uncomment this line to define a global platform for your project
 platform :ios, '15.0'
 
@@ -32,8 +37,8 @@ flutter_ios_podfile_setup
 
 target 'Runner' do
   use_frameworks!
-  # Ensure openiap resolves to 1.1.9 even if trunk index is lagging
-  pod 'openiap', :git => 'https://github.com/hyodotdev/openiap-apple.git', :tag => '1.1.12'
+  # Ensure openiap resolves to the pinned version even if trunk index is lagging
+  pod 'openiap', :git => 'https://github.com/hyodotdev/openiap-apple.git', :tag => openiap_versions['apple']
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 end
 

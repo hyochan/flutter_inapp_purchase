@@ -1,11 +1,41 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ZIP_URL="https://github.com/hyodotdev/openiap-gql/releases/download/1.0.8/openiap-dart.zip"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 TARGET_FILE="${REPO_ROOT}/lib/types.dart"
 TMP_DIR="$(mktemp -d)"
+VERSIONS_FILE="${REPO_ROOT}/openiap-versions.json"
+
+if ! command -v python3 >/dev/null 2>&1; then
+  echo "Error: python3 is required but not installed." >&2
+  exit 1
+fi
+
+OPENIAP_GQL_VERSION=$(python3 - <<'PY'
+import json
+import sys
+from pathlib import Path
+versions_path = Path(sys.argv[1])
+try:
+    data = json.loads(versions_path.read_text())
+except FileNotFoundError:
+    print(f"Error: {versions_path} not found", file=sys.stderr)
+    sys.exit(1)
+except json.JSONDecodeError as exc:
+    print(f"Error parsing {versions_path}: {exc}", file=sys.stderr)
+    sys.exit(1)
+
+value = data.get('gql')
+if not value:
+    print("Error: 'gql' version missing in openiap-versions.json", file=sys.stderr)
+    sys.exit(1)
+
+print(value)
+PY
+"${VERSIONS_FILE}")
+
+ZIP_URL="https://github.com/hyodotdev/openiap-gql/releases/download/${OPENIAP_GQL_VERSION}/openiap-dart.zip"
 
 cleanup() {
   rm -rf "${TMP_DIR}"

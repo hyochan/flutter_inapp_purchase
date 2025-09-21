@@ -1,6 +1,13 @@
 #
 # To learn more about a Podspec see http://guides.cocoapods.org/syntax/podspec.html
 #
+require 'json'
+require 'pathname'
+
+podspec_dir = Pathname.new(__dir__).realpath
+versions_path = podspec_dir.join('..', 'openiap-versions.json')
+openiap_versions = JSON.parse(File.read(versions_path))
+
 Pod::Spec.new do |s|
   s.name             = 'flutter_inapp_purchase'
   s.version          = '0.0.1'
@@ -15,8 +22,7 @@ In App Purchase plugin for flutter. This project has been forked by react-native
   s.source_files = 'Classes/**/*.swift'
   s.dependency 'Flutter'
   # Use OpenIAP Apple native module (via CocoaPods)
-  # Pin exactly 1.1.12 to avoid unexpected updates
-  s.dependency 'openiap', '1.1.12'
+  s.dependency 'openiap', openiap_versions['apple']
   
   s.ios.deployment_target = '15.0'
   s.swift_version = '5.5'
