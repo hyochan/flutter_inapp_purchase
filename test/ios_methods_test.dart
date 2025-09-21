@@ -23,12 +23,79 @@ void main() {
         (MethodCall methodCall) async {
           calls.add(methodCall);
           switch (methodCall.method) {
+            case 'initConnection':
+              return true;
             case 'presentCodeRedemptionSheetIOS':
               return null;
             case 'showManageSubscriptionsIOS':
               return null;
             case 'getStorefrontIOS':
               return <String, dynamic>{'countryCode': 'US'};
+            case 'validateReceiptIOS':
+              return <String, dynamic>{
+                'isValid': true,
+                'jwsRepresentation': 'jws-token',
+                'receiptData': 'receipt-data',
+                'latestTransaction': <String, dynamic>{
+                  '__typename': 'PurchaseIOS',
+                  'id': 'txn-ios',
+                  'productId': 'com.example.prod1',
+                  'platform': 'IOS',
+                  'purchaseState': 'PURCHASED',
+                  'quantity': 1,
+                  'transactionDate': 1700000000000,
+                  'transactionId': 'txn-ios',
+                  'isAutoRenewing': false,
+                },
+              };
+            case 'isEligibleForIntroOffer':
+              return true;
+            case 'getSubscriptionStatus':
+              return <Map<String, dynamic>>[
+                <String, dynamic>{'state': 'active'},
+              ];
+            case 'getAvailableItems':
+              return <Map<String, dynamic>>[
+                <String, dynamic>{
+                  'platform': 'ios',
+                  'productId': 'com.example.prod1',
+                  'transactionId': 'txn-available',
+                  'purchaseState': 'PURCHASED',
+                  'transactionReceipt': 'receipt-data',
+                  'transactionDate': 1700000000000,
+                },
+              ];
+            case 'getAppTransaction':
+              return <String, dynamic>{
+                'appId': 1,
+                'appTransactionId': 'txn-app',
+                'appVersion': '1.0',
+                'appVersionId': 1,
+                'bundleId': 'com.example',
+                'deviceVerification': 'verify',
+                'deviceVerificationNonce': 'nonce',
+                'environment': 'Sandbox',
+                'originalAppVersion': '1.0',
+                'originalPlatform': 'ios',
+                'originalPurchaseDate': 1700000000000,
+                'preorderDate': 1700000000000,
+                'signedDate': 1700000000000,
+              };
+            case 'getPurchaseHistoriesIOS':
+              return <Map<String, dynamic>>[
+                <String, dynamic>{
+                  'platform': 'ios',
+                  'productId': 'com.example.prod1',
+                  'transactionId': 'txn-history',
+                  'purchaseState': 'PURCHASED',
+                  'transactionReceipt': 'history-receipt',
+                  'transactionDate': 1700000000000,
+                },
+              ];
+            case 'clearTransactionIOS':
+              return null;
+            case 'requestPurchaseOnPromotedProductIOS':
+              return true;
             case 'getPromotedProductIOS':
               return <String, dynamic>{
                 'currency': 'USD',
@@ -100,6 +167,343 @@ void main() {
       expect(list.length, 1);
       expect(list.first.productId, 'com.example.prod1');
       expect(calls.last.method, 'getPendingTransactionsIOS');
+    });
+
+    test('validateReceiptIOS returns structured result', () async {
+      await iap.initConnection();
+
+      final result = await iap.validateReceiptIOS(
+        const ReceiptValidationProps(sku: 'com.example.prod1'),
+      );
+
+      expect(result.isValid, isTrue);
+      expect(result.latestTransaction, isA<Purchase>());
+      expect(calls.last.method, 'validateReceiptIOS');
+    });
+
+    test('validateReceiptIOS throws when connection not initialized', () async {
+      await expectLater(
+        iap.validateReceiptIOS(
+          const ReceiptValidationProps(sku: 'com.example.prod1'),
+        ),
+        throwsA(
+          isA<PurchaseError>().having(
+            (error) => error.code,
+            'code',
+            ErrorCode.NotPrepared,
+          ),
+        ),
+      );
+    });
+
+    test('validateReceiptIOS rejects empty SKU', () async {
+      await iap.initConnection();
+
+      await expectLater(
+        iap.validateReceiptIOS(const ReceiptValidationProps(sku: '   ')),
+        throwsA(
+          isA<PurchaseError>().having(
+            (error) => error.code,
+            'code',
+            ErrorCode.DeveloperError,
+          ),
+        ),
+      );
+    });
+
+    test('validateReceiptIOS wraps platform exceptions', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+        if (methodCall.method == 'initConnection') {
+          return true;
+        }
+        if (methodCall.method == 'validateReceiptIOS') {
+          throw PlatformException(code: '500', message: 'native error');
+        }
+        return null;
+      });
+
+      await iap.initConnection();
+
+      await expectLater(
+        iap.validateReceiptIOS(
+          const ReceiptValidationProps(sku: 'com.example.prod1'),
+        ),
+        throwsA(
+          isA<PurchaseError>().having(
+            (error) => error.code,
+            'code',
+            ErrorCode.ServiceError,
+          ),
+        ),
+      );
+    });
+
+    test('validateReceipt throws IapNotAvailable on Android', () async {
+      final androidIap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'android'),
+      );
+
+      await expectLater(
+        androidIap.validateReceipt(
+          const ReceiptValidationProps(sku: 'com.example.prod1'),
+        ),
+        throwsA(
+          isA<PurchaseError>().having(
+            (error) => error.code,
+            'code',
+            ErrorCode.IapNotAvailable,
+          ),
+        ),
+      );
+    });
+
+    test('isEligibleForIntroOfferIOS returns platform result', () async {
+      expect(await iap.isEligibleForIntroOfferIOS('group'), isTrue);
+      expect(calls.last.method, 'isEligibleForIntroOffer');
+    });
+
+    test('isEligibleForIntroOfferIOS returns false on non-iOS', () async {
+      final androidIap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'android'),
+      );
+
+      expect(await androidIap.isEligibleForIntroOfferIOS('group'), isFalse);
+    });
+
+    test('subscriptionStatusIOS parses list payload', () async {
+      final statuses = await iap.subscriptionStatusIOS('sku');
+      expect(statuses, hasLength(1));
+      expect(statuses.first.state, 'active');
+      expect(calls.last.method, 'getSubscriptionStatus');
+    });
+
+    test('subscriptionStatusIOS accepts string payload', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+        if (methodCall.method == 'getSubscriptionStatus') {
+          return '[{"state":"expired"}]';
+        }
+        return null;
+      });
+
+      final statuses = await iap.subscriptionStatusIOS('sku');
+      expect(statuses.single.state, 'expired');
+    });
+
+    test('getAvailableItemsIOS returns parsed purchases', () async {
+      final items = await iap.getAvailableItemsIOS();
+      expect(items, isNotNull);
+      expect(items, isA<List<Purchase>>());
+      expect(items!.single.productId, 'com.example.prod1');
+      expect(calls.last.method, 'getAvailableItems');
+    });
+
+    test('getAppTransactionIOS returns typed transaction', () async {
+      final transaction = await iap.getAppTransactionIOS();
+      expect(transaction, isNotNull);
+      expect(transaction!.bundleId, 'com.example');
+      expect(calls.last.method, 'getAppTransaction');
+    });
+
+    test('getPurchaseHistoriesIOS returns list', () async {
+      final histories = await iap.getPurchaseHistoriesIOS();
+      expect(histories, hasLength(1));
+      expect(histories.single.productId, 'com.example.prod1');
+      expect(calls.last.method, 'getPurchaseHistoriesIOS');
+    });
+
+    test('getStorefrontIOS throws when country code missing', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+        if (methodCall.method == 'getStorefrontIOS') {
+          return <String, dynamic>{};
+        }
+        return null;
+      });
+
+      await expectLater(
+        iap.getStorefrontIOS(),
+        throwsA(
+          isA<PurchaseError>().having(
+            (error) => error.code,
+            'code',
+            ErrorCode.ServiceError,
+          ),
+        ),
+      );
+    });
+
+    test('presentCodeRedemptionSheetIOS throws on non-iOS', () async {
+      final androidIap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'android'),
+      );
+
+      await expectLater(
+        androidIap.presentCodeRedemptionSheetIOS(),
+        throwsA(isA<PlatformException>()),
+      );
+    });
+
+    test('showManageSubscriptionsIOS throws on non-iOS', () async {
+      final androidIap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'android'),
+      );
+
+      await expectLater(
+        androidIap.showManageSubscriptionsIOS(),
+        throwsA(isA<PlatformException>()),
+      );
+    });
+
+    test('getAvailableItemsIOS returns null on non-iOS', () async {
+      final androidIap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'android'),
+      );
+
+      expect(await androidIap.getAvailableItemsIOS(), isNull);
+    });
+
+    test('getAppTransactionIOS returns null when native layer returns null',
+        () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+        if (methodCall.method == 'getAppTransaction') {
+          return null;
+        }
+        return null;
+      });
+
+      final transaction = await iap.getAppTransactionIOS();
+      expect(transaction, isNull);
+    });
+
+    test('getPurchaseHistoriesIOS returns empty list on error', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+        if (methodCall.method == 'getPurchaseHistoriesIOS') {
+          throw PlatformException(code: '500', message: 'failure');
+        }
+        return null;
+      });
+
+      final histories = await iap.getPurchaseHistoriesIOS();
+      expect(histories, isEmpty);
+    });
+
+    test('clearTransactionIOS returns true when native call succeeds',
+        () async {
+      expect(await iap.clearTransactionIOS(), isTrue);
+      expect(calls.last.method, 'clearTransactionIOS');
+    });
+
+    test('clearTransactionIOS returns false on non-iOS', () async {
+      final androidIap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'android'),
+      );
+
+      expect(await androidIap.clearTransactionIOS(), isFalse);
+    });
+
+    test('clearTransactionIOS returns false when native throws', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+        if (methodCall.method == 'clearTransactionIOS') {
+          throw PlatformException(code: '500', message: 'error');
+        }
+        return null;
+      });
+
+      expect(await iap.clearTransactionIOS(), isFalse);
+    });
+
+    test('requestPurchaseOnPromotedProductIOS returns true on iOS', () async {
+      expect(await iap.requestPurchaseOnPromotedProductIOS(), isTrue);
+      expect(calls.last.method, 'requestPurchaseOnPromotedProductIOS');
+    });
+
+    test('requestPurchaseOnPromotedProductIOS returns false on non-iOS',
+        () async {
+      final androidIap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'android'),
+      );
+
+      expect(await androidIap.requestPurchaseOnPromotedProductIOS(), isFalse);
+    });
+
+    test('getPromotedProductIOS returns null when native sends string payload',
+        () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+        if (methodCall.method == 'getPromotedProductIOS') {
+          return '{}';
+        }
+        return null;
+      });
+
+      expect(await iap.getPromotedProductIOS(), isNull);
+    });
+
+    test('requestPurchaseOnPromotedProductIOS returns false when native throws',
+        () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+        if (methodCall.method == 'requestPurchaseOnPromotedProductIOS') {
+          throw PlatformException(code: '500', message: 'failure');
+        }
+        return null;
+      });
+
+      expect(await iap.requestPurchaseOnPromotedProductIOS(), isFalse);
+    });
+
+    test('subscriptionStatusIOS returns empty list on error', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+        if (methodCall.method == 'getSubscriptionStatus') {
+          throw PlatformException(code: '500', message: 'failure');
+        }
+        return null;
+      });
+
+      final statuses = await iap.subscriptionStatusIOS('sku');
+      expect(statuses, isEmpty);
+    });
+
+    test('getAvailableItemsIOS returns null when native throws', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+        if (methodCall.method == 'getAvailableItems') {
+          throw PlatformException(code: '500', message: 'fail');
+        }
+        return null;
+      });
+
+      final items = await iap.getAvailableItemsIOS();
+      expect(items, isNull);
+    });
+
+    test('getPromotedProductIOS returns null when native throws', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+        if (methodCall.method == 'getPromotedProductIOS') {
+          throw PlatformException(code: '500', message: 'error');
+        }
+        return null;
+      });
+
+      expect(await iap.getPromotedProductIOS(), isNull);
+    });
+
+    test('validateReceipt delegates to platform-specific implementation',
+        () async {
+      await iap.initConnection();
+
+      final result = await iap.validateReceipt(
+        const ReceiptValidationProps(sku: 'com.example.prod1'),
+      );
+
+      expect(result, isA<ReceiptValidationResultIOS>());
     });
   });
 }
