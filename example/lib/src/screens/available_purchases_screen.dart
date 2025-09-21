@@ -20,8 +20,10 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
   List<Purchase> _availablePurchases = [];
   List<Purchase> _purchaseHistory = [];
   bool _loading = false;
+  bool _historyLoading = false;
   bool _connected = false;
   String? _error;
+  String? _historyError;
 
   /// Convert various date formats to milliseconds timestamp
   int _parseTimestamp(dynamic date) {
@@ -100,14 +102,15 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
       });
       await _loadPurchases();
     } catch (e) {
+      if (!mounted) {
+        debugPrint('Failed to initialize IAP connection: $e');
+        return;
+      }
       setState(() {
         _error = e.toString();
-      });
-      debugPrint('Failed to initialize IAP connection: $e');
-    } finally {
-      setState(() {
         _loading = false;
       });
+      debugPrint('Failed to initialize IAP connection: $e');
     }
   }
 
@@ -130,35 +133,90 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
       // Remove duplicates by productId, keeping the most recent one
       final deduplicatedPurchases = _deduplicatePurchases(availablePurchases);
 
-      // Load purchase history
-      List<Purchase> purchaseHistory = [];
-      if (_platformOrDefault() == IapPlatform.IOS) {
-        // iOS: include expired subscriptions as history
-        purchaseHistory = await _iap.getAvailablePurchases(
-          const PurchaseOptions(onlyIncludeActiveItemsIOS: false),
-        );
-      } else {
-        // Android (GPB v8+): history of consumed items is not available via API
-        // Show active purchases only
-        purchaseHistory = [];
+      if (!mounted) {
+        return;
       }
-      debugPrint('Loaded ${purchaseHistory.length} purchases from history');
 
       setState(() {
         _availablePurchases = deduplicatedPurchases;
-        _purchaseHistory = purchaseHistory;
+        _loading = false;
       });
 
       debugPrint(
-          'After deduplication: ${_availablePurchases.length} unique active purchases');
+          'After deduplication: ${deduplicatedPurchases.length} unique active purchases');
+
+      if (_platformOrDefault() == IapPlatform.IOS) {
+        unawaited(_loadPurchaseHistory());
+      } else if (mounted) {
+        setState(() {
+          _purchaseHistory = [];
+        });
+      }
     } catch (e) {
+      if (!mounted) {
+        debugPrint('Error loading purchases: $e');
+        return;
+      }
       setState(() {
         _error = e.toString();
+        _loading = false;
+        _historyLoading = false;
       });
       debugPrint('Error loading purchases: $e');
-    } finally {
+    }
+  }
+
+  Future<void> _loadPurchaseHistory() async {
+    setState(() {
+      _historyLoading = true;
+      _historyError = null;
+    });
+
+    Timer? warningTimer;
+    warningTimer = Timer(const Duration(seconds: 12), () {
+      if (!mounted || !_historyLoading || _historyError != null) {
+        return;
+      }
       setState(() {
-        _loading = false;
+        _historyError =
+            'Fetching purchase history is taking longer than expected. Still waiting...';
+      });
+    });
+
+    try {
+      final purchaseHistory = await _iap.getAvailablePurchases(
+        const PurchaseOptions(
+          onlyIncludeActiveItemsIOS: false,
+          alsoPublishToEventListenerIOS: false,
+        ),
+      );
+      debugPrint('Loaded ${purchaseHistory.length} purchases from history');
+
+      if (!mounted) {
+        warningTimer?.cancel();
+        return;
+      }
+
+      setState(() {
+        _purchaseHistory = purchaseHistory;
+        _historyError = null;
+      });
+    } catch (e) {
+      debugPrint('Error loading purchase history: $e');
+      if (!mounted) {
+        warningTimer?.cancel();
+        return;
+      }
+      setState(() {
+        _historyError = e.toString();
+      });
+    } finally {
+      warningTimer?.cancel();
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _historyLoading = false;
       });
     }
   }
@@ -477,14 +535,31 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
                     const SizedBox(height: 24),
                   ],
 
-                  // Purchase History Section
-                  if (_purchaseHistory.isNotEmpty) ...[
-                    const Text(
-                      'Purchase History',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  // Purchase History Section (iOS only)
+                  if (_platformOrDefault() == IapPlatform.IOS) ...[
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'Purchase History',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        OutlinedButton.icon(
+                          onPressed:
+                              _historyLoading ? null : _loadPurchaseHistory,
+                          icon: const Icon(Icons.history),
+                          label: Text(
+                            _purchaseHistory.isEmpty
+                                ? 'Load History'
+                                : 'Reload History',
+                          ),
+                        ),
+                      ],
                     ),
                     const Text(
                       'All purchases including consumed items',
@@ -494,13 +569,30 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    ..._purchaseHistory
-                        .map((item) => _buildPurchaseHistoryItem(item)),
+                    if (_historyLoading)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 24),
+                        child: Center(child: CircularProgressIndicator()),
+                      )
+                    else if (_historyError != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Text(
+                          _historyError!,
+                          style:
+                              const TextStyle(color: Colors.red, fontSize: 12),
+                        ),
+                      ),
+                    if (_purchaseHistory.isNotEmpty)
+                      ..._purchaseHistory
+                          .map((item) => _buildPurchaseHistoryItem(item)),
+                    const SizedBox(height: 24),
                   ],
 
                   // Empty State
                   if (_availablePurchases.isEmpty &&
                       _purchaseHistory.isEmpty &&
+                      !_historyLoading &&
                       _error == null) ...[
                     Center(
                       child: Column(

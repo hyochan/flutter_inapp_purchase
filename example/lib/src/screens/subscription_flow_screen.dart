@@ -27,7 +27,9 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
   List<ProductCommon> _subscriptions = [];
   final Map<String, ProductCommon> _originalProducts = {};
   List<Purchase> _activeSubscriptions = [];
+  final Map<String, ActiveSubscription> _activeSubscriptionInfo = {};
   Purchase? _currentSubscription;
+  ActiveSubscription? _currentActiveSubscription;
   bool _hasActiveSubscription = false;
   bool _isProcessing = false;
   bool _connected = false;
@@ -298,12 +300,7 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
         ),
       );
 
-      List<ProductSubscription> products;
-      if (result is FetchProductsResultSubscriptions) {
-        products = result.value ?? const <ProductSubscription>[];
-      } else {
-        products = const <ProductSubscription>[];
-      }
+      final products = result.subscriptionProducts();
 
       debugPrint('Loaded ${products.length} subscriptions');
 
@@ -317,7 +314,7 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
           _originalProducts[productKey] = product;
         }
 
-        _subscriptions = products;
+        _subscriptions = List<ProductCommon>.from(products, growable: false);
         _isLoadingProducts = false;
       });
     } catch (error) {
@@ -334,36 +331,132 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
     if (!_connected) return;
 
     try {
-      // Get all available purchases
-      final purchases = await _iap.getAvailablePurchases();
-
       debugPrint('=== Checking Active Subscriptions ===');
-      debugPrint('Total purchases found: ${purchases.length}');
-      for (var p in purchases) {
+
+      final summaries = await _iap.getActiveSubscriptions(subscriptionIds);
+      debugPrint('Active subscription summaries: ${summaries.length}');
+      for (final summary in summaries) {
         debugPrint(
-            '  - ${p.productId}: token=${p.purchaseToken?.substring(0, 20)}...');
+          '  • ${summary.productId} (tx: ${summary.transactionId}, expires: ${summary.expirationDateIOS})',
+        );
       }
 
-      // Filter for subscriptions
-      final activeSubs = purchases
-          .where((p) => subscriptionIds.contains(p.productId))
-          .toList();
+      final purchases = await _iap.getAvailablePurchases(
+        const PurchaseOptions(onlyIncludeActiveItemsIOS: true),
+      );
+
+      debugPrint('Total available purchases found: ${purchases.length}');
+      for (final p in purchases) {
+        final token = p.purchaseToken;
+        final tokenPreview = token == null
+            ? 'null'
+            : token.length <= 20
+                ? token
+                : '${token.substring(0, 20)}...';
+        debugPrint(
+          '  - ${p.productId}: token=$tokenPreview',
+        );
+      }
+
+      const double matchToleranceMs = 2000; // 2 seconds tolerance
+
+      final Map<String, ActiveSubscription> summaryByProduct = {};
+      for (final summary in summaries) {
+        final existing = summaryByProduct[summary.productId];
+        if (existing == null ||
+            summary.transactionDate > existing.transactionDate) {
+          summaryByProduct[summary.productId] = summary;
+        }
+      }
+
+      final List<Purchase> activeSubs = [];
+      final Set<String> addedProducts = <String>{};
+
+      for (final entry in summaryByProduct.entries) {
+        final summary = entry.value;
+        Purchase? matched;
+
+        for (final purchase in purchases) {
+          if (purchase.productId != summary.productId) {
+            continue;
+          }
+
+          final matchesTransaction = purchase.id == summary.transactionId ||
+              (purchase.ids?.contains(summary.transactionId) ?? false);
+          final matchesToken = summary.purchaseToken != null &&
+              summary.purchaseToken!.isNotEmpty &&
+              summary.purchaseToken == purchase.purchaseToken;
+          final matchesDate =
+              (purchase.transactionDate - summary.transactionDate).abs() <=
+                  matchToleranceMs;
+
+          if (matchesTransaction || matchesToken || matchesDate) {
+            matched = purchase;
+            break;
+          }
+        }
+
+        if (matched != null && addedProducts.add(matched.productId)) {
+          activeSubs.add(matched);
+        } else if (matched == null) {
+          debugPrint(
+            '⚠️ No matching purchase found for active subscription ${summary.productId}',
+          );
+        }
+      }
+
+      if (activeSubs.isEmpty && summaryByProduct.isNotEmpty) {
+        for (final purchase in purchases) {
+          if (summaryByProduct.containsKey(purchase.productId) &&
+              addedProducts.add(purchase.productId)) {
+            activeSubs.add(purchase);
+          }
+        }
+      }
+
+      activeSubs.sort(
+        (a, b) => b.transactionDate.compareTo(a.transactionDate),
+      );
 
       if (!mounted) return;
 
       setState(() {
+        _activeSubscriptionInfo
+          ..clear()
+          ..addAll(summaryByProduct);
         _activeSubscriptions = activeSubs;
         _hasActiveSubscription = activeSubs.isNotEmpty;
         _currentSubscription = activeSubs.isNotEmpty ? activeSubs.first : null;
+        _currentActiveSubscription = _currentSubscription != null
+            ? summaryByProduct[_currentSubscription!.productId]
+            : null;
 
         if (_currentSubscription != null) {
           debugPrint(
-              'Current subscription: ${_currentSubscription!.productId}');
-          debugPrint('Purchase token: ${_currentSubscription!.purchaseToken}');
-          _purchaseResult =
-              'Active: ${_currentSubscription!.productId}\nToken: ${_currentSubscription!.purchaseToken?.substring(0, 30)}...';
+            'Current subscription: ${_currentSubscription!.productId}',
+          );
+          debugPrint(
+            'Purchase token: ${_currentSubscription!.purchaseToken}',
+          );
+
+          final summary = _currentActiveSubscription;
+          final buffer = StringBuffer(
+            'Active: ${_currentSubscription!.productId}',
+          );
+          if (summary?.expirationDateIOS != null) {
+            buffer.write(
+              '\nExpires: ${_formatReadableDate(summary!.expirationDateIOS!)}',
+            );
+          }
+          if (summary?.autoRenewingAndroid != null) {
+            buffer.write(
+              '\nAuto renew: ${summary!.autoRenewingAndroid == true}',
+            );
+          }
+          _purchaseResult = buffer.toString();
         } else {
           debugPrint('No active subscription found in filtered list');
+          _purchaseResult = 'No active subscriptions found';
         }
       });
     } catch (error) {
@@ -563,27 +656,21 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
     });
 
     try {
-      final purchases = await _iap.getAvailablePurchases();
-      debugPrint('Restored ${purchases.length} purchases');
+      await _iap.restorePurchases();
+      await _checkActiveSubscriptions();
 
       if (!mounted) return;
 
       setState(() {
-        _activeSubscriptions = purchases
-            .where((p) => subscriptionIds.contains(p.productId))
-            .toList();
-        _hasActiveSubscription = _activeSubscriptions.isNotEmpty;
-        _currentSubscription =
-            _activeSubscriptions.isNotEmpty ? _activeSubscriptions.first : null;
         _isProcessing = false;
         _purchaseResult =
-            '✅ Restored ${_activeSubscriptions.length} subscriptions';
+            '✅ Restored ${_activeSubscriptions.length} subscription(s)';
       });
 
-      // Verify each restored purchase
       for (final purchase in _activeSubscriptions) {
         debugPrint(
-            'Restored: ${purchase.productId}, Token: ${purchase.purchaseToken}');
+          'Restored: ${purchase.productId}, Token: ${purchase.purchaseToken}',
+        );
       }
     } catch (error) {
       debugPrint('Failed to restore purchases: $error');
@@ -630,13 +717,36 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
   }
 
   Widget _buildActiveSubscriptionCard(Purchase purchase) {
+    final summary = _activeSubscriptionInfo[purchase.productId];
     final isCurrent = _currentSubscription?.productId == purchase.productId;
     final chips = <Widget>[
       _infoChip('State: ${purchase.purchaseState.name}'),
       _infoChip('Platform: ${purchase.platform.toJson().toLowerCase()}'),
       _infoChip('Quantity: ${purchase.quantity}'),
-      _infoChip('Auto renew: ${purchase.isAutoRenewing}')
     ];
+
+    if (summary != null) {
+      chips.add(
+          _infoChip('Status: ${summary.isActive ? 'Active' : 'Inactive'}'));
+    }
+
+    final bool? autoRenew =
+        summary?.autoRenewingAndroid ?? purchase.isAutoRenewing;
+    chips.add(_infoChip('Auto renew: ${autoRenew ?? 'unknown'}'));
+
+    final expiration = summary?.expirationDateIOS;
+    if (expiration != null) {
+      chips.add(
+        _infoChip('Expires: ${_formatReadableDate(expiration)}'),
+      );
+    }
+    if (summary?.willExpireSoon == true) {
+      chips.add(_infoChip('Expiring soon'));
+    }
+    final environment = summary?.environmentIOS;
+    if (environment != null && environment.isNotEmpty) {
+      chips.add(_infoChip('Env: $environment'));
+    }
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -720,6 +830,14 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
         style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
       ),
     );
+  }
+
+  String _formatReadableDate(double timestamp) {
+    if (timestamp == 0) {
+      return 'Unknown';
+    }
+    final date = DateTime.fromMillisecondsSinceEpoch(timestamp.round());
+    return date.toLocal().toString().split('.').first;
   }
 
   Widget _buildSubscriptionTier(ProductCommon subscription) {
