@@ -1,6 +1,20 @@
 import groovy.json.JsonSlurper
 
-def openiapVersionsFile = new File(rootDir.parentFile, 'openiap-versions.json')
+static File locateOpeniapVersionsFile(File startDir) {
+    File current = startDir
+    while (current != null) {
+        File candidate = new File(current, 'openiap-versions.json')
+        if (candidate.exists()) {
+            return candidate
+        }
+        current = current.getParentFile()
+    }
+    throw new GradleException(
+        "Unable to locate openiap-versions.json starting from ${startDir.absolutePath}"
+    )
+}
+
+def openiapVersionsFile = locateOpeniapVersionsFile(rootDir)
 def openiapVersions = new JsonSlurper().parse(openiapVersionsFile)
 def openiapGoogleVersion = openiapVersions['google']
 

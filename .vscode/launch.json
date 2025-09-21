@@ -85,6 +85,15 @@
       "cwd": "${workspaceFolder}/example",
       "flutterMode": "release",
       "args": []
+    },
+    {
+      "name": "Example (iOS Device)",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main.dart",
+      "cwd": "${workspaceFolder}/example",
+      "deviceId": "00008101-0006455036D8001E",
+      "args": []
     }
   ],
   "compounds": []
