@@ -67,6 +67,7 @@ Before committing any changes, run these commands in order and ensure ALL pass:
    - Pay attention to type inference errors and explicitly specify type arguments when needed
 3. **Test validation**: `flutter test`
    - All tests must pass
+   - When you need coverage data, run `flutter test --coverage` then `dart run tool/filter_coverage.dart` to strip `lib/types.dart` from reports
 4. **Final verification**: Re-run `dart format --set-exit-if-changed .` to confirm no formatting issues
 5. Only commit if ALL checks succeed with exit code 0
 
