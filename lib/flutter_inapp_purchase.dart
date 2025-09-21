@@ -235,74 +235,28 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
         try {
           if (_platform.isIOS) {
             final requestVariant = params.request;
-            String? sku;
-            bool autoFinish = false;
-            String? appAccountToken;
-            int? quantity;
-            gentype.DiscountOfferInputIOS? offer;
+
+            Map<String, dynamic>? payload;
 
             if (requestVariant
                 is gentype.RequestPurchasePropsRequestSubscription) {
-              final iosProps = requestVariant.value.ios;
-              if (iosProps == null) {
-                throw const gentype.PurchaseError(
-                  code: gentype.ErrorCode.DeveloperError,
-                  message: 'Missing iOS purchase parameters',
-                );
-              }
-              sku = iosProps.sku;
-              autoFinish =
-                  iosProps.andDangerouslyFinishTransactionAutomatically ??
-                      false;
-              appAccountToken = iosProps.appAccountToken;
-              quantity = iosProps.quantity;
-              offer = iosProps.withOffer;
+              payload = _buildIosPurchasePayload(
+                nativeType,
+                requestVariant.value.ios,
+              );
             } else if (requestVariant
                 is gentype.RequestPurchasePropsRequestPurchase) {
-              final iosProps = requestVariant.value.ios;
-              if (iosProps == null) {
-                throw const gentype.PurchaseError(
-                  code: gentype.ErrorCode.DeveloperError,
-                  message: 'Missing iOS purchase parameters',
-                );
-              }
-              sku = iosProps.sku;
-              autoFinish =
-                  iosProps.andDangerouslyFinishTransactionAutomatically ??
-                      false;
-              appAccountToken = iosProps.appAccountToken;
-              quantity = iosProps.quantity;
-              offer = iosProps.withOffer;
+              payload = _buildIosPurchasePayload(
+                nativeType,
+                requestVariant.value.ios,
+              );
             }
 
-            if (sku == null || sku.isEmpty) {
+            if (payload == null) {
               throw const gentype.PurchaseError(
                 code: gentype.ErrorCode.DeveloperError,
                 message: 'Missing iOS purchase parameters',
               );
-            }
-
-            final payload = <String, dynamic>{
-              'sku': sku,
-              'andDangerouslyFinishTransactionAutomatically': autoFinish,
-            };
-
-            if (appAccountToken != null && appAccountToken.isNotEmpty) {
-              payload['appAccountToken'] = appAccountToken;
-            }
-
-            if (quantity != null) {
-              payload['quantity'] = quantity;
-            }
-
-            if (offer != null) {
-              payload['withOffer'] = {
-                'identifier': offer.identifier,
-                'keyIdentifier': offer.keyIdentifier,
-                'nonce': offer.nonce,
-                'signature': offer.signature,
-                'timestamp': offer.timestamp.toString(),
-              };
             }
 
             await _channel.invokeMethod('requestPurchase', payload);
@@ -455,6 +409,13 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
         }
 
         try {
+          final normalizedOptions = gentype.PurchaseOptions(
+            alsoPublishToEventListenerIOS:
+                options?.alsoPublishToEventListenerIOS ?? false,
+            onlyIncludeActiveItemsIOS:
+                options?.onlyIncludeActiveItemsIOS ?? true,
+          );
+
           bool hasResolvableIdentifier(gentype.Purchase purchase) {
             final token = purchase.purchaseToken;
             if (token != null && token.isNotEmpty) {
@@ -469,41 +430,44 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
             return purchase.id.isNotEmpty;
           }
 
-          if (_platform.isAndroid) {
-            // Android unified available items
-            final dynamic result =
-                await _channel.invokeMethod('getAvailableItems');
-            final items = extractPurchases(
-              result,
-              platformIsAndroid: true,
-              platformIsIOS: false,
-              acknowledgedAndroidPurchaseTokens:
-                  _acknowledgedAndroidPurchaseTokens,
-            );
-            // Filter out incomplete purchases (must have productId and either purchaseToken or transactionId)
-            return items
-                .where(
-                    (p) => p.productId.isNotEmpty && hasResolvableIdentifier(p))
-                .toList();
-          } else if (_platform.isIOS) {
-            // On iOS, pass both iOS-specific options to native method
-            final args = options?.toJson() ?? <String, dynamic>{};
+          Future<List<gentype.Purchase>> resolvePurchases() async {
+            List<gentype.Purchase> raw = const <gentype.Purchase>[];
 
-            final dynamic result =
-                await _channel.invokeMethod('getAvailableItems', args);
-            final items = extractPurchases(
-              result,
-              platformIsAndroid: false,
-              platformIsIOS: true,
-              acknowledgedAndroidPurchaseTokens:
-                  _acknowledgedAndroidPurchaseTokens,
-            );
-            return items
-                .where(
-                    (p) => p.productId.isNotEmpty && hasResolvableIdentifier(p))
-                .toList();
+            if (_platform.isIOS) {
+              final args = <String, dynamic>{
+                'alsoPublishToEventListenerIOS':
+                    normalizedOptions.alsoPublishToEventListenerIOS ?? false,
+                'onlyIncludeActiveItemsIOS':
+                    normalizedOptions.onlyIncludeActiveItemsIOS ?? true,
+              };
+              final dynamic result =
+                  await _channel.invokeMethod('getAvailableItems', args);
+              raw = extractPurchases(
+                result,
+                platformIsAndroid: false,
+                platformIsIOS: true,
+                acknowledgedAndroidPurchaseTokens:
+                    _acknowledgedAndroidPurchaseTokens,
+              );
+            } else if (_platform.isAndroid) {
+              final dynamic result =
+                  await _channel.invokeMethod('getAvailableItems');
+              raw = extractPurchases(
+                result,
+                platformIsAndroid: true,
+                platformIsIOS: false,
+                acknowledgedAndroidPurchaseTokens:
+                    _acknowledgedAndroidPurchaseTokens,
+              );
+            }
+
+            return raw
+                .where((purchase) => purchase.productId.isNotEmpty)
+                .where(hasResolvableIdentifier)
+                .toList(growable: false);
           }
-          return const <gentype.Purchase>[];
+
+          return await resolvePurchases();
         } catch (error) {
           throw gentype.PurchaseError(
             code: gentype.ErrorCode.ServiceError,
@@ -511,6 +475,58 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           );
         }
       };
+
+  Map<String, dynamic>? _buildIosPurchasePayload(
+    String nativeType,
+    Object? iosProps,
+  ) {
+    if (iosProps == null) {
+      return null;
+    }
+
+    Map<String, dynamic> propsJson;
+    if (iosProps is gentype.RequestPurchaseIosProps) {
+      propsJson = iosProps.toJson();
+    } else if (iosProps is gentype.RequestSubscriptionIosProps) {
+      propsJson = iosProps.toJson();
+    } else {
+      return null;
+    }
+
+    final String? sku = propsJson['sku'] as String?;
+    if (sku == null || sku.isEmpty) {
+      return null;
+    }
+
+    final payload = <String, dynamic>{
+      'sku': sku,
+      'type': nativeType,
+      'andDangerouslyFinishTransactionAutomatically':
+          (propsJson['andDangerouslyFinishTransactionAutomatically']
+                  as bool?) ??
+              false,
+    };
+
+    final String? appAccountToken = propsJson['appAccountToken'] as String?;
+    if (appAccountToken != null && appAccountToken.isNotEmpty) {
+      payload['appAccountToken'] = appAccountToken;
+    }
+
+    final dynamic quantityValue = propsJson['quantity'];
+    if (quantityValue is int) {
+      payload['quantity'] = quantityValue;
+    } else if (quantityValue is num) {
+      payload['quantity'] = quantityValue.toInt();
+    }
+
+    final dynamic offerValue = propsJson['withOffer'];
+    if (offerValue is Map) {
+      payload['withOffer'] = Map<String, dynamic>.from(offerValue);
+    }
+
+    payload.removeWhere((_, value) => value == null);
+    return payload;
+  }
 
   /// iOS specific: Get storefront
   gentype.QueryGetStorefrontIOSHandler get getStorefrontIOS => () async {
@@ -992,7 +1008,51 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
               'purchaseToken': purchaseToken,
             },
           );
-          final didAcknowledgeSucceed = _didAndroidAcknowledgeSucceed(result);
+          bool didAcknowledgeSucceed(dynamic response) {
+            if (response == null) {
+              return false;
+            }
+
+            if (response is bool) {
+              return response;
+            }
+
+            Map<String, dynamic>? parsed;
+
+            if (response is String) {
+              try {
+                final dynamic decoded = jsonDecode(response);
+                if (decoded is Map<String, dynamic>) {
+                  parsed = decoded;
+                } else {
+                  return false;
+                }
+              } catch (_) {
+                return false;
+              }
+            } else if (response is Map<dynamic, dynamic>) {
+              parsed = Map<String, dynamic>.from(response);
+            }
+
+            if (parsed != null) {
+              final dynamic code = parsed['responseCode'];
+              if (code is num && code == 0) {
+                return true;
+              }
+              if (code is String && int.tryParse(code) == 0) {
+                return true;
+              }
+
+              final bool? success = parsed['success'] as bool?;
+              if (success != null) {
+                return success;
+              }
+            }
+
+            return false;
+          }
+
+          final didAcknowledge = didAcknowledgeSucceed(result);
           parseAndLogAndroidResponse(
             result,
             successLog:
@@ -1000,7 +1060,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
             failureLog:
                 '[FlutterInappPurchase] Android: Failed to parse acknowledge response',
           );
-          if (didAcknowledgeSucceed) {
+          if (didAcknowledge) {
             _acknowledgedAndroidPurchaseTokens[purchaseToken] = true;
           } else if (kDebugMode) {
             debugPrint(
@@ -1014,9 +1074,12 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           debugPrint(
             '[FlutterInappPurchase] iOS: Finishing transaction with ID: $transactionId',
           );
-          await _channel.invokeMethod('finishTransaction', <String, dynamic>{
+          final payload = <String, dynamic>{
             'transactionId': transactionId,
-          });
+            'purchase': purchase.toJson(),
+            'isConsumable': consumable,
+          };
+          await _channel.invokeMethod('finishTransaction', payload);
           return;
         }
 
@@ -1193,10 +1256,15 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           for (final item in merged) {
             try {
               final Map<String, dynamic> itemMap;
-              if (item is Map<String, dynamic>) {
-                itemMap = item;
-              } else if (item is Map) {
-                itemMap = Map<String, dynamic>.from(item);
+              if (item is Map) {
+                final normalized = normalizeDynamicMap(item);
+                if (normalized == null) {
+                  debugPrint(
+                    '[flutter_inapp_purchase] Skipping product with null map after normalization: ${item.runtimeType}',
+                  );
+                  continue;
+                }
+                itemMap = normalized;
               } else {
                 debugPrint(
                   '[flutter_inapp_purchase] Skipping unexpected item type: ${item.runtimeType}',
@@ -1217,6 +1285,10 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
               debugPrint(
                 '[flutter_inapp_purchase] Skipping product due to parse error: $error',
               );
+              debugPrint(
+                  '[flutter_inapp_purchase] Item runtimeType: ${item.runtimeType}');
+              debugPrint(
+                  '[flutter_inapp_purchase] Item values: ${jsonEncode(item)}');
             }
           }
 
@@ -1247,50 +1319,6 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           );
         }
       };
-
-  bool _didAndroidAcknowledgeSucceed(dynamic response) {
-    if (response == null) {
-      return false;
-    }
-
-    if (response is bool) {
-      return response;
-    }
-
-    Map<String, dynamic>? parsed;
-
-    if (response is String) {
-      try {
-        final dynamic decoded = jsonDecode(response);
-        if (decoded is Map<String, dynamic>) {
-          parsed = decoded;
-        } else {
-          return false;
-        }
-      } catch (_) {
-        return false;
-      }
-    } else if (response is Map<dynamic, dynamic>) {
-      parsed = Map<String, dynamic>.from(response);
-    }
-
-    if (parsed != null) {
-      final dynamic code = parsed['responseCode'];
-      if (code is num && code == 0) {
-        return true;
-      }
-      if (code is String && int.tryParse(code) == 0) {
-        return true;
-      }
-
-      final bool? success = parsed['success'] as bool?;
-      if (success != null) {
-        return success;
-      }
-    }
-
-    return false;
-  }
 
   // MARK: - StoreKit 2 specific methods
 

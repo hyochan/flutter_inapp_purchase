@@ -590,20 +590,16 @@ gentype.PricingPhasesAndroid _parsePricingPhases(dynamic json) {
 }
 
 gentype.SubscriptionInfoIOS? _parseSubscriptionInfoIOS(dynamic value) {
-  if (value is Map<String, dynamic>) {
-    return gentype.SubscriptionInfoIOS.fromJson(value);
-  }
-  if (value is Map) {
-    return gentype.SubscriptionInfoIOS.fromJson(
-      Map<String, dynamic>.from(value),
-    );
+  final normalizedMap = normalizeDynamicMap(value);
+  if (normalizedMap != null) {
+    return gentype.SubscriptionInfoIOS.fromJson(normalizedMap);
   }
   if (value is List && value.isNotEmpty) {
-    final first = value.first;
-    if (first is Map) {
-      return gentype.SubscriptionInfoIOS.fromJson(
-        Map<String, dynamic>.from(first),
-      );
+    for (final candidate in value) {
+      final map = normalizeDynamicMap(candidate);
+      if (map != null) {
+        return gentype.SubscriptionInfoIOS.fromJson(map);
+      }
     }
   }
   return null;
@@ -617,6 +613,39 @@ gentype.SubscriptionPeriodIOS? _parseSubscriptionPeriod(dynamic value) {
   } catch (_) {
     return null;
   }
+}
+
+Map<String, dynamic>? normalizeDynamicMap(dynamic value) {
+  if (value is Map<String, dynamic>) {
+    return value.map<String, dynamic>(
+      (key, dynamic val) => MapEntry(key, normalizeDynamicValue(val)),
+    );
+  }
+  if (value is Map) {
+    final normalized = <String, dynamic>{};
+    value.forEach((dynamic key, dynamic val) {
+      if (key == null) {
+        return;
+      }
+      final stringKey = key.toString();
+      if (stringKey.isEmpty) {
+        return;
+      }
+      normalized[stringKey] = normalizeDynamicValue(val);
+    });
+    return normalized;
+  }
+  return null;
+}
+
+dynamic normalizeDynamicValue(dynamic value) {
+  if (value is Map || value is Map<dynamic, dynamic>) {
+    return normalizeDynamicMap(value);
+  }
+  if (value is List) {
+    return value.map<dynamic>(normalizeDynamicValue).toList();
+  }
+  return value;
 }
 
 gentype.PaymentModeIOS? _parsePaymentMode(dynamic value) {
