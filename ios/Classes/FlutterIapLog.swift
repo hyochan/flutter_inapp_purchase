@@ -55,17 +55,21 @@ enum FlutterIapLog {
         }
 
         #if canImport(os)
-        let logger = Logger(subsystem: "dev.hyo.flutter-inapp-purchase", category: "FlutterIap")
-        let formatted = "[FlutterIap] \(message)"
-        switch level {
-        case .debug:
-            logger.debug("\(formatted, privacy: .public)")
-        case .info:
-            logger.info("\(formatted, privacy: .public)")
-        case .warn:
-            logger.warning("\(formatted, privacy: .public)")
-        case .error:
-            logger.error("\(formatted, privacy: .public)")
+        if #available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *) {
+            let logger = Logger(subsystem: "dev.hyo.flutter-inapp-purchase", category: "FlutterIap")
+            let formatted = "[FlutterIap] \(message)"
+            switch level {
+            case .debug:
+                logger.debug("\(formatted, privacy: .public)")
+            case .info:
+                logger.info("\(formatted, privacy: .public)")
+            case .warn:
+                logger.warning("\(formatted, privacy: .public)")
+            case .error:
+                logger.error("\(formatted, privacy: .public)")
+            }
+        } else {
+            NSLog("[FlutterIap][%@] %@", level.rawValue.uppercased(), message)
         }
         #else
         NSLog("[FlutterIap][%@] %@", level.rawValue.uppercased(), message)

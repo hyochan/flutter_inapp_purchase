@@ -314,7 +314,7 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
           _originalProducts[productKey] = product;
         }
 
-        _subscriptions = List<ProductCommon>.from(products, growable: false);
+        _subscriptions = List.of(products, growable: false);
         _isLoadingProducts = false;
       });
     } catch (error) {

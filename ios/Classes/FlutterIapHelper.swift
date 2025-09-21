@@ -4,11 +4,41 @@ import OpenIAP
 enum FlutterIapHelper {
     // MARK: - Sanitization
 
+    private static let identifierKeys: Set<String> = [
+        "id",
+        "transactionId",
+        "productId",
+        "offerId",
+        "originalTransactionIdentifierIOS",
+        "subscriptionGroupIdIOS",
+        "webOrderLineItemIdIOS",
+        "orderIdAndroid",
+        "obfuscatedAccountIdAndroid",
+        "obfuscatedProfileIdAndroid"
+    ]
+
+    private static let sensitiveKeyFragments: [String] = [
+        "token",
+        "receipt",
+        "jws",
+        "signature"
+    ]
+
     static func sanitizeDictionary(_ dictionary: [String: Any?]) -> [String: Any] {
         var result: [String: Any] = [:]
         for (key, value) in dictionary {
-            if let value {
-                result[key] = value
+            let lowerKey = key.lowercased()
+            if sensitiveKeyFragments.contains(where: { lowerKey.contains($0) }) {
+                result[key] = "hidden"
+                continue
+            }
+
+            guard let sanitizedValue = sanitizeValue(value) else { continue }
+
+            if let number = sanitizedValue as? NSNumber, identifierKeys.contains(key) {
+                result[key] = number.stringValue
+            } else {
+                result[key] = sanitizedValue
             }
         }
         return result
@@ -21,27 +51,23 @@ enum FlutterIapHelper {
     static func sanitizeValue(_ value: Any?) -> Any? {
         guard let value else { return nil }
 
-        if let dictionary = value as? [String: Any] {
-            return dictionary.reduce(into: [String: Any]()) { result, element in
-                let (key, rawValue) = element
-                if key.lowercased().contains("token") {
-                    result[key] = "hidden"
-                } else if let sanitized = sanitizeValue(rawValue) {
-                    result[key] = sanitized
-                }
-            }
+        if let dictionary = value as? [String: Any?] {
+            return sanitizeDictionary(dictionary)
         }
 
-        if let optionalDictionary = value as? [String: Any?] {
+        if let dictionary = value as? [String: Any] {
+            let optionalDictionary = dictionary.reduce(into: [String: Any?]()) { result, element in
+                result[element.key] = element.value
+            }
             return sanitizeDictionary(optionalDictionary)
+        }
+
+        if let array = value as? [Any?] {
+            return array.compactMap { sanitizeValue($0) }
         }
 
         if let array = value as? [Any] {
             return array.compactMap { sanitizeValue($0) }
-        }
-
-        if let optionalArray = value as? [Any?] {
-            return optionalArray.compactMap { sanitizeValue($0) }
         }
 
         return value
