@@ -9,10 +9,10 @@ This guide helps you migrate your existing flutter_inapp_purchase implementation
 
 ## Version Support
 
-- **v6.7.0** (Current) - Latest version with simplified APIs and platform compliance updates
+- **v6.8.0** (Current) - Full OpenIAP ecosystem adoption with unified helpers
 - **v6.3.x - 6.6.x** - Previous stable releases with transitional APIs
 
-## Migration from v6.3.x to v6.7.0 (Current)
+## Migration from v6.3.x to v6.8.0 (Current)
 
 ### Breaking Changes
 
@@ -31,16 +31,21 @@ final products = await iap.fetchProducts(
 );
 ```
 
-**After (v6.7.0):**
+**After (v6.8.0):**
 
 ```dart
-final products = await iap.fetchProducts(
-  skus: ['product_id'],
-  type: PurchaseType.inapp,  // Optional, defaults to PurchaseType.inapp
+final result = await iap.fetchProducts(
+  ProductRequest(
+    skus: ['product_id'],
+    type: ProductQueryType.InApp,
+  ),
 );
+final products = result.inAppProducts();
 ```
 
-The `RequestProductsParams` class has been removed to simplify the API.
+The new `ProductRequest` input and `FetchProductsResult` sealed type replace the
+legacy parameter object and raw list, keeping Dart aligned with the OpenIAP
+schema while still providing helper extensions for typed lists.
 
 ## Migration from v5.x to v6.0.0
 
@@ -137,7 +142,7 @@ Update your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flutter_inapp_purchase: ^6.7.0 # Updated version
+  flutter_inapp_purchase: ^6.8.0 # Updated version
 ```
 
 Run:

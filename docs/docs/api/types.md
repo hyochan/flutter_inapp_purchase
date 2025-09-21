@@ -5,7 +5,7 @@ sidebar_position: 2
 
 # Types
 
-Comprehensive type definitions for flutter_inapp_purchase v6.7.0. All types are fully documented with TypeScript-style definitions for complete type safety.
+Comprehensive type definitions for flutter_inapp_purchase v6.8.0. All types are fully documented with TypeScript-style definitions for complete type safety.
 
 ## Core Types
 
@@ -479,22 +479,21 @@ IAPPlatform getCurrentPlatform();
 3. **Type Safety**: All optional fields are properly nullable
 4. **Platform Separation**: Clear distinction between iOS and Android types
 
-✨ **New in v6.7.0:**
+✨ **New in v6.8.0:**
 
-1. **Unified Purchase Token**: `purchaseToken` field now works consistently across platforms:
+1. **Sealed fetchProducts result** – `FetchProductsResult` now differentiates
+   in-app products and subscriptions with dedicated payload wrappers. Use
+   `result.inAppProducts()`, `result.subscriptionProducts()`, or
+   `result.allProducts()` to get typed lists.
 
-   - **iOS**: Contains JWS representation for server-side validation
-   - **Android**: Contains Google Play purchase token
-   - **Migration**: Replace `jwsRepresentationIOS` and `purchaseTokenAndroid` with `purchaseToken`
+2. **Typed ProductRequest input** – Catalog queries take a
+   `ProductRequest(skus: [...], type: ProductQueryType.InApp|Subs)`. This keeps
+   Dart in sync with the OpenIAP GraphQL schema and prevents invalid "all"
+   queries.
 
-2. **Improved Transaction IDs**:
-
-   - **Development**: Uses sequential IDs (1, 2, 3) with StoreKit Configuration
-   - **Sandbox/Production**: Uses proper secure IDs (e.g., `2000000985615347`)
-
-3. **Enhanced Error Handling**:
-   - Unified error events across platforms following expo-iap patterns
-   - Better duplicate event prevention
+3. **PurchaseOptions parity** – `PurchaseOptions` unifies
+   `getAvailablePurchases()` flags across platforms, adding the
+   `alsoPublishToEventListenerIOS` toggle for StoreKit event mirroring.
 
 ## See Also
 

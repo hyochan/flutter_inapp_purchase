@@ -5,7 +5,7 @@ sidebar_position: 3
 
 # Core Methods
 
-Essential methods for implementing in-app purchases with flutter_inapp_purchase v6.7.0. All methods support both iOS and Android platforms with unified APIs.
+Essential methods for implementing in-app purchases with flutter_inapp_purchase v6.8.0. All methods support both iOS and Android platforms with unified APIs.
 
 ⚠️ **Platform Differences**: While the API is unified, there are important differences between iOS and Android implementations. Each method documents platform-specific behavior.
 
@@ -67,14 +67,6 @@ try {
 **Note**: Connection can be re-established by calling `initConnection()` again.
 
 ---
-
-### finalize()
-
-Alternative name for `endConnection()` for backward compatibility.
-
-```dart
-Future<void> finalize() async
-```
 
 ## Product Loading
 
@@ -168,54 +160,33 @@ try {
 - **iOS**: Single `sku`, supports `quantity` and promotional offers
 - **Android**: Array of `skus`, supports obfuscated user IDs
 
+### requestPurchaseWithBuilder()
+
+Builder-style helper that configures platform-specific purchase parameters via
+the `RequestPurchaseBuilder` DSL. This is useful when you need to set different
+options per platform without manually constructing `RequestPurchase` objects.
+
+```dart
+await FlutterInappPurchase.instance.requestPurchaseWithBuilder(
+  build: (RequestPurchaseBuilder r) => r
+    ..type = ProductType.Subs
+    ..withIOS((RequestPurchaseIosBuilder i) => i..sku = 'your.sku1')
+    ..withAndroid(
+      (RequestPurchaseAndroidBuilder a) => a..skus = ['your.sku1'],
+    ),
+);
+```
+
+**Notes**:
+
+- The builder enforces explicit product types (`ProductType.InApp` or
+  `ProductType.Subs`).
+- Skip a platform block if you do not need overrides; the builder will only
+  include configured platforms in the final payload.
+- Internally this method resolves to `requestPurchase` with the constructed
+  `RequestPurchaseProps`.
+
 ---
-
-### requestPurchaseAuto()
-
-Simplified purchase method with automatic platform detection.
-
-```dart
-Future<void> requestPurchaseAuto({
-  required String sku,
-  required PurchaseType type,
-  // iOS-specific optional parameters
-  bool? andDangerouslyFinishTransactionAutomaticallyIOS,
-  String? appAccountToken,
-  int? quantity,
-  PaymentDiscount? withOffer,
-  // Android-specific optional parameters
-  String? obfuscatedAccountIdAndroid,
-  String? obfuscatedProfileIdAndroid,
-  bool? isOfferPersonalized,
-  String? purchaseToken,
-  int? offerTokenIndex,
-  int? prorationMode,
-  // Android subscription-specific
-  int? replacementModeAndroid,
-  List<SubscriptionOfferAndroid>? subscriptionOffers,
-}) async
-```
-
-**Parameters**:
-
-- `sku` - Product identifier
-- `type` - Purchase type
-- Platform-specific optional parameters
-
-**Example**:
-
-```dart
-try {
-  await FlutterInappPurchase.instance.requestPurchaseAuto(
-    sku: 'premium_upgrade',
-    type: PurchaseType.inapp,
-    quantity: 1,  // iOS only
-    obfuscatedAccountIdAndroid: 'user_123',  // Android only
-  );
-} catch (e) {
-  print('Auto purchase failed: $e');
-}
-```
 
 ## Transaction Management
 
@@ -343,21 +314,6 @@ try {
 }
 ```
 
----
-
-### getPurchaseHistories() _(deprecated)_
-
-Retrieves purchase history including consumed items. Use `getAvailablePurchases()` with `PurchaseOptions` instead.
-
-```dart
-@deprecated
-Future<List<Purchase>> getPurchaseHistories() async
-```
-
-**Note**: This API remains for backward compatibility but will be removed in a future release.
-
----
-
 ### restorePurchases()
 
 Restores previous purchases (primarily for iOS).
@@ -454,27 +410,6 @@ if (Platform.isAndroid) {
   } catch (e) {
     print('Failed to open subscription management: $e');
   }
-}
-```
-
----
-
-#### getConnectionStateAndroid()
-
-Gets the current billing client connection state.
-
-```dart
-Future<int> getConnectionStateAndroid() async
-```
-
-**Returns**: Connection state code
-
-**Example**:
-
-```dart
-if (Platform.isAndroid) {
-  final state = await FlutterInappPurchase.instance.getConnectionStateAndroid();
-  print('Billing client state: $state');
 }
 ```
 

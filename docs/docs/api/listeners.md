@@ -5,7 +5,7 @@ sidebar_position: 4
 
 # Event Listeners
 
-Real-time event streams for monitoring purchase transactions, connection states, and other IAP events in flutter_inapp_purchase v6.7.0.
+Real-time event streams for monitoring purchase transactions, connection states, and other IAP events in flutter_inapp_purchase v6.8.0.
 
 ## Core Event Streams
 
@@ -261,59 +261,6 @@ Future<void> handlePromotedPurchase(String productId) async {
 
 ---
 
-### inAppMessageAndroid
-
-Stream for Google Play in-app messaging events.
-
-```dart
-static Stream<int?> get inAppMessageAndroid
-```
-
-**Type**: `Stream<int?>`  
-**Emits**: Message type codes  
-**Platform**: Android only
-
-**Example**:
-```dart
-StreamSubscription<int?>? _inAppMessageSubscription;
-
-void setupInAppMessageListener() {
-  if (Platform.isAndroid) {
-    _inAppMessageSubscription = FlutterInappPurchase.inAppMessageAndroid.listen(
-      (messageType) {
-        if (messageType != null) {
-          handleInAppMessage(messageType);
-        }
-      },
-    );
-  }
-}
-
-void handleInAppMessage(int messageType) {
-  print('In-app message received: $messageType');
-  
-  switch (messageType) {
-    case 0: // Purchase message
-      print('Purchase-related message shown');
-      break;
-    case 1: // Billing message  
-      print('Billing-related message shown');
-      break;
-    case 2: // Price change message
-      print('Price change message shown');
-      break;
-    default:
-      print('Unknown message type: $messageType');
-  }
-}
-```
-
-**Message Types**:
-- `0` - Purchase messages
-- `1` - Billing messages
-- `2` - Price change notifications
-- `3` - Generic messages
-
 ## Complete Listener Setup
 
 ### Full Implementation Example
@@ -324,7 +271,6 @@ class IAPListenerManager {
   StreamSubscription<PurchaseResult?>? _errorSubscription;
   StreamSubscription<ConnectionResult>? _connectionSubscription;
   StreamSubscription<String?>? _promotedSubscription;
-  StreamSubscription<int?>? _inAppMessageSubscription;
   
   bool _isListening = false;
   
@@ -376,17 +322,6 @@ class IAPListenerManager {
       );
     }
     
-    // Android in-app messages
-    if (Platform.isAndroid) {
-      _inAppMessageSubscription = FlutterInappPurchase.inAppMessageAndroid.listen(
-        (messageType) {
-          if (messageType != null) {
-            _handleInAppMessage(messageType);
-          }
-        },
-      );
-    }
-    
     _isListening = true;
     print('IAP listeners started');
   }
@@ -396,13 +331,11 @@ class IAPListenerManager {
     _errorSubscription?.cancel();
     _connectionSubscription?.cancel();
     _promotedSubscription?.cancel();
-    _inAppMessageSubscription?.cancel();
     
     _purchaseSubscription = null;
     _errorSubscription = null;
     _connectionSubscription = null;
     _promotedSubscription = null;
-    _inAppMessageSubscription = null;
     
     _isListening = false;
     print('IAP listeners stopped');
@@ -424,9 +357,6 @@ class IAPListenerManager {
     // Implementation from examples above
   }
   
-  void _handleInAppMessage(int messageType) {
-    // Implementation from examples above
-  }
 }
 ```
 

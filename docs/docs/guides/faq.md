@@ -5,7 +5,7 @@ title: FAQ
 
 # Frequently Asked Questions
 
-Common questions and answers about flutter_inapp_purchase v6.7.0, covering implementation, platform differences, best practices, and migration.
+Common questions and answers about flutter_inapp_purchase v6.8.0, covering implementation, platform differences, best practices, and migration.
 
 ## General Questions
 
@@ -26,36 +26,31 @@ Currently supported platforms:
 - **iOS** (12.0+) - Uses StoreKit 2 (iOS 15.0+) with fallback to StoreKit 1
 - **Android** (minSdkVersion 21) - Uses Google Play Billing Client v8
 
-### What's new in v6.7.0?
+### What's new in v6.8.0?
 
-Major changes in v6.7.0:
+Major changes in v6.8.0:
 
 ```dart
-// Old API (v5.x)
-await FlutterInappPurchase.instance.requestPurchase('product_id');
-
-// New API (v6.7.0)
-await FlutterInappPurchase.instance.requestPurchase(
-  request: RequestPurchase(
-    ios: RequestPurchaseIOS(
-      sku: 'product_id',
-      quantity: 1,
-    ),
-    android: RequestPurchaseAndroid(
-      skus: ['product_id'],
-    ),
+final result = await FlutterInappPurchase.instance.fetchProducts(
+  ProductRequest(
+    skus: ['product_id'],
+    type: ProductQueryType.InApp,
   ),
-  type: PurchaseType.inapp,
 );
+
+final products = result.inAppProducts();
 ```
 
 Key improvements:
 
-- Direct parameters for `fetchProducts()` (no `RequestProductsParams`)
-- Platform-specific request objects for `requestPurchase()`
-- `PurchaseOptions` for controlling `getAvailablePurchases()` behavior
-- Enhanced type safety and error handling
-- StoreKit 2 support for iOS
+- Platform helper APIs are now consolidated into the main
+  `FlutterInappPurchase` surface, so you no longer juggle separate modules.
+- `FetchProductsResult` provides typed wrappers for in-app products and
+  subscriptions with helper extensions (`inAppProducts()`, `subscriptionProducts()`).
+- `openiap-versions.json` drives Android, iOS, and type-generation packages to
+  keep the OpenIAP stack aligned automatically.
+- The iOS plugin features richer logging, status parsing, and safer lifecycle
+  handling for subscription flows.
 
 ## Implementation Questions
 
@@ -87,10 +82,13 @@ FlutterInappPurchase.purchaseError.listen((error) {
 });
 
 // 4. Load products
-final products = await FlutterInappPurchase.instance.fetchProducts(
-  skus: ['product_id_1', 'product_id_2'],
-  type: PurchaseType.inapp,
+final result = await FlutterInappPurchase.instance.fetchProducts(
+  ProductRequest(
+    skus: ['product_id_1', 'product_id_2'],
+    type: ProductQueryType.InApp,
+  ),
 );
+final products = result.inAppProducts();
 
 // 5. Request purchase
 await FlutterInappPurchase.instance.requestPurchase(
@@ -291,13 +289,6 @@ class PlatformSpecificHandler {
       debugPrint('Failed to open subscription management: $e');
     }
 
-    // Get connection state
-    try {
-      final state = await FlutterInappPurchase.instance.getConnectionStateAndroid();
-      debugPrint('Android connection state: $state');
-    } catch (e) {
-      debugPrint('Failed to get connection state: $e');
-    }
   }
 }
 ```
@@ -480,7 +471,7 @@ Key migration steps:
 // Old (v5.x)
 await _iap.requestPurchase('product_id');
 
-// New (v6.7.0)
+// New (v6.8.0)
 await _iap.requestPurchase(
   request: RequestPurchase(
     ios: RequestPurchaseIOS(sku: 'product_id', quantity: 1),
@@ -493,7 +484,7 @@ await _iap.requestPurchase(
 // Old (v5.x)
 await _iap.requestPurchase('subscription_id');
 
-// New (v6.7.0)
+// New (v6.8.0)
 await _iap.requestPurchase(
   request: RequestPurchase(
     ios: RequestPurchaseIOS(sku: 'subscription_id'),
@@ -516,7 +507,7 @@ FlutterInappPurchase.purchaseUpdated.listen((purchase) {
 
 ### What breaking changes should I be aware of?
 
-Major breaking changes in v6.7.0:
+Major breaking changes in v6.0+:
 
 1. **Request API Changed**
 

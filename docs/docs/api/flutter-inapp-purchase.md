@@ -271,14 +271,6 @@ Deep link to subscription management.
 Future<void> deepLinkToSubscriptionsAndroid({String? sku})
 ```
 
-#### getConnectionStateAndroid()
-
-Get the billing client connection state.
-
-```dart
-Future<BillingClientState> getConnectionStateAndroid()
-```
-
 ## 🎧 Event Streams
 
 ### purchaseUpdated

@@ -5,7 +5,7 @@ title: Offer Code Redemption
 
 # Offer Code Redemption
 
-Guide to implementing promotional offer codes and subscription management with flutter_inapp_purchase v6.7.0, covering iOS and Android platforms.
+Guide to implementing promotional offer codes and subscription management with flutter_inapp_purchase v6.8.0, covering iOS and Android platforms.
 
 ## Overview
 
@@ -183,20 +183,6 @@ class AndroidSubscriptionManager {
       debugPrint('Opened Android subscription management');
     } catch (e) {
       debugPrint('Failed to open subscription management: $e');
-    }
-  }
-  
-  /// Get Android billing connection state
-  Future<String?> getConnectionState() async {
-    if (!Platform.isAndroid) return null;
-    
-    try {
-      final state = await _iap.getConnectionStateAndroid();
-      debugPrint('Android connection state: $state');
-      return state;
-    } catch (e) {
-      debugPrint('Failed to get connection state: $e');
-      return null;
     }
   }
 }

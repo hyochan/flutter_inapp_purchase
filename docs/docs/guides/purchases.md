@@ -9,7 +9,7 @@ import AdFitTopFixed from "@site/src/uis/AdFitTopFixed";
 
 <AdFitTopFixed />
 
-Complete guide to implementing in-app purchases with flutter_inapp_purchase v6.7.0, covering everything from basic setup to advanced purchase handling.
+Complete guide to implementing in-app purchases with flutter_inapp_purchase v6.8.0, covering everything from basic setup to advanced purchase handling.
 
 ## Purchase Flow Overview
 
@@ -334,7 +334,6 @@ void checkPlatformFeatures() {
     // Can use Android-specific methods like:
     // - consumePurchaseAndroid()
     // - deepLinkToSubscriptionsAndroid()
-    // - getConnectionStateAndroid()
   }
 }
 ```
@@ -696,4 +695,4 @@ class PurchaseService {
 }
 ```
 
-This guide covers the complete purchase flow using the actual flutter_inapp_purchase v6.7.0 API, with examples based on the working code from your project.
+This guide covers the complete purchase flow using the actual flutter_inapp_purchase v6.8.0 API, with examples based on the working code from your project.

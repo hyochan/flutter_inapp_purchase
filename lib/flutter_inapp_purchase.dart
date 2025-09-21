@@ -56,12 +56,6 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
     return _purchasePromotedController!.stream;
   }
 
-  StreamController<int?>? _onInAppMessageController;
-  Stream<int?> get inAppMessageAndroid {
-    _onInAppMessageController ??= StreamController<int?>.broadcast();
-    return _onInAppMessageController!.stream;
-  }
-
   final Map<String, bool> _acknowledgedAndroidPurchaseTokens = <String, bool>{};
 
   /// Defining the [MethodChannel] for Flutter_Inapp_Purchase
@@ -161,10 +155,6 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
         case 'iap-promoted-product':
           String? productId = call.arguments as String?;
           _purchasePromotedController!.add(productId);
-          break;
-        case 'on-in-app-message':
-          final int code = call.arguments as int;
-          _onInAppMessageController?.add(code);
           break;
         default:
           throw ArgumentError('Unknown method ${call.method}');

@@ -5,7 +5,7 @@ title: Troubleshooting
 
 # Troubleshooting
 
-Common issues and solutions when working with flutter_inapp_purchase v6.7.0.
+Common issues and solutions when working with flutter_inapp_purchase v6.8.0.
 
 ## Transaction ID Issues
 

@@ -47,12 +47,6 @@ Stream<String?> purchasePromoted
 
 Stream that emits promoted product IDs (iOS only).
 
-```dart
-Stream<int?> inAppMessageAndroid
-```
-
-Stream that emits in-app message codes (Android only).
-
 ### Instance Streams (expo-iap compatible)
 
 ```dart
@@ -204,15 +198,6 @@ final allPurchases = await FlutterInappPurchase.instance.getAvailablePurchases(
   ),
 );
 ```
-
-#### getPurchaseHistories() _(deprecated)_
-
-```dart
-@deprecated
-Future<List<Purchase>> getPurchaseHistories()
-```
-
-Legacy method for retrieving historical purchases. Use `getAvailablePurchases()` with `PurchaseOptions` instead.
 
 ### Platform-Specific Methods
 

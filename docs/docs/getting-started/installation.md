@@ -34,7 +34,7 @@ Or add it manually to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flutter_inapp_purchase: ^6.7.0
+  flutter_inapp_purchase: ^6.8.0
 ```
 
 Then run:

@@ -11,6 +11,11 @@
   background: linear-gradient(135deg, #f8f4ef 0%, #f0ead6 100%);
 }
 
+[data-theme="dark"] .heroBanner {
+  background: radial-gradient(circle at top left, #1f2937 0%, #0f172a 100%);
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.08);
+}
+
 .heroContent {
   display: flex;
   align-items: center;
@@ -34,12 +39,42 @@
   opacity: 1;
 }
 
-.heroImage {
+.heroSponsor {
+  margin-top: 2rem;
+  color: #2e3e5c;
+  font-size: 1rem;
+  line-height: 1.6;
+  max-width: 28rem;
+}
+
+.heroImageWrapper {
   flex: 1;
   display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+.heroImageSpacer {
+  flex: 1;
+}
+
+.heroImage {
+  max-width: 320px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.heroImageColumn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+.heroAd {
+  display: flex;
+  width: 100%;
   justify-content: center;
-  align-items: center;
-  max-width: 500px;
 }
 
 .heroImg {
@@ -62,16 +97,22 @@
 @media screen and (max-width: 1200px) {
   .heroContent {
     flex-direction: column;
-    text-align: center;
+    align-items: flex-start;
+    text-align: left;
   }
   
   .heroText {
-    text-align: center;
+    text-align: left;
     max-width: none;
   }
   
   .buttons {
-    justify-content: center;
+    justify-content: flex-start;
+  }
+
+  .heroImageWrapper {
+    width: 100%;
+    justify-content: flex-start;
   }
 }
 
@@ -85,32 +126,32 @@
   .heroBanner {
     padding: 2rem 1rem;
   }
-  
+
   .heroContent {
     gap: 1.5rem;
     padding: 0;
   }
-  
+
   .heroText {
     padding: 0 1rem;
   }
-  
+
   .heroSubtitle {
     font-size: 1rem;
     margin-bottom: 1.5rem;
   }
-  
+
   .heroImg {
     max-height: 250px;
     width: 90%;
   }
-  
+
   .buttons {
     flex-direction: column;
     width: 100%;
     gap: 0.75rem;
   }
-  
+
   .buttons > * {
     width: 100%;
     margin: 0;
@@ -120,7 +161,19 @@
 }
 
 /* Dark mode subtitle styling */
-[data-theme='dark'] .heroSubtitle {
-  color: #a8b3c4 !important;
+[data-theme="dark"] .heroSubtitle {
+  color: #dbeafe !important;
   opacity: 1;
+}
+
+[data-theme="dark"] .heroText {
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .heroSponsor {
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .heroImg {
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.45);
 }
