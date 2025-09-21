@@ -15,13 +15,17 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
     // No local StoreKit caches; OpenIAP handles state internally
     private var processedTransactionIds: Set<String> = []
     
-    // Produce standardized message from OpenIAP error catalog
-    private func defaultMessage(for code: String) -> String {
-        return OpenIapError.defaultMessage(for: code)
+    // Override local catalog with canonical OpenIAP messages
+    private func defaultMessage(for code: ErrorCode) -> String {
+        PurchaseError.defaultMessage(for: code)
+    }
+
+    private func defaultMessage(for rawCode: String) -> String {
+        PurchaseError.defaultMessage(for: rawCode)
     }
     
     public static func register(with registrar: FlutterPluginRegistrar) {
-        print("\(TAG) Swift register called")
+        FlutterIapLog.debug("Swift register called")
         let channel = FlutterMethodChannel(name: "flutter_inapp", binaryMessenger: registrar.messenger())
         let instance = FlutterInappPurchasePlugin()
         registrar.addMethodCallDelegate(instance, channel: channel)
@@ -39,11 +43,11 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
 
     @MainActor
     private func handleOnMain(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        print("\(FlutterInappPurchasePlugin.TAG) Swift handle called with method: '\(call.method)' and arguments: \(String(describing: call.arguments))")
+        FlutterIapLog.debug("Swift handle called with method: \(call.method)")
         
         switch call.method {
         case "canMakePayments":
-            print("\(FlutterInappPurchasePlugin.TAG) canMakePayments called (OpenIAP)")
+            FlutterIapLog.debug("canMakePayments called (OpenIAP)")
             // OpenIAP abstraction: assume payments can be made once initialized
             result(true)
             
@@ -61,7 +65,8 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 let params: [String: Any] = ["skus": skus, "type": "all"]
                 fetchProducts(params: params, result: result)
             } else {
-                result(FlutterError(code: OpenIapError.DeveloperError, message: "Invalid params for fetchProducts", details: nil))
+                let code: ErrorCode = .developerError
+                result(FlutterError(code: code.rawValue, message: "Invalid params for fetchProducts", details: nil))
             }
             
         case "getAvailableItems":
@@ -84,30 +89,33 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
             } else if let sku = call.arguments as? String {
                 requestPurchase(args: ["sku": sku], result: result)
             } else {
-                result(FlutterError(code: OpenIapError.DeveloperError, message: "Invalid params for requestPurchase", details: nil))
+                let code: ErrorCode = .developerError
+                result(FlutterError(code: code.rawValue, message: "Invalid params for requestPurchase", details: nil))
             }
             
         case "finishTransaction":
-            // Support both old and new API
-            var transactionId: String?
-            
-            print("\(FlutterInappPurchasePlugin.TAG) finishTransaction called with arguments: \(String(describing: call.arguments))")
-            
+            FlutterIapLog.payload("finishTransaction", payload: call.arguments)
+
             if let args = call.arguments as? [String: Any] {
-                transactionId = args["transactionId"] as? String ?? args["transactionIdentifier"] as? String
-                print("\(FlutterInappPurchasePlugin.TAG) Extracted transactionId from args: \(transactionId ?? "nil")")
+                if let purchasePayload = args["purchase"] as? [String: Any] {
+                    let isConsumable = args["isConsumable"] as? Bool
+                    finishTransaction(purchaseDict: purchasePayload, isConsumable: isConsumable, result: result)
+                    return
+                }
+                if let id = args["transactionId"] as? String ?? args["transactionIdentifier"] as? String {
+                    FlutterIapLog.debug("finishTransaction extracted transactionId: \(id)")
+                    finishTransaction(transactionId: id, result: result)
+                    return
+                }
             } else if let id = call.arguments as? String {
-                transactionId = id
-                print("\(FlutterInappPurchasePlugin.TAG) Using direct string as transactionId: \(id)")
-            }
-            
-            guard let id = transactionId else {
-                print("\(FlutterInappPurchasePlugin.TAG) ERROR: No transactionId found in arguments")
-                result(FlutterError(code: OpenIapError.DeveloperError, message: "transactionId required", details: nil))
+                FlutterIapLog.debug("finishTransaction using direct transactionId: \(id)")
+                finishTransaction(transactionId: id, result: result)
                 return
             }
-            print("\(FlutterInappPurchasePlugin.TAG) Final transactionId to finish: \(id)")
-            finishTransaction(transactionId: id, result: result)
+
+            FlutterIapLog.error("finishTransaction called without transaction info")
+            let code: ErrorCode = .developerError
+            result(FlutterError(code: code.rawValue, message: "transactionId required", details: nil))
             
         case "getStorefrontIOS":
             getStorefrontIOS(result: result)
@@ -125,7 +133,8 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
             if #available(iOS 16.0, *) {
                 presentCodeRedemptionSheetIOS(result: result)
             } else {
-                result(FlutterError(code: OpenIapError.FeatureNotSupported, message: "Code redemption requires iOS 16.0+", details: nil))
+                let code: ErrorCode = .featureNotSupported
+                result(FlutterError(code: code.rawValue, message: "Code redemption requires iOS 16.0+", details: nil))
             }
             
         case "getPromotedProductIOS":
@@ -139,7 +148,8 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
         case "validateReceiptIOS":
             guard let args = call.arguments as? [String: Any],
                   let sku = args["sku"] as? String else {
-                result(FlutterError(code: OpenIapError.DeveloperError, message: "sku required", details: nil))
+                let code: ErrorCode = .developerError
+                result(FlutterError(code: code.rawValue, message: "sku required", details: nil))
                 return
             }
             validateReceiptIOS(productId: sku, result: result)
@@ -152,7 +162,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
     // MARK: - Connection Management
     
     private func initConnection(result: @escaping FlutterResult) {
-        print("\(FlutterInappPurchasePlugin.TAG) initConnection called")
+        FlutterIapLog.debug("initConnection called")
         // Ensure listeners are set before initializing connection (Expo-style)
         setupOpenIapListeners()
         Task { @MainActor in
@@ -161,15 +171,15 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 result(nil)
             } catch {
                 await MainActor.run {
-                    let code = OpenIapError.InitConnection
-                    result(FlutterError(code: code, message: defaultMessage(for: code), details: nil))
+                    let code: ErrorCode = .initConnection
+                    result(FlutterError(code: code.rawValue, message: defaultMessage(for: code), details: nil))
                 }
             }
         }
     }
     
     private func endConnection(result: @escaping FlutterResult) {
-        print("\(FlutterInappPurchasePlugin.TAG) endConnection called")
+        FlutterIapLog.debug("endConnection called")
         removeOpenIapListeners()
         Task {
             _ = try? await OpenIapModule.shared.endConnection()
@@ -187,40 +197,30 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
     // MARK: - OpenIAP Listeners
     private func setupOpenIapListeners() {
         if purchaseUpdatedToken != nil || purchaseErrorToken != nil { return }
-        print("\(FlutterInappPurchasePlugin.TAG) Setting up OpenIAP listeners")
-        
+        FlutterIapLog.debug("Setting up OpenIAP listeners")
+
         purchaseUpdatedToken = OpenIapModule.shared.purchaseUpdatedListener { [weak self] purchase in
             Task { @MainActor in
-                guard let self = self else { return }
-                print("\(FlutterInappPurchasePlugin.TAG) ✅ purchaseUpdatedListener fired")
-                let payload = OpenIapSerialization.purchase(purchase)
-                var sanitized = self.sanitize(dict: payload)
-                // Coerce iOS fields that Dart expects as String
-                if let n = sanitized["webOrderLineItemIdIOS"] as? NSNumber { sanitized["webOrderLineItemIdIOS"] = n.stringValue }
-                if let n = sanitized["originalTransactionIdentifierIOS"] as? NSNumber { sanitized["originalTransactionIdentifierIOS"] = n.stringValue }
-                if let n = sanitized["subscriptionGroupIdIOS"] as? NSNumber { sanitized["subscriptionGroupIdIOS"] = n.stringValue }
-                if let n = sanitized["reasonIOS"] as? NSNumber { sanitized["reasonIOS"] = n.stringValue }
-                if let jsonData = try? JSONSerialization.data(withJSONObject: sanitized),
-                   let jsonString = String(data: jsonData, encoding: .utf8) {
-                    print("\(FlutterInappPurchasePlugin.TAG) Emitting purchase-updated to Flutter")
+                guard let self else { return }
+                FlutterIapLog.debug("purchaseUpdatedListener fired for \(purchase.productId)")
+                let payload = FlutterIapHelper.sanitizeDictionary(OpenIapSerialization.purchase(purchase))
+                if let jsonString = FlutterIapHelper.jsonString(from: payload) {
                     self.channel?.invokeMethod("purchase-updated", arguments: jsonString)
                 }
             }
         }
-        
+
         purchaseErrorToken = OpenIapModule.shared.purchaseErrorListener { [weak self] error in
             Task { @MainActor in
-                guard let self = self else { return }
-                print("\(FlutterInappPurchasePlugin.TAG) ❌ purchaseErrorListener fired")
+                guard let self else { return }
+                FlutterIapLog.debug("purchaseErrorListener fired")
                 let errorData: [String: Any?] = [
-                    "code": error.code,
+                    "code": error.code.rawValue,
                     "message": error.message,
                     "productId": error.productId
                 ]
-                let sanitized = self.sanitize(dict: errorData)
-                if let jsonData = try? JSONSerialization.data(withJSONObject: sanitized),
-                   let jsonString = String(data: jsonData, encoding: .utf8) {
-                    print("\(FlutterInappPurchasePlugin.TAG) Emitting purchase-error to Flutter")
+                let compacted = FlutterIapHelper.sanitizeDictionary(errorData)
+                if let jsonString = FlutterIapHelper.jsonString(from: compacted) {
                     self.channel?.invokeMethod("purchase-error", arguments: jsonString)
                 }
             }
@@ -229,7 +229,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
         promotedProductToken = OpenIapModule.shared.promotedProductListenerIOS { [weak self] productId in
             Task { @MainActor in
                 guard let self = self else { return }
-                print("\(FlutterInappPurchasePlugin.TAG) 📱 promotedProductListenerIOS fired for: \(productId)")
+                FlutterIapLog.debug("promotedProductListenerIOS fired for: \(productId)")
                 // Emit event that Dart expects: name 'iap-promoted-product' with String payload
                 self.channel?.invokeMethod("iap-promoted-product", arguments: productId)
             }
@@ -245,12 +245,6 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
         promotedProductToken = nil
     }
     
-    private func sanitize(dict: [String: Any?]) -> [String: Any] {
-        var sanitized: [String: Any] = [:]
-        for (k, v) in dict { sanitized[k] = v ?? NSNull() }
-        return sanitized
-    }
-    
     // All transaction event handling is routed via OpenIapModule listeners
     
     // No direct StoreKit transaction state evaluation; handled by OpenIAP
@@ -264,41 +258,31 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
     // MARK: - Product Loading
     
     private func fetchProducts(params: [String: Any], result: @escaping FlutterResult) {
-        let rawSkus = params["skus"] as? [String]
-        // Support alternative array format (0,1,2 indexes)
-        var skus = rawSkus ?? []
-        if skus.isEmpty {
-            var temp: [String] = []
-            var i = 0
-            while let sku = params["\(i)"] as? String { temp.append(sku); i += 1 }
-            skus = temp
-        }
-        let typeStr = (params["type"] as? String) ?? "all"
-        print("\(FlutterInappPurchasePlugin.TAG) fetchProducts called with skus: \(skus), type: \(typeStr)")
-        guard !skus.isEmpty else {
-            result(FlutterError(code: OpenIapError.QueryProduct, message: "Empty SKU list provided", details: nil))
-            return
-        }
+        FlutterIapLog.payload("fetchProducts", payload: params)
         Task { @MainActor in
             do {
-                let reqType: OpenIapRequestProductType = {
-                    switch typeStr.lowercased() {
-                    case "inapp": return .inApp
-                    case "subs": return .subs
-                    default: return .all
-                    }
-                }()
-                let request = OpenIapProductRequest(skus: skus, type: reqType)
-                let products: [OpenIapProduct] = try await OpenIapModule.shared.fetchProducts(request)
-                let serialized = OpenIapSerialization.products(products)
+                let request = try FlutterIapHelper.decodeProductRequest(from: params)
+                let products = try await OpenIapModule.shared.fetchProducts(request)
+                let serialized = FlutterIapHelper.sanitizeArray(
+                    OpenIapSerialization.products(products, logger: { FlutterIapLog.debug($0) })
+                )
+                FlutterIapLog.result("fetchProducts", value: serialized)
                 result(serialized)
+            } catch let purchaseError as PurchaseError {
+                FlutterIapLog.failure("fetchProducts", error: purchaseError)
+                result(FlutterError(
+                    code: purchaseError.code.rawValue,
+                    message: purchaseError.message,
+                    details: purchaseError.productId
+                ))
             } catch {
-                let code = OpenIapError.QueryProduct
-                result(FlutterError(code: code, message: defaultMessage(for: code), details: nil))
+                FlutterIapLog.failure("fetchProducts", error: error)
+                let code: ErrorCode = .queryProduct
+                result(FlutterError(code: code.rawValue, message: defaultMessage(for: code), details: error.localizedDescription))
             }
         }
     }
-    
+
     // MARK: - Available Items
     
     private func getAvailableItems(
@@ -306,42 +290,22 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
         onlyIncludeActiveItems: Bool = true,
         alsoPublishToEventListener: Bool = false
     ) {
-        print("\(FlutterInappPurchasePlugin.TAG) getAvailableItems called with onlyIncludeActiveItems: \(onlyIncludeActiveItems), alsoPublishToEventListener: \(alsoPublishToEventListener)")
+        FlutterIapLog.debug("getAvailableItems called (onlyActive: \(onlyIncludeActiveItems), alsoPublish: \(alsoPublishToEventListener))")
         Task { @MainActor in
             do {
-                let opts = OpenIapGetAvailablePurchasesProps(
-                    alsoPublishToEventListenerIOS: alsoPublishToEventListener,
-                    onlyIncludeActiveItemsIOS: onlyIncludeActiveItems
+                let opts = try FlutterIapHelper.decodePurchaseOptions(
+                    alsoPublish: alsoPublishToEventListener,
+                    onlyIncludeActive: onlyIncludeActiveItems
                 )
                 let purchases = try await OpenIapModule.shared.getAvailablePurchases(opts)
-                let serialized = OpenIapSerialization.purchases(purchases)
-                let sanitized = serialized.map { item -> [String: Any] in
-                    var dict = self.sanitize(dict: item)
-                    // Coerce iOS fields that Dart expects as String (avoid int→String? cast errors)
-                    let stringKeys = [
-                        "webOrderLineItemIdIOS",
-                        "originalTransactionIdentifierIOS",
-                        "subscriptionGroupIdIOS",
-                        "reasonIOS",
-                        "storefrontCountryCodeIOS",
-                        "appBundleIdIOS",
-                        "ownershipTypeIOS",
-                        "productTypeIOS",
-                        "currencyIOS",
-                    ]
-                    for key in stringKeys {
-                        if let n = dict[key] as? NSNumber { dict[key] = n.stringValue }
-                    }
-                    // Ensure id/transactionId are strings if present
-                    if let n = dict["id"] as? NSNumber { dict["id"] = n.stringValue }
-                    if let n = dict["transactionId"] as? NSNumber { dict["transactionId"] = n.stringValue }
-                    return dict
-                }
-                await MainActor.run { result(sanitized) }
+                let serialized = FlutterIapHelper.sanitizeArray(OpenIapSerialization.purchases(purchases))
+                FlutterIapLog.result("getAvailableItems", value: serialized)
+                await MainActor.run { result(serialized) }
             } catch {
+                FlutterIapLog.failure("getAvailableItems", error: error)
                 await MainActor.run {
-                    let code = OpenIapError.ServiceError
-                    result(FlutterError(code: code, message: defaultMessage(for: code), details: nil))
+                    let code: ErrorCode = .serviceError
+                    result(FlutterError(code: code.rawValue, message: defaultMessage(for: code), details: error.localizedDescription))
                 }
             }
         }
@@ -351,68 +315,85 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
     private func requestPurchase(args: [String: Any], result: @escaping FlutterResult) {
         let sku = (args["sku"] as? String) ?? (args["productId"] as? String)
         guard let sku else {
-            result(FlutterError(code: OpenIapError.DeveloperError, message: "sku required", details: nil))
+            let code: ErrorCode = .developerError
+            result(FlutterError(code: code.rawValue, message: "sku required", details: nil))
             return
         }
-        let autoFinish = (args["andDangerouslyFinishTransactionAutomatically"] as? Bool) ?? false
-        let appAccountToken = args["appAccountToken"] as? String
-        let quantity: Int? = {
-            if let q = args["quantity"] as? Int { return q }
-            if let qs = args["quantity"] as? String, let q = Int(qs) { return q }
-            return nil
-        }()
-        var withOffer: OpenIapDiscountOffer? = nil
-        if let offer = args["withOffer"] as? [String: Any] {
-            if let id = offer["identifier"] as? String,
-               let key = offer["keyIdentifier"] as? String,
-               let nonce = offer["nonce"] as? String,
-               let sig = offer["signature"] as? String,
-               let ts = offer["timestamp"] as? String {
-                withOffer = OpenIapDiscountOffer(identifier: id, keyIdentifier: key, nonce: nonce, signature: sig, timestamp: ts)
-            }
-        }
-        print("\(FlutterInappPurchasePlugin.TAG) requestPurchase called with sku: \(sku)")
+        FlutterIapLog.payload("requestPurchase", payload: args)
+
         Task { @MainActor in
             do {
-                let props = OpenIapRequestPurchaseProps(
-                    sku: sku,
-                    andDangerouslyFinishTransactionAutomatically: autoFinish,
-                    appAccountToken: appAccountToken,
-                    quantity: quantity,
-                    withOffer: withOffer
-                )
+                let props = try FlutterIapHelper.decodeRequestPurchaseProps(from: args)
                 _ = try await OpenIapModule.shared.requestPurchase(props)
+                FlutterIapLog.info("requestPurchase dispatched successfully for sku \(sku)")
                 result(nil)
+            } catch let purchaseError as PurchaseError {
+                FlutterIapLog.failure("requestPurchase", error: purchaseError)
+                let errorData: [String: Any?] = [
+                    "code": purchaseError.code.rawValue,
+                    "message": purchaseError.message.isEmpty ? defaultMessage(for: purchaseError.code) : purchaseError.message,
+                    "productId": purchaseError.productId ?? sku
+                ]
+                if let payload = FlutterIapHelper.jsonString(from: FlutterIapHelper.sanitizeDictionary(errorData)) {
+                    channel?.invokeMethod("purchase-error", arguments: payload)
+                }
+                result(FlutterError(
+                    code: purchaseError.code.rawValue,
+                    message: purchaseError.message,
+                    details: purchaseError.productId ?? sku
+                ))
             } catch {
-                let errorData: [String: Any] = [
-                    "code": OpenIapError.PurchaseError,
-                    "message": defaultMessage(for: OpenIapError.PurchaseError),
+                FlutterIapLog.failure("requestPurchase", error: error)
+                let code: ErrorCode = .purchaseError
+                let errorData: [String: Any?] = [
+                    "code": code.rawValue,
+                    "message": error.localizedDescription,
                     "productId": sku
                 ]
-                if let jsonData = try? JSONSerialization.data(withJSONObject: errorData),
-                   let jsonString = String(data: jsonData, encoding: .utf8) {
-                    channel?.invokeMethod("purchase-error", arguments: jsonString)
+                if let payload = FlutterIapHelper.jsonString(from: FlutterIapHelper.sanitizeDictionary(errorData)) {
+                    channel?.invokeMethod("purchase-error", arguments: payload)
                 }
-                let code = OpenIapError.PurchaseError
-                result(FlutterError(code: code, message: defaultMessage(for: code), details: nil))
+                result(FlutterError(code: code.rawValue, message: defaultMessage(for: code), details: error.localizedDescription))
             }
         }
     }
     
     // MARK: - Transaction Management
     
-    private func finishTransaction(transactionId: String, result: @escaping FlutterResult) {
-        print("\(FlutterInappPurchasePlugin.TAG) finishTransaction called with transactionId: '\(transactionId)'")
-        
+    private func finishTransaction(purchaseDict: [String: Any], isConsumable: Bool?, result: @escaping FlutterResult) {
+        FlutterIapLog.payload("finishTransaction", payload: [
+            "purchase": purchaseDict,
+            "isConsumable": isConsumable as Any
+        ])
         Task { @MainActor in
             do {
-                _ = try await OpenIapModule.shared.finishTransaction(transactionIdentifier: transactionId)
+                let purchase = try FlutterIapHelper.decodePurchaseInput(from: purchaseDict)
+                try await OpenIapModule.shared.finishTransaction(purchase: purchase, isConsumable: isConsumable)
+                FlutterIapLog.result("finishTransaction", value: true)
                 result(nil)
             } catch {
-                await MainActor.run {
-                    let code = OpenIapError.ServiceError
-                    result(FlutterError(code: code, message: defaultMessage(for: code), details: nil))
+                FlutterIapLog.failure("finishTransaction", error: error)
+                if let idValue = purchaseDict["id"] as? String, !idValue.isEmpty {
+                    finishTransaction(transactionId: idValue, result: result)
+                    return
                 }
+                let code: ErrorCode = .serviceError
+                result(FlutterError(code: code.rawValue, message: defaultMessage(for: code), details: error.localizedDescription))
+            }
+        }
+    }
+
+    private func finishTransaction(transactionId: String, result: @escaping FlutterResult) {
+        FlutterIapLog.debug("finishTransaction fallback with transactionId: \(transactionId)")
+        Task { @MainActor in
+            do {
+                let fallback = try FlutterIapHelper.fallbackPurchaseInput(for: transactionId)
+                try await OpenIapModule.shared.finishTransaction(purchase: fallback, isConsumable: nil)
+                result(nil)
+            } catch {
+                FlutterIapLog.failure("finishTransactionFallback", error: error)
+                let code: ErrorCode = .serviceError
+                result(FlutterError(code: code.rawValue, message: defaultMessage(for: code), details: error.localizedDescription))
             }
         }
     }
@@ -422,15 +403,16 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
     // (Moved below iOS-specific features section to align with Expo ordering)
     @available(iOS 16.0, *)
     private func presentCodeRedemptionSheetIOS(result: @escaping FlutterResult) {
-        print("\(FlutterInappPurchasePlugin.TAG) presentCodeRedemptionSheet called")
+        FlutterIapLog.debug("presentCodeRedemptionSheetIOS called")
         Task { @MainActor in
             do {
                 _ = try await OpenIapModule.shared.presentCodeRedemptionSheetIOS()
+                FlutterIapLog.result("presentCodeRedemptionSheetIOS", value: true)
                 result(nil)
             } catch {
                 await MainActor.run {
-                    let code = OpenIapError.ServiceError
-                    result(FlutterError(code: code, message: defaultMessage(for: code), details: nil))
+                    let code: ErrorCode = .serviceError
+                    result(FlutterError(code: code.rawValue, message: defaultMessage(for: code), details: nil))
                 }
             }
         }
@@ -438,29 +420,32 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
     
     @available(iOS 15.0, *)
     private func showManageSubscriptionsIOS(result: @escaping FlutterResult) {
-        print("\(FlutterInappPurchasePlugin.TAG) showManageSubscriptions called")
+        FlutterIapLog.debug("showManageSubscriptionsIOS called")
         Task { @MainActor in
             do {
                 _ = try await OpenIapModule.shared.showManageSubscriptionsIOS()
+                FlutterIapLog.result("showManageSubscriptionsIOS", value: true)
                 result(nil)
             } catch {
                 await MainActor.run {
-                    let code = OpenIapError.ActivityUnavailable
-                    result(FlutterError(code: code, message: defaultMessage(for: code), details: nil))
+                    let code: ErrorCode = .activityUnavailable
+                    result(FlutterError(code: code.rawValue, message: defaultMessage(for: code), details: nil))
                 }
             }
         }
     }
     
     private func requestPurchaseOnPromotedProductIOS(result: @escaping FlutterResult) {
+        FlutterIapLog.debug("requestPurchaseOnPromotedProductIOS called")
         Task { @MainActor in
             do {
                 try await OpenIapModule.shared.requestPurchaseOnPromotedProductIOS()
+                FlutterIapLog.result("requestPurchaseOnPromotedProductIOS", value: true)
                 result(nil)
             } catch {
                 await MainActor.run {
-                    let code = OpenIapError.ServiceError
-                    result(FlutterError(code: code, message: defaultMessage(for: code), details: nil))
+                    let code: ErrorCode = .serviceError
+                    result(FlutterError(code: code.rawValue, message: defaultMessage(for: code), details: nil))
                 }
             }
         }
@@ -469,40 +454,34 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
     private func getPromotedProductIOS(result: @escaping FlutterResult) {
         Task { @MainActor in
             do {
-                // Try to get the promoted product identifier first
                 if let promoted = try await OpenIapModule.shared.getPromotedProductIOS() {
-                    let sku = promoted.productIdentifier
-                    // Fetch full OpenIAP product serialization for consistent shape
-                    let request = OpenIapProductRequest(skus: [sku], type: .all)
-                    let products: [OpenIapProduct] = try await OpenIapModule.shared.fetchProducts(request)
-                    let serialized = OpenIapSerialization.products(products)
-                    if let first = serialized.first {
-                        let sanitized = self.sanitize(dict: first)
-                        result(sanitized)
-                    } else {
-                        result(nil)
-                    }
+                    let serialized = FlutterIapHelper.sanitizeDictionary(OpenIapSerialization.encode(promoted))
+                    FlutterIapLog.result("getPromotedProductIOS", value: serialized)
+                    result(serialized)
                 } else {
+                    FlutterIapLog.info("No promoted product available")
                     result(nil)
                 }
             } catch {
                 await MainActor.run {
-                    let code = OpenIapError.ServiceError
-                    result(FlutterError(code: code, message: defaultMessage(for: code), details: nil))
+                    let code: ErrorCode = .serviceError
+                    result(FlutterError(code: code.rawValue, message: defaultMessage(for: code), details: nil))
                 }
             }
         }
     }
     
     private func getStorefrontIOS(result: @escaping FlutterResult) {
+        FlutterIapLog.debug("getStorefrontIOS called")
         Task { @MainActor in
             do {
                 let code = try await OpenIapModule.shared.getStorefrontIOS()
+                FlutterIapLog.result("getStorefrontIOS", value: ["countryCode": code])
                 result(["countryCode": code])
             } catch {
                 await MainActor.run {
-                    let code = OpenIapError.ServiceError
-                    result(FlutterError(code: code, message: defaultMessage(for: code), details: nil))
+                    let code: ErrorCode = .serviceError
+                    result(FlutterError(code: code.rawValue, message: defaultMessage(for: code), details: nil))
                 }
             }
         }
@@ -512,26 +491,30 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
         Task { @MainActor in
             do {
                 let pending = try await OpenIapModule.shared.getPendingTransactionsIOS()
-                let serialized = OpenIapSerialization.purchases(pending)
-                let sanitized = serialized.map { self.sanitize(dict: $0) }
-                result(sanitized)
+                let purchases = pending.map { Purchase.purchaseIos($0) }
+                let serialized = FlutterIapHelper.sanitizeArray(OpenIapSerialization.purchases(purchases))
+                FlutterIapLog.result("getPendingTransactionsIOS", value: serialized)
+                result(serialized)
             } catch {
                 await MainActor.run {
-                    let code = OpenIapError.ServiceError
-                    result(FlutterError(code: code, message: defaultMessage(for: code), details: nil))
+                    let code: ErrorCode = .serviceError
+                    result(FlutterError(code: code.rawValue, message: defaultMessage(for: code), details: nil))
                 }
             }
         }
     }
     
     private func clearTransactionIOS(result: @escaping FlutterResult) {
+        FlutterIapLog.debug("clearTransactionIOS called")
         Task { @MainActor in
             do {
                 try await OpenIapModule.shared.clearTransactionIOS()
+                FlutterIapLog.result("clearTransactionIOS", value: true)
                 result(nil)
             } catch {
                 await MainActor.run {
-                    result(FlutterError(code: OpenIapError.ServiceError, message: error.localizedDescription, details: nil))
+                    let code: ErrorCode = .serviceError
+                    result(FlutterError(code: code.rawValue, message: error.localizedDescription, details: nil))
                 }
             }
         }
@@ -540,12 +523,12 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
     // MARK: - Receipt Validation (OpenIAP)
     
     private func validateReceiptIOS(productId: String, result: @escaping FlutterResult) {
-        print("\(FlutterInappPurchasePlugin.TAG) validateReceiptIOS called for product: \(productId)")
+        FlutterIapLog.debug("validateReceiptIOS called for product: \(productId)")
         Task { @MainActor in
             do {
-                let props = OpenIapReceiptValidationProps(sku: productId)
+                let props = try FlutterIapHelper.decodeReceiptValidationProps(for: productId)
                 let res = try await OpenIapModule.shared.validateReceiptIOS(props)
-                var payload: [String: Any] = [
+                var payload: [String: Any?] = [
                     "isValid": res.isValid,
                     "receiptData": res.receiptData,
                     // Provide both fields for compatibility with OpenIAP spec and legacy
@@ -554,13 +537,15 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                     "platform": "ios"
                 ]
                 if let latest = res.latestTransaction {
-                    payload["latestTransaction"] = sanitize(dict: OpenIapSerialization.purchase(latest))
+                    payload["latestTransaction"] = FlutterIapHelper.sanitizeDictionary(OpenIapSerialization.purchase(latest))
                 }
-                await MainActor.run { result(payload) }
+                let sanitized = FlutterIapHelper.sanitizeDictionary(payload)
+                FlutterIapLog.result("validateReceiptIOS", value: sanitized)
+                await MainActor.run { result(sanitized) }
             } catch {
                 await MainActor.run {
-                    let code = OpenIapError.TransactionValidationFailed
-                    result(FlutterError(code: code, message: defaultMessage(for: code), details: nil))
+                    let code: ErrorCode = .transactionValidationFailed
+                    result(FlutterError(code: code.rawValue, message: defaultMessage(for: code), details: nil))
                 }
             }
         }
@@ -575,6 +560,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
     // No StoreKit product/period type mapping needed; OpenIAP provides serialization
 }
 
+
 // Fallback for iOS < 15.0
 public class FlutterInappPurchasePluginLegacy: NSObject, FlutterPlugin {
     public static func register(with registrar: FlutterPluginRegistrar) {
@@ -586,6 +572,7 @@ public class FlutterInappPurchasePluginLegacy: NSObject, FlutterPlugin {
     }
     
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        result(FlutterError(code: OpenIapError.FeatureNotSupported, message: "iOS 15.0+ required", details: nil))
+        let code: ErrorCode = .featureNotSupported
+        result(FlutterError(code: code.rawValue, message: "iOS 15.0+ required", details: nil))
     }
 }

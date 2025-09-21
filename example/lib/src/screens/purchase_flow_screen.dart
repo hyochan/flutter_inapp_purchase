@@ -363,12 +363,7 @@ Product ID: ${error.productId ?? 'unknown'}
         ),
       );
 
-      List<Product> products;
-      if (result is FetchProductsResultProducts) {
-        products = result.value ?? const <Product>[];
-      } else {
-        products = const <Product>[];
-      }
+      final products = result.inAppProducts();
 
       debugPrint('📦 Received ${products.length} products from fetchProducts');
 
