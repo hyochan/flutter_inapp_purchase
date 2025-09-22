@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 6.8.1
+
+- chore(deps): openiap-apple@1.2.3 [#562](https://github.com/hyochan/flutter_inapp_purchase/pull/562)
+
 ## 6.8.0
 
 - migrate Flutter In-App Purchase fully into the OpenIAP ecosystem, aligning with `openiap-apple@1.2.2`, `openiap-google@1.2.6`, and `openiap-gql@1.0.8`.
