@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 6.8.0
+
+- migrate Flutter In-App Purchase fully into the OpenIAP ecosystem, aligning with `openiap-apple@1.2.2`, `openiap-google@1.2.6`, and `openiap-gql@1.0.8`.
+- update product and purchase APIs: use `fetchProducts(ProductRequest(...))` with typed helpers and extend `getAvailablePurchases()` via `PurchaseOptions`; legacy `getProducts`, `getSubscriptions`, and `getPurchaseHistories` are removed.
+- clarify identifiers by keeping native transaction IDs untouched and documenting `purchaseToken` as the canonical receipt for server validation.
+- 👉 [full release notes](https://hyochan.github.io/flutter_inapp_purchase/blog/6.8.0-release)
+
 ## 6.7.2
 
 - refactor: align [openiap-gql@1.0.6](https://github.com/hyodotdev/openiap-gql/releases/tag/1.0.6)
