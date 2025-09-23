@@ -6,12 +6,7 @@ static File locateOpeniapVersionsFile(File pluginDir, File hostProjectRoot) {
     if (candidate.exists()) {
         return candidate
     }
-    // Fallback to plugin's android directory
-    candidate = new File(pluginDir, 'openiap-versions.json')
-    if (candidate.exists()) {
-        return candidate
-    }
-    // Search upwards from plugin directory
+    // Search upwards from plugin directory (includes plugin's android directory)
     File current = pluginDir
     while (current != null) {
         candidate = new File(current, 'openiap-versions.json')
