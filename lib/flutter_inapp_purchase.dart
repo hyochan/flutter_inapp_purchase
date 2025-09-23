@@ -511,7 +511,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
 
     final dynamic offerValue = propsJson['withOffer'];
     if (offerValue is Map) {
-      payload['withOffer'] = Map<String, dynamic>.from(offerValue);
+      payload['withOffer'] = offerValue.map<String, dynamic>((key, value) => MapEntry(key.toString(), value));
     }
 
     payload.removeWhere((_, value) => value == null);
@@ -613,7 +613,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           final statuses = <gentype.SubscriptionStatusIOS>[];
           for (final entry in asList) {
             if (entry is Map) {
-              final normalized = Map<String, dynamic>.from(entry);
+              final normalized = entry.map<String, dynamic>((key, value) => MapEntry(key.toString(), value));
               statuses.add(
                 gentype.SubscriptionStatusIOS.fromJson(normalized),
               );
@@ -657,7 +657,8 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
 
           if (result is Map) {
             return gentype.ProductIOS.fromJson(
-              Map<String, dynamic>.from(result),
+              result.map<String, dynamic>(
+                  (key, value) => MapEntry(key.toString(), value)),
             );
           }
 
@@ -724,7 +725,8 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
             return null;
           }
 
-          final map = Map<String, dynamic>.from(result);
+          final map = result.map<String, dynamic>(
+              (key, value) => MapEntry(key.toString(), value));
           return gentype.AppTransaction.fromJson(map);
         } catch (error) {
           debugPrint('Error getting app transaction: $error');
@@ -859,7 +861,8 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
               }
 
               if (response is Map) {
-                final parsed = Map<String, dynamic>.from(response);
+                final parsed = response.map<String, dynamic>(
+                    (key, value) => MapEntry(key.toString(), value));
                 final code = parsed['responseCode'] as int? ?? 0;
                 final success = parsed['success'] as bool? ?? false;
                 return code == 0 || success;
@@ -888,7 +891,8 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           );
 
           if (response is Map) {
-            final map = Map<String, dynamic>.from(response);
+            final map = response.map<String, dynamic>(
+                (key, value) => MapEntry(key.toString(), value));
             return map['success'] as bool? ?? true;
           }
 
@@ -1021,7 +1025,8 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
                 return false;
               }
             } else if (response is Map<dynamic, dynamic>) {
-              parsed = Map<String, dynamic>.from(response);
+              parsed = response.map<String, dynamic>(
+                  (key, value) => MapEntry(key.toString(), value));
             }
 
             if (parsed != null) {
@@ -1154,11 +1159,13 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
             );
           }
 
-          final validationResult = Map<String, dynamic>.from(result);
+          final validationResult = result.map<String, dynamic>(
+              (key, value) => MapEntry(key.toString(), value));
           final latestTransactionMap = validationResult['latestTransaction'];
           final latestTransaction = latestTransactionMap is Map
               ? gentype.Purchase.fromJson(
-                  Map<String, dynamic>.from(latestTransactionMap),
+                  latestTransactionMap.map<String, dynamic>(
+                      (key, value) => MapEntry(key.toString(), value)),
                 )
               : null;
 

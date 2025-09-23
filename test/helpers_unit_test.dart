@@ -151,6 +151,31 @@ void main() {
       expect(ackTokens['token-1'], isNotNull);
     });
 
+    test('extractPurchases handles maps with non-string keys', () {
+      final ackTokens = <String, bool>{};
+      // Simulate platform channel returning Map<Object?, Object?> with non-string keys
+      final payload = <dynamic>[
+        <Object?, Object?>{
+          'platform': 'android',
+          'productId': 'coins_pack',
+          'transactionId': 'txn-1',
+          'purchaseToken': 'token-1',
+          'purchaseStateAndroid': 1,
+        },
+      ];
+
+      final purchases = extractPurchases(
+        payload,
+        platformIsAndroid: true,
+        platformIsIOS: false,
+        acknowledgedAndroidPurchaseTokens: ackTokens,
+      );
+
+      expect(purchases, hasLength(1));
+      expect(purchases.first.productId, 'coins_pack');
+      expect(ackTokens['token-1'], isNotNull);
+    });
+
     test('convertToPurchaseError maps codes and response fallbacks', () {
       final stringResult = PurchaseResult(
         code: 'E_ALREADY_OWNED',
