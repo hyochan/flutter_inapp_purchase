@@ -511,7 +511,8 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
 
     final dynamic offerValue = propsJson['withOffer'];
     if (offerValue is Map) {
-      payload['withOffer'] = offerValue.map<String, dynamic>((key, value) => MapEntry(key.toString(), value));
+      payload['withOffer'] = offerValue.map<String, dynamic>(
+          (key, value) => MapEntry(key.toString(), value));
     }
 
     payload.removeWhere((_, value) => value == null);
@@ -613,7 +614,8 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           final statuses = <gentype.SubscriptionStatusIOS>[];
           for (final entry in asList) {
             if (entry is Map) {
-              final normalized = entry.map<String, dynamic>((key, value) => MapEntry(key.toString(), value));
+              final normalized = entry.map<String, dynamic>(
+                  (key, value) => MapEntry(key.toString(), value));
               statuses.add(
                 gentype.SubscriptionStatusIOS.fromJson(normalized),
               );
