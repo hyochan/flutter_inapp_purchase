@@ -418,8 +418,12 @@ List<gentype.Purchase> extractPurchases(
         );
         continue;
       }
-      final map = Map<String, dynamic>.from(product);
-      final original = Map<String, dynamic>.from(product);
+      // Safely convert map keys to strings to handle cases where platform channels
+      // return maps with non-string keys (e.g., Map<Object?, Object?>)
+      final map = product.map<String, dynamic>(
+          (key, value) => MapEntry(key.toString(), value));
+      final original = product.map<String, dynamic>(
+          (key, value) => MapEntry(key.toString(), value));
       purchases.add(
         convertFromLegacyPurchase(
           map,
@@ -481,7 +485,10 @@ List<gentype.DiscountIOS>? _parseDiscountsIOS(dynamic json) {
   return list
       .map(
         (e) => gentype.DiscountIOS.fromJson(
-          e is Map<String, dynamic> ? e : Map<String, dynamic>.from(e as Map),
+          e is Map<String, dynamic>
+              ? e
+              : (e as Map).map<String, dynamic>(
+                  (key, value) => MapEntry(key.toString(), value)),
         ),
       )
       .toList();
@@ -520,7 +527,8 @@ List<gentype.ProductSubscriptionAndroidOfferDetails> _parseOfferDetails(
         if (item is Map<String, dynamic>) {
           e = item;
         } else if (item is Map) {
-          e = Map<String, dynamic>.from(item);
+          e = item.map<String, dynamic>(
+              (key, value) => MapEntry(key.toString(), value));
         } else {
           // Skip invalid items
           return null;
@@ -565,7 +573,8 @@ gentype.PricingPhasesAndroid _parsePricingPhases(dynamic json) {
         if (item is Map<String, dynamic>) {
           e = item;
         } else if (item is Map) {
-          e = Map<String, dynamic>.from(item);
+          e = item.map<String, dynamic>(
+              (key, value) => MapEntry(key.toString(), value));
         } else {
           // Skip invalid items
           return null;
@@ -668,7 +677,8 @@ gentype.ProductAndroidOneTimePurchaseOfferDetail?
     );
   }
   if (value is Map) {
-    final map = Map<String, dynamic>.from(value);
+    final map =
+        value.map<String, dynamic>((key, val) => MapEntry(key.toString(), val));
     return gentype.ProductAndroidOneTimePurchaseOfferDetail(
       formattedPrice: map['formattedPrice']?.toString() ?? '0',
       priceAmountMicros: map['priceAmountMicros']?.toString() ?? '0',
@@ -786,7 +796,8 @@ List<PurchaseResult>? extractResult(dynamic result) {
   final decoded = list
       .map<PurchaseResult>(
         (dynamic product) => PurchaseResult.fromJSON(
-          Map<String, dynamic>.from(product as Map),
+          (product as Map).map<String, dynamic>(
+              (key, value) => MapEntry(key.toString(), value)),
         ),
       )
       .toList();
