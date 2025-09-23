@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 6.8.2
+
+- fix: resolve type casting error with PurchaseOptions by @hyochan in https://github.com/hyochan/flutter_inapp_purchase/pull/565
+- chore(android): refine openiap-versions.json search by @hyochan in https://github.com/hyochan/flutter_inapp_purchase/pull/566
+
+**Full Changelog**: https://github.com/hyochan/flutter_inapp_purchase/compare/6.8.1...6.8.2
+
 ## 6.8.1
 
 - chore(deps): openiap-apple@1.2.3 [#562](https://github.com/hyochan/flutter_inapp_purchase/pull/562)
