@@ -107,7 +107,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
                 jsonDecode(call.arguments as String) as Map<String, dynamic>;
 
             // Convert directly to Purchase without intermediate PurchasedItem
-            final purchase = convertFromLegacyPurchase(
+            final purchase = convertToPurchase(
               result,
               originalJson: result,
               platformIsAndroid: _platform.isAndroid,

@@ -195,7 +195,7 @@ gentype.ProductCommon parseProductFromNative(
   );
 }
 
-gentype.Purchase convertFromLegacyPurchase(
+gentype.Purchase convertToPurchase(
   Map<String, dynamic> itemJson, {
   required bool platformIsAndroid,
   required bool platformIsIOS,
@@ -422,10 +422,9 @@ List<gentype.Purchase> extractPurchases(
       // return maps with non-string keys (e.g., Map<Object?, Object?>)
       final map = product.map<String, dynamic>(
           (key, value) => MapEntry(key.toString(), value));
-      final original = product.map<String, dynamic>(
-          (key, value) => MapEntry(key.toString(), value));
+      final original = map; // originalJson은 변환된 데이터를 사용 (추가 필드 접근을 위해)
       purchases.add(
-        convertFromLegacyPurchase(
+        convertToPurchase(
           map,
           originalJson: original,
           platformIsAndroid: platformIsAndroid,

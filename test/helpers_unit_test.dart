@@ -76,10 +76,10 @@ void main() {
     });
 
     test(
-        'convertFromLegacyPurchase handles Android payloads and tracks acknowledgements',
+        'convertToPurchase handles Android payloads and tracks acknowledgements',
         () {
       final ackTokens = <String, bool>{};
-      final purchase = convertFromLegacyPurchase(
+      final purchase = convertToPurchase(
         <String, dynamic>{
           'platform': 'android',
           'productId': 'coins_pack',
@@ -102,7 +102,7 @@ void main() {
     });
 
     test('convertFromLegacyPurchase handles iOS payloads', () {
-      final purchase = convertFromLegacyPurchase(
+      final purchase = convertToPurchase(
         <String, dynamic>{
           'platform': 'ios',
           'productId': 'premium_monthly',
