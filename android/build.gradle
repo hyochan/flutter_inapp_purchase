@@ -3,14 +3,14 @@ import groovy.json.JsonSlurper
 static File locateOpeniapVersionsFile(File pluginDir, File hostProjectRoot) {
     // First try to find in host app's root directory
     File candidate = new File(hostProjectRoot, 'openiap-versions.json')
-    if (candidate.exists()) {
+    if (candidate.isFile()) {
         return candidate
     }
     // Search upwards from plugin directory (includes plugin's android directory)
     File current = pluginDir
     while (current != null) {
         candidate = new File(current, 'openiap-versions.json')
-        if (candidate.exists()) {
+        if (candidate.isFile()) {
             return candidate
         }
         current = current.getParentFile()
