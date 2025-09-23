@@ -1,4 +1,4 @@
-package dev.hyo.flutterinapppurchase
+package io.github.hyochan.flutter_inapp_purchase
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware

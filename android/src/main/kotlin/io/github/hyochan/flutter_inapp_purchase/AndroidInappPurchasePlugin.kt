@@ -1,4 +1,4 @@
-package dev.hyo.flutterinapppurchase
+package io.github.hyochan.flutter_inapp_purchase
 
 import android.app.Activity
 import android.app.Application

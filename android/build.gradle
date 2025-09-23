@@ -24,7 +24,7 @@ def openiapVersionsFile = locateOpeniapVersionsFile(rootDir, project.rootProject
 def openiapVersions = new JsonSlurper().parse(openiapVersionsFile)
 def openiapGoogleVersion = openiapVersions['google']
 
-group 'dev.hyo.flutterinapppurchase'
+group 'io.github.hyochan.flutter_inapp_purchase'
 version '1.0-SNAPSHOT'
 
 buildscript {
@@ -52,7 +52,7 @@ apply plugin: 'kotlin-android'
 
 android {
     if (project.android.hasProperty('namespace')) {
-        namespace 'dev.hyo.flutterinapppurchase'
+        namespace 'io.github.hyochan.flutter_inapp_purchase'
     }
     compileSdkVersion 34
 

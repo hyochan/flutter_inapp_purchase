@@ -1,4 +1,4 @@
-package dev.hyo.flutterinapppurchase
+package io.github.hyochan.flutter_inapp_purchase
 
 import android.util.Log
 import com.android.billingclient.api.BillingClient.BillingResponseCode
