@@ -1,20 +1,31 @@
 import groovy.json.JsonSlurper
 
-static File locateOpeniapVersionsFile(File startDir) {
-    File current = startDir
+static File locateOpeniapVersionsFile(File pluginDir, File hostProjectRoot) {
+    // First try to find in host app's root directory
+    File candidate = new File(hostProjectRoot, 'openiap-versions.json')
+    if (candidate.exists()) {
+        return candidate
+    }
+    // Fallback to plugin's android directory
+    candidate = new File(pluginDir, 'openiap-versions.json')
+    if (candidate.exists()) {
+        return candidate
+    }
+    // Search upwards from plugin directory
+    File current = pluginDir
     while (current != null) {
-        File candidate = new File(current, 'openiap-versions.json')
+        candidate = new File(current, 'openiap-versions.json')
         if (candidate.exists()) {
             return candidate
         }
         current = current.getParentFile()
     }
     throw new GradleException(
-        "Unable to locate openiap-versions.json starting from ${startDir.absolutePath}"
+        "Unable to locate openiap-versions.json. Searched in: ${hostProjectRoot.absolutePath}, ${pluginDir.absolutePath}, and parent directories"
     )
 }
 
-def openiapVersionsFile = locateOpeniapVersionsFile(rootDir)
+def openiapVersionsFile = locateOpeniapVersionsFile(rootDir, project.rootProject.rootDir)
 def openiapVersions = new JsonSlurper().parse(openiapVersionsFile)
 def openiapGoogleVersion = openiapVersions['google']
 
