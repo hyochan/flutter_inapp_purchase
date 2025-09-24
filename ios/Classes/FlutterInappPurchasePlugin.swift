@@ -334,9 +334,10 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                     "message": purchaseError.message.isEmpty ? defaultMessage(for: purchaseError.code) : purchaseError.message,
                     "productId": purchaseError.productId ?? sku
                 ]
-                if let payload = FlutterIapHelper.jsonString(from: FlutterIapHelper.sanitizeDictionary(errorData)) {
-                    channel?.invokeMethod("purchase-error", arguments: payload)
-                }
+                // Don't send purchase-error event here - purchaseErrorListener will handle it
+                // if let payload = FlutterIapHelper.jsonString(from: FlutterIapHelper.sanitizeDictionary(errorData)) {
+                //     channel?.invokeMethod("purchase-error", arguments: payload)
+                // }
                 result(FlutterError(
                     code: purchaseError.code.rawValue,
                     message: purchaseError.message,
@@ -350,9 +351,10 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                     "message": error.localizedDescription,
                     "productId": sku
                 ]
-                if let payload = FlutterIapHelper.jsonString(from: FlutterIapHelper.sanitizeDictionary(errorData)) {
-                    channel?.invokeMethod("purchase-error", arguments: payload)
-                }
+                // Don't send purchase-error event here - purchaseErrorListener will handle it
+                // if let payload = FlutterIapHelper.jsonString(from: FlutterIapHelper.sanitizeDictionary(errorData)) {
+                //     channel?.invokeMethod("purchase-error", arguments: payload)
+                // }
                 result(FlutterError(code: code.rawValue, message: defaultMessage(for: code), details: error.localizedDescription))
             }
         }
