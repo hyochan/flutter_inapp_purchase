@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 6.8.3
+
+- fix(ios): send error only once - prevent duplicate purchase error events on iOS
+- chore(deps): openiap-google@1.2.7
+- chore: refine error codes - improve error code mapping and remove message-based inference
+
+**Full Changelog**: https://github.com/hyochan/flutter_inapp_purchase/compare/6.8.2...6.8.3
+
 ## 6.8.2
 
 - fix: resolve type casting error with PurchaseOptions by @hyochan in https://github.com/hyochan/flutter_inapp_purchase/pull/565
