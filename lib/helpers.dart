@@ -342,7 +342,7 @@ gentype.Purchase convertToPurchase(
   throw const FormatException('Unsupported platform for legacy purchase');
 }
 
-gentype.PurchaseError convertToPurchaseError(
+iap_err.PurchaseError convertToPurchaseError(
   PurchaseResult result, {
   required gentype.IapPlatform platform,
 }) {
@@ -388,9 +388,9 @@ gentype.PurchaseError convertToPurchaseError(
     }
   }
 
-  return gentype.PurchaseError(
-    code: code,
+  return iap_err.PurchaseError(
     message: result.message ?? 'Unknown error',
+    code: code,
   );
 }
 

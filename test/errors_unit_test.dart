@@ -1,11 +1,11 @@
-import 'package:flutter_inapp_purchase/errors.dart';
+import 'package:flutter_inapp_purchase/errors.dart' as errors;
 import 'package:flutter_inapp_purchase/types.dart' as types;
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('ErrorCodeUtils', () {
     test('fromPlatformCode maps Android string codes', () {
-      final code = ErrorCodeUtils.fromPlatformCode(
+      final code = errors.ErrorCodeUtils.fromPlatformCode(
         'E_ALREADY_OWNED',
         types.IapPlatform.Android,
       );
@@ -13,7 +13,7 @@ void main() {
     });
 
     test('fromPlatformCode maps iOS numeric codes', () {
-      final iosCode = ErrorCodeUtils.fromPlatformCode(
+      final iosCode = errors.ErrorCodeUtils.fromPlatformCode(
         4,
         types.IapPlatform.IOS,
       );
@@ -21,13 +21,13 @@ void main() {
     });
 
     test('toPlatformCode provides platform specific mapping', () {
-      final iosValue = ErrorCodeUtils.toPlatformCode(
+      final iosValue = errors.ErrorCodeUtils.toPlatformCode(
         types.ErrorCode.NetworkError,
         types.IapPlatform.IOS,
       );
       expect(iosValue, isA<int>());
 
-      final androidValue = ErrorCodeUtils.toPlatformCode(
+      final androidValue = errors.ErrorCodeUtils.toPlatformCode(
         types.ErrorCode.NetworkError,
         types.IapPlatform.Android,
       );
@@ -36,14 +36,14 @@ void main() {
 
     test('isValidForPlatform validates error codes', () {
       expect(
-        ErrorCodeUtils.isValidForPlatform(
+        errors.ErrorCodeUtils.isValidForPlatform(
           types.ErrorCode.DeveloperError,
           types.IapPlatform.Android,
         ),
         isTrue,
       );
       expect(
-        ErrorCodeUtils.isValidForPlatform(
+        errors.ErrorCodeUtils.isValidForPlatform(
           types.ErrorCode.DeveloperError,
           types.IapPlatform.IOS,
         ),
@@ -54,7 +54,7 @@ void main() {
 
   group('PurchaseError', () {
     test('fromPlatformError normalizes payload', () {
-      final error = PurchaseError.fromPlatformError(
+      final error = errors.PurchaseError.fromPlatformError(
         <String, dynamic>{
           'message': 'Something went wrong',
           'code': 'E_SERVICE_ERROR',
@@ -72,7 +72,7 @@ void main() {
     });
 
     test('getPlatformCode returns mapped value when possible', () {
-      final error = PurchaseError(
+      final error = errors.PurchaseError(
         message: 'Oops',
         code: types.ErrorCode.NotPrepared,
         platform: types.IapPlatform.Android,
@@ -84,8 +84,8 @@ void main() {
 
   group('Error messages', () {
     test('getUserFriendlyErrorMessage surfaces known codes', () {
-      final message = getUserFriendlyErrorMessage(
-        PurchaseError(
+      final message = errors.getUserFriendlyErrorMessage(
+        errors.PurchaseError(
           message: 'ignored',
           code: types.ErrorCode.UserCancelled,
         ),
@@ -94,8 +94,8 @@ void main() {
     });
 
     test('getUserFriendlyErrorMessage falls back to provided message', () {
-      final message = getUserFriendlyErrorMessage(
-        PurchaseError(
+      final message = errors.getUserFriendlyErrorMessage(
+        errors.PurchaseError(
           message: 'Custom message',
           code: types.ErrorCode.Unknown,
         ),
@@ -104,8 +104,8 @@ void main() {
     });
 
     test('getUserFriendlyErrorMessage handles Map payload', () {
-      final message = getUserFriendlyErrorMessage(<String, dynamic>{
-        'code': 'E_DEVELOPER_ERROR',
+      final message = errors.getUserFriendlyErrorMessage(<String, dynamic>{
+        'code': 'developer-error',
         'message': 'Validation failed',
       });
       expect(message, 'Validation failed');
@@ -114,7 +114,7 @@ void main() {
 
   group('Legacy models', () {
     test('PurchaseResult serialization is reversible', () {
-      final result = PurchaseResult(
+      final result = errors.PurchaseResult(
         responseCode: 1,
         debugMessage: 'debug',
         code: 'E_UNKNOWN',
@@ -123,17 +123,49 @@ void main() {
       );
 
       final json = result.toJson();
-      final roundTrip = PurchaseResult.fromJSON(json);
+      final roundTrip = errors.PurchaseResult.fromJSON(json);
       expect(roundTrip.responseCode, 1);
       expect(roundTrip.purchaseTokenAndroid, 'token');
     });
 
     test('ConnectionResult serialization', () {
-      final result = ConnectionResult(msg: 'connected');
+      final result = errors.ConnectionResult(msg: 'connected');
       final json = result.toJson();
-      final parsed = ConnectionResult.fromJSON(json);
+      final parsed = errors.ConnectionResult.fromJSON(json);
       expect(parsed.msg, 'connected');
       expect(parsed.toString(), contains('connected'));
+    });
+
+    test(
+        'message-based inference removed - returns Unknown for "User cancelled the operation"',
+        () {
+      final error = errors.PurchaseError.fromPlatformError(
+        <String, dynamic>{
+          'message': 'User cancelled the operation',
+          'code': 'E_UNKNOWN', // Platform code is unknown
+          'responseCode': 0,
+        },
+        types.IapPlatform.Android,
+      );
+
+      expect(error.message, 'User cancelled the operation');
+      expect(error.code, types.ErrorCode.Unknown);
+    });
+
+    test(
+        'message-based inference removed - returns Unknown for "Invalid arguments provided to the API"',
+        () {
+      final error = errors.PurchaseError.fromPlatformError(
+        <String, dynamic>{
+          'message': 'Invalid arguments provided to the API',
+          'code': 'E_UNKNOWN', // Platform code is unknown
+          'responseCode': 0,
+        },
+        types.IapPlatform.Android,
+      );
+
+      expect(error.message, 'Invalid arguments provided to the API');
+      expect(error.code, types.ErrorCode.Unknown);
     });
   });
 }

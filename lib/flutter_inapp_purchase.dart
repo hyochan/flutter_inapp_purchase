@@ -10,15 +10,24 @@ import 'types.dart' as gentype;
 import 'builders.dart';
 import 'helpers.dart';
 import 'utils.dart';
+import 'errors.dart' as errors;
 
-export 'types.dart';
+export 'types.dart' hide PurchaseError;
 export 'builders.dart';
 export 'utils.dart';
-export 'helpers.dart';
+export 'helpers.dart' hide PurchaseResult, ConnectionResult;
 export 'extensions/purchase_helpers.dart';
-export 'enums.dart' hide IapPlatform, ErrorCode, PurchaseState;
-export 'errors.dart' show getCurrentPlatform;
+export 'enums.dart' hide IapPlatform, PurchaseState;
+export 'errors.dart'
+    show
+        getCurrentPlatform,
+        PurchaseError,
+        ErrorCodeUtils,
+        PurchaseResult,
+        ConnectionResult,
+        getUserFriendlyErrorMessage;
 
+typedef PurchaseError = errors.PurchaseError;
 typedef SubscriptionOfferAndroid = gentype.AndroidSubscriptionOfferInput;
 
 class FlutterInappPurchase with RequestPurchaseBuilderApi {
@@ -80,15 +89,15 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
   // Purchase event streams
   final StreamController<gentype.Purchase> _purchaseUpdatedListener =
       StreamController<gentype.Purchase>.broadcast();
-  final StreamController<gentype.PurchaseError> _purchaseErrorListener =
-      StreamController<gentype.PurchaseError>.broadcast();
+  final StreamController<PurchaseError> _purchaseErrorListener =
+      StreamController<PurchaseError>.broadcast();
 
   /// Purchase updated event stream
   Stream<gentype.Purchase> get purchaseUpdatedListener =>
       _purchaseUpdatedListener.stream;
 
   /// Purchase error event stream
-  Stream<gentype.PurchaseError> get purchaseErrorListener =>
+  Stream<PurchaseError> get purchaseErrorListener =>
       _purchaseErrorListener.stream;
 
   bool _isInitialized = false;
@@ -175,7 +184,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           _isInitialized = true;
           return true;
         } catch (error) {
-          throw gentype.PurchaseError(
+          throw PurchaseError(
             code: gentype.ErrorCode.NotPrepared,
             message: 'Failed to initialize IAP connection: ${error.toString()}',
           );
@@ -195,7 +204,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           _isInitialized = false;
           return true;
         } catch (error) {
-          throw gentype.PurchaseError(
+          throw PurchaseError(
             code: gentype.ErrorCode.ServiceError,
             message: 'Failed to end IAP connection: ${error.toString()}',
           );
@@ -206,14 +215,14 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
   @override
   gentype.MutationRequestPurchaseHandler get requestPurchase => (params) async {
         if (!_isInitialized) {
-          throw const gentype.PurchaseError(
+          throw PurchaseError(
             code: gentype.ErrorCode.NotPrepared,
             message: 'IAP connection not initialized',
           );
         }
 
         if (params.type == gentype.ProductQueryType.All) {
-          throw const gentype.PurchaseError(
+          throw PurchaseError(
             code: gentype.ErrorCode.DeveloperError,
             message:
                 'requestPurchase only supports IN_APP or SUBS request types',
@@ -243,7 +252,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
             }
 
             if (payload == null) {
-              throw const gentype.PurchaseError(
+              throw PurchaseError(
                 code: gentype.ErrorCode.DeveloperError,
                 message: 'Missing iOS purchase parameters',
               );
@@ -260,13 +269,13 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
                 is gentype.RequestPurchasePropsRequestSubscription) {
               final androidProps = requestVariant.value.android;
               if (androidProps == null) {
-                throw const gentype.PurchaseError(
+                throw PurchaseError(
                   code: gentype.ErrorCode.DeveloperError,
                   message: 'Missing Android subscription parameters',
                 );
               }
               if (androidProps.skus.isEmpty) {
-                throw const gentype.PurchaseError(
+                throw PurchaseError(
                   code: gentype.ErrorCode.EmptySkuList,
                   message: 'Android subscription requires at least one SKU',
                 );
@@ -275,7 +284,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
                   androidProps.replacementModeAndroid != -1 &&
                   (androidProps.purchaseTokenAndroid == null ||
                       androidProps.purchaseTokenAndroid!.isEmpty)) {
-                throw const gentype.PurchaseError(
+                throw PurchaseError(
                   code: gentype.ErrorCode.DeveloperError,
                   message:
                       'purchaseTokenAndroid is required when using replacementModeAndroid (proration mode). '
@@ -330,13 +339,13 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
                     .value
                     .android;
             if (androidProps == null) {
-              throw const gentype.PurchaseError(
+              throw PurchaseError(
                 code: gentype.ErrorCode.DeveloperError,
                 message: 'Missing Android purchase parameters',
               );
             }
             if (androidProps.skus.isEmpty) {
-              throw const gentype.PurchaseError(
+              throw PurchaseError(
                 code: gentype.ErrorCode.EmptySkuList,
                 message: 'Android purchase requires at least one SKU',
               );
@@ -365,15 +374,15 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
             return null;
           }
 
-          throw const gentype.PurchaseError(
+          throw PurchaseError(
             code: gentype.ErrorCode.IapNotAvailable,
             message: 'requestPurchase is not supported on this platform',
           );
         } catch (error) {
-          if (error is gentype.PurchaseError) {
+          if (error is PurchaseError) {
             rethrow;
           }
-          throw gentype.PurchaseError(
+          throw PurchaseError(
             code: gentype.ErrorCode.ServiceError,
             message: 'Failed to request purchase: ${error.toString()}',
           );
@@ -392,7 +401,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
   gentype.QueryGetAvailablePurchasesHandler get getAvailablePurchases =>
       ([options]) async {
         if (!_isInitialized) {
-          throw const gentype.PurchaseError(
+          throw PurchaseError(
             code: gentype.ErrorCode.NotPrepared,
             message: 'IAP connection not initialized',
           );
@@ -459,7 +468,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
 
           return await resolvePurchases();
         } catch (error) {
-          throw gentype.PurchaseError(
+          throw PurchaseError(
             code: gentype.ErrorCode.ServiceError,
             message: 'Failed to get available purchases: ${error.toString()}',
           );
@@ -522,7 +531,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
   /// iOS specific: Get storefront
   gentype.QueryGetStorefrontIOSHandler get getStorefrontIOS => () async {
         if (!_platform.isIOS) {
-          throw const gentype.PurchaseError(
+          throw PurchaseError(
             code: gentype.ErrorCode.IapNotAvailable,
             message: 'Storefront is only available on iOS',
           );
@@ -535,15 +544,15 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           if (result != null && result['countryCode'] != null) {
             return result['countryCode'] as String;
           }
-          throw const gentype.PurchaseError(
+          throw PurchaseError(
             code: gentype.ErrorCode.ServiceError,
             message: 'Failed to get storefront country code',
           );
         } catch (error) {
-          if (error is gentype.PurchaseError) {
+          if (error is PurchaseError) {
             rethrow;
           }
-          throw gentype.PurchaseError(
+          throw PurchaseError(
             code: gentype.ErrorCode.ServiceError,
             message: 'Failed to get storefront: ${error.toString()}',
           );
@@ -776,7 +785,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
               await channel.invokeMethod('presentCodeRedemptionSheetIOS');
               return true;
             } catch (error) {
-              throw gentype.PurchaseError(
+              throw PurchaseError(
                 code: gentype.ErrorCode.ServiceError,
                 message:
                     'Failed to present code redemption sheet: ${error.toString()}',
@@ -798,7 +807,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
               await channel.invokeMethod('showManageSubscriptionsIOS');
               return const <gentype.PurchaseIOS>[];
             } catch (error) {
-              throw gentype.PurchaseError(
+              throw PurchaseError(
                 code: gentype.ErrorCode.ServiceError,
                 message:
                     'Failed to show manage subscriptions: ${error.toString()}',
@@ -830,7 +839,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
   gentype.MutationAcknowledgePurchaseAndroidHandler
       get acknowledgePurchaseAndroid => (purchaseToken) async {
             if (!_platform.isAndroid) {
-              throw const gentype.PurchaseError(
+              throw PurchaseError(
                 code: gentype.ErrorCode.IapNotAvailable,
                 message:
                     'acknowledgePurchaseAndroid is only available on Android',
@@ -880,7 +889,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
   gentype.MutationConsumePurchaseAndroidHandler get consumePurchaseAndroid =>
       (purchaseToken) async {
         if (!_platform.isAndroid) {
-          throw const gentype.PurchaseError(
+          throw PurchaseError(
             code: gentype.ErrorCode.IapNotAvailable,
             message: 'consumePurchaseAndroid is only available on Android',
           );
@@ -912,7 +921,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
   gentype.MutationDeepLinkToSubscriptionsHandler get deepLinkToSubscriptions =>
       ([options]) async {
         if (!_platform.isAndroid) {
-          throw const gentype.PurchaseError(
+          throw PurchaseError(
             code: gentype.ErrorCode.IapNotAvailable,
             message:
                 'deepLinkToSubscriptionsAndroid is only available on Android',
@@ -945,7 +954,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
         if (_platform.isAndroid) {
           final purchaseToken = purchase.purchaseToken;
           if (purchaseToken == null || purchaseToken.isEmpty) {
-            throw const gentype.PurchaseError(
+            throw PurchaseError(
               code: gentype.ErrorCode.PurchaseError,
               message:
                   'Purchase token is required to finish Android transactions.',
@@ -1127,22 +1136,22 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
   gentype.QueryValidateReceiptIOSHandler get validateReceiptIOS =>
       (options) async {
         if (!_platform.isIOS) {
-          throw const gentype.PurchaseError(
-            code: gentype.ErrorCode.IapNotAvailable,
+          throw errors.PurchaseError(
+            code: errors.ErrorCode.IapNotAvailable,
             message: 'Receipt validation is only available on iOS',
           );
         }
 
         if (!_isInitialized) {
-          throw const gentype.PurchaseError(
-            code: gentype.ErrorCode.NotPrepared,
+          throw errors.PurchaseError(
+            code: errors.ErrorCode.NotPrepared,
             message: 'IAP connection not initialized',
           );
         }
 
         final sku = options.sku.trim();
         if (sku.isEmpty) {
-          throw const gentype.PurchaseError(
+          throw PurchaseError(
             code: gentype.ErrorCode.DeveloperError,
             message: 'sku cannot be empty',
           );
@@ -1155,7 +1164,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           );
 
           if (result == null) {
-            throw const gentype.PurchaseError(
+            throw PurchaseError(
               code: gentype.ErrorCode.ServiceError,
               message: 'No validation result received from native platform',
             );
@@ -1179,13 +1188,13 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
             latestTransaction: latestTransaction,
           );
         } on PlatformException catch (error) {
-          throw gentype.PurchaseError(
+          throw PurchaseError(
             code: gentype.ErrorCode.ServiceError,
             message:
                 'Failed to validate receipt [${error.code}]: ${error.message ?? error.details}',
           );
         } catch (error) {
-          throw gentype.PurchaseError(
+          throw PurchaseError(
             code: gentype.ErrorCode.ServiceError,
             message: 'Failed to validate receipt: ${error.toString()}',
           );
@@ -1197,12 +1206,12 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           return await validateReceiptIOS(options);
         }
         if (_platform.isAndroid) {
-          throw const gentype.PurchaseError(
+          throw PurchaseError(
             code: gentype.ErrorCode.IapNotAvailable,
             message: 'Android receipt validation is not supported',
           );
         }
-        throw const gentype.PurchaseError(
+        throw PurchaseError(
           code: gentype.ErrorCode.IapNotAvailable,
           message: 'Platform not supported for receipt validation',
         );
@@ -1215,14 +1224,14 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
         final queryType = options.type ?? gentype.ProductQueryType.InApp;
 
         if (!_isInitialized) {
-          throw const gentype.PurchaseError(
+          throw PurchaseError(
             code: gentype.ErrorCode.NotPrepared,
             message: 'IAP connection not initialized',
           );
         }
 
         if (queryType == gentype.ProductQueryType.All) {
-          throw const gentype.PurchaseError(
+          throw PurchaseError(
             code: gentype.ErrorCode.DeveloperError,
             message: 'fetchProducts does not support ProductQueryType.All. '
                 'Query in-app products and subscriptions separately.',
@@ -1312,7 +1321,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           }
           return gentype.FetchProductsResultProducts(inApps);
         } catch (error) {
-          throw gentype.PurchaseError(
+          throw PurchaseError(
             code: gentype.ErrorCode.ServiceError,
             message: 'Failed to fetch products: ${error.toString()}',
           );
@@ -1349,7 +1358,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
   gentype.QueryGetActiveSubscriptionsHandler get getActiveSubscriptions =>
       ([subscriptionIds]) async {
         if (!_isInitialized) {
-          throw const gentype.PurchaseError(
+          throw PurchaseError(
             code: gentype.ErrorCode.NotPrepared,
             message: 'IAP connection not initialized',
           );
@@ -1413,10 +1422,10 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
 
           return activeSubscriptions;
         } catch (error) {
-          if (error is gentype.PurchaseError) {
+          if (error is PurchaseError) {
             rethrow;
           }
-          throw gentype.PurchaseError(
+          throw PurchaseError(
             code: gentype.ErrorCode.ServiceError,
             message: 'Failed to get active subscriptions: ${error.toString()}',
           );
@@ -1491,7 +1500,8 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           );
           return value ?? '';
         },
-        purchaseError: () async => await purchaseErrorListener.first,
+        purchaseError: () async =>
+            await purchaseErrorListener.first as gentype.PurchaseError,
         purchaseUpdated: () async => await purchaseUpdatedListener.first,
       );
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 import 'package:flutter_inapp_purchase/extensions/purchase_helpers.dart';
 import '../widgets/product_detail_modal.dart';
@@ -35,6 +36,8 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
   StreamSubscription<PurchaseError>? _purchaseErrorSubscription;
   final Set<String> _processedTransactionIds =
       {}; // Track processed transactions
+  final Set<String> _processedErrorMessages =
+      {}; // Track processed error messages
 
   @override
   void initState() {
@@ -48,6 +51,19 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
     _purchaseErrorSubscription?.cancel();
     _iap.endConnection();
     super.dispose();
+  }
+
+  /// Convert PlatformException to PurchaseError
+  PurchaseError? _convertPlatformExceptionToPurchaseError(dynamic error) {
+    if (error is! PlatformException) return null;
+
+    final platform = Platform.isIOS ? IapPlatform.IOS : IapPlatform.Android;
+
+    return PurchaseError.fromPlatformError({
+      'code': error.code,
+      'message': error.message ?? 'Unknown error',
+      'details': error.details,
+    }, platform);
   }
 
   Future<void> _initConnection() async {
@@ -105,6 +121,15 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
         debugPrint('❌ Purchase error received!');
         debugPrint('Error code: ${purchaseError.code}');
         debugPrint('Error message: ${purchaseError.message}');
+
+        // Prevent duplicate error handling
+        final errorKey = purchaseError.message;
+        if (_processedErrorMessages.contains(errorKey)) {
+          debugPrint('ℹ️ Error already processed: $errorKey');
+          return;
+        }
+        _processedErrorMessages.add(errorKey);
+
         _handlePurchaseError(purchaseError);
       },
       onError: (Object error) {
@@ -291,63 +316,12 @@ Purchase Token: $truncatedToken...
     setState(() {
       _isProcessing = false;
 
-      // Format error result like KMP-IAP
-      if (error.code == ErrorCode.UserCancelled) {
-        _purchaseResult = '⚠️ Purchase cancelled by user';
-      } else if (error.message.contains('요청한 시간이 초과되었습니다') ||
-          error.message.contains('timeout') ||
-          error.message.contains('timed out')) {
-        // Apple/Google server timeout error
-        _purchaseResult = '''
-⏱️ Request Timeout
+      _purchaseResult = '''
+❌ Purchase Error
 Code: ${error.code}
 Message: ${error.message}
-
-🔄 Suggested Actions:
-1. Check your internet connection
-2. Wait a few minutes and try again
-3. Restart the app
-4. Try on a different network (WiFi/Cellular)
-5. Restart your device
-6. Check Apple/Google server status
-
-This is usually a temporary server issue.
-        '''
-            .trim();
-      } else if (error.message.contains('responseCode: 6')) {
-        // Server error - responseCode: 6 is BILLING_RESPONSE_RESULT_ERROR
-        _purchaseResult = '''
-❌ Google Play Server Error
-Code: ${error.code}
-Message: ${error.message}
-
-🔄 Suggested Actions:
-1. Wait a few minutes and try again
-2. Check your internet connection
-3. Clear Google Play Store cache
-4. Ensure Google Play Services is up to date
-5. Try testing with a different test account
-        '''
-            .trim();
-      } else if (error.message.contains('responseCode: 3')) {
-        // Service unavailable
-        _purchaseResult = '''
-❌ Service Unavailable
-Code: ${error.code}
-Message: ${error.message}
-
-The Google Play Store service is temporarily unavailable.
-Please try again in a few minutes.
-        '''
-            .trim();
-      } else {
-        _purchaseResult = '''
-❌ Error: ${error.message}
-Code: ${error.code}
-Product ID: ${error.productId ?? 'unknown'}
-        '''
-            .trim();
-      }
+      '''
+          .trim();
     });
   }
 
@@ -399,6 +373,8 @@ Product ID: ${error.productId ?? 'unknown'}
     setState(() {
       _isProcessing = true;
       _purchaseResult = null; // Clear previous results
+      _processedErrorMessages
+          .clear(); // Clear processed errors for new purchase
     });
 
     try {
@@ -426,7 +402,6 @@ Product ID: ${error.productId ?? 'unknown'}
       setState(() {
         _isProcessing = false;
       });
-      debugPrint('❌ Purchase request error: $error');
 
       // Do not show alert dialog if the user cancelled the purchase
       final errorString = error.toString().toLowerCase();
@@ -436,6 +411,9 @@ Product ID: ${error.productId ?? 'unknown'}
               errorString.contains('user cancelled') ||
               errorString.contains('canceled') ||
               errorString.contains('cancelled');
+
+      
+
       if (isUserCancelled) {
         debugPrint('ℹ️ Purchase cancelled by user - suppressing alert');
         return;

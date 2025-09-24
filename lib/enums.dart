@@ -7,61 +7,6 @@ enum Store { none, playStore, amazon, appStore }
 /// Platform detection enum
 enum IapPlatform { ios, android }
 
-/// Error codes (OpenIAP compliant)
-enum ErrorCode {
-  // Common error codes per OpenIAP spec
-  Unknown,
-  UserCancelled,
-  UserError,
-  ItemUnavailable,
-  ProductNotAvailable,
-  ProductAlreadyOwned,
-  ReceiptFinished,
-  AlreadyOwned,
-  NetworkError,
-  ServiceError,
-  RemoteError,
-  ReceiptFailed,
-  Pending,
-  NotEnded,
-  DeveloperError,
-
-  // Legacy codes kept for compatibility
-  ReceiptFinishedFailed,
-  NotPrepared,
-  BillingResponseJsonParseError,
-  DeferredPayment,
-  Interrupted,
-  IapNotAvailable,
-  PurchaseError,
-  SyncError,
-  TransactionValidationFailed,
-  ActivityUnavailable,
-  AlreadyPrepared,
-  ConnectionClosed,
-  BillingUnavailable,
-  PurchaseNotAllowed,
-  QuotaExceeded,
-  FeatureNotSupported,
-  NotInitialized,
-  AlreadyInitialized,
-  ClientInvalid,
-  PaymentInvalid,
-  PaymentNotAllowed,
-  StorekitOriginalTransactionIdNotFound,
-  NotSupported,
-  TransactionFailed,
-  TransactionInvalid,
-  ProductNotFound,
-  PurchaseFailed,
-  TransactionNotFound,
-  RestoreFailed,
-  RedeemFailed,
-  NoWindowScene,
-  ShowSubscriptionsFailed,
-  ProductLoadFailed,
-}
-
 /// Subscription states
 enum SubscriptionState {
   active,

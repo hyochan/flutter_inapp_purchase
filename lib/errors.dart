@@ -2,7 +2,11 @@
 library errors;
 
 import 'dart:io';
-import 'types.dart';
+import 'types.dart' as openiap_types;
+
+// Type aliases for convenience
+typedef ErrorCode = openiap_types.ErrorCode;
+typedef IapPlatform = openiap_types.IapPlatform;
 
 /// Get current platform
 IapPlatform getCurrentPlatform() {
@@ -81,21 +85,44 @@ class ErrorCodeMapping {
   };
 }
 
+/// Convert string to kebab-case
+String _toKebabCase(String str) {
+  if (str.contains('_')) {
+    return str.split('_').map((word) => word.toLowerCase()).join('-');
+  } else {
+    return str
+        .replaceAllMapped(RegExp(r'([A-Z])'), (match) => '-${match.group(1)}')
+        .toLowerCase()
+        .replaceFirst(RegExp(r'^-'), '');
+  }
+}
+
 ErrorCode _normalizeToErrorCode(dynamic error) {
   if (error is PurchaseError && error.code != null) return error.code!;
   if (error is ErrorCode) return error;
   final dynamic code =
       error is String ? error : (error is Map ? error['code'] : null);
-  if (code is ErrorCode) return code;
+  final dynamic platformRaw = error is Map ? error['platform'] : null;
+  final IapPlatform platform =
+      platformRaw == 'ios' ? IapPlatform.IOS : IapPlatform.Android;
   if (code is String) {
-    // OpenIAP uses normalized string codes across platforms; reuse mapping
-    // used for Android since codes are identical.
-    return ErrorCodeUtils.fromPlatformCode(code, IapPlatform.Android);
+    // First try platform-specific codes (E_* for Android, numeric for iOS)
+    final platformResult = ErrorCodeUtils.fromPlatformCode(code, platform);
+    if (platformResult != ErrorCode.Unknown) {
+      return platformResult;
+    }
+    // If platform code is unknown, try to parse as OpenIAP kebab-case error code
+    try {
+      return ErrorCode.fromJson(code);
+    } catch (_) {
+      // If that also fails, fall back to message-based inference
+    }
   }
+  if (code is ErrorCode) return code;
   if (code is int) {
-    // Legacy iOS numeric codes
-    return ErrorCodeUtils.fromPlatformCode(code, IapPlatform.IOS);
+    return ErrorCodeUtils.fromPlatformCode(code, platform);
   }
+
   return ErrorCode.Unknown;
 }
 
@@ -159,9 +186,17 @@ class PurchaseError implements Exception {
     Map<String, dynamic> errorData,
     IapPlatform platform,
   ) {
-    final errorCode = errorData['code'] != null
+    ErrorCode errorCode = errorData['code'] != null
         ? ErrorCodeUtils.fromPlatformCode(errorData['code'], platform)
         : ErrorCode.Unknown;
+
+    // Always try to infer from message if we have one, as it might provide more specific information
+    if (errorData['message'] != null) {
+      final inferredCode = _normalizeToErrorCode(errorData);
+      if (inferredCode != ErrorCode.Unknown) {
+        errorCode = inferredCode;
+      }
+    }
 
     return PurchaseError(
       message: errorData['message']?.toString() ?? 'Unknown error occurred',
@@ -230,14 +265,37 @@ class ErrorCodeUtils {
     dynamic platformCode,
     IapPlatform platform,
   ) {
-    // Handle modern OpenIAP string codes regardless of platform
+    // Handle string codes (Android E_* codes or OpenIAP kebab-case)
     if (platformCode is String) {
-      const mapping = ErrorCodeMapping.android; // string codes live here
+      // First try direct mapping from ErrorCodeMapping
+      const mapping = ErrorCodeMapping.android;
       for (final entry in mapping.entries) {
         if (entry.value == platformCode) {
           return entry.key;
         }
       }
+
+      // If starts with E_, try to normalize and find match
+      if (platformCode.startsWith('E_')) {
+        final withoutE = platformCode.substring(2);
+        final kebabCased = _toKebabCase(withoutE);
+        final withE = 'E_${kebabCased.toUpperCase().replaceAll('-', '_')}';
+
+        // Try to find in mapping again with normalized form
+        for (final entry in mapping.entries) {
+          if (entry.value == withE) {
+            return entry.key;
+          }
+        }
+      }
+
+      // Try to parse as OpenIAP kebab-case
+      try {
+        return ErrorCode.fromJson(platformCode);
+      } catch (_) {
+        // Fall back to unknown
+      }
+
       return ErrorCode.Unknown;
     }
 

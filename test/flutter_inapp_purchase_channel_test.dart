@@ -24,7 +24,7 @@ void main() {
       );
 
       await expectLater(
-        () => iap.requestPurchase(
+        iap.requestPurchase(
           types.RequestPurchaseProps.inApp(
             request: const types.RequestPurchasePropsByPlatforms(
               ios: types.RequestPurchaseIosProps(sku: 'demo.sku'),
@@ -32,7 +32,7 @@ void main() {
           ),
         ),
         throwsA(
-          isA<types.PurchaseError>().having(
+          isA<PurchaseError>().having(
             (error) => error.code,
             'code',
             types.ErrorCode.NotPrepared,
@@ -181,7 +181,7 @@ void main() {
       await expectLater(
         iap.initConnection(),
         throwsA(
-          isA<types.PurchaseError>().having(
+          isA<PurchaseError>().having(
             (error) => error.code,
             'code',
             types.ErrorCode.NotPrepared,
@@ -211,7 +211,7 @@ void main() {
       await expectLater(
         iap.endConnection(),
         throwsA(
-          isA<types.PurchaseError>().having(
+          isA<PurchaseError>().having(
             (error) => error.code,
             'code',
             types.ErrorCode.ServiceError,
@@ -248,7 +248,7 @@ void main() {
       await expectLater(
         () => iap.requestPurchase(props),
         throwsA(
-          isA<types.PurchaseError>().having(
+          isA<PurchaseError>().having(
             (error) => error.code,
             'code',
             types.ErrorCode.DeveloperError,
@@ -355,7 +355,7 @@ void main() {
           ),
         ),
         throwsA(
-          isA<types.PurchaseError>().having(
+          isA<PurchaseError>().having(
             (error) => error.code,
             'code',
             types.ErrorCode.DeveloperError,
@@ -392,7 +392,7 @@ void main() {
           ),
         ),
         throwsA(
-          isA<types.PurchaseError>().having(
+          isA<PurchaseError>().having(
             (error) => error.code,
             'code',
             types.ErrorCode.IapNotAvailable,
@@ -515,7 +515,7 @@ void main() {
       await expectLater(
         () => iap.getAvailablePurchases(),
         throwsA(
-          isA<types.PurchaseError>().having(
+          isA<PurchaseError>().having(
             (error) => error.code,
             'code',
             types.ErrorCode.NotPrepared,
@@ -580,7 +580,7 @@ void main() {
       await expectLater(
         iap.getAvailablePurchases(),
         throwsA(
-          isA<types.PurchaseError>().having(
+          isA<PurchaseError>().having(
             (error) => error.code,
             'code',
             types.ErrorCode.ServiceError,

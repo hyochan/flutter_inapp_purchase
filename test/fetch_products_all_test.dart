@@ -114,13 +114,13 @@ void main() {
     await iap.initConnection();
 
     await expectLater(
-      () => iap.fetchProducts(
+      iap.fetchProducts(
         const types.ProductRequest(
           skus: ['premium_monthly', 'coin_pack'],
           type: types.ProductQueryType.All,
         ),
       ),
-      throwsA(isA<types.PurchaseError>().having(
+      throwsA(isA<PurchaseError>().having(
         (error) => error.code,
         'code',
         types.ErrorCode.DeveloperError,
