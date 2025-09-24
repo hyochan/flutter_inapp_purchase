@@ -541,9 +541,8 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 if let latest = res.latestTransaction {
                     payload["latestTransaction"] = FlutterIapHelper.sanitizeDictionary(OpenIapSerialization.purchase(latest))
                 }
-                let sanitized = FlutterIapHelper.sanitizeDictionary(payload)
-                FlutterIapLog.result("validateReceiptIOS", value: sanitized)
-                await MainActor.run { result(sanitized) }
+                FlutterIapLog.result("validateReceiptIOS", value: payload)
+                await MainActor.run { result(payload) }
             } catch {
                 await MainActor.run {
                     let code: ErrorCode = .transactionValidationFailed

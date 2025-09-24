@@ -17,22 +17,9 @@ enum FlutterIapHelper {
         "obfuscatedProfileIdAndroid"
     ]
 
-    private static let sensitiveKeyFragments: [String] = [
-        "token",
-        "receipt",
-        "jws",
-        "signature"
-    ]
-
     static func sanitizeDictionary(_ dictionary: [String: Any?]) -> [String: Any] {
         var result: [String: Any] = [:]
         for (key, value) in dictionary {
-            let lowerKey = key.lowercased()
-            if sensitiveKeyFragments.contains(where: { lowerKey.contains($0) }) {
-                result[key] = "hidden"
-                continue
-            }
-
             guard let sanitizedValue = sanitizeValue(value) else { continue }
 
             if let number = sanitizedValue as? NSNumber, identifierKeys.contains(key) {
