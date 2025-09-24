@@ -3,6 +3,7 @@
 ## API Changes
 
 ### fetchProducts API (Updated)
+
 The `fetchProducts` method now uses the OpenIAP `ProductRequest` input and returns a `FetchProductsResult` union:
 
 ```dart
@@ -19,6 +20,7 @@ final products = result.inAppProducts();
 Helper extensions (`inAppProducts()`, `subscriptionProducts()`, `allProducts()`) are available from `flutter_inapp_purchase.dart` to safely unwrap the union into typed lists.
 
 ### getAvailablePurchases API (v6.4.6+)
+
 The `getAvailablePurchases` method now supports `PurchaseOptions` for OpenIAP compliance:
 
 ```dart
@@ -56,6 +58,8 @@ final allPurchases = await iap.getAvailablePurchases(
 
 ### Pre-Commit Checks
 
+**Pre-commit hooks are now set up** to automatically run these checks before each commit. If any check fails, the commit will be blocked.
+
 Before committing any changes, run these commands in order and ensure ALL pass:
 
 1. **Format check**: `git ls-files '*.dart' | grep -v '^lib/types.dart$' | xargs dart format --page-width 80 --output=none --set-exit-if-changed`
@@ -71,13 +75,16 @@ Before committing any changes, run these commands in order and ensure ALL pass:
 4. **Final verification**: Re-run `dart format --set-exit-if-changed .` to confirm no formatting issues
 5. Only commit if ALL checks succeed with exit code 0
 
+**Manual check script**: You can also run `./scripts/pre-commit-checks.sh` to manually execute all checks.
+
 ### Commit Message Convention
 
 - Follow the Angular commit style: `<type>: <short summary>` (50 characters max).
 - Use lowercase `type` (e.g., `feat`, `fix`, `docs`, `chore`, `test`).
 - Keep the summary concise and descriptive; avoid punctuation at the end.
 
-**Important**: 
+**Important**:
+
 - Use `--set-exit-if-changed` flag to match CI behavior and catch formatting issues locally before they cause CI failures
 - When using generic functions like `showModalBottomSheet`, always specify explicit type arguments (e.g., `showModalBottomSheet<void>`) to avoid type inference errors
 
@@ -88,7 +95,7 @@ Before committing any changes, run these commands in order and ensure ALL pass:
   - For field names with iOS in the middle: use `Id` before `IOS` (e.g., `subscriptionGroupIdIOS`, `webOrderLineItemIdIOS`)
 - **Android-related code**: Use `Android` suffix (e.g., `PurchaseAndroid`, `SubscriptionOfferAndroid`)
 - **IAP-related code**: When IAP is not the final suffix, use `Iap` (e.g., `IapPurchase`, not `IAPPurchase`)
-- **ID vs Id convention**: 
+- **ID vs Id convention**:
   - Use `Id` consistently across all platforms (e.g., `productId`, `transactionId`, `offerId`)
   - When combined with platform suffixes: use `Id` before the suffix (e.g., `subscriptionGroupIdIOS`, `webOrderLineItemIdIOS`, `obfuscatedAccountIdAndroid`)
   - Exception: Standalone iOS fields that end with ID use `ID` (e.g., `transactionID`, `webOrderLineItemID` in iOS-only contexts)

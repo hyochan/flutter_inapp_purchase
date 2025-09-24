@@ -412,8 +412,6 @@ Message: ${error.message}
               errorString.contains('canceled') ||
               errorString.contains('cancelled');
 
-      
-
       if (isUserCancelled) {
         debugPrint('ℹ️ Purchase cancelled by user - suppressing alert');
         return;
