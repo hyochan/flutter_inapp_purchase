@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 6.8.4
+
+- fix(ios): Resolve #567
+
 ## 6.8.3
 
 - fix(ios): send error only once - prevent duplicate purchase error events on iOS
