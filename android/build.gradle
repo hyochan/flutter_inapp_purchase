@@ -20,7 +20,7 @@ static File locateOpeniapVersionsFile(File pluginDir, File hostProjectRoot) {
     )
 }
 
-def openiapVersionsFile = locateOpeniapVersionsFile(rootDir, project.rootProject.rootDir)
+def openiapVersionsFile = locateOpeniapVersionsFile(buildscript.sourceFile.parentFile.parentFile, project.rootProject.rootDir)
 def openiapVersions = new JsonSlurper().parse(openiapVersionsFile)
 def openiapGoogleVersion = openiapVersions['google']
 
