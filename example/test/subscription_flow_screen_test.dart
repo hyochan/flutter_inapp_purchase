@@ -78,7 +78,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(log.where((call) => call.method == 'fetchProducts'), isNotEmpty);
-    expect(find.text('No subscriptions available'), findsOneWidget);
+    // The mock returns 1 subscription, so we should see it displayed
+    expect(find.text('Premium Monthly'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox.shrink());
   });

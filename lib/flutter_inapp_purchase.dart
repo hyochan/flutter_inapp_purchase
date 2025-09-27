@@ -67,6 +67,16 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
 
   final Map<String, bool> _acknowledgedAndroidPurchaseTokens = <String, bool>{};
 
+  // Temporary storage for All type products to work around union type limitation
+  List<gentype.ProductCommon>? _allTypeProducts;
+
+  // Static storage accessible by helpers without circular dependency
+  // This is a workaround for union type limitations in the OpenIAP spec
+  static List<gentype.ProductCommon>? staticAllTypeProducts;
+
+  // Getter for accessing all type products (workaround for union type limitation)
+  List<gentype.ProductCommon> get allTypeProducts => _allTypeProducts ?? [];
+
   /// Defining the [MethodChannel] for Flutter_Inapp_Purchase
   final MethodChannel _channel = const MethodChannel('flutter_inapp');
 
@@ -1230,14 +1240,6 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           );
         }
 
-        if (queryType == gentype.ProductQueryType.All) {
-          throw PurchaseError(
-            code: gentype.ErrorCode.DeveloperError,
-            message: 'fetchProducts does not support ProductQueryType.All. '
-                'Query in-app products and subscriptions separately.',
-          );
-        }
-
         try {
           final resolvedType = resolveProductType(queryType);
           debugPrint(
@@ -1261,6 +1263,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           );
 
           final products = <gentype.ProductCommon>[];
+
           for (final item in merged) {
             try {
               final Map<String, dynamic> itemMap;
@@ -1288,6 +1291,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
                 detectedType,
                 fallbackIsIOS: _platform.isIOS,
               );
+
               products.add(parsed);
             } catch (error) {
               debugPrint(
@@ -1300,7 +1304,27 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
             }
           }
 
-          if (queryType == gentype.ProductQueryType.Subs) {
+          debugPrint(
+            '[flutter_inapp_purchase] Processed ${products.length} products',
+          );
+
+          // Handle different query types
+          if (queryType == gentype.ProductQueryType.All) {
+            // For 'All' type, we need to return both in-app products and subscriptions
+            final inAppProducts =
+                products.whereType<gentype.Product>().toList();
+            final subsProducts =
+                products.whereType<gentype.ProductSubscription>().toList();
+
+            debugPrint(
+              '[flutter_inapp_purchase] Type All: ${inAppProducts.length} in-app, ${subsProducts.length} subscriptions (total: ${products.length})',
+            );
+
+            // Create a custom result that includes all products
+            // The allProducts() helper needs access to both types
+            _allTypeProducts = products; // Store locally as well
+            return createAllProductsResult(products, _allTypeProducts);
+          } else if (queryType == gentype.ProductQueryType.Subs) {
             final subscriptions = products
                 .whereType<gentype.ProductSubscription>()
                 .toList(growable: false);
@@ -1310,16 +1334,17 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
               );
             }
             return gentype.FetchProductsResultSubscriptions(subscriptions);
+          } else {
+            // Default to in-app products
+            final inApps =
+                products.whereType<gentype.Product>().toList(growable: false);
+            if (inApps.length != products.length) {
+              debugPrint(
+                '[flutter_inapp_purchase] Filtered ${products.length - inApps.length} items not matching <Product>',
+              );
+            }
+            return gentype.FetchProductsResultProducts(inApps);
           }
-
-          final inApps =
-              products.whereType<gentype.Product>().toList(growable: false);
-          if (inApps.length != products.length) {
-            debugPrint(
-              '[flutter_inapp_purchase] Filtered ${products.length - inApps.length} items not matching <Product>',
-            );
-          }
-          return gentype.FetchProductsResultProducts(inApps);
         } catch (error) {
           throw PurchaseError(
             code: gentype.ErrorCode.ServiceError,

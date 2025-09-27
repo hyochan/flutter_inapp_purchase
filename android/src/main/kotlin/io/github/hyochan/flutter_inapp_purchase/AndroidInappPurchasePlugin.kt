@@ -71,7 +71,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
 
     private fun fetchResultToJsonArray(
         result: FetchProductsResult,
-        addProductIdFallback: Boolean = false
+        deduplicate: Boolean = false
     ): JSONArray {
         val entries: List<Map<String, Any?>> = when (result) {
             is FetchProductsResultProducts -> result.value?.map { it.toJson() }
@@ -81,13 +81,24 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
             else -> emptyList<Map<String, Any?>>()
         }
         val array = JSONArray()
+        val seenIds = mutableSetOf<String>()
+
         entries.forEach { entry ->
-            val obj = JSONObject(entry)
-            if (addProductIdFallback && !obj.has("productId")) {
-                val id = entry["id"] as? String
-                if (!id.isNullOrBlank()) {
-                    obj.put("productId", id)
+            val id = entry["id"] as? String
+
+            // Handle deduplication for ProductQueryType.All bug in OpenIAP
+            if (deduplicate && id != null) {
+                if (seenIds.contains(id)) {
+                    Log.w(TAG, "OpenIAP returned duplicate product with id: $id (filtering out duplicate)")
+                    return@forEach
                 }
+                seenIds.add(id)
+            }
+
+            val obj = JSONObject(entry)
+            // Always add productId for compatibility
+            if (!obj.has("productId") && !id.isNullOrBlank()) {
+                obj.put("productId", id)
             }
             array.put(obj)
         }
@@ -350,7 +361,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                             return@launch
                         }
                         val result = iap.fetchProducts(ProductRequest(skuArr, queryType))
-                        val arr = fetchResultToJsonArray(result)
+                        val arr = fetchResultToJsonArray(result, queryType == ProductQueryType.All)
                         safe.success(arr.toString())
                     } catch (e: Exception) {
                         safe.error(OpenIapError.QueryProduct.CODE, OpenIapError.QueryProduct.MESSAGE, e.message)

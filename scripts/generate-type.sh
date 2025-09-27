@@ -68,6 +68,11 @@ fi
 mkdir -p "$(dirname "${TARGET_FILE}")"
 
 echo "Replacing ${TARGET_FILE}"
-cp "${TMP_DIR}/types.dart" "${TARGET_FILE}"
+# Add ignore directives at the top of the file
+# Note: dart format doesn't respect these, but analyzer and coverage do
+echo "// ignore_for_file: type=lint" > "${TARGET_FILE}"
+echo "// coverage:ignore-file" >> "${TARGET_FILE}"
+echo "" >> "${TARGET_FILE}"
+cat "${TMP_DIR}/types.dart" >> "${TARGET_FILE}"
 
 echo "Done."

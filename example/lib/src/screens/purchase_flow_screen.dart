@@ -7,6 +7,7 @@ import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 import 'package:flutter_inapp_purchase/extensions/purchase_helpers.dart';
 import '../widgets/product_detail_modal.dart';
 import '../widgets/purchase_detail_view.dart';
+import '../constants.dart';
 
 class PurchaseFlowScreen extends StatefulWidget {
   const PurchaseFlowScreen({Key? key}) : super(key: key);
@@ -18,11 +19,8 @@ class PurchaseFlowScreen extends StatefulWidget {
 class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
   final FlutterInappPurchase _iap = FlutterInappPurchase.instance;
 
-  // Product IDs - consumable products
-  final List<String> productIds = [
-    'dev.hyo.martie.10bulbs',
-    'dev.hyo.martie.30bulbs',
-  ];
+  // Use product IDs from constants
+  final List<String> productIds = IAPConstants.inAppProductIds;
 
   List<ProductCommon> _products = [];
   final Map<String, ProductCommon> _originalProducts =

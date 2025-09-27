@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 
-import 'enums.dart';
 import 'errors.dart' as iap_err;
+import 'flutter_inapp_purchase.dart';
 import 'types.dart' as gentype;
 
 String resolveProductType(Object type) {
@@ -840,7 +840,29 @@ class ConnectionResult {
   }
 }
 
+// Helper to create a result for ProductQueryType.All
+gentype.FetchProductsResult createAllProductsResult(
+  List<gentype.ProductCommon> allProducts,
+  List<gentype.ProductCommon>? instanceAllTypeProducts,
+) {
+  // Store in static field for helper access
+  // This is a workaround for union type limitations in the OpenIAP spec
+  FlutterInappPurchase.staticAllTypeProducts = allProducts;
+
+  // For now, return FetchProductsResultProducts with only in-app products
+  // The allProducts() extension method will use staticAllTypeProducts to get all products
+  final inAppProducts = allProducts.whereType<gentype.Product>().toList();
+  return gentype.FetchProductsResultProducts(inAppProducts);
+}
+
 extension FetchProductsResultX on gentype.FetchProductsResult {
+  /// Returns products directly as a simple list, similar to expo-iap's fetchProducts
+  /// Use this for simpler API access when you don't need type separation
+  List<gentype.ProductCommon> get products {
+    // Return all products regardless of type
+    return allProducts();
+  }
+
   List<gentype.Product> inAppProducts() {
     if (this is gentype.FetchProductsResultProducts) {
       final products = (this as gentype.FetchProductsResultProducts).value ??
@@ -861,16 +883,26 @@ extension FetchProductsResultX on gentype.FetchProductsResult {
   }
 
   List<gentype.ProductCommon> allProducts() {
-    if (this is gentype.FetchProductsResultProducts) {
-      return inAppProducts()
-          .map<gentype.ProductCommon>((product) => product)
-          .toList(growable: false);
+    // Check if this result is from a ProductQueryType.All query
+    // In this case, the complete list is stored in FlutterInappPurchase.staticAllTypeProducts
+    final allTypeProducts = FlutterInappPurchase.staticAllTypeProducts;
+    if (allTypeProducts != null && allTypeProducts.isNotEmpty) {
+      // Return the stored complete list for ProductQueryType.All results
+      // Clear the static storage after use
+      final result = List<gentype.ProductCommon>.from(allTypeProducts);
+      FlutterInappPurchase.staticAllTypeProducts = null;
+      return result;
     }
-    if (this is gentype.FetchProductsResultSubscriptions) {
-      return subscriptionProducts()
-          .map<gentype.ProductCommon>((product) => product)
-          .toList(growable: false);
-    }
-    return const <gentype.ProductCommon>[];
+
+    // Otherwise, combine both in-app products and subscriptions from the union
+    final List<gentype.ProductCommon> products = [];
+
+    // Add in-app products if available
+    products.addAll(inAppProducts());
+
+    // Add subscription products if available
+    products.addAll(subscriptionProducts());
+
+    return products;
   }
 }

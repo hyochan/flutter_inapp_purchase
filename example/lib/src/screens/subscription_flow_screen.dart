@@ -7,6 +7,7 @@ import 'package:flutter_inapp_purchase/extensions/purchase_helpers.dart';
 
 import '../widgets/product_detail_modal.dart';
 import '../widgets/purchase_detail_view.dart';
+import '../constants.dart';
 
 class SubscriptionFlowScreen extends StatefulWidget {
   const SubscriptionFlowScreen({Key? key}) : super(key: key);
@@ -18,11 +19,8 @@ class SubscriptionFlowScreen extends StatefulWidget {
 class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
   final FlutterInappPurchase _iap = FlutterInappPurchase.instance;
 
-  // Multiple subscription tiers for testing upgrades/downgrades
-  // Replace these with your actual subscription IDs
-  final List<String> subscriptionIds = [
-    'dev.hyo.martie.premium', // Premium tier
-  ];
+  // Use subscription IDs from constants
+  final List<String> subscriptionIds = IAPConstants.subscriptionProductIds;
 
   List<ProductCommon> _subscriptions = [];
   final Map<String, ProductCommon> _originalProducts = {};

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'screens/home_screen.dart';
+import 'screens/all_products_screen.dart';
 import 'screens/purchase_flow_screen.dart';
 import 'screens/subscription_flow_screen.dart';
 import 'screens/available_purchases_screen.dart';
@@ -30,6 +31,7 @@ class App extends StatelessWidget {
       ),
       home: const HomeScreen(),
       routes: {
+        '/all-products': (context) => const AllProductsScreen(),
         '/purchase-flow': (context) => const PurchaseFlowScreen(),
         '/subscription-flow': (context) => const SubscriptionFlowScreen(),
         '/available-purchases': (context) => const AvailablePurchasesScreen(),
