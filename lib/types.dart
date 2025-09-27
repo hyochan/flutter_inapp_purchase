@@ -495,7 +495,6 @@ abstract class PurchaseCommon {
   IapPlatform get platform;
   String get productId;
   PurchaseState get purchaseState;
-
   /// Unified purchase token (iOS JWS, Android purchaseToken)
   String? get purchaseToken;
   int get quantity;
@@ -532,8 +531,7 @@ class ActiveSubscription {
   factory ActiveSubscription.fromJson(Map<String, dynamic> json) {
     return ActiveSubscription(
       autoRenewingAndroid: json['autoRenewingAndroid'] as bool?,
-      daysUntilExpirationIOS:
-          (json['daysUntilExpirationIOS'] as num?)?.toDouble(),
+      daysUntilExpirationIOS: (json['daysUntilExpirationIOS'] as num?)?.toDouble(),
       environmentIOS: json['environmentIOS'] as String?,
       expirationDateIOS: (json['expirationDateIOS'] as num?)?.toDouble(),
       isActive: json['isActive'] as bool,
@@ -684,32 +682,24 @@ class DiscountOfferIOS {
   const DiscountOfferIOS({
     /// Discount identifier
     required this.identifier,
-
     /// Key identifier for validation
     required this.keyIdentifier,
-
     /// Cryptographic nonce
     required this.nonce,
-
     /// Signature for validation
     required this.signature,
-
     /// Timestamp of discount offer
     required this.timestamp,
   });
 
   /// Discount identifier
   final String identifier;
-
   /// Key identifier for validation
   final String keyIdentifier;
-
   /// Cryptographic nonce
   final String nonce;
-
   /// Signature for validation
   final String signature;
-
   /// Timestamp of discount offer
   final double timestamp;
 
@@ -828,9 +818,7 @@ class PricingPhasesAndroid {
 
   factory PricingPhasesAndroid.fromJson(Map<String, dynamic> json) {
     return PricingPhasesAndroid(
-      pricingPhaseList: (json['pricingPhaseList'] as List<dynamic>)
-          .map((e) => PricingPhaseAndroid.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      pricingPhaseList: (json['pricingPhaseList'] as List<dynamic>).map((e) => PricingPhaseAndroid.fromJson(e as Map<String, dynamic>)).toList(),
     );
   }
 
@@ -866,12 +854,10 @@ class ProductAndroid extends Product implements ProductCommon {
   final String displayPrice;
   final String id;
   final String nameAndroid;
-  final ProductAndroidOneTimePurchaseOfferDetail?
-      oneTimePurchaseOfferDetailsAndroid;
+  final ProductAndroidOneTimePurchaseOfferDetail? oneTimePurchaseOfferDetailsAndroid;
   final IapPlatform platform;
   final double? price;
-  final List<ProductSubscriptionAndroidOfferDetails>?
-      subscriptionOfferDetailsAndroid;
+  final List<ProductSubscriptionAndroidOfferDetails>? subscriptionOfferDetailsAndroid;
   final String title;
   final ProductType type;
 
@@ -884,21 +870,10 @@ class ProductAndroid extends Product implements ProductCommon {
       displayPrice: json['displayPrice'] as String,
       id: json['id'] as String,
       nameAndroid: json['nameAndroid'] as String,
-      oneTimePurchaseOfferDetailsAndroid:
-          json['oneTimePurchaseOfferDetailsAndroid'] != null
-              ? ProductAndroidOneTimePurchaseOfferDetail.fromJson(
-                  json['oneTimePurchaseOfferDetailsAndroid']
-                      as Map<String, dynamic>)
-              : null,
+      oneTimePurchaseOfferDetailsAndroid: json['oneTimePurchaseOfferDetailsAndroid'] != null ? ProductAndroidOneTimePurchaseOfferDetail.fromJson(json['oneTimePurchaseOfferDetailsAndroid'] as Map<String, dynamic>) : null,
       platform: IapPlatform.fromJson(json['platform'] as String),
       price: (json['price'] as num?)?.toDouble(),
-      subscriptionOfferDetailsAndroid:
-          (json['subscriptionOfferDetailsAndroid'] as List<dynamic>?) == null
-              ? null
-              : (json['subscriptionOfferDetailsAndroid'] as List<dynamic>?)!
-                  .map((e) => ProductSubscriptionAndroidOfferDetails.fromJson(
-                      e as Map<String, dynamic>))
-                  .toList(),
+      subscriptionOfferDetailsAndroid: (json['subscriptionOfferDetailsAndroid'] as List<dynamic>?) == null ? null : (json['subscriptionOfferDetailsAndroid'] as List<dynamic>?)!.map((e) => ProductSubscriptionAndroidOfferDetails.fromJson(e as Map<String, dynamic>)).toList(),
       title: json['title'] as String,
       type: ProductType.fromJson(json['type'] as String),
     );
@@ -915,13 +890,10 @@ class ProductAndroid extends Product implements ProductCommon {
       'displayPrice': displayPrice,
       'id': id,
       'nameAndroid': nameAndroid,
-      'oneTimePurchaseOfferDetailsAndroid':
-          oneTimePurchaseOfferDetailsAndroid?.toJson(),
+      'oneTimePurchaseOfferDetailsAndroid': oneTimePurchaseOfferDetailsAndroid?.toJson(),
       'platform': platform.toJson(),
       'price': price,
-      'subscriptionOfferDetailsAndroid': subscriptionOfferDetailsAndroid == null
-          ? null
-          : subscriptionOfferDetailsAndroid!.map((e) => e.toJson()).toList(),
+      'subscriptionOfferDetailsAndroid': subscriptionOfferDetailsAndroid == null ? null : subscriptionOfferDetailsAndroid!.map((e) => e.toJson()).toList(),
       'title': title,
       'type': type.toJson(),
     };
@@ -939,8 +911,7 @@ class ProductAndroidOneTimePurchaseOfferDetail {
   final String priceAmountMicros;
   final String priceCurrencyCode;
 
-  factory ProductAndroidOneTimePurchaseOfferDetail.fromJson(
-      Map<String, dynamic> json) {
+  factory ProductAndroidOneTimePurchaseOfferDetail.fromJson(Map<String, dynamic> json) {
     return ProductAndroidOneTimePurchaseOfferDetail(
       formattedPrice: json['formattedPrice'] as String,
       priceAmountMicros: json['priceAmountMicros'] as String,
@@ -1006,10 +977,7 @@ class ProductIOS extends Product implements ProductCommon {
       jsonRepresentationIOS: json['jsonRepresentationIOS'] as String,
       platform: IapPlatform.fromJson(json['platform'] as String),
       price: (json['price'] as num?)?.toDouble(),
-      subscriptionInfoIOS: json['subscriptionInfoIOS'] != null
-          ? SubscriptionInfoIOS.fromJson(
-              json['subscriptionInfoIOS'] as Map<String, dynamic>)
-          : null,
+      subscriptionInfoIOS: json['subscriptionInfoIOS'] != null ? SubscriptionInfoIOS.fromJson(json['subscriptionInfoIOS'] as Map<String, dynamic>) : null,
       title: json['title'] as String,
       type: ProductType.fromJson(json['type'] as String),
       typeIOS: ProductTypeIOS.fromJson(json['typeIOS'] as String),
@@ -1039,8 +1007,7 @@ class ProductIOS extends Product implements ProductCommon {
   }
 }
 
-class ProductSubscriptionAndroid extends ProductSubscription
-    implements ProductCommon {
+class ProductSubscriptionAndroid extends ProductSubscription implements ProductCommon {
   const ProductSubscriptionAndroid({
     required this.currency,
     this.debugDescription,
@@ -1064,12 +1031,10 @@ class ProductSubscriptionAndroid extends ProductSubscription
   final String displayPrice;
   final String id;
   final String nameAndroid;
-  final ProductAndroidOneTimePurchaseOfferDetail?
-      oneTimePurchaseOfferDetailsAndroid;
+  final ProductAndroidOneTimePurchaseOfferDetail? oneTimePurchaseOfferDetailsAndroid;
   final IapPlatform platform;
   final double? price;
-  final List<ProductSubscriptionAndroidOfferDetails>
-      subscriptionOfferDetailsAndroid;
+  final List<ProductSubscriptionAndroidOfferDetails> subscriptionOfferDetailsAndroid;
   final String title;
   final ProductType type;
 
@@ -1082,19 +1047,10 @@ class ProductSubscriptionAndroid extends ProductSubscription
       displayPrice: json['displayPrice'] as String,
       id: json['id'] as String,
       nameAndroid: json['nameAndroid'] as String,
-      oneTimePurchaseOfferDetailsAndroid:
-          json['oneTimePurchaseOfferDetailsAndroid'] != null
-              ? ProductAndroidOneTimePurchaseOfferDetail.fromJson(
-                  json['oneTimePurchaseOfferDetailsAndroid']
-                      as Map<String, dynamic>)
-              : null,
+      oneTimePurchaseOfferDetailsAndroid: json['oneTimePurchaseOfferDetailsAndroid'] != null ? ProductAndroidOneTimePurchaseOfferDetail.fromJson(json['oneTimePurchaseOfferDetailsAndroid'] as Map<String, dynamic>) : null,
       platform: IapPlatform.fromJson(json['platform'] as String),
       price: (json['price'] as num?)?.toDouble(),
-      subscriptionOfferDetailsAndroid:
-          (json['subscriptionOfferDetailsAndroid'] as List<dynamic>)
-              .map((e) => ProductSubscriptionAndroidOfferDetails.fromJson(
-                  e as Map<String, dynamic>))
-              .toList(),
+      subscriptionOfferDetailsAndroid: (json['subscriptionOfferDetailsAndroid'] as List<dynamic>).map((e) => ProductSubscriptionAndroidOfferDetails.fromJson(e as Map<String, dynamic>)).toList(),
       title: json['title'] as String,
       type: ProductType.fromJson(json['type'] as String),
     );
@@ -1111,12 +1067,10 @@ class ProductSubscriptionAndroid extends ProductSubscription
       'displayPrice': displayPrice,
       'id': id,
       'nameAndroid': nameAndroid,
-      'oneTimePurchaseOfferDetailsAndroid':
-          oneTimePurchaseOfferDetailsAndroid?.toJson(),
+      'oneTimePurchaseOfferDetailsAndroid': oneTimePurchaseOfferDetailsAndroid?.toJson(),
       'platform': platform.toJson(),
       'price': price,
-      'subscriptionOfferDetailsAndroid':
-          subscriptionOfferDetailsAndroid.map((e) => e.toJson()).toList(),
+      'subscriptionOfferDetailsAndroid': subscriptionOfferDetailsAndroid.map((e) => e.toJson()).toList(),
       'title': title,
       'type': type.toJson(),
     };
@@ -1138,16 +1092,13 @@ class ProductSubscriptionAndroidOfferDetails {
   final String offerToken;
   final PricingPhasesAndroid pricingPhases;
 
-  factory ProductSubscriptionAndroidOfferDetails.fromJson(
-      Map<String, dynamic> json) {
+  factory ProductSubscriptionAndroidOfferDetails.fromJson(Map<String, dynamic> json) {
     return ProductSubscriptionAndroidOfferDetails(
       basePlanId: json['basePlanId'] as String,
       offerId: json['offerId'] as String?,
-      offerTags:
-          (json['offerTags'] as List<dynamic>).map((e) => e as String).toList(),
+      offerTags: (json['offerTags'] as List<dynamic>).map((e) => e as String).toList(),
       offerToken: json['offerToken'] as String,
-      pricingPhases: PricingPhasesAndroid.fromJson(
-          json['pricingPhases'] as Map<String, dynamic>),
+      pricingPhases: PricingPhasesAndroid.fromJson(json['pricingPhases'] as Map<String, dynamic>),
     );
   }
 
@@ -1163,8 +1114,7 @@ class ProductSubscriptionAndroidOfferDetails {
   }
 }
 
-class ProductSubscriptionIOS extends ProductSubscription
-    implements ProductCommon {
+class ProductSubscriptionIOS extends ProductSubscription implements ProductCommon {
   const ProductSubscriptionIOS({
     required this.currency,
     this.debugDescription,
@@ -1220,44 +1170,23 @@ class ProductSubscriptionIOS extends ProductSubscription
       currency: json['currency'] as String,
       debugDescription: json['debugDescription'] as String?,
       description: json['description'] as String,
-      discountsIOS: (json['discountsIOS'] as List<dynamic>?) == null
-          ? null
-          : (json['discountsIOS'] as List<dynamic>?)!
-              .map((e) => DiscountIOS.fromJson(e as Map<String, dynamic>))
-              .toList(),
+      discountsIOS: (json['discountsIOS'] as List<dynamic>?) == null ? null : (json['discountsIOS'] as List<dynamic>?)!.map((e) => DiscountIOS.fromJson(e as Map<String, dynamic>)).toList(),
       displayName: json['displayName'] as String?,
       displayNameIOS: json['displayNameIOS'] as String,
       displayPrice: json['displayPrice'] as String,
       id: json['id'] as String,
-      introductoryPriceAsAmountIOS:
-          json['introductoryPriceAsAmountIOS'] as String?,
+      introductoryPriceAsAmountIOS: json['introductoryPriceAsAmountIOS'] as String?,
       introductoryPriceIOS: json['introductoryPriceIOS'] as String?,
-      introductoryPriceNumberOfPeriodsIOS:
-          json['introductoryPriceNumberOfPeriodsIOS'] as String?,
-      introductoryPricePaymentModeIOS:
-          json['introductoryPricePaymentModeIOS'] != null
-              ? PaymentModeIOS.fromJson(
-                  json['introductoryPricePaymentModeIOS'] as String)
-              : null,
-      introductoryPriceSubscriptionPeriodIOS:
-          json['introductoryPriceSubscriptionPeriodIOS'] != null
-              ? SubscriptionPeriodIOS.fromJson(
-                  json['introductoryPriceSubscriptionPeriodIOS'] as String)
-              : null,
+      introductoryPriceNumberOfPeriodsIOS: json['introductoryPriceNumberOfPeriodsIOS'] as String?,
+      introductoryPricePaymentModeIOS: json['introductoryPricePaymentModeIOS'] != null ? PaymentModeIOS.fromJson(json['introductoryPricePaymentModeIOS'] as String) : null,
+      introductoryPriceSubscriptionPeriodIOS: json['introductoryPriceSubscriptionPeriodIOS'] != null ? SubscriptionPeriodIOS.fromJson(json['introductoryPriceSubscriptionPeriodIOS'] as String) : null,
       isFamilyShareableIOS: json['isFamilyShareableIOS'] as bool,
       jsonRepresentationIOS: json['jsonRepresentationIOS'] as String,
       platform: IapPlatform.fromJson(json['platform'] as String),
       price: (json['price'] as num?)?.toDouble(),
-      subscriptionInfoIOS: json['subscriptionInfoIOS'] != null
-          ? SubscriptionInfoIOS.fromJson(
-              json['subscriptionInfoIOS'] as Map<String, dynamic>)
-          : null,
-      subscriptionPeriodNumberIOS:
-          json['subscriptionPeriodNumberIOS'] as String?,
-      subscriptionPeriodUnitIOS: json['subscriptionPeriodUnitIOS'] != null
-          ? SubscriptionPeriodIOS.fromJson(
-              json['subscriptionPeriodUnitIOS'] as String)
-          : null,
+      subscriptionInfoIOS: json['subscriptionInfoIOS'] != null ? SubscriptionInfoIOS.fromJson(json['subscriptionInfoIOS'] as Map<String, dynamic>) : null,
+      subscriptionPeriodNumberIOS: json['subscriptionPeriodNumberIOS'] as String?,
+      subscriptionPeriodUnitIOS: json['subscriptionPeriodUnitIOS'] != null ? SubscriptionPeriodIOS.fromJson(json['subscriptionPeriodUnitIOS'] as String) : null,
       title: json['title'] as String,
       type: ProductType.fromJson(json['type'] as String),
       typeIOS: ProductTypeIOS.fromJson(json['typeIOS'] as String),
@@ -1271,21 +1200,16 @@ class ProductSubscriptionIOS extends ProductSubscription
       'currency': currency,
       'debugDescription': debugDescription,
       'description': description,
-      'discountsIOS': discountsIOS == null
-          ? null
-          : discountsIOS!.map((e) => e.toJson()).toList(),
+      'discountsIOS': discountsIOS == null ? null : discountsIOS!.map((e) => e.toJson()).toList(),
       'displayName': displayName,
       'displayNameIOS': displayNameIOS,
       'displayPrice': displayPrice,
       'id': id,
       'introductoryPriceAsAmountIOS': introductoryPriceAsAmountIOS,
       'introductoryPriceIOS': introductoryPriceIOS,
-      'introductoryPriceNumberOfPeriodsIOS':
-          introductoryPriceNumberOfPeriodsIOS,
-      'introductoryPricePaymentModeIOS':
-          introductoryPricePaymentModeIOS?.toJson(),
-      'introductoryPriceSubscriptionPeriodIOS':
-          introductoryPriceSubscriptionPeriodIOS?.toJson(),
+      'introductoryPriceNumberOfPeriodsIOS': introductoryPriceNumberOfPeriodsIOS,
+      'introductoryPricePaymentModeIOS': introductoryPricePaymentModeIOS?.toJson(),
+      'introductoryPriceSubscriptionPeriodIOS': introductoryPriceSubscriptionPeriodIOS?.toJson(),
       'isFamilyShareableIOS': isFamilyShareableIOS,
       'jsonRepresentationIOS': jsonRepresentationIOS,
       'platform': platform.toJson(),
@@ -1347,9 +1271,7 @@ class PurchaseAndroid extends Purchase implements PurchaseCommon {
       dataAndroid: json['dataAndroid'] as String?,
       developerPayloadAndroid: json['developerPayloadAndroid'] as String?,
       id: json['id'] as String,
-      ids: (json['ids'] as List<dynamic>?) == null
-          ? null
-          : (json['ids'] as List<dynamic>?)!.map((e) => e as String).toList(),
+      ids: (json['ids'] as List<dynamic>?) == null ? null : (json['ids'] as List<dynamic>?)!.map((e) => e as String).toList(),
       isAcknowledgedAndroid: json['isAcknowledgedAndroid'] as bool?,
       isAutoRenewing: json['isAutoRenewing'] as bool,
       obfuscatedAccountIdAndroid: json['obfuscatedAccountIdAndroid'] as String?,
@@ -1498,18 +1420,12 @@ class PurchaseIOS extends Purchase implements PurchaseCommon {
       environmentIOS: json['environmentIOS'] as String?,
       expirationDateIOS: (json['expirationDateIOS'] as num?)?.toDouble(),
       id: json['id'] as String,
-      ids: (json['ids'] as List<dynamic>?) == null
-          ? null
-          : (json['ids'] as List<dynamic>?)!.map((e) => e as String).toList(),
+      ids: (json['ids'] as List<dynamic>?) == null ? null : (json['ids'] as List<dynamic>?)!.map((e) => e as String).toList(),
       isAutoRenewing: json['isAutoRenewing'] as bool,
       isUpgradedIOS: json['isUpgradedIOS'] as bool?,
-      offerIOS: json['offerIOS'] != null
-          ? PurchaseOfferIOS.fromJson(json['offerIOS'] as Map<String, dynamic>)
-          : null,
-      originalTransactionDateIOS:
-          (json['originalTransactionDateIOS'] as num?)?.toDouble(),
-      originalTransactionIdentifierIOS:
-          json['originalTransactionIdentifierIOS'] as String?,
+      offerIOS: json['offerIOS'] != null ? PurchaseOfferIOS.fromJson(json['offerIOS'] as Map<String, dynamic>) : null,
+      originalTransactionDateIOS: (json['originalTransactionDateIOS'] as num?)?.toDouble(),
+      originalTransactionIdentifierIOS: json['originalTransactionIdentifierIOS'] as String?,
       ownershipTypeIOS: json['ownershipTypeIOS'] as String?,
       platform: IapPlatform.fromJson(json['platform'] as String),
       productId: json['productId'] as String,
@@ -1518,8 +1434,7 @@ class PurchaseIOS extends Purchase implements PurchaseCommon {
       quantity: json['quantity'] as int,
       quantityIOS: json['quantityIOS'] as int?,
       reasonIOS: json['reasonIOS'] as String?,
-      reasonStringRepresentationIOS:
-          json['reasonStringRepresentationIOS'] as String?,
+      reasonStringRepresentationIOS: json['reasonStringRepresentationIOS'] as String?,
       revocationDateIOS: (json['revocationDateIOS'] as num?)?.toDouble(),
       revocationReasonIOS: json['revocationReasonIOS'] as String?,
       storefrontCountryCodeIOS: json['storefrontCountryCodeIOS'] as String?,
@@ -1693,26 +1608,20 @@ class ReceiptValidationResultIOS extends ReceiptValidationResult {
   const ReceiptValidationResultIOS({
     /// Whether the receipt is valid
     required this.isValid,
-
     /// JWS representation
     required this.jwsRepresentation,
-
     /// Latest transaction if available
     this.latestTransaction,
-
     /// Receipt data string
     required this.receiptData,
   });
 
   /// Whether the receipt is valid
   final bool isValid;
-
   /// JWS representation
   final String jwsRepresentation;
-
   /// Latest transaction if available
   final Purchase? latestTransaction;
-
   /// Receipt data string
   final String receiptData;
 
@@ -1720,9 +1629,7 @@ class ReceiptValidationResultIOS extends ReceiptValidationResult {
     return ReceiptValidationResultIOS(
       isValid: json['isValid'] as bool,
       jwsRepresentation: json['jwsRepresentation'] as String,
-      latestTransaction: json['latestTransaction'] != null
-          ? Purchase.fromJson(json['latestTransaction'] as Map<String, dynamic>)
-          : null,
+      latestTransaction: json['latestTransaction'] != null ? Purchase.fromJson(json['latestTransaction'] as Map<String, dynamic>) : null,
       receiptData: json['receiptData'] as String,
     );
   }
@@ -1822,19 +1729,10 @@ class SubscriptionInfoIOS {
 
   factory SubscriptionInfoIOS.fromJson(Map<String, dynamic> json) {
     return SubscriptionInfoIOS(
-      introductoryOffer: json['introductoryOffer'] != null
-          ? SubscriptionOfferIOS.fromJson(
-              json['introductoryOffer'] as Map<String, dynamic>)
-          : null,
-      promotionalOffers: (json['promotionalOffers'] as List<dynamic>?) == null
-          ? null
-          : (json['promotionalOffers'] as List<dynamic>?)!
-              .map((e) =>
-                  SubscriptionOfferIOS.fromJson(e as Map<String, dynamic>))
-              .toList(),
+      introductoryOffer: json['introductoryOffer'] != null ? SubscriptionOfferIOS.fromJson(json['introductoryOffer'] as Map<String, dynamic>) : null,
+      promotionalOffers: (json['promotionalOffers'] as List<dynamic>?) == null ? null : (json['promotionalOffers'] as List<dynamic>?)!.map((e) => SubscriptionOfferIOS.fromJson(e as Map<String, dynamic>)).toList(),
       subscriptionGroupId: json['subscriptionGroupId'] as String,
-      subscriptionPeriod: SubscriptionPeriodValueIOS.fromJson(
-          json['subscriptionPeriod'] as Map<String, dynamic>),
+      subscriptionPeriod: SubscriptionPeriodValueIOS.fromJson(json['subscriptionPeriod'] as Map<String, dynamic>),
     );
   }
 
@@ -1842,9 +1740,7 @@ class SubscriptionInfoIOS {
     return {
       '__typename': 'SubscriptionInfoIOS',
       'introductoryOffer': introductoryOffer?.toJson(),
-      'promotionalOffers': promotionalOffers == null
-          ? null
-          : promotionalOffers!.map((e) => e.toJson()).toList(),
+      'promotionalOffers': promotionalOffers == null ? null : promotionalOffers!.map((e) => e.toJson()).toList(),
       'subscriptionGroupId': subscriptionGroupId,
       'subscriptionPeriod': subscriptionPeriod.toJson(),
     };
@@ -1875,8 +1771,7 @@ class SubscriptionOfferIOS {
       displayPrice: json['displayPrice'] as String,
       id: json['id'] as String,
       paymentMode: PaymentModeIOS.fromJson(json['paymentMode'] as String),
-      period: SubscriptionPeriodValueIOS.fromJson(
-          json['period'] as Map<String, dynamic>),
+      period: SubscriptionPeriodValueIOS.fromJson(json['period'] as Map<String, dynamic>),
       periodCount: json['periodCount'] as int,
       price: (json['price'] as num).toDouble(),
       type: SubscriptionOfferTypeIOS.fromJson(json['type'] as String),
@@ -1933,9 +1828,7 @@ class SubscriptionStatusIOS {
 
   factory SubscriptionStatusIOS.fromJson(Map<String, dynamic> json) {
     return SubscriptionStatusIOS(
-      renewalInfo: json['renewalInfo'] != null
-          ? RenewalInfoIOS.fromJson(json['renewalInfo'] as Map<String, dynamic>)
-          : null,
+      renewalInfo: json['renewalInfo'] != null ? RenewalInfoIOS.fromJson(json['renewalInfo'] as Map<String, dynamic>) : null,
       state: json['state'] as String,
     );
   }
@@ -1957,14 +1850,12 @@ class AndroidSubscriptionOfferInput {
   const AndroidSubscriptionOfferInput({
     /// Offer token
     required this.offerToken,
-
     /// Product SKU
     required this.sku,
   });
 
   /// Offer token
   final String offerToken;
-
   /// Product SKU
   final String sku;
 
@@ -1987,14 +1878,12 @@ class DeepLinkOptions {
   const DeepLinkOptions({
     /// Android package name to target (required on Android)
     this.packageNameAndroid,
-
     /// Android SKU to open (required on Android)
     this.skuAndroid,
   });
 
   /// Android package name to target (required on Android)
   final String? packageNameAndroid;
-
   /// Android SKU to open (required on Android)
   final String? skuAndroid;
 
@@ -2017,32 +1906,24 @@ class DiscountOfferInputIOS {
   const DiscountOfferInputIOS({
     /// Discount identifier
     required this.identifier,
-
     /// Key identifier for validation
     required this.keyIdentifier,
-
     /// Cryptographic nonce
     required this.nonce,
-
     /// Signature for validation
     required this.signature,
-
     /// Timestamp of discount offer
     required this.timestamp,
   });
 
   /// Discount identifier
   final String identifier;
-
   /// Key identifier for validation
   final String keyIdentifier;
-
   /// Cryptographic nonce
   final String nonce;
-
   /// Signature for validation
   final String signature;
-
   /// Timestamp of discount offer
   final double timestamp;
 
@@ -2079,9 +1960,7 @@ class ProductRequest {
   factory ProductRequest.fromJson(Map<String, dynamic> json) {
     return ProductRequest(
       skus: (json['skus'] as List<dynamic>).map((e) => e as String).toList(),
-      type: json['type'] != null
-          ? ProductQueryType.fromJson(json['type'] as String)
-          : null,
+      type: json['type'] != null ? ProductQueryType.fromJson(json['type'] as String) : null,
     );
   }
 
@@ -2119,9 +1998,7 @@ class PurchaseInput {
   factory PurchaseInput.fromJson(Map<String, dynamic> json) {
     return PurchaseInput(
       id: json['id'] as String,
-      ids: (json['ids'] as List<dynamic>?) == null
-          ? null
-          : (json['ids'] as List<dynamic>?)!.map((e) => e as String).toList(),
+      ids: (json['ids'] as List<dynamic>?) == null ? null : (json['ids'] as List<dynamic>?)!.map((e) => e as String).toList(),
       isAutoRenewing: json['isAutoRenewing'] as bool,
       platform: IapPlatform.fromJson(json['platform'] as String),
       productId: json['productId'] as String,
@@ -2151,21 +2028,18 @@ class PurchaseOptions {
   const PurchaseOptions({
     /// Also emit results through the iOS event listeners
     this.alsoPublishToEventListenerIOS,
-
     /// Limit to currently active items on iOS
     this.onlyIncludeActiveItemsIOS,
   });
 
   /// Also emit results through the iOS event listeners
   final bool? alsoPublishToEventListenerIOS;
-
   /// Limit to currently active items on iOS
   final bool? onlyIncludeActiveItemsIOS;
 
   factory PurchaseOptions.fromJson(Map<String, dynamic> json) {
     return PurchaseOptions(
-      alsoPublishToEventListenerIOS:
-          json['alsoPublishToEventListenerIOS'] as bool?,
+      alsoPublishToEventListenerIOS: json['alsoPublishToEventListenerIOS'] as bool?,
       onlyIncludeActiveItemsIOS: json['onlyIncludeActiveItemsIOS'] as bool?,
     );
   }
@@ -2214,23 +2088,18 @@ class ReceiptValidationProps {
   const ReceiptValidationProps({
     /// Android-specific validation options
     this.androidOptions,
-
     /// Product SKU to validate
     required this.sku,
   });
 
   /// Android-specific validation options
   final ReceiptValidationAndroidOptions? androidOptions;
-
   /// Product SKU to validate
   final String sku;
 
   factory ReceiptValidationProps.fromJson(Map<String, dynamic> json) {
     return ReceiptValidationProps(
-      androidOptions: json['androidOptions'] != null
-          ? ReceiptValidationAndroidOptions.fromJson(
-              json['androidOptions'] as Map<String, dynamic>)
-          : null,
+      androidOptions: json['androidOptions'] != null ? ReceiptValidationAndroidOptions.fromJson(json['androidOptions'] as Map<String, dynamic>) : null,
       sku: json['sku'] as String,
     );
   }
@@ -2247,26 +2116,20 @@ class RequestPurchaseAndroidProps {
   const RequestPurchaseAndroidProps({
     /// Personalized offer flag
     this.isOfferPersonalized,
-
     /// Obfuscated account ID
     this.obfuscatedAccountIdAndroid,
-
     /// Obfuscated profile ID
     this.obfuscatedProfileIdAndroid,
-
     /// List of product SKUs
     required this.skus,
   });
 
   /// Personalized offer flag
   final bool? isOfferPersonalized;
-
   /// Obfuscated account ID
   final String? obfuscatedAccountIdAndroid;
-
   /// Obfuscated profile ID
   final String? obfuscatedProfileIdAndroid;
-
   /// List of product SKUs
   final List<String> skus;
 
@@ -2293,53 +2156,40 @@ class RequestPurchaseIosProps {
   const RequestPurchaseIosProps({
     /// Auto-finish transaction (dangerous)
     this.andDangerouslyFinishTransactionAutomatically,
-
     /// App account token for user tracking
     this.appAccountToken,
-
     /// Purchase quantity
     this.quantity,
-
     /// Product SKU
     required this.sku,
-
     /// Discount offer to apply
     this.withOffer,
   });
 
   /// Auto-finish transaction (dangerous)
   final bool? andDangerouslyFinishTransactionAutomatically;
-
   /// App account token for user tracking
   final String? appAccountToken;
-
   /// Purchase quantity
   final int? quantity;
-
   /// Product SKU
   final String sku;
-
   /// Discount offer to apply
   final DiscountOfferInputIOS? withOffer;
 
   factory RequestPurchaseIosProps.fromJson(Map<String, dynamic> json) {
     return RequestPurchaseIosProps(
-      andDangerouslyFinishTransactionAutomatically:
-          json['andDangerouslyFinishTransactionAutomatically'] as bool?,
+      andDangerouslyFinishTransactionAutomatically: json['andDangerouslyFinishTransactionAutomatically'] as bool?,
       appAccountToken: json['appAccountToken'] as String?,
       quantity: json['quantity'] as int?,
       sku: json['sku'] as String,
-      withOffer: json['withOffer'] != null
-          ? DiscountOfferInputIOS.fromJson(
-              json['withOffer'] as Map<String, dynamic>)
-          : null,
+      withOffer: json['withOffer'] != null ? DiscountOfferInputIOS.fromJson(json['withOffer'] as Map<String, dynamic>) : null,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'andDangerouslyFinishTransactionAutomatically':
-          andDangerouslyFinishTransactionAutomatically,
+      'andDangerouslyFinishTransactionAutomatically': andDangerouslyFinishTransactionAutomatically,
       'appAccountToken': appAccountToken,
       'quantity': quantity,
       'sku': sku,
@@ -2352,19 +2202,14 @@ class RequestPurchaseProps {
   RequestPurchaseProps({
     required this.request,
     ProductQueryType? type,
-  }) : type = type ??
-            (request is RequestPurchasePropsRequestPurchase
-                ? ProductQueryType.InApp
-                : ProductQueryType.Subs) {
-    if (request is RequestPurchasePropsRequestPurchase &&
-        this.type != ProductQueryType.InApp) {
-      throw ArgumentError(
-          'type must be IN_APP when requestPurchase is provided');
+  }) : type = type ?? (request is RequestPurchasePropsRequestPurchase
+          ? ProductQueryType.InApp
+          : ProductQueryType.Subs) {
+    if (request is RequestPurchasePropsRequestPurchase && this.type != ProductQueryType.InApp) {
+      throw ArgumentError('type must be IN_APP when requestPurchase is provided');
     }
-    if (request is RequestPurchasePropsRequestSubscription &&
-        this.type != ProductQueryType.Subs) {
-      throw ArgumentError(
-          'type must be SUBS when requestSubscription is provided');
+    if (request is RequestPurchasePropsRequestSubscription && this.type != ProductQueryType.Subs) {
+      throw ArgumentError('type must be SUBS when requestSubscription is provided');
     }
   }
 
@@ -2373,65 +2218,50 @@ class RequestPurchaseProps {
 
   factory RequestPurchaseProps.fromJson(Map<String, dynamic> json) {
     final typeValue = json['type'] as String?;
-    final parsedType =
-        typeValue != null ? ProductQueryType.fromJson(typeValue) : null;
+    final parsedType = typeValue != null ? ProductQueryType.fromJson(typeValue) : null;
     final purchaseJson = json['requestPurchase'] as Map<String, dynamic>?;
     if (purchaseJson != null) {
-      final request = RequestPurchasePropsRequestPurchase(
-          RequestPurchasePropsByPlatforms.fromJson(purchaseJson));
+      final request = RequestPurchasePropsRequestPurchase(RequestPurchasePropsByPlatforms.fromJson(purchaseJson));
       final finalType = parsedType ?? ProductQueryType.InApp;
       if (finalType != ProductQueryType.InApp) {
-        throw ArgumentError(
-            'type must be IN_APP when requestPurchase is provided');
+        throw ArgumentError('type must be IN_APP when requestPurchase is provided');
       }
       return RequestPurchaseProps(request: request, type: finalType);
     }
-    final subscriptionJson =
-        json['requestSubscription'] as Map<String, dynamic>?;
+    final subscriptionJson = json['requestSubscription'] as Map<String, dynamic>?;
     if (subscriptionJson != null) {
-      final request = RequestPurchasePropsRequestSubscription(
-          RequestSubscriptionPropsByPlatforms.fromJson(subscriptionJson));
+      final request = RequestPurchasePropsRequestSubscription(RequestSubscriptionPropsByPlatforms.fromJson(subscriptionJson));
       final finalType = parsedType ?? ProductQueryType.Subs;
       if (finalType != ProductQueryType.Subs) {
-        throw ArgumentError(
-            'type must be SUBS when requestSubscription is provided');
+        throw ArgumentError('type must be SUBS when requestSubscription is provided');
       }
       return RequestPurchaseProps(request: request, type: finalType);
     }
-    throw ArgumentError(
-        'RequestPurchaseProps requires requestPurchase or requestSubscription');
+    throw ArgumentError('RequestPurchaseProps requires requestPurchase or requestSubscription');
   }
 
   Map<String, dynamic> toJson() {
     if (request is RequestPurchasePropsRequestPurchase) {
       return {
-        'requestPurchase':
-            (request as RequestPurchasePropsRequestPurchase).value.toJson(),
+        'requestPurchase': (request as RequestPurchasePropsRequestPurchase).value.toJson(),
         'type': type.toJson(),
       };
     }
     if (request is RequestPurchasePropsRequestSubscription) {
       return {
-        'requestSubscription':
-            (request as RequestPurchasePropsRequestSubscription).value.toJson(),
+        'requestSubscription': (request as RequestPurchasePropsRequestSubscription).value.toJson(),
         'type': type.toJson(),
       };
     }
     throw StateError('Unsupported RequestPurchaseProps request variant');
   }
 
-  static RequestPurchaseProps inApp(
-      {required RequestPurchasePropsByPlatforms request}) {
-    return RequestPurchaseProps(
-        request: RequestPurchasePropsRequestPurchase(request),
-        type: ProductQueryType.InApp);
+  static RequestPurchaseProps inApp({required RequestPurchasePropsByPlatforms request}) {
+    return RequestPurchaseProps(request: RequestPurchasePropsRequestPurchase(request), type: ProductQueryType.InApp);
   }
 
-  static RequestPurchaseProps subs(
-      {required RequestSubscriptionPropsByPlatforms request}) {
-    return RequestPurchaseProps(
-        request: RequestPurchasePropsRequestSubscription(request),
-        type: ProductQueryType.Subs);
+  static RequestPurchaseProps subs({required RequestSubscriptionPropsByPlatforms request}) {
+    return RequestPurchaseProps(request: RequestPurchasePropsRequestSubscription(request), type: ProductQueryType.Subs);
   }
 }
 
@@ -2444,8 +2274,7 @@ class RequestPurchasePropsRequestPurchase extends RequestPurchasePropsRequest {
   final RequestPurchasePropsByPlatforms value;
 }
 
-class RequestPurchasePropsRequestSubscription
-    extends RequestPurchasePropsRequest {
+class RequestPurchasePropsRequestSubscription extends RequestPurchasePropsRequest {
   const RequestPurchasePropsRequestSubscription(this.value);
   final RequestSubscriptionPropsByPlatforms value;
 }
@@ -2454,27 +2283,19 @@ class RequestPurchasePropsByPlatforms {
   const RequestPurchasePropsByPlatforms({
     /// Android-specific purchase parameters
     this.android,
-
     /// iOS-specific purchase parameters
     this.ios,
   });
 
   /// Android-specific purchase parameters
   final RequestPurchaseAndroidProps? android;
-
   /// iOS-specific purchase parameters
   final RequestPurchaseIosProps? ios;
 
   factory RequestPurchasePropsByPlatforms.fromJson(Map<String, dynamic> json) {
     return RequestPurchasePropsByPlatforms(
-      android: json['android'] != null
-          ? RequestPurchaseAndroidProps.fromJson(
-              json['android'] as Map<String, dynamic>)
-          : null,
-      ios: json['ios'] != null
-          ? RequestPurchaseIosProps.fromJson(
-              json['ios'] as Map<String, dynamic>)
-          : null,
+      android: json['android'] != null ? RequestPurchaseAndroidProps.fromJson(json['android'] as Map<String, dynamic>) : null,
+      ios: json['ios'] != null ? RequestPurchaseIosProps.fromJson(json['ios'] as Map<String, dynamic>) : null,
     );
   }
 
@@ -2490,44 +2311,32 @@ class RequestSubscriptionAndroidProps {
   const RequestSubscriptionAndroidProps({
     /// Personalized offer flag
     this.isOfferPersonalized,
-
     /// Obfuscated account ID
     this.obfuscatedAccountIdAndroid,
-
     /// Obfuscated profile ID
     this.obfuscatedProfileIdAndroid,
-
     /// Purchase token for upgrades/downgrades
     this.purchaseTokenAndroid,
-
     /// Replacement mode for subscription changes
     this.replacementModeAndroid,
-
     /// List of subscription SKUs
     required this.skus,
-
     /// Subscription offers
     this.subscriptionOffers,
   });
 
   /// Personalized offer flag
   final bool? isOfferPersonalized;
-
   /// Obfuscated account ID
   final String? obfuscatedAccountIdAndroid;
-
   /// Obfuscated profile ID
   final String? obfuscatedProfileIdAndroid;
-
   /// Purchase token for upgrades/downgrades
   final String? purchaseTokenAndroid;
-
   /// Replacement mode for subscription changes
   final int? replacementModeAndroid;
-
   /// List of subscription SKUs
   final List<String> skus;
-
   /// Subscription offers
   final List<AndroidSubscriptionOfferInput>? subscriptionOffers;
 
@@ -2539,12 +2348,7 @@ class RequestSubscriptionAndroidProps {
       purchaseTokenAndroid: json['purchaseTokenAndroid'] as String?,
       replacementModeAndroid: json['replacementModeAndroid'] as int?,
       skus: (json['skus'] as List<dynamic>).map((e) => e as String).toList(),
-      subscriptionOffers: (json['subscriptionOffers'] as List<dynamic>?) == null
-          ? null
-          : (json['subscriptionOffers'] as List<dynamic>?)!
-              .map((e) => AndroidSubscriptionOfferInput.fromJson(
-                  e as Map<String, dynamic>))
-              .toList(),
+      subscriptionOffers: (json['subscriptionOffers'] as List<dynamic>?) == null ? null : (json['subscriptionOffers'] as List<dynamic>?)!.map((e) => AndroidSubscriptionOfferInput.fromJson(e as Map<String, dynamic>)).toList(),
     );
   }
 
@@ -2556,9 +2360,7 @@ class RequestSubscriptionAndroidProps {
       'purchaseTokenAndroid': purchaseTokenAndroid,
       'replacementModeAndroid': replacementModeAndroid,
       'skus': skus.map((e) => e).toList(),
-      'subscriptionOffers': subscriptionOffers == null
-          ? null
-          : subscriptionOffers!.map((e) => e.toJson()).toList(),
+      'subscriptionOffers': subscriptionOffers == null ? null : subscriptionOffers!.map((e) => e.toJson()).toList(),
     };
   }
 }
@@ -2580,22 +2382,17 @@ class RequestSubscriptionIosProps {
 
   factory RequestSubscriptionIosProps.fromJson(Map<String, dynamic> json) {
     return RequestSubscriptionIosProps(
-      andDangerouslyFinishTransactionAutomatically:
-          json['andDangerouslyFinishTransactionAutomatically'] as bool?,
+      andDangerouslyFinishTransactionAutomatically: json['andDangerouslyFinishTransactionAutomatically'] as bool?,
       appAccountToken: json['appAccountToken'] as String?,
       quantity: json['quantity'] as int?,
       sku: json['sku'] as String,
-      withOffer: json['withOffer'] != null
-          ? DiscountOfferInputIOS.fromJson(
-              json['withOffer'] as Map<String, dynamic>)
-          : null,
+      withOffer: json['withOffer'] != null ? DiscountOfferInputIOS.fromJson(json['withOffer'] as Map<String, dynamic>) : null,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'andDangerouslyFinishTransactionAutomatically':
-          andDangerouslyFinishTransactionAutomatically,
+      'andDangerouslyFinishTransactionAutomatically': andDangerouslyFinishTransactionAutomatically,
       'appAccountToken': appAccountToken,
       'quantity': quantity,
       'sku': sku,
@@ -2608,28 +2405,19 @@ class RequestSubscriptionPropsByPlatforms {
   const RequestSubscriptionPropsByPlatforms({
     /// Android-specific subscription parameters
     this.android,
-
     /// iOS-specific subscription parameters
     this.ios,
   });
 
   /// Android-specific subscription parameters
   final RequestSubscriptionAndroidProps? android;
-
   /// iOS-specific subscription parameters
   final RequestSubscriptionIosProps? ios;
 
-  factory RequestSubscriptionPropsByPlatforms.fromJson(
-      Map<String, dynamic> json) {
+  factory RequestSubscriptionPropsByPlatforms.fromJson(Map<String, dynamic> json) {
     return RequestSubscriptionPropsByPlatforms(
-      android: json['android'] != null
-          ? RequestSubscriptionAndroidProps.fromJson(
-              json['android'] as Map<String, dynamic>)
-          : null,
-      ios: json['ios'] != null
-          ? RequestSubscriptionIosProps.fromJson(
-              json['ios'] as Map<String, dynamic>)
-          : null,
+      android: json['android'] != null ? RequestSubscriptionAndroidProps.fromJson(json['android'] as Map<String, dynamic>) : null,
+      ios: json['ios'] != null ? RequestSubscriptionIosProps.fromJson(json['ios'] as Map<String, dynamic>) : null,
     );
   }
 
@@ -2692,8 +2480,7 @@ sealed class ProductSubscription implements ProductCommon {
       case 'ProductSubscriptionIOS':
         return ProductSubscriptionIOS.fromJson(json);
     }
-    throw ArgumentError(
-        'Unknown __typename for ProductSubscription: $typeName');
+    throw ArgumentError('Unknown __typename for ProductSubscription: $typeName');
   }
 
   @override
@@ -2746,7 +2533,6 @@ sealed class Purchase implements PurchaseCommon {
   String get productId;
   @override
   PurchaseState get purchaseState;
-
   /// Unified purchase token (iOS JWS, Android purchaseToken)
   @override
   String? get purchaseToken;
@@ -2769,8 +2555,7 @@ sealed class ReceiptValidationResult {
       case 'ReceiptValidationResultIOS':
         return ReceiptValidationResultIOS.fromJson(json);
     }
-    throw ArgumentError(
-        'Unknown __typename for ReceiptValidationResult: $typeName');
+    throw ArgumentError('Unknown __typename for ReceiptValidationResult: $typeName');
   }
 
   Map<String, dynamic> toJson();
@@ -2782,115 +2567,83 @@ sealed class ReceiptValidationResult {
 abstract class MutationResolver {
   /// Acknowledge a non-consumable purchase or subscription
   Future<bool> acknowledgePurchaseAndroid(String purchaseToken);
-
   /// Initiate a refund request for a product (iOS 15+)
   Future<String?> beginRefundRequestIOS(String sku);
-
   /// Clear pending transactions from the StoreKit payment queue
   Future<bool> clearTransactionIOS();
-
   /// Consume a purchase token so it can be repurchased
   Future<bool> consumePurchaseAndroid(String purchaseToken);
-
   /// Open the native subscription management surface
   Future<void> deepLinkToSubscriptions([DeepLinkOptions? options]);
-
   /// Close the platform billing connection
   Future<bool> endConnection();
-
   /// Finish a transaction after validating receipts
   Future<void> finishTransaction({
     required PurchaseInput purchase,
     bool? isConsumable,
   });
-
   /// Establish the platform billing connection
   Future<bool> initConnection();
-
   /// Present the App Store code redemption sheet
   Future<bool> presentCodeRedemptionSheetIOS();
-
   /// Initiate a purchase flow; rely on events for final state
   Future<RequestPurchaseResult?> requestPurchase(RequestPurchaseProps params);
-
   /// Purchase the promoted product surfaced by the App Store
   Future<bool> requestPurchaseOnPromotedProductIOS();
-
   /// Restore completed purchases across platforms
   Future<void> restorePurchases();
-
   /// Open subscription management UI and return changed purchases (iOS 15+)
   Future<List<PurchaseIOS>> showManageSubscriptionsIOS();
-
   /// Force a StoreKit sync for transactions (iOS 15+)
   Future<bool> syncIOS();
-
   /// Validate purchase receipts with the configured providers
-  Future<ReceiptValidationResult> validateReceipt(
-      ReceiptValidationProps options);
+  Future<ReceiptValidationResult> validateReceipt(ReceiptValidationProps options);
 }
 
 /// GraphQL root query operations.
 abstract class QueryResolver {
   /// Get current StoreKit 2 entitlements (iOS 15+)
   Future<PurchaseIOS?> currentEntitlementIOS(String sku);
-
   /// Retrieve products or subscriptions from the store
   Future<FetchProductsResult> fetchProducts(ProductRequest params);
-
   /// Get active subscriptions (filters by subscriptionIds when provided)
-  Future<List<ActiveSubscription>> getActiveSubscriptions(
-      [List<String>? subscriptionIds]);
-
+  Future<List<ActiveSubscription>> getActiveSubscriptions([List<String>? subscriptionIds]);
   /// Fetch the current app transaction (iOS 16+)
   Future<AppTransaction?> getAppTransactionIOS();
-
   /// Get all available purchases for the current user
   Future<List<Purchase>> getAvailablePurchases([PurchaseOptions? options]);
-
   /// Retrieve all pending transactions in the StoreKit queue
   Future<List<PurchaseIOS>> getPendingTransactionsIOS();
-
   /// Get the currently promoted product (iOS 11+)
   Future<ProductIOS?> getPromotedProductIOS();
-
   /// Get base64-encoded receipt data for validation
   Future<String?> getReceiptDataIOS();
-
+  /// Get the current storefront country code
+  Future<String> getStorefront();
   /// Get the current App Store storefront country code
   Future<String> getStorefrontIOS();
-
   /// Get the transaction JWS (StoreKit 2)
   Future<String?> getTransactionJwsIOS(String sku);
-
   /// Check whether the user has active subscriptions
   Future<bool> hasActiveSubscriptions([List<String>? subscriptionIds]);
-
   /// Check introductory offer eligibility for a subscription group
   Future<bool> isEligibleForIntroOfferIOS(String groupID);
-
   /// Verify a StoreKit 2 transaction signature
   Future<bool> isTransactionVerifiedIOS(String sku);
-
   /// Get the latest transaction for a product using StoreKit 2
   Future<PurchaseIOS?> latestTransactionIOS(String sku);
-
   /// Get StoreKit 2 subscription status details (iOS 15+)
   Future<List<SubscriptionStatusIOS>> subscriptionStatusIOS(String sku);
-
   /// Validate a receipt for a specific product
-  Future<ReceiptValidationResultIOS> validateReceiptIOS(
-      ReceiptValidationProps options);
+  Future<ReceiptValidationResultIOS> validateReceiptIOS(ReceiptValidationProps options);
 }
 
 /// GraphQL root subscription operations.
 abstract class SubscriptionResolver {
   /// Fires when the App Store surfaces a promoted product (iOS only)
   Future<String> promotedProductIOS();
-
   /// Fires when a purchase fails or is cancelled
   Future<PurchaseError> purchaseError();
-
   /// Fires when a purchase completes successfully or a pending purchase resolves
   Future<Purchase> purchaseUpdated();
 }
@@ -2899,15 +2652,11 @@ abstract class SubscriptionResolver {
 
 // MARK: - Mutation Helpers
 
-typedef MutationAcknowledgePurchaseAndroidHandler = Future<bool> Function(
-    String purchaseToken);
-typedef MutationBeginRefundRequestIOSHandler = Future<String?> Function(
-    String sku);
+typedef MutationAcknowledgePurchaseAndroidHandler = Future<bool> Function(String purchaseToken);
+typedef MutationBeginRefundRequestIOSHandler = Future<String?> Function(String sku);
 typedef MutationClearTransactionIOSHandler = Future<bool> Function();
-typedef MutationConsumePurchaseAndroidHandler = Future<bool> Function(
-    String purchaseToken);
-typedef MutationDeepLinkToSubscriptionsHandler = Future<void> Function(
-    [DeepLinkOptions? options]);
+typedef MutationConsumePurchaseAndroidHandler = Future<bool> Function(String purchaseToken);
+typedef MutationDeepLinkToSubscriptionsHandler = Future<void> Function([DeepLinkOptions? options]);
 typedef MutationEndConnectionHandler = Future<bool> Function();
 typedef MutationFinishTransactionHandler = Future<void> Function({
   required PurchaseInput purchase,
@@ -2915,16 +2664,12 @@ typedef MutationFinishTransactionHandler = Future<void> Function({
 });
 typedef MutationInitConnectionHandler = Future<bool> Function();
 typedef MutationPresentCodeRedemptionSheetIOSHandler = Future<bool> Function();
-typedef MutationRequestPurchaseHandler = Future<RequestPurchaseResult?>
-    Function(RequestPurchaseProps params);
-typedef MutationRequestPurchaseOnPromotedProductIOSHandler = Future<bool>
-    Function();
+typedef MutationRequestPurchaseHandler = Future<RequestPurchaseResult?> Function(RequestPurchaseProps params);
+typedef MutationRequestPurchaseOnPromotedProductIOSHandler = Future<bool> Function();
 typedef MutationRestorePurchasesHandler = Future<void> Function();
-typedef MutationShowManageSubscriptionsIOSHandler = Future<List<PurchaseIOS>>
-    Function();
+typedef MutationShowManageSubscriptionsIOSHandler = Future<List<PurchaseIOS>> Function();
 typedef MutationSyncIOSHandler = Future<bool> Function();
-typedef MutationValidateReceiptHandler = Future<ReceiptValidationResult>
-    Function(ReceiptValidationProps options);
+typedef MutationValidateReceiptHandler = Future<ReceiptValidationResult> Function(ReceiptValidationProps options);
 
 class MutationHandlers {
   const MutationHandlers({
@@ -2953,11 +2698,9 @@ class MutationHandlers {
   final MutationEndConnectionHandler? endConnection;
   final MutationFinishTransactionHandler? finishTransaction;
   final MutationInitConnectionHandler? initConnection;
-  final MutationPresentCodeRedemptionSheetIOSHandler?
-      presentCodeRedemptionSheetIOS;
+  final MutationPresentCodeRedemptionSheetIOSHandler? presentCodeRedemptionSheetIOS;
   final MutationRequestPurchaseHandler? requestPurchase;
-  final MutationRequestPurchaseOnPromotedProductIOSHandler?
-      requestPurchaseOnPromotedProductIOS;
+  final MutationRequestPurchaseOnPromotedProductIOSHandler? requestPurchaseOnPromotedProductIOS;
   final MutationRestorePurchasesHandler? restorePurchases;
   final MutationShowManageSubscriptionsIOSHandler? showManageSubscriptionsIOS;
   final MutationSyncIOSHandler? syncIOS;
@@ -2966,33 +2709,23 @@ class MutationHandlers {
 
 // MARK: - Query Helpers
 
-typedef QueryCurrentEntitlementIOSHandler = Future<PurchaseIOS?> Function(
-    String sku);
-typedef QueryFetchProductsHandler = Future<FetchProductsResult> Function(
-    ProductRequest params);
-typedef QueryGetActiveSubscriptionsHandler = Future<List<ActiveSubscription>>
-    Function([List<String>? subscriptionIds]);
+typedef QueryCurrentEntitlementIOSHandler = Future<PurchaseIOS?> Function(String sku);
+typedef QueryFetchProductsHandler = Future<FetchProductsResult> Function(ProductRequest params);
+typedef QueryGetActiveSubscriptionsHandler = Future<List<ActiveSubscription>> Function([List<String>? subscriptionIds]);
 typedef QueryGetAppTransactionIOSHandler = Future<AppTransaction?> Function();
-typedef QueryGetAvailablePurchasesHandler = Future<List<Purchase>> Function(
-    [PurchaseOptions? options]);
-typedef QueryGetPendingTransactionsIOSHandler = Future<List<PurchaseIOS>>
-    Function();
+typedef QueryGetAvailablePurchasesHandler = Future<List<Purchase>> Function([PurchaseOptions? options]);
+typedef QueryGetPendingTransactionsIOSHandler = Future<List<PurchaseIOS>> Function();
 typedef QueryGetPromotedProductIOSHandler = Future<ProductIOS?> Function();
 typedef QueryGetReceiptDataIOSHandler = Future<String?> Function();
+typedef QueryGetStorefrontHandler = Future<String> Function();
 typedef QueryGetStorefrontIOSHandler = Future<String> Function();
 typedef QueryGetTransactionJwsIOSHandler = Future<String?> Function(String sku);
-typedef QueryHasActiveSubscriptionsHandler = Future<bool> Function(
-    [List<String>? subscriptionIds]);
-typedef QueryIsEligibleForIntroOfferIOSHandler = Future<bool> Function(
-    String groupID);
-typedef QueryIsTransactionVerifiedIOSHandler = Future<bool> Function(
-    String sku);
-typedef QueryLatestTransactionIOSHandler = Future<PurchaseIOS?> Function(
-    String sku);
-typedef QuerySubscriptionStatusIOSHandler = Future<List<SubscriptionStatusIOS>>
-    Function(String sku);
-typedef QueryValidateReceiptIOSHandler = Future<ReceiptValidationResultIOS>
-    Function(ReceiptValidationProps options);
+typedef QueryHasActiveSubscriptionsHandler = Future<bool> Function([List<String>? subscriptionIds]);
+typedef QueryIsEligibleForIntroOfferIOSHandler = Future<bool> Function(String groupID);
+typedef QueryIsTransactionVerifiedIOSHandler = Future<bool> Function(String sku);
+typedef QueryLatestTransactionIOSHandler = Future<PurchaseIOS?> Function(String sku);
+typedef QuerySubscriptionStatusIOSHandler = Future<List<SubscriptionStatusIOS>> Function(String sku);
+typedef QueryValidateReceiptIOSHandler = Future<ReceiptValidationResultIOS> Function(ReceiptValidationProps options);
 
 class QueryHandlers {
   const QueryHandlers({
@@ -3004,6 +2737,7 @@ class QueryHandlers {
     this.getPendingTransactionsIOS,
     this.getPromotedProductIOS,
     this.getReceiptDataIOS,
+    this.getStorefront,
     this.getStorefrontIOS,
     this.getTransactionJwsIOS,
     this.hasActiveSubscriptions,
@@ -3022,6 +2756,7 @@ class QueryHandlers {
   final QueryGetPendingTransactionsIOSHandler? getPendingTransactionsIOS;
   final QueryGetPromotedProductIOSHandler? getPromotedProductIOS;
   final QueryGetReceiptDataIOSHandler? getReceiptDataIOS;
+  final QueryGetStorefrontHandler? getStorefront;
   final QueryGetStorefrontIOSHandler? getStorefrontIOS;
   final QueryGetTransactionJwsIOSHandler? getTransactionJwsIOS;
   final QueryHasActiveSubscriptionsHandler? hasActiveSubscriptions;
