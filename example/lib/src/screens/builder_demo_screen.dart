@@ -42,9 +42,9 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
         build: (RequestPurchaseBuilder r) => r
           ..type = ProductType.InApp
           ..withIOS((RequestPurchaseIosBuilder i) =>
-              i..sku = IAPConstants.inAppProductIds[0])
+              i..sku = IapConstants.inAppProductIds[0])
           ..withAndroid((RequestPurchaseAndroidBuilder a) =>
-              a..skus = [IAPConstants.inAppProductIds[0]]),
+              a..skus = [IapConstants.inAppProductIds[0]]),
       );
       setState(() => _status = 'Purchase initiated');
     } catch (e) {
@@ -66,9 +66,9 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
         build: (RequestPurchaseBuilder r) => r
           ..type = ProductType.Subs
           ..withIOS((RequestPurchaseIosBuilder i) =>
-              i..sku = IAPConstants.subscriptionProductIds[0])
+              i..sku = IapConstants.subscriptionProductIds[0])
           ..withAndroid((RequestPurchaseAndroidBuilder a) =>
-              a..skus = [IAPConstants.subscriptionProductIds[0]]),
+              a..skus = [IapConstants.subscriptionProductIds[0]]),
       );
       setState(() => _status = 'Subscription initiated');
     } catch (e) {
@@ -89,7 +89,7 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
       final purchases = await _iap.getAvailablePurchases();
       Purchase? existing;
       for (final purchase in purchases) {
-        if (purchase.productId == IAPConstants.subscriptionProductIds[0]) {
+        if (purchase.productId == IapConstants.subscriptionProductIds[0]) {
           existing = purchase;
           break;
         }
@@ -105,7 +105,7 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
         // Upgrade/downgrade with replacement mode
         final subBuilder = RequestSubscriptionBuilder()
           ..withAndroid((RequestSubscriptionAndroidBuilder a) => a
-            ..skus = [IAPConstants.subscriptionProductIds[0]]
+            ..skus = [IapConstants.subscriptionProductIds[0]]
             ..replacementModeAndroid = prorationMode
             ..purchaseTokenAndroid = token);
 
@@ -115,7 +115,7 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
         // Fallback to a new subscription purchase (no replacement)
         final newSub = RequestSubscriptionBuilder()
           ..withAndroid((RequestSubscriptionAndroidBuilder a) =>
-              a..skus = [IAPConstants.subscriptionProductIds[0]]);
+              a..skus = [IapConstants.subscriptionProductIds[0]]);
         await _iap.requestPurchase(newSub.build());
         setState(() => _status =
             'No token/proration; purchased yearly as new subscription');

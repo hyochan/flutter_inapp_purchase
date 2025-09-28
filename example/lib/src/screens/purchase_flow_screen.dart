@@ -20,7 +20,7 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
   final FlutterInappPurchase _iap = FlutterInappPurchase.instance;
 
   // Use product IDs from constants
-  final List<String> productIds = IAPConstants.inAppProductIds;
+  final List<String> productIds = IapConstants.inAppProductIds;
 
   List<ProductCommon> _products = [];
   final Map<String, ProductCommon> _originalProducts =
@@ -335,15 +335,22 @@ Message: ${error.message}
         ),
       );
 
-      final products = result.inAppProducts();
+      // Extract products from the union type
+      final List<Product> inAppProducts;
+      if (result is FetchProductsResultProducts) {
+        inAppProducts = result.value ?? [];
+      } else {
+        inAppProducts = [];
+      }
 
-      debugPrint('📦 Received ${products.length} products from fetchProducts');
+      debugPrint(
+          '📦 Received ${inAppProducts.length} products from fetchProducts');
 
       // Clear and store original products
       _originalProducts.clear();
 
       // Store original products
-      for (final product in products) {
+      for (final product in inAppProducts) {
         final productKey = product.id;
         _originalProducts[productKey] = product;
 
@@ -355,7 +362,7 @@ Message: ${error.message}
 
       if (!mounted) return;
       setState(() {
-        _products = List<ProductCommon>.from(products);
+        _products = List<ProductCommon>.from(inAppProducts);
       });
     } catch (e) {
       debugPrint('Error loading products: $e');

@@ -161,20 +161,36 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
 
   Future<void> _loadAllProducts() async {
     try {
-      // Fetch all products at once - exactly like expo-iap
+      // Fetch all products using ProductQueryType.All
       final result = await _iap.fetchProducts(
         ProductRequest(
-          skus: IAPConstants.allProductIds,
+          skus: IapConstants.allProductIds,
           type: ProductQueryType.All,
         ),
       );
 
-      // Use the allProducts() helper to unwrap the union type
-      final products = result.allProducts();
+      // Extract products from the union type
+      // The list contains mixed types (both Product and ProductSubscription)
+      final List<ProductCommon> products;
+      if (result is FetchProductsResultProducts) {
+        // Cast to List<ProductCommon> to handle mixed types
+        products = List<ProductCommon>.from(result.value ?? []);
+      } else {
+        products = [];
+      }
+
+      // Alternative Method 2: Using the union type with helper
+      // final result = await _iap.fetchProducts(
+      //   ProductRequest(
+      //     skus: IapConstants.allProductIds,
+      //     type: ProductQueryType.All,
+      //   ),
+      // );
+      // final products = result.allProducts();
       debugPrint('Loaded ${products.length} products');
       for (final product in products) {
         debugPrint(
-            '  - ${product.id}: ${product.title} (${IAPConstants.getProductTypeLabel(product.id)})');
+            '  - ${product.id}: ${product.title} (${IapConstants.getProductTypeLabel(product.id)})');
       }
 
       if (!mounted) return;
@@ -211,7 +227,7 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
 
     try {
       final RequestPurchaseProps params;
-      if (IAPConstants.isSubscription(product.id)) {
+      if (IapConstants.isSubscription(product.id)) {
         // Subscription
         // For Android, convert subscription offer details to SubscriptionOfferAndroid
         List<SubscriptionOfferAndroid>? androidOffers;
@@ -292,7 +308,7 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
     final grouped = <String, List<ProductCommon>>{};
 
     for (final product in _allProducts) {
-      final type = IAPConstants.getProductTypeLabel(product.id);
+      final type = IapConstants.getProductTypeLabel(product.id);
       grouped[type] = (grouped[type] ?? [])..add(product);
     }
 
@@ -327,19 +343,19 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
   }
 
   Widget _buildProductCard(ProductCommon product) {
-    final productType = IAPConstants.getProductTypeLabel(product.id);
-    final isSubscription = IAPConstants.isSubscription(product.id);
+    final productType = IapConstants.getProductTypeLabel(product.id);
+    final isSubscription = IapConstants.isSubscription(product.id);
 
     // Set color based on product type
     Color accentColor;
     IconData icon;
-    if (IAPConstants.isSubscription(product.id)) {
+    if (IapConstants.isSubscription(product.id)) {
       accentColor = Colors.purple;
       icon = CupertinoIcons.repeat;
-    } else if (IAPConstants.isConsumable(product.id)) {
+    } else if (IapConstants.isConsumable(product.id)) {
       accentColor = Colors.blue;
       icon = CupertinoIcons.bag_fill;
-    } else if (IAPConstants.isNonConsumable(product.id)) {
+    } else if (IapConstants.isNonConsumable(product.id)) {
       accentColor = Colors.green;
       icon = CupertinoIcons.checkmark_seal_fill;
     } else {

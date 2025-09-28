@@ -67,16 +67,6 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
 
   final Map<String, bool> _acknowledgedAndroidPurchaseTokens = <String, bool>{};
 
-  // Temporary storage for All type products to work around union type limitation
-  List<gentype.ProductCommon>? _allTypeProducts;
-
-  // Static storage accessible by helpers without circular dependency
-  // This is a workaround for union type limitations in the OpenIAP spec
-  static final Map<int, List<gentype.ProductCommon>> staticAllTypeProducts = {};
-
-  // Getter for accessing all type products (workaround for union type limitation)
-  List<gentype.ProductCommon> get allTypeProducts => _allTypeProducts ?? [];
-
   /// Defining the [MethodChannel] for Flutter_Inapp_Purchase
   final MethodChannel _channel = const MethodChannel('flutter_inapp');
 
@@ -1308,41 +1298,27 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
             '[flutter_inapp_purchase] Processed ${products.length} products',
           );
 
-          // Handle different query types
+          // Handle different query types and return appropriate union type
           if (queryType == gentype.ProductQueryType.All) {
-            // For 'All' type, we need to return both in-app products and subscriptions
-            final inAppProducts =
-                products.whereType<gentype.Product>().toList();
-            final subsProducts =
-                products.whereType<gentype.ProductSubscription>().toList();
+            // For 'All' type, we need to return all products including subscriptions
+            // Use a List<dynamic> internally then cast to List<Product>
+            final List<dynamic> dynamicProducts = products;
+            final allProducts = dynamicProducts.cast<gentype.Product>();
 
             debugPrint(
-              '[flutter_inapp_purchase] Type All: ${inAppProducts.length} in-app, ${subsProducts.length} subscriptions (total: ${products.length})',
+              '[flutter_inapp_purchase] Type All: returning ${allProducts.length} total products (mixed types)',
             );
 
-            // Create a custom result that includes all products
-            // The allProducts() helper needs access to both types
-            _allTypeProducts = products; // Store locally as well
-            return createAllProductsResult(products, _allTypeProducts);
+            return gentype.FetchProductsResultProducts(allProducts);
           } else if (queryType == gentype.ProductQueryType.Subs) {
             final subscriptions = products
                 .whereType<gentype.ProductSubscription>()
                 .toList(growable: false);
-            if (subscriptions.length != products.length) {
-              debugPrint(
-                '[flutter_inapp_purchase] Filtered ${products.length - subscriptions.length} items not matching <ProductSubscription>',
-              );
-            }
             return gentype.FetchProductsResultSubscriptions(subscriptions);
           } else {
             // Default to in-app products
             final inApps =
                 products.whereType<gentype.Product>().toList(growable: false);
-            if (inApps.length != products.length) {
-              debugPrint(
-                '[flutter_inapp_purchase] Filtered ${products.length - inApps.length} items not matching <Product>',
-              );
-            }
             return gentype.FetchProductsResultProducts(inApps);
           }
         } catch (error) {

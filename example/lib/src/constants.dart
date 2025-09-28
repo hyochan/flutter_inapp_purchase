@@ -1,5 +1,5 @@
 // Product IDs for testing in the example app
-class IAPConstants {
+class IapConstants {
   // Consumable Product IDs
   static const List<String> consumableProductIds = [
     'dev.hyo.martie.10bulbs',
@@ -13,9 +13,9 @@ class IAPConstants {
 
   // In-App Purchase Product IDs (Consumable + Non-Consumable)
   static final List<String> inAppProductIds = [
-        ...consumableProductIds,
-        ...nonConsumableProductIds,
-      ];
+    ...consumableProductIds,
+    ...nonConsumableProductIds,
+  ];
 
   // Subscription Product IDs
   static const List<String> subscriptionProductIds = [
@@ -24,9 +24,9 @@ class IAPConstants {
 
   // All product IDs combined
   static final List<String> allProductIds = [
-        ...inAppProductIds,
-        ...subscriptionProductIds,
-      ];
+    ...inAppProductIds,
+    ...subscriptionProductIds,
+  ];
 
   // Check if a product ID is a subscription
   static bool isSubscription(String productId) {

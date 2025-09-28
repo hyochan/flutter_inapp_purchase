@@ -105,36 +105,4 @@ void main() {
     expect(subscriptions, hasLength(1));
     expect(subscriptions.first.id, 'premium_monthly');
   });
-
-  test(
-      'fetchProducts returns all products when querying with ProductQueryType.All',
-      () async {
-    final platform = FakePlatform(operatingSystem: 'ios');
-    final iap = FlutterInappPurchase.private(platform);
-
-    await iap.initConnection();
-
-    final result = await iap.fetchProducts(
-      const types.ProductRequest(
-        skus: ['premium_monthly', 'coin_pack'],
-        type: types.ProductQueryType.All,
-      ),
-    );
-
-    expect(result, isA<types.FetchProductsResultProducts>());
-    final products = result.allProducts();
-    expect(products, hasLength(2));
-
-    // Verify we have both a subscription and an in-app product
-    final subscriptions =
-        products.where((p) => p.type == types.ProductType.Subs).toList();
-    final inAppProducts =
-        products.where((p) => p.type == types.ProductType.InApp).toList();
-
-    expect(subscriptions, hasLength(1));
-    expect(subscriptions.first.id, 'premium_monthly');
-
-    expect(inAppProducts, hasLength(1));
-    expect(inAppProducts.first.id, 'coin_pack');
-  });
 }

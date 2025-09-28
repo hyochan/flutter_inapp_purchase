@@ -20,7 +20,7 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
   final FlutterInappPurchase _iap = FlutterInappPurchase.instance;
 
   // Use subscription IDs from constants
-  final List<String> subscriptionIds = IAPConstants.subscriptionProductIds;
+  final List<String> subscriptionIds = IapConstants.subscriptionProductIds;
 
   List<ProductCommon> _subscriptions = [];
   final Map<String, ProductCommon> _originalProducts = {};
@@ -298,21 +298,27 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
         ),
       );
 
-      final products = result.subscriptionProducts();
+      // Extract subscriptions from the union type
+      final List<ProductSubscription> subscriptions;
+      if (result is FetchProductsResultSubscriptions) {
+        subscriptions = result.value ?? [];
+      } else {
+        subscriptions = [];
+      }
 
-      debugPrint('Loaded ${products.length} subscriptions');
+      debugPrint('Loaded ${subscriptions.length} subscriptions');
 
       if (!mounted) return;
 
       setState(() {
         // Store original products
         _originalProducts.clear();
-        for (final product in products) {
+        for (final product in subscriptions) {
           final productKey = product.id;
           _originalProducts[productKey] = product;
         }
 
-        _subscriptions = List.of(products, growable: false);
+        _subscriptions = List.of(subscriptions, growable: false);
         _isLoadingProducts = false;
       });
     } catch (error) {
