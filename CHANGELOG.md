@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 6.8.6
+
+- feat: fetchProducts with ProductQueryType.All #568
+
+## 6.8.5
+
+- fix(android): openiap module version path
+
 ## 6.8.4
 
 - fix(ios): Resolve #567

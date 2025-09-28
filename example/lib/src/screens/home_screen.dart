@@ -130,7 +130,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Version: 6.6.1',
+                      'Version: 6.8.6',
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey[600],
