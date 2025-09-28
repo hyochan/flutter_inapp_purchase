@@ -99,32 +99,10 @@ void main() {
       ),
     );
 
-    expect(result, isA<types.FetchProductsResultSubscriptions>());
-    final subscriptions =
-        (result as types.FetchProductsResultSubscriptions).value ?? const [];
-    expect(subscriptions, hasLength(1));
-    expect(subscriptions.first.id, 'premium_monthly');
-  });
-
-  test('fetchProducts throws when querying with ProductQueryType.All',
-      () async {
-    final platform = FakePlatform(operatingSystem: 'ios');
-    final iap = FlutterInappPurchase.private(platform);
-
-    await iap.initConnection();
-
-    await expectLater(
-      iap.fetchProducts(
-        const types.ProductRequest(
-          skus: ['premium_monthly', 'coin_pack'],
-          type: types.ProductQueryType.All,
-        ),
-      ),
-      throwsA(isA<PurchaseError>().having(
-        (error) => error.code,
-        'code',
-        types.ErrorCode.DeveloperError,
-      )),
-    );
+    expect(result, isA<types.FetchProductsResultProducts>());
+    final products =
+        (result as types.FetchProductsResultProducts).value ?? const [];
+    expect(products, hasLength(1));
+    expect(products.first.id, 'premium_monthly');
   });
 }

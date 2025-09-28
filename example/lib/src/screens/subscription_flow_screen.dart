@@ -7,6 +7,7 @@ import 'package:flutter_inapp_purchase/extensions/purchase_helpers.dart';
 
 import '../widgets/product_detail_modal.dart';
 import '../widgets/purchase_detail_view.dart';
+import '../constants.dart';
 
 class SubscriptionFlowScreen extends StatefulWidget {
   const SubscriptionFlowScreen({Key? key}) : super(key: key);
@@ -18,11 +19,8 @@ class SubscriptionFlowScreen extends StatefulWidget {
 class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
   final FlutterInappPurchase _iap = FlutterInappPurchase.instance;
 
-  // Multiple subscription tiers for testing upgrades/downgrades
-  // Replace these with your actual subscription IDs
-  final List<String> subscriptionIds = [
-    'dev.hyo.martie.premium', // Premium tier
-  ];
+  // Use subscription IDs from constants
+  final List<String> subscriptionIds = IapConstants.subscriptionProductIds;
 
   List<ProductCommon> _subscriptions = [];
   final Map<String, ProductCommon> _originalProducts = {};
@@ -55,15 +53,18 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
   };
 
   List<SubscriptionOfferAndroid> _androidOffersFor(ProductCommon item) {
-    if (item is ProductSubscriptionAndroid) {
-      return item.subscriptionOfferDetailsAndroid
-          .map(
-            (offer) => SubscriptionOfferAndroid(
+    if (item is ProductAndroid) {
+      final details = item.subscriptionOfferDetailsAndroid;
+      if (details != null && details.isNotEmpty) {
+        return [
+          for (final offer in details)
+            SubscriptionOfferAndroid(
               offerToken: offer.offerToken,
-              sku: offer.basePlanId,
+              // sku must be the productId (SKU), not the basePlanId.
+              sku: item.id,
             ),
-          )
-          .toList();
+        ];
+      }
     }
     return const <SubscriptionOfferAndroid>[];
   }
@@ -293,6 +294,8 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
     setState(() => _isLoadingProducts = true);
 
     try {
+      debugPrint('🔄 Loading subscriptions with SKUs: $subscriptionIds');
+
       final result = await _iap.fetchProducts(
         ProductRequest(
           skus: subscriptionIds,
@@ -300,27 +303,47 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
         ),
       );
 
-      final products = result.subscriptionProducts();
+      debugPrint('📦 Received result type: ${result.runtimeType}');
 
-      debugPrint('Loaded ${products.length} subscriptions');
+      // Extract subscriptions from the union type
+      // Note: Due to subscription -> Product conversion, we may get FetchProductsResultProducts
+      final List<ProductCommon> subscriptions = [];
+      if (result is FetchProductsResultSubscriptions) {
+        debugPrint('🎯 Processing FetchProductsResultSubscriptions');
+        subscriptions.addAll(result.value ?? []);
+      } else if (result is FetchProductsResultProducts) {
+        debugPrint(
+            '🔄 Processing FetchProductsResultProducts (converted subscriptions)');
+        // Handle converted subscription products
+        subscriptions.addAll(result.value ?? []);
+      } else {
+        debugPrint('❌ Unexpected result type: ${result.runtimeType}');
+      }
+
+      debugPrint('✅ Loaded ${subscriptions.length} subscriptions');
+      for (final sub in subscriptions) {
+        debugPrint('  - ${sub.id}: ${sub.title} (${sub.runtimeType})');
+      }
 
       if (!mounted) return;
 
       setState(() {
         // Store original products
         _originalProducts.clear();
-        for (final product in products) {
+        for (final product in subscriptions) {
           final productKey = product.id;
           _originalProducts[productKey] = product;
         }
 
-        _subscriptions = List.of(products, growable: false);
+        _subscriptions = List.of(subscriptions, growable: false);
         _isLoadingProducts = false;
       });
-    } catch (error) {
-      debugPrint('Failed to load subscriptions: $error');
+    } catch (error, stackTrace) {
+      debugPrint('💥 Failed to load subscriptions: $error');
+      debugPrint('📍 Stack trace: $stackTrace');
       if (!mounted) return;
       setState(() {
+        _subscriptions = [];
         _isLoadingProducts = false;
         _purchaseResult = '❌ Failed to load subscriptions: $error';
       });

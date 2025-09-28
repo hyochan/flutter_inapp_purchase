@@ -35,6 +35,11 @@ analyzer:
   exclude:
     - lib/types.dart
     - example/**
+
+# Note: dart format doesn't respect analyzer excludes
+# To exclude from formatting, use:
+# dart format . --set-exit-if-changed --exclude lib/types.dart
+# Or add // dart format off at the top of the file
   language:
     strict-casts: true
     strict-inference: true

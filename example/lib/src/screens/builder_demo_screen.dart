@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
+import '../constants.dart';
 
 /// Demo screen showing DSL-like builder pattern for purchases/subscriptions
 class BuilderDemoScreen extends StatefulWidget {
@@ -41,9 +42,9 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
         build: (RequestPurchaseBuilder r) => r
           ..type = ProductType.InApp
           ..withIOS((RequestPurchaseIosBuilder i) =>
-              i..sku = 'dev.hyo.martie.10bulbs')
+              i..sku = IapConstants.inAppProductIds[0])
           ..withAndroid((RequestPurchaseAndroidBuilder a) =>
-              a..skus = ['dev.hyo.martie.10bulbs']),
+              a..skus = [IapConstants.inAppProductIds[0]]),
       );
       setState(() => _status = 'Purchase initiated');
     } catch (e) {
@@ -65,9 +66,9 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
         build: (RequestPurchaseBuilder r) => r
           ..type = ProductType.Subs
           ..withIOS((RequestPurchaseIosBuilder i) =>
-              i..sku = 'dev.hyo.martie.premium')
+              i..sku = IapConstants.subscriptionProductIds[0])
           ..withAndroid((RequestPurchaseAndroidBuilder a) =>
-              a..skus = ['dev.hyo.martie.premium']),
+              a..skus = [IapConstants.subscriptionProductIds[0]]),
       );
       setState(() => _status = 'Subscription initiated');
     } catch (e) {
@@ -88,7 +89,7 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
       final purchases = await _iap.getAvailablePurchases();
       Purchase? existing;
       for (final purchase in purchases) {
-        if (purchase.productId == 'dev.hyo.martie.premium') {
+        if (purchase.productId == IapConstants.subscriptionProductIds[0]) {
           existing = purchase;
           break;
         }
@@ -104,7 +105,7 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
         // Upgrade/downgrade with replacement mode
         final subBuilder = RequestSubscriptionBuilder()
           ..withAndroid((RequestSubscriptionAndroidBuilder a) => a
-            ..skus = ['dev.hyo.martie.premium']
+            ..skus = [IapConstants.subscriptionProductIds[0]]
             ..replacementModeAndroid = prorationMode
             ..purchaseTokenAndroid = token);
 
@@ -114,7 +115,7 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
         // Fallback to a new subscription purchase (no replacement)
         final newSub = RequestSubscriptionBuilder()
           ..withAndroid((RequestSubscriptionAndroidBuilder a) =>
-              a..skus = ['dev.hyo.martie.premium']);
+              a..skus = [IapConstants.subscriptionProductIds[0]]);
         await _iap.requestPurchase(newSub.build());
         setState(() => _status =
             'No token/proration; purchased yearly as new subscription');

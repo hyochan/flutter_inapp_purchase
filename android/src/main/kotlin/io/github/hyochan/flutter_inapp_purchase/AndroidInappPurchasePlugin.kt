@@ -71,7 +71,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
 
     private fun fetchResultToJsonArray(
         result: FetchProductsResult,
-        addProductIdFallback: Boolean = false
+        deduplicate: Boolean = false
     ): JSONArray {
         val entries: List<Map<String, Any?>> = when (result) {
             is FetchProductsResultProducts -> result.value?.map { it.toJson() }
@@ -81,13 +81,29 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
             else -> emptyList<Map<String, Any?>>()
         }
         val array = JSONArray()
+        val seenIds = mutableSetOf<String>()
+
         entries.forEach { entry ->
-            val obj = JSONObject(entry)
-            if (addProductIdFallback && !obj.has("productId")) {
-                val id = entry["id"] as? String
-                if (!id.isNullOrBlank()) {
-                    obj.put("productId", id)
+            val id = entry["id"] as? String
+
+            // Handle deduplication for ProductQueryType.All bug in OpenIAP
+            if (deduplicate && id != null) {
+                if (!seenIds.add(id)) {
+                    Log.w(TAG, "OpenIAP returned duplicate product with id: $id (filtering out duplicate)")
+                    return@forEach
                 }
+            }
+
+            val obj = JSONObject(entry)
+            // Always add productId for compatibility, handling null/blank values
+            val productIdValue = obj.opt("productId")
+            val hasUsableProductId = when (productIdValue) {
+                null, JSONObject.NULL -> false
+                is String -> productIdValue.isNotBlank()
+                else -> true
+            }
+            if (!hasUsableProductId && !id.isNullOrBlank()) {
+                obj.put("productId", id)
             }
             array.put(obj)
         }
@@ -293,25 +309,6 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
             }
         }
 
-        // Lazily init connection on demand
-        if (!connectionReady && call.method in setOf("fetchProducts", "getAvailableItems", "getStorefrontAndroid", "requestPurchase", "getAvailableItemsByType", "getPurchaseHistoryByType", "buyItemByType", "acknowledgePurchase", "consumeProduct", "consumePurchase", "acknowledgePurchaseAndroid", "consumePurchaseAndroid")) {
-            // Best-effort prepare connection
-            scope.launch {
-                connectionMutex.withLock {
-                    try {
-                        attachListenersIfNeeded()
-                        openIap?.setActivity(activity)
-                        val ok = openIap?.initConnection() ?: false
-                        connectionReady = ok
-                        val item = JSONObject().apply { put("connected", ok) }
-                        channel?.invokeMethod("connection-updated", item.toString())
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Lazy connection initialization failed", e)
-                        connectionReady = false
-                    }
-                }
-            }
-        }
 
         when (call.method) {
             // Expo parity: fetchProducts(type, skuArr[])
@@ -350,7 +347,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                             return@launch
                         }
                         val result = iap.fetchProducts(ProductRequest(skuArr, queryType))
-                        val arr = fetchResultToJsonArray(result)
+                        val arr = fetchResultToJsonArray(result, queryType == ProductQueryType.All)
                         safe.success(arr.toString())
                     } catch (e: Exception) {
                         safe.error(OpenIapError.QueryProduct.CODE, OpenIapError.QueryProduct.MESSAGE, e.message)
@@ -492,6 +489,20 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
             // -----------------------------------------------------------------
             // Android-suffix stable APIs (kept)
             // -----------------------------------------------------------------
+            "getStorefront" -> {
+                scope.launch {
+                    try {
+                        val iap = openIap ?: run {
+                            safe.error(OpenIapError.NotPrepared.CODE, OpenIapError.NotPrepared.MESSAGE, "IAP module not initialized.")
+                            return@launch
+                        }
+                        val code = iap.getStorefront()
+                        safe.success(code)
+                    } catch (e: Exception) {
+                        safe.error(OpenIapError.BillingError.CODE, OpenIapError.BillingError.MESSAGE, e.message)
+                    }
+                }
+            }
             "getStorefrontAndroid" -> {
                 scope.launch {
                     try {

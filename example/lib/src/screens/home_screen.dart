@@ -50,6 +50,16 @@ class HomeScreen extends StatelessWidget {
                     children: [
                       _buildMenuItem(
                         context,
+                        icon: CupertinoIcons.square_grid_2x2,
+                        title: 'All Products',
+                        subtitle: 'View all available products',
+                        color: const Color(0xFFFF9500),
+                        onTap: () =>
+                            Navigator.pushNamed(context, '/all-products'),
+                      ),
+                      const Divider(height: 1),
+                      _buildMenuItem(
+                        context,
                         icon: CupertinoIcons.shopping_cart,
                         title: 'Purchase Flow',
                         subtitle: 'Buy consumable products',

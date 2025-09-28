@@ -117,6 +117,9 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
             let code: ErrorCode = .developerError
             result(FlutterError(code: code.rawValue, message: "transactionId required", details: nil))
             
+        case "getStorefront":
+            getStorefront(result: result)
+
         case "getStorefrontIOS":
             getStorefrontIOS(result: result)
 
@@ -473,6 +476,22 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
         }
     }
     
+    private func getStorefront(result: @escaping FlutterResult) {
+        FlutterIapLog.debug("getStorefront called")
+        Task { @MainActor in
+            do {
+                let code = try await OpenIapModule.shared.getStorefrontIOS()
+                FlutterIapLog.result("getStorefront", value: code)
+                result(code)
+            } catch {
+                await MainActor.run {
+                    let code: ErrorCode = .serviceError
+                    result(FlutterError(code: code.rawValue, message: defaultMessage(for: code), details: nil))
+                }
+            }
+        }
+    }
+
     private func getStorefrontIOS(result: @escaping FlutterResult) {
         FlutterIapLog.debug("getStorefrontIOS called")
         Task { @MainActor in

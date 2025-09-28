@@ -12,7 +12,7 @@ if ! command -v python3 >/dev/null 2>&1; then
   exit 1
 fi
 
-OPENIAP_GQL_VERSION=$(python3 - <<'PY'
+OPENIAP_GQL_VERSION=$(python3 - "${VERSIONS_FILE}" <<'PY'
 import json
 import sys
 from pathlib import Path
@@ -33,7 +33,7 @@ if not value:
 
 print(value)
 PY
-"${VERSIONS_FILE}")
+)
 
 ZIP_URL="https://github.com/hyodotdev/openiap-gql/releases/download/${OPENIAP_GQL_VERSION}/openiap-dart.zip"
 
@@ -68,6 +68,11 @@ fi
 mkdir -p "$(dirname "${TARGET_FILE}")"
 
 echo "Replacing ${TARGET_FILE}"
-cp "${TMP_DIR}/types.dart" "${TARGET_FILE}"
+# Add ignore directives at the top of the file
+# Note: dart format doesn't respect these, but analyzer and coverage do
+echo "// ignore_for_file: type=lint" > "${TARGET_FILE}"
+echo "// coverage:ignore-file" >> "${TARGET_FILE}"
+echo "" >> "${TARGET_FILE}"
+cat "${TMP_DIR}/types.dart" >> "${TARGET_FILE}"
 
 echo "Done."

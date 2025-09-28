@@ -7,6 +7,7 @@ import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 import 'package:flutter_inapp_purchase/extensions/purchase_helpers.dart';
 import '../widgets/product_detail_modal.dart';
 import '../widgets/purchase_detail_view.dart';
+import '../constants.dart';
 
 class PurchaseFlowScreen extends StatefulWidget {
   const PurchaseFlowScreen({Key? key}) : super(key: key);
@@ -18,11 +19,8 @@ class PurchaseFlowScreen extends StatefulWidget {
 class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
   final FlutterInappPurchase _iap = FlutterInappPurchase.instance;
 
-  // Product IDs - consumable products
-  final List<String> productIds = [
-    'dev.hyo.martie.10bulbs',
-    'dev.hyo.martie.30bulbs',
-  ];
+  // Use product IDs from constants
+  final List<String> productIds = IapConstants.inAppProductIds;
 
   List<ProductCommon> _products = [];
   final Map<String, ProductCommon> _originalProducts =
@@ -337,15 +335,22 @@ Message: ${error.message}
         ),
       );
 
-      final products = result.inAppProducts();
+      // Extract products from the union type
+      final List<Product> inAppProducts;
+      if (result is FetchProductsResultProducts) {
+        inAppProducts = result.value ?? [];
+      } else {
+        inAppProducts = [];
+      }
 
-      debugPrint('📦 Received ${products.length} products from fetchProducts');
+      debugPrint(
+          '📦 Received ${inAppProducts.length} products from fetchProducts');
 
       // Clear and store original products
       _originalProducts.clear();
 
       // Store original products
-      for (final product in products) {
+      for (final product in inAppProducts) {
         final productKey = product.id;
         _originalProducts[productKey] = product;
 
@@ -357,7 +362,7 @@ Message: ${error.message}
 
       if (!mounted) return;
       setState(() {
-        _products = List<ProductCommon>.from(products);
+        _products = List<ProductCommon>.from(inAppProducts);
       });
     } catch (e) {
       debugPrint('Error loading products: $e');

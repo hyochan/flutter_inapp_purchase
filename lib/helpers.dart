@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 
-import 'enums.dart';
 import 'errors.dart' as iap_err;
+import 'flutter_inapp_purchase.dart';
 import 'types.dart' as gentype;
 
 String resolveProductType(Object type) {
@@ -837,40 +837,5 @@ class ConnectionResult {
 
   factory ConnectionResult.fromJSON(Map<String, dynamic> json) {
     return ConnectionResult(msg: json['msg']?.toString());
-  }
-}
-
-extension FetchProductsResultX on gentype.FetchProductsResult {
-  List<gentype.Product> inAppProducts() {
-    if (this is gentype.FetchProductsResultProducts) {
-      final products = (this as gentype.FetchProductsResultProducts).value ??
-          const <gentype.Product>[];
-      return List<gentype.Product>.from(products, growable: false);
-    }
-    return const <gentype.Product>[];
-  }
-
-  List<gentype.ProductSubscription> subscriptionProducts() {
-    if (this is gentype.FetchProductsResultSubscriptions) {
-      final products =
-          (this as gentype.FetchProductsResultSubscriptions).value ??
-              const <gentype.ProductSubscription>[];
-      return List<gentype.ProductSubscription>.from(products, growable: false);
-    }
-    return const <gentype.ProductSubscription>[];
-  }
-
-  List<gentype.ProductCommon> allProducts() {
-    if (this is gentype.FetchProductsResultProducts) {
-      return inAppProducts()
-          .map<gentype.ProductCommon>((product) => product)
-          .toList(growable: false);
-    }
-    if (this is gentype.FetchProductsResultSubscriptions) {
-      return subscriptionProducts()
-          .map<gentype.ProductCommon>((product) => product)
-          .toList(growable: false);
-    }
-    return const <gentype.ProductCommon>[];
   }
 }
