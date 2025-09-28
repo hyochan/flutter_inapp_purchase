@@ -34,18 +34,17 @@ final products = await iap.fetchProducts(
 **After (v6.8.0):**
 
 ```dart
-final result = await iap.fetchProducts(
+final products = await iap.fetchProducts(
   ProductRequest(
     skus: ['product_id'],
     type: ProductQueryType.InApp,
   ),
 );
-final products = result.inAppProducts();
 ```
 
-The new `ProductRequest` input and `FetchProductsResult` sealed type replace the
-legacy parameter object and raw list, keeping Dart aligned with the OpenIAP
-schema while still providing helper extensions for typed lists.
+The new `ProductRequest` input provides type-safe product queries,
+and the method now directly returns a list of products based on the query type,
+simplifying the API and removing the need for helper extensions.
 
 ## Migration from v5.x to v6.0.0
 
@@ -99,7 +98,7 @@ Future<String> requestPurchase(String sku) async
 **After (v6.x):**
 
 ```dart
-Future<FetchProductsResult> fetchProducts(ProductRequest request) async
+Future<List<Product>> fetchProducts(ProductRequest request) async
 Future<void> requestPurchase(RequestPurchaseProps params) async
 ```
 
@@ -402,7 +401,6 @@ class _MyAppState extends State<MyApp> {
           type: ProductQueryType.InApp,
         ),
       );
-      final items = result.inAppProducts();
       setState(() {
         _items = items;
       });

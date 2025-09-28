@@ -89,14 +89,12 @@ Future<FetchProductsResult> fetchProducts(ProductRequest params) async
 
 ```dart
 try {
-  final result = await FlutterInappPurchase.instance.fetchProducts(
+  final products = await FlutterInappPurchase.instance.fetchProducts(
     ProductRequest(
       skus: ['product_1', 'premium_upgrade'],
       type: ProductQueryType.InApp,
     ),
   );
-
-  final products = result.inAppProducts();
   for (final product in products) {
     print('Product: ${product.id}');
     print('Price: ${product.displayPrice}');
@@ -481,7 +479,7 @@ class ProductManager {
         type: ProductQueryType.InApp,
       ),
     );
-    _cachedProducts = result.inAppProducts();
+    _cachedProducts = result;
     _lastFetch = DateTime.now();
 
     return _cachedProducts!;

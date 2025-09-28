@@ -173,7 +173,7 @@ Future<void> _handlePurchase(String productId) async {
 ```dart
 Future<void> _loadProducts() async {
   try {
-    final result = await FlutterInappPurchase.instance.fetchProducts(
+    final products = await FlutterInappPurchase.instance.fetchProducts(
       ProductRequest(
         skus: productIds,
         type: ProductQueryType.InApp,
@@ -181,7 +181,6 @@ Future<void> _loadProducts() async {
     );
 
     // Get products from provider or state management
-    final products = result.inAppProducts();
     debugPrint('Loaded ${products.length} products');
   } catch (e) {
     debugPrint('Error loading products: $e');
@@ -274,7 +273,6 @@ class ProductInfo {
       );
 
       // Get product details
-      final products = result.inAppProducts();
 
       for (final product in products) {
         debugPrint('Product: ${product.productId}');

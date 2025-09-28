@@ -481,10 +481,9 @@ IAPPlatform getCurrentPlatform();
 
 ✨ **New in v6.8.0:**
 
-1. **Sealed fetchProducts result** – `FetchProductsResult` now differentiates
-   in-app products and subscriptions with dedicated payload wrappers. Use
-   `result.inAppProducts()`, `result.subscriptionProducts()`, or
-   `result.allProducts()` to get typed lists.
+1. **Simplified fetchProducts result** – `fetchProducts` now directly returns
+   a list of products based on the query type, no more union types or helper
+   extensions needed.
 
 2. **Typed ProductRequest input** – Catalog queries take a
    `ProductRequest(skus: [...], type: ProductQueryType.InApp|Subs)`. This keeps

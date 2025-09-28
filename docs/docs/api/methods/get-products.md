@@ -10,7 +10,7 @@ title: fetchProducts
 ## Signature
 
 ```dart
-Future<FetchProductsResult> fetchProducts(ProductRequest params)
+Future<List<Product>> fetchProducts(ProductRequest params)
 ```
 
 ## Parameters
@@ -22,26 +22,22 @@ Future<FetchProductsResult> fetchProducts(ProductRequest params)
 
 ## Return Value
 
-The method resolves to a `FetchProductsResult` sealed type:
+The method resolves to a `List<Product>` containing the requested products:
 
-- `FetchProductsResultProducts` – wraps a `List<Product>` when querying in-app items
-- `FetchProductsResultSubscriptions` – wraps a `List<ProductSubscription>` when querying subscriptions
-
-Use the helper extensions from `package:flutter_inapp_purchase/flutter_inapp_purchase.dart` (`result.inAppProducts()`, `result.subscriptionProducts()`, `result.allProducts()`) to convert the union into strongly typed lists.
+- For `ProductQueryType.InApp`: returns a list of in-app products
+- For `ProductQueryType.Subs`: returns a list of subscription products
 
 ## Usage Examples
 
 ### Fetch in-app products
 
 ```dart
-final result = await FlutterInappPurchase.instance.fetchProducts(
+final products = await FlutterInappPurchase.instance.fetchProducts(
   ProductRequest(
     skus: ['coins_100', 'remove_ads'],
     type: ProductQueryType.InApp,
   ),
 );
-
-final products = result.inAppProducts();
 for (final product in products) {
   print('${product.title}: ${product.displayPrice}');
 }
@@ -50,14 +46,12 @@ for (final product in products) {
 ### Fetch subscriptions
 
 ```dart
-final result = await FlutterInappPurchase.instance.fetchProducts(
+final subscriptions = await FlutterInappPurchase.instance.fetchProducts(
   ProductRequest(
     skus: ['premium_monthly', 'premium_yearly'],
     type: ProductQueryType.Subs,
   ),
 );
-
-final subscriptions = result.subscriptionProducts();
 for (final sub in subscriptions) {
   print('${sub.title}: ${sub.displayPrice}');
   print('Period: ${sub.subscriptionPeriodUnitIOS ?? sub.subscriptionInfoAndroid?.billingPeriod}');
@@ -76,8 +70,8 @@ Future<void> loadCatalog() async {
   );
 
   final allProducts = [
-    ...inApps.allProducts(),
-    ...subs.allProducts(),
+    ...inApps,
+    ...subs,
   ];
 
   for (final item in allProducts) {
@@ -90,11 +84,9 @@ Future<void> loadCatalog() async {
 
 ```dart
 try {
-  final result = await FlutterInappPurchase.instance.fetchProducts(
+  final products = await FlutterInappPurchase.instance.fetchProducts(
     ProductRequest(skus: productIds, type: ProductQueryType.InApp),
   );
-
-  final products = result.inAppProducts();
   if (products.isEmpty) {
     debugPrint('No products returned for: $productIds');
   }

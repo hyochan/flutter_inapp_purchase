@@ -105,13 +105,12 @@ class IAPService {
 
   Future<List<ProductCommon>> fetchInAppProducts(List<String> productIds) async {
     try {
-      final result = await FlutterInappPurchase.instance.fetchProducts(
+      return await FlutterInappPurchase.instance.fetchProducts(
         ProductRequest(
           skus: productIds,
           type: ProductQueryType.InApp,
         ),
       );
-      return result.inAppProducts();
     } catch (e) {
       print('Failed to get products: $e');
       return [];
@@ -120,13 +119,12 @@ class IAPService {
 
   Future<List<ProductCommon>> fetchSubscriptionProducts(List<String> subscriptionIds) async {
     try {
-      final result = await FlutterInappPurchase.instance.fetchProducts(
+      return await FlutterInappPurchase.instance.fetchProducts(
         ProductRequest(
           skus: subscriptionIds,
           type: ProductQueryType.Subs,
         ),
       );
-      return result.subscriptionProducts();
     } catch (e) {
       print('Failed to get subscriptions: $e');
       return [];

@@ -175,13 +175,12 @@ Returns a string representation of the item with all properties.
 
 ```dart
 // Fetching products
-final result = await FlutterInappPurchase.instance.fetchProducts(
+final products = await FlutterInappPurchase.instance.fetchProducts(
   ProductRequest(
     skus: ['com.example.premium', 'com.example.pro'],
     type: ProductQueryType.InApp,
   ),
 );
-final products = result.inAppProducts();
 
 // Accessing product information
 for (final product in products) {

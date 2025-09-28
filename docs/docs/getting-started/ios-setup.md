@@ -79,13 +79,12 @@ class _IOSStoreExampleState extends State<IOSStoreExample> {
 
   Future<void> _loadProducts() async {
     try {
-      final result = await FlutterInappPurchase.instance.fetchProducts(
+      final products = await FlutterInappPurchase.instance.fetchProducts(
         ProductRequest(
           skus: iosProductIds,
           type: ProductQueryType.InApp,
         ),
       );
-      final products = result.inAppProducts();
       setState(() {
         _products = products;
       });

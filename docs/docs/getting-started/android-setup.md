@@ -81,14 +81,13 @@ class _AndroidStoreExampleState extends State<AndroidStoreExample> {
 
   Future<void> _loadProducts() async {
     try {
-      final result = await FlutterInappPurchase.instance.fetchProducts(
+      final products = await FlutterInappPurchase.instance.fetchProducts(
         ProductRequest(
           skus:
               androidProductIds.where((id) => !id.contains('subscription')).toList(),
           type: ProductQueryType.InApp,
         ),
       );
-      final products = result.inAppProducts();
       setState(() {
         _products = products;
       });
@@ -99,13 +98,12 @@ class _AndroidStoreExampleState extends State<AndroidStoreExample> {
 
   Future<void> _loadSubscriptions() async {
     try {
-      final result = await FlutterInappPurchase.instance.fetchProducts(
+      final subscriptions = await FlutterInappPurchase.instance.fetchProducts(
         ProductRequest(
           skus: androidProductIds.where((id) => id.contains('subscription')).toList(),
           type: ProductQueryType.Subs,
         ),
       );
-      final subscriptions = result.subscriptionProducts();
       setState(() {
         _subscriptions = subscriptions;
       });
@@ -369,7 +367,6 @@ Future<void> getProductDetails() async {
         type: ProductQueryType.InApp,
       ),
     );
-    final products = result.inAppProducts();
 
     for (var product in products) {
       print('Product ID: ${product.productId}');

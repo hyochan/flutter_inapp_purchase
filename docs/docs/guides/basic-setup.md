@@ -206,13 +206,12 @@ class IAPService {
     }
 
     try {
-      final result = await FlutterInappPurchase.instance.fetchProducts(
+      final products = await FlutterInappPurchase.instance.fetchProducts(
         ProductRequest(
           skus: _productIds,
           type: ProductQueryType.InApp,
         ),
       );
-      final products = result.inAppProducts();
       print('📦 Found ${products.length} products');
       return products;
     } catch (e) {
@@ -228,13 +227,12 @@ class IAPService {
     }
 
     try {
-      final result = await FlutterInappPurchase.instance.fetchProducts(
+      final subscriptions = await FlutterInappPurchase.instance.fetchProducts(
         ProductRequest(
           skus: _subscriptionIds,
           type: ProductQueryType.Subs,
         ),
       );
-      final subscriptions = result.subscriptionProducts();
       print('📑 Found ${subscriptions.length} subscriptions');
       return subscriptions;
     } catch (e) {

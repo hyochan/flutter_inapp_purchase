@@ -597,13 +597,12 @@ class ValidationHelper {
       }
 
       // Check if product exists
-      final result = await FlutterInappPurchase.instance.fetchProducts(
+      final products = await FlutterInappPurchase.instance.fetchProducts(
         ProductRequest(
           skus: [productId],
           type: ProductQueryType.InApp,
         ),
       );
-      final products = result.inAppProducts();
       if (products.isEmpty) {
         throw PurchaseError(
           code: ErrorCode.ProductNotFound,

@@ -157,13 +157,12 @@ final productIds = [
 ];
 
 // Test with actual product IDs from App Store Connect
-final result = await FlutterInappPurchase.instance.fetchProducts(
+final products = await FlutterInappPurchase.instance.fetchProducts(
   ProductRequest(
     skus: productIds,
     type: ProductQueryType.InApp,
   ),
 );
-final products = result.inAppProducts();
 debugPrint('Found ${products.length} products');
 ```
 
@@ -202,13 +201,12 @@ Future<void> testAndroidConnection() async {
     debugPrint('Android connection result: $result');
 
     // Test product loading
-    final result = await FlutterInappPurchase.instance.fetchProducts(
+    final products = await FlutterInappPurchase.instance.fetchProducts(
       ProductRequest(
         skus: ['your_product_id_from_play_console'],
         type: ProductQueryType.InApp,
       ),
     );
-    final products = result.inAppProducts();
     debugPrint('Loaded ${products.length} products');
   } catch (e) {
     debugPrint('Android connection failed: $e');
@@ -246,13 +244,12 @@ class ProductLoadingTroubleshooter {
         type: PurchaseType.inapp,
       );
 
-      final result = await FlutterInappPurchase.instance.fetchProducts(
+      final products = await FlutterInappPurchase.instance.fetchProducts(
         ProductRequest(
           skus: productIds,
           type: ProductQueryType.InApp,
         ),
       );
-      final products = result.inAppProducts();
 
       if (products.isEmpty) {
         debugPrint('❌ No products loaded');

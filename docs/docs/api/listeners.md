@@ -222,13 +222,12 @@ Future<void> handlePromotedPurchase(String productId) async {
   
   try {
     // Load product information
-    final result = await FlutterInappPurchase.instance.fetchProducts(
+    final products = await FlutterInappPurchase.instance.fetchProducts(
       ProductRequest(
         skus: [productId],
         type: ProductQueryType.InApp,
       ),
     );
-    final products = result.inAppProducts();
     if (products.isEmpty) {
       print('Promoted product not found: $productId');
       return;

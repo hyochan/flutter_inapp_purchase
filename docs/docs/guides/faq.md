@@ -31,22 +31,20 @@ Currently supported platforms:
 Major changes in v6.8.0:
 
 ```dart
-final result = await FlutterInappPurchase.instance.fetchProducts(
+final products = await FlutterInappPurchase.instance.fetchProducts(
   ProductRequest(
     skus: ['product_id'],
     type: ProductQueryType.InApp,
   ),
 );
-
-final products = result.inAppProducts();
 ```
 
 Key improvements:
 
 - Platform helper APIs are now consolidated into the main
   `FlutterInappPurchase` surface, so you no longer juggle separate modules.
-- `FetchProductsResult` provides typed wrappers for in-app products and
-  subscriptions with helper extensions (`inAppProducts()`, `subscriptionProducts()`).
+- `fetchProducts` now directly returns a list of products based on the
+  query type, simplifying the API.
 - `openiap-versions.json` drives Android, iOS, and type-generation packages to
   keep the OpenIAP stack aligned automatically.
 - The iOS plugin features richer logging, status parsing, and safer lifecycle
@@ -82,13 +80,12 @@ FlutterInappPurchase.purchaseError.listen((error) {
 });
 
 // 4. Load products
-final result = await FlutterInappPurchase.instance.fetchProducts(
+final products = await FlutterInappPurchase.instance.fetchProducts(
   ProductRequest(
     skus: ['product_id_1', 'product_id_2'],
     type: ProductQueryType.InApp,
   ),
 );
-final products = result.inAppProducts();
 
 // 5. Request purchase
 await FlutterInappPurchase.instance.requestPurchase(
@@ -635,7 +632,7 @@ class ProductLoadingDiagnostics {
 
     // 4. Try loading products
     try {
-      final result = await FlutterInappPurchase.instance.fetchProducts(
+      final products = await FlutterInappPurchase.instance.fetchProducts(
         ProductRequest(
           skus: testIds,
           type: Platform.isIOS
@@ -643,7 +640,6 @@ class ProductLoadingDiagnostics {
               : ProductQueryType.InApp,
         ),
       );
-      final products = result.inAppProducts();
       debugPrint('✓ Loaded ${products.length} products');
 
       for (final product in products) {

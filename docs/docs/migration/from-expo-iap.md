@@ -64,13 +64,12 @@ class _MyStoreState extends State<MyStore> {
 
   Future<void> _initializeStore() async {
     await FlutterInappPurchase.instance.initConnection();
-    final result = await FlutterInappPurchase.instance.fetchProducts(
+    products = await FlutterInappPurchase.instance.fetchProducts(
       ProductRequest(
         skus: productIds,
         type: ProductQueryType.InApp,
       ),
     );
-    products = result.inAppProducts();
     setState(() {});
   }
 }
@@ -374,7 +373,6 @@ class _StoreState extends State<Store> {
             type: ProductQueryType.InApp,
           ),
         );
-        final items = result.inAppProducts();
         setState(() {
           products = items;
         });

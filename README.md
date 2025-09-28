@@ -36,13 +36,12 @@ final iap = FlutterInappPurchase();
 await iap.initConnection();
 
 // Fetch products
-final fetchResult = await iap.fetchProducts(
+final products = await iap.fetchProducts(
   ProductRequest(
     skus: ['product_id'],
     type: ProductQueryType.InApp,
   ),
 );
-final products = fetchResult.inAppProducts();
 
 // Request purchase (builder DSL)
 await iap.requestPurchaseWithBuilder(

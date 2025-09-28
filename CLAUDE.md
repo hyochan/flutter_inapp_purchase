@@ -4,20 +4,18 @@
 
 ### fetchProducts API (Updated)
 
-The `fetchProducts` method now uses the OpenIAP `ProductRequest` input and returns a `FetchProductsResult` union:
+The `fetchProducts` method now uses the OpenIAP `ProductRequest` input and returns a list of products directly:
 
 ```dart
-final result = await iap.fetchProducts(
+final products = await iap.fetchProducts(
   ProductRequest(
     skus: ['product_id'],
     type: ProductQueryType.InApp, // Optional, defaults to InApp
   ),
 );
 
-final products = result.inAppProducts();
+// products is now directly a List<Product>
 ```
-
-Helper extensions (`inAppProducts()`, `subscriptionProducts()`, `allProducts()`) are available from `flutter_inapp_purchase.dart` to safely unwrap the union into typed lists.
 
 ### getAvailablePurchases API (v6.4.6+)
 
