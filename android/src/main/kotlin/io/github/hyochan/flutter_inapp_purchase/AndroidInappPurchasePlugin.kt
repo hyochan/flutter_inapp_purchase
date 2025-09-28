@@ -88,11 +88,10 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
 
             // Handle deduplication for ProductQueryType.All bug in OpenIAP
             if (deduplicate && id != null) {
-                if (seenIds.contains(id)) {
+                if (!seenIds.add(id)) {
                     Log.w(TAG, "OpenIAP returned duplicate product with id: $id (filtering out duplicate)")
                     return@forEach
                 }
-                seenIds.add(id)
             }
 
             val obj = JSONObject(entry)

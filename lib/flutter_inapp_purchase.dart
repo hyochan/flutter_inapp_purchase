@@ -72,7 +72,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
 
   // Static storage accessible by helpers without circular dependency
   // This is a workaround for union type limitations in the OpenIAP spec
-  static List<gentype.ProductCommon>? staticAllTypeProducts;
+  static final Map<int, List<gentype.ProductCommon>> staticAllTypeProducts = {};
 
   // Getter for accessing all type products (workaround for union type limitation)
   List<gentype.ProductCommon> get allTypeProducts => _allTypeProducts ?? [];

@@ -12,7 +12,7 @@ class IAPConstants {
   ];
 
   // In-App Purchase Product IDs (Consumable + Non-Consumable)
-  static List<String> get inAppProductIds => [
+  static final List<String> inAppProductIds = [
         ...consumableProductIds,
         ...nonConsumableProductIds,
       ];
@@ -23,7 +23,7 @@ class IAPConstants {
   ];
 
   // All product IDs combined
-  static List<String> get allProductIds => [
+  static final List<String> allProductIds = [
         ...inAppProductIds,
         ...subscriptionProductIds,
       ];
