@@ -31,6 +31,7 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
   StreamSubscription<PurchaseError>? _purchaseErrorSubscription;
   final Set<String> _processedTransactionIds = {};
   final Set<String> _processedErrorMessages = {};
+  String? _storefront;
 
   @override
   void initState() {
@@ -73,6 +74,7 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
 
       _setupPurchaseListeners();
       await _loadAllProducts();
+      await _loadStorefront();
     } catch (e) {
       debugPrint('Failed to initialize IAP connection: $e');
     } finally {
@@ -159,9 +161,27 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
     }
   }
 
+  Future<void> _loadStorefront() async {
+    try {
+      final storefront = await _iap.getStorefront();
+      if (!mounted) return;
+      setState(() {
+        _storefront = storefront.isEmpty ? 'Unknown' : storefront;
+      });
+      debugPrint('Storefront: $_storefront');
+    } catch (e) {
+      debugPrint('Failed to get storefront: $e');
+      if (!mounted) return;
+      setState(() {
+        _storefront = 'Error';
+      });
+    }
+  }
+
   Future<void> _loadAllProducts() async {
     try {
       // Fetch all products using ProductQueryType.All
+      // The library now handles both Product and ProductSubscription types internally
       final result = await _iap.fetchProducts(
         ProductRequest(
           skus: IapConstants.allProductIds,
@@ -169,24 +189,12 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
         ),
       );
 
-      // Extract products from the union type
-      // The list contains mixed types (both Product and ProductSubscription)
-      final List<ProductCommon> products;
-      if (result is FetchProductsResultProducts) {
-        // Cast to List<ProductCommon> to handle mixed types
-        products = List<ProductCommon>.from(result.value ?? []);
-      } else {
-        products = [];
+      // Extract products directly from the result
+      final List<ProductCommon> products = [];
+      if (result is FetchProductsResultProducts && result.value != null) {
+        products.addAll(result.value!);
       }
 
-      // Alternative Method 2: Using the union type with helper
-      // final result = await _iap.fetchProducts(
-      //   ProductRequest(
-      //     skus: IapConstants.allProductIds,
-      //     type: ProductQueryType.All,
-      //   ),
-      // );
-      // final products = result.allProducts();
       debugPrint('Loaded ${products.length} products');
       for (final product in products) {
         debugPrint(
@@ -495,12 +503,29 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
       appBar: AppBar(
-        title: const Text('All Products'),
+        title: Column(
+          children: [
+            const Text('All Products'),
+            if (_storefront != null)
+              Text(
+                'Store: $_storefront',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
+          ],
+        ),
         centerTitle: true,
         actions: [
           IconButton(
             icon: const Icon(CupertinoIcons.refresh),
-            onPressed: _connected && !_loading ? _loadAllProducts : null,
+            onPressed: _connected && !_loading
+                ? () async {
+                    await _loadAllProducts();
+                    await _loadStorefront();
+                  }
+                : null,
           ),
         ],
       ),

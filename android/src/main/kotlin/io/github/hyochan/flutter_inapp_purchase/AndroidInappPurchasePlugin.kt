@@ -303,25 +303,6 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
             }
         }
 
-        // Lazily init connection on demand
-        if (!connectionReady && call.method in setOf("fetchProducts", "getAvailableItems", "getStorefrontAndroid", "requestPurchase", "getAvailableItemsByType", "getPurchaseHistoryByType", "buyItemByType", "acknowledgePurchase", "consumeProduct", "consumePurchase", "acknowledgePurchaseAndroid", "consumePurchaseAndroid")) {
-            // Best-effort prepare connection
-            scope.launch {
-                connectionMutex.withLock {
-                    try {
-                        attachListenersIfNeeded()
-                        openIap?.setActivity(activity)
-                        val ok = openIap?.initConnection() ?: false
-                        connectionReady = ok
-                        val item = JSONObject().apply { put("connected", ok) }
-                        channel?.invokeMethod("connection-updated", item.toString())
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Lazy connection initialization failed", e)
-                        connectionReady = false
-                    }
-                }
-            }
-        }
 
         when (call.method) {
             // Expo parity: fetchProducts(type, skuArr[])
@@ -502,6 +483,20 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
             // -----------------------------------------------------------------
             // Android-suffix stable APIs (kept)
             // -----------------------------------------------------------------
+            "getStorefront" -> {
+                scope.launch {
+                    try {
+                        val iap = openIap ?: run {
+                            safe.error(OpenIapError.NotPrepared.CODE, OpenIapError.NotPrepared.MESSAGE, "IAP module not initialized.")
+                            return@launch
+                        }
+                        val code = iap.getStorefront()
+                        safe.success(code)
+                    } catch (e: Exception) {
+                        safe.error(OpenIapError.BillingError.CODE, OpenIapError.BillingError.MESSAGE, e.message)
+                    }
+                }
+            }
             "getStorefrontAndroid" -> {
                 scope.launch {
                     try {

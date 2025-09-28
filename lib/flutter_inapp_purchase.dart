@@ -528,6 +528,28 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
     return payload;
   }
 
+  /// Get the current storefront country code (unified method)
+  gentype.QueryGetStorefrontHandler get getStorefront => () async {
+        if (!_platform.isIOS && !_platform.isAndroid) {
+          return '';
+        }
+
+        try {
+          final String? storefront = await channel.invokeMethod<String>(
+            'getStorefront',
+          );
+          return storefront ?? '';
+        } catch (error) {
+          debugPrint(
+            '[getStorefront] Failed to get storefront on ${_platform.operatingSystem}: $error',
+          );
+          throw PurchaseError(
+            code: gentype.ErrorCode.ServiceError,
+            message: 'Failed to get storefront: ${error.toString()}',
+          );
+        }
+      };
+
   /// iOS specific: Get storefront
   gentype.QueryGetStorefrontIOSHandler get getStorefrontIOS => () async {
         if (!_platform.isIOS) {
@@ -1300,16 +1322,67 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
 
           // Handle different query types and return appropriate union type
           if (queryType == gentype.ProductQueryType.All) {
-            // For 'All' type, we need to return all products including subscriptions
-            // Use a List<dynamic> internally then cast to List<Product>
-            final List<dynamic> dynamicProducts = products;
-            final allProducts = dynamicProducts.cast<gentype.Product>();
+            // For 'All' type, we need to include both Product and ProductSubscription
+            // Since FetchProductsResultProducts only accepts List<Product>, we need to
+            // safely cast all compatible products
+            final allCompatibleProducts = <gentype.Product>[];
+
+            for (final product in products) {
+              if (product is gentype.Product) {
+                // Direct Product types (ProductIOS, ProductAndroid)
+                allCompatibleProducts.add(product);
+              } else if (product is gentype.ProductSubscription) {
+                // ProductSubscription types need to be converted to Product types
+                // Create a compatible Product representation
+                if (product is gentype.ProductSubscriptionIOS) {
+                  // Convert ProductSubscriptionIOS to ProductIOS
+                  final compatibleProduct = gentype.ProductIOS(
+                    currency: product.currency,
+                    debugDescription: product.debugDescription,
+                    description: product.description,
+                    displayName: product.displayName,
+                    displayNameIOS: product.displayNameIOS,
+                    displayPrice: product.displayPrice,
+                    id: product.id,
+                    isFamilyShareableIOS: product.isFamilyShareableIOS,
+                    jsonRepresentationIOS: product.jsonRepresentationIOS,
+                    platform: product.platform,
+                    price: product.price,
+                    subscriptionInfoIOS: product.subscriptionInfoIOS,
+                    title: product.title,
+                    type: product.type,
+                    typeIOS: product.typeIOS,
+                  );
+                  allCompatibleProducts.add(compatibleProduct);
+                } else if (product is gentype.ProductSubscriptionAndroid) {
+                  // Convert ProductSubscriptionAndroid to ProductAndroid
+                  final compatibleProduct = gentype.ProductAndroid(
+                    currency: product.currency,
+                    debugDescription: product.debugDescription,
+                    description: product.description,
+                    displayName: product.displayName,
+                    displayPrice: product.displayPrice,
+                    id: product.id,
+                    nameAndroid: product.nameAndroid,
+                    oneTimePurchaseOfferDetailsAndroid:
+                        null, // Subscriptions don't have one-time offers
+                    platform: product.platform,
+                    price: product.price,
+                    subscriptionOfferDetailsAndroid:
+                        product.subscriptionOfferDetailsAndroid,
+                    title: product.title,
+                    type: product.type,
+                  );
+                  allCompatibleProducts.add(compatibleProduct);
+                }
+              }
+            }
 
             debugPrint(
-              '[flutter_inapp_purchase] Type All: returning ${allProducts.length} total products (mixed types)',
+              '[flutter_inapp_purchase] Type All: returning ${allCompatibleProducts.length} total products (including converted subscriptions)',
             );
 
-            return gentype.FetchProductsResultProducts(allProducts);
+            return gentype.FetchProductsResultProducts(allCompatibleProducts);
           } else if (queryType == gentype.ProductQueryType.Subs) {
             final subscriptions = products
                 .whereType<gentype.ProductSubscription>()
@@ -1468,6 +1541,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
         getAvailablePurchases: getAvailablePurchases,
         getPendingTransactionsIOS: getPendingTransactionsIOS,
         getPromotedProductIOS: getPromotedProductIOS,
+        getStorefront: getStorefront,
         getStorefrontIOS: getStorefrontIOS,
         hasActiveSubscriptions: hasActiveSubscriptions,
         isEligibleForIntroOfferIOS: isEligibleForIntroOfferIOS,
