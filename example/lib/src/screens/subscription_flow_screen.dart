@@ -53,15 +53,18 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
   };
 
   List<SubscriptionOfferAndroid> _androidOffersFor(ProductCommon item) {
-    if (item is ProductSubscriptionAndroid) {
-      return item.subscriptionOfferDetailsAndroid
-          .map(
-            (offer) => SubscriptionOfferAndroid(
+    if (item is ProductAndroid) {
+      final details = item.subscriptionOfferDetailsAndroid;
+      if (details != null && details.isNotEmpty) {
+        return [
+          for (final offer in details)
+            SubscriptionOfferAndroid(
               offerToken: offer.offerToken,
-              sku: offer.basePlanId,
+              // sku must be the productId (SKU), not the basePlanId.
+              sku: item.id,
             ),
-          )
-          .toList();
+        ];
+      }
     }
     return const <SubscriptionOfferAndroid>[];
   }
@@ -291,6 +294,8 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
     setState(() => _isLoadingProducts = true);
 
     try {
+      debugPrint('🔄 Loading subscriptions with SKUs: $subscriptionIds');
+
       final result = await _iap.fetchProducts(
         ProductRequest(
           skus: subscriptionIds,
@@ -298,15 +303,27 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
         ),
       );
 
+      debugPrint('📦 Received result type: ${result.runtimeType}');
+
       // Extract subscriptions from the union type
-      final List<ProductSubscription> subscriptions;
+      // Note: Due to subscription -> Product conversion, we may get FetchProductsResultProducts
+      final List<ProductCommon> subscriptions = [];
       if (result is FetchProductsResultSubscriptions) {
-        subscriptions = result.value ?? [];
+        debugPrint('🎯 Processing FetchProductsResultSubscriptions');
+        subscriptions.addAll(result.value ?? []);
+      } else if (result is FetchProductsResultProducts) {
+        debugPrint(
+            '🔄 Processing FetchProductsResultProducts (converted subscriptions)');
+        // Handle converted subscription products
+        subscriptions.addAll(result.value ?? []);
       } else {
-        subscriptions = [];
+        debugPrint('❌ Unexpected result type: ${result.runtimeType}');
       }
 
-      debugPrint('Loaded ${subscriptions.length} subscriptions');
+      debugPrint('✅ Loaded ${subscriptions.length} subscriptions');
+      for (final sub in subscriptions) {
+        debugPrint('  - ${sub.id}: ${sub.title} (${sub.runtimeType})');
+      }
 
       if (!mounted) return;
 
@@ -321,10 +338,12 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
         _subscriptions = List.of(subscriptions, growable: false);
         _isLoadingProducts = false;
       });
-    } catch (error) {
-      debugPrint('Failed to load subscriptions: $error');
+    } catch (error, stackTrace) {
+      debugPrint('💥 Failed to load subscriptions: $error');
+      debugPrint('📍 Stack trace: $stackTrace');
       if (!mounted) return;
       setState(() {
+        _subscriptions = [];
         _isLoadingProducts = false;
         _purchaseResult = '❌ Failed to load subscriptions: $error';
       });

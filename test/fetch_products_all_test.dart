@@ -99,10 +99,10 @@ void main() {
       ),
     );
 
-    expect(result, isA<types.FetchProductsResultSubscriptions>());
-    final subscriptions =
-        (result as types.FetchProductsResultSubscriptions).value ?? const [];
-    expect(subscriptions, hasLength(1));
-    expect(subscriptions.first.id, 'premium_monthly');
+    expect(result, isA<types.FetchProductsResultProducts>());
+    final products =
+        (result as types.FetchProductsResultProducts).value ?? const [];
+    expect(products, hasLength(1));
+    expect(products.first.id, 'premium_monthly');
   });
 }

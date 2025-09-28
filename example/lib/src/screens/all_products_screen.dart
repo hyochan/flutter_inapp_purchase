@@ -239,13 +239,18 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
         // Subscription
         // For Android, convert subscription offer details to SubscriptionOfferAndroid
         List<SubscriptionOfferAndroid>? androidOffers;
-        if (Platform.isAndroid && product is ProductSubscriptionAndroid) {
-          androidOffers = product.subscriptionOfferDetailsAndroid
-              .map((offer) => SubscriptionOfferAndroid(
-                    offerToken: offer.offerToken,
-                    sku: offer.basePlanId,
-                  ))
-              .toList();
+        if (Platform.isAndroid && product is ProductAndroid) {
+          final details = product.subscriptionOfferDetailsAndroid;
+          if (details != null && details.isNotEmpty) {
+            androidOffers = [
+              for (final offer in details)
+                SubscriptionOfferAndroid(
+                  offerToken: offer.offerToken,
+                  // sku must be the productId (SKU), not the basePlanId.
+                  sku: product.id,
+                ),
+            ];
+          }
         }
 
         params = RequestPurchaseProps.subs(
@@ -293,9 +298,11 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
 
   Future<void> _finalizePurchase(Purchase purchase) async {
     try {
+      final prod = _originalProducts[purchase.productId];
+      final isConsumable = prod != null && IapConstants.isConsumable(prod.id);
       await _iap.finishTransaction(
         purchase: purchase.toInput(),
-        isConsumable: !purchase.isAutoRenewing,
+        isConsumable: isConsumable,
       );
       debugPrint('Purchase finalized successfully');
     } catch (e) {

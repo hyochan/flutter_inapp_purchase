@@ -1384,10 +1384,55 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
 
             return gentype.FetchProductsResultProducts(allCompatibleProducts);
           } else if (queryType == gentype.ProductQueryType.Subs) {
-            final subscriptions = products
-                .whereType<gentype.ProductSubscription>()
-                .toList(growable: false);
-            return gentype.FetchProductsResultSubscriptions(subscriptions);
+            // For subscription queries, we need to return converted Product types
+            // that originally were ProductSubscription types
+            final subscriptionProducts = <gentype.Product>[];
+
+            for (final product in products) {
+              if (product is gentype.ProductSubscription) {
+                // Convert ProductSubscription to Product (same as in 'All' logic)
+                if (product is gentype.ProductSubscriptionIOS) {
+                  final compatibleProduct = gentype.ProductIOS(
+                    currency: product.currency,
+                    debugDescription: product.debugDescription,
+                    description: product.description,
+                    displayName: product.displayName,
+                    displayNameIOS: product.displayNameIOS,
+                    displayPrice: product.displayPrice,
+                    id: product.id,
+                    isFamilyShareableIOS: product.isFamilyShareableIOS,
+                    jsonRepresentationIOS: product.jsonRepresentationIOS,
+                    platform: product.platform,
+                    price: product.price,
+                    subscriptionInfoIOS: product.subscriptionInfoIOS,
+                    title: product.title,
+                    type: product.type,
+                    typeIOS: product.typeIOS,
+                  );
+                  subscriptionProducts.add(compatibleProduct);
+                } else if (product is gentype.ProductSubscriptionAndroid) {
+                  final compatibleProduct = gentype.ProductAndroid(
+                    currency: product.currency,
+                    debugDescription: product.debugDescription,
+                    description: product.description,
+                    displayName: product.displayName,
+                    displayPrice: product.displayPrice,
+                    id: product.id,
+                    nameAndroid: product.nameAndroid,
+                    oneTimePurchaseOfferDetailsAndroid: null,
+                    platform: product.platform,
+                    price: product.price,
+                    subscriptionOfferDetailsAndroid:
+                        product.subscriptionOfferDetailsAndroid,
+                    title: product.title,
+                    type: product.type,
+                  );
+                  subscriptionProducts.add(compatibleProduct);
+                }
+              }
+            }
+
+            return gentype.FetchProductsResultProducts(subscriptionProducts);
           } else {
             // Default to in-app products
             final inApps =

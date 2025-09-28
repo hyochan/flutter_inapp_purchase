@@ -95,8 +95,14 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
             }
 
             val obj = JSONObject(entry)
-            // Always add productId for compatibility
-            if (!obj.has("productId") && !id.isNullOrBlank()) {
+            // Always add productId for compatibility, handling null/blank values
+            val productIdValue = obj.opt("productId")
+            val hasUsableProductId = when (productIdValue) {
+                null, JSONObject.NULL -> false
+                is String -> productIdValue.isNotBlank()
+                else -> true
+            }
+            if (!hasUsableProductId && !id.isNullOrBlank()) {
                 obj.put("productId", id)
             }
             array.put(obj)
