@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 6.8.8
+
+- Update OpenIAP google module to `1.2.10`
+
+## 6.8.7
+
+- Update readme
+
 ## 6.8.6
 
 - feat: fetchProducts with ProductQueryType.All #568
