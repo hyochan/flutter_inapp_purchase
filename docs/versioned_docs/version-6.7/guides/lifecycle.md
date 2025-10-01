@@ -33,84 +33,7 @@ The in-app purchase lifecycle consists of several key phases:
 
 Each phase has its own requirements and potential failure modes that need proper handling.
 
-## Connection Management with useIAP
-
-### Automatic Connection
-
-The flutter_inapp_purchase plugin manages connections automatically through the `IapProvider`:
-
-```dart
-import 'package:flutter/material.dart';
-import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
-
-class IapProviderWidget extends StatefulWidget {
-  final Widget child;
-
-  const IapProviderWidget({required this.child, Key? key}) : super(key: key);
-
-  @override
-  State<IapProviderWidget> createState() => _IapProviderWidgetState();
-}
-
-class _IapProviderWidgetState extends State<IapProviderWidget> {
-  final FlutterInappPurchase _iap = FlutterInappPurchase.instance;
-
-  bool _connected = false;
-  bool _loading = false;
-  String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    // Automatically initialize connection when provider is created
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initConnection();
-    });
-  }
-
-  Future<void> _initConnection() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-
-    try {
-      await _iap.initConnection();
-
-      // Set up purchase listeners
-      _setupPurchaseListeners();
-
-      setState(() {
-        _connected = true;
-        _loading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _loading = false;
-        _connected = false;
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _endConnection();
-    super.dispose();
-  }
-
-  Future<void> _endConnection() async {
-    try {
-      await _iap.endConnection();
-      setState(() {
-        _connected = false;
-      });
-    } catch (e) {
-      debugPrint('Error ending connection: $e');
-    }
-  }
-}
-```
+## Connection Management
 
 ### Connection States
 
@@ -227,47 +150,9 @@ class _PurchaseScreenState extends State<PurchaseScreen>
 }
 ```
 
-### Functional Components
-
-Using hooks or similar patterns for functional components:
-
-```dart
-// Custom hook for IAP lifecycle management
-class IapHook {
-  late StreamSubscription<Purchase?>? _purchaseSubscription;
-  late StreamSubscription<PurchaseResult?>? _errorSubscription;
-
-  void initialize(
-    Function(Purchase) onPurchase,
-    Function(PurchaseResult) onError,
-  ) {
-    _purchaseSubscription = FlutterInappPurchase.purchaseUpdated.listen(
-      (purchase) {
-        if (purchase != null) {
-          onPurchase(purchase);
-        }
-      },
-    );
-
-    _errorSubscription = FlutterInappPurchase.purchaseError.listen(
-      (error) {
-        if (error != null) {
-          onError(error);
-        }
-      },
-    );
-  }
-
-  void dispose() {
-    _purchaseSubscription?.cancel();
-    _errorSubscription?.cancel();
-  }
-}
-```
-
 ## Best Practices
 
-### ✅ Do:
+### ✅ Do
 
 - **Initialize connections early** in your app lifecycle
 - **Set up purchase listeners** before making any purchase requests
@@ -303,7 +188,7 @@ class GoodPurchaseManager extends WidgetsBindingObserver {
 }
 ```
 
-### ❌ Don't:
+### ❌ Don't
 
 - **Make purchases without listeners** set up first
 - **Ignore connection state** when making requests

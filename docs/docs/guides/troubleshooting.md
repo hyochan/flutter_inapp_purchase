@@ -295,50 +295,6 @@ class ProductLoadingTroubleshooter {
 }
 ```
 
-### useIAP hook not working
-
-**Problem:** Provider or state management not working properly
-
-**Solutions:**
-
-```dart
-// Ensure proper provider setup
-class IAPProviderSetup {
-  static Widget setupProvider(Widget child) {
-    return IapProviderWidget(
-      child: child,
-    );
-  }
-}
-
-// In your main.dart
-void main() {
-  runApp(
-    IAPProviderSetup.setupProvider(
-      MyApp(),
-    ),
-  );
-}
-
-// Access provider in widgets
-class ProductScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final iapProvider = IapProvider.of(context);
-
-    if (iapProvider == null) {
-      return Text('❌ IAP Provider not found - check widget tree');
-    }
-
-    if (!iapProvider.connected) {
-      return Text('⏳ Connecting to store...');
-    }
-
-    return Text('✅ Store connected');
-  }
-}
-```
-
 ### Purchase flow issues
 
 **Common purchase problems and solutions:**

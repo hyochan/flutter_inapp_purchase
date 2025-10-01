@@ -84,52 +84,7 @@ class PurchaseHandler {
 }
 ```
 
-### 2. Using with Hooks (Recommended)
-
-For a more structured approach, use this purchase handler pattern:
-
-```dart
-class ProductsScreen extends StatefulWidget {
-  @override
-  State<ProductsScreen> createState() => _ProductsScreenState();
-}
-
-class _ProductsScreenState extends State<ProductsScreen> {
-  final List<String> productIds = [
-    'dev.hyo.martie.10bulbs',
-    'dev.hyo.martie.30bulbs',
-  ];
-
-  String? _purchaseResult;
-  bool _isProcessing = false;
-  StreamSubscription<Purchase?>? _purchaseUpdatedSubscription;
-  StreamSubscription<PurchaseResult?>? _purchaseErrorSubscription;
-
-  @override
-  void initState() {
-    super.initState();
-    _setupPurchaseListeners();
-
-    // Load products after initialization
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (mounted) {
-        _loadProducts();
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _purchaseUpdatedSubscription?.cancel();
-    _purchaseErrorSubscription?.cancel();
-    super.dispose();
-  }
-
-  // Purchase listener setup...
-}
-```
-
-### 3. Request a Purchase
+### 2. Request a Purchase
 
 Use the new `requestPurchase` API for initiating purchases:
 
@@ -145,18 +100,19 @@ Future<void> _handlePurchase(String productId) async {
     });
 
     // Use the new requestPurchase API
-    await iap.requestPurchase(
-      request: RequestPurchase(
-        ios: RequestPurchaseIOS(
+    final requestProps = RequestPurchaseProps.inApp(
+      request: RequestPurchasePropsByPlatforms(
+        ios: RequestPurchaseIosProps(
           sku: productId,
           quantity: 1,
         ),
-        android: RequestPurchaseAndroid(
+        android: RequestPurchaseAndroidProps(
           skus: [productId],
         ),
       ),
-      type: PurchaseType.inapp, // or PurchaseType.subs for subscriptions
     );
+
+    await iap.requestPurchase(requestProps);
   } catch (error) {
     setState(() {
       _isProcessing = false;
@@ -194,13 +150,18 @@ Future<void> _loadProducts() async {
 
 ```dart
 Future<void> requestPurchase(String productId) async {
-  await FlutterInappPurchase.instance.requestPurchase(
-    request: RequestPurchase(
-      ios: RequestPurchaseIOS(sku: productId),
-      android: RequestPurchaseAndroid(skus: [productId]),
+  final requestProps = RequestPurchaseProps.subs(
+    request: RequestSubscriptionPropsByPlatforms(
+      ios: RequestSubscriptionIosProps(
+        sku: productId,
+      ),
+      android: RequestSubscriptionAndroidProps(
+        skus: [productId],
+      ),
     ),
-    type: PurchaseType.subs,
   );
+
+  await FlutterInappPurchase.instance.requestPurchase(requestProps);
 }
 ```
 
@@ -244,8 +205,8 @@ Future<void> _handlePurchaseUpdate(Purchase purchasedItem) async {
       }
     } else if (Platform.isIOS) {
       // For iOS - finish the transaction
-      await FlutterInappPurchase.instance.finishTransactionIOS(
-        purchasedItem,
+      await FlutterInappPurchase.instance.finishTransaction(
+        purchase: purchasedItem,
         isConsumable: true, // Set appropriately for your product type
       );
       debugPrint('iOS transaction finished');
@@ -297,16 +258,9 @@ class ProductInfo {
 class PlatformSupport {
   static Future<bool> checkPurchaseSupport() async {
     try {
-      if (Platform.isIOS) {
-        // Check if device can make payments
-        final canMakePayments = await FlutterInappPurchase.instance.initialize();
-        return canMakePayments;
-      } else if (Platform.isAndroid) {
-        // Check Play Store connection
-        final connected = await FlutterInappPurchase.instance.initConnection();
-        return connected == 'connected';
-      }
-      return false;
+      // Initialize connection for both platforms
+      final initialized = await FlutterInappPurchase.instance.initConnection();
+      return initialized;
     } catch (e) {
       debugPrint('Error checking purchase support: $e');
       return false;
@@ -356,8 +310,8 @@ Future<void> handleConsumableProduct(Purchase purchase) async {
 
   // For iOS - finish transaction
   if (Platform.isIOS) {
-    await FlutterInappPurchase.instance.finishTransactionIOS(
-      purchase,
+    await FlutterInappPurchase.instance.finishTransaction(
+      purchase: purchase,
       isConsumable: true,
     );
   }
@@ -382,8 +336,8 @@ Future<void> handleNonConsumableProduct(Purchase purchase) async {
 
   // For iOS - finish transaction
   if (Platform.isIOS) {
-    await FlutterInappPurchase.instance.finishTransactionIOS(
-      purchase,
+    await FlutterInappPurchase.instance.finishTransaction(
+      purchase: purchase,
       isConsumable: false,
     );
   }
@@ -408,8 +362,8 @@ Future<void> handleSubscriptionProduct(Purchase purchase) async {
 
   // For iOS - finish transaction
   if (Platform.isIOS) {
-    await FlutterInappPurchase.instance.finishTransactionIOS(
-      purchase,
+    await FlutterInappPurchase.instance.finishTransaction(
+      purchase: purchase,
       isConsumable: false,
     );
   }
@@ -495,9 +449,9 @@ Open native subscription management:
 Future<void> openSubscriptionManagement() async {
   try {
     if (Platform.isIOS) {
-      await FlutterInappPurchase.instance.showManageSubscriptions();
+      await FlutterInappPurchase.instance.showManageSubscriptionsIOS();
     } else if (Platform.isAndroid) {
-      await FlutterInappPurchase.instance.deepLinkToSubscriptionsAndroid();
+      await FlutterInappPurchase.instance.deepLinkToSubscriptions();
     }
   } catch (e) {
     debugPrint('Failed to open subscription management: $e');
@@ -513,28 +467,21 @@ Validate purchases server-side for security:
 Future<bool> validatePurchaseReceipt(Purchase purchase) async {
   try {
     if (Platform.isIOS) {
-      // Validate iOS receipt
-      final result = await FlutterInappPurchase.instance.validateReceiptIos(
-        receiptBody: {
-          'receipt-data': purchase.transactionReceipt,
-          'password': 'your-shared-secret', // From App Store Connect
-        },
-        isTest: true, // Set to false for production
+      // Validate iOS receipt using StoreKit 2
+      final result = await FlutterInappPurchase.instance.validateReceiptIOS(
+        ValidateReceiptIosPropsInput(
+          sku: purchase.productId,
+        ),
       );
 
-      return result != null && result['status'] == 0;
+      return result.isValid;
 
     } else if (Platform.isAndroid) {
-      // Validate Android purchase
-      final result = await FlutterInappPurchase.instance.validateReceiptAndroid(
-        packageName: 'your.package.name',
-        productId: purchase.productId!,
-        productToken: purchase.purchaseToken!,
-        accessToken: 'your-access-token', // From Google Play Console
-        isSubscription: false,
-      );
+      // For Android, validate purchase token on your backend server
+      // Send purchase.purchaseToken to your server for validation
+      // via Google Play Developer API
 
-      return result != null;
+      return await validateOnBackendServer(purchase);
     }
 
     return false;
@@ -665,7 +612,7 @@ class PurchaseService {
         purchaseToken: purchase.purchaseToken!,
       );
     } else if (Platform.isIOS) {
-      await _iap.finishTransactionIOS(purchase, isConsumable: true);
+      await _iap.finishTransaction(purchase: purchase, isConsumable: true);
     }
   }
 
@@ -677,13 +624,19 @@ class PurchaseService {
   }
 
   Future<void> purchaseProduct(String productId) async {
-    await _iap.requestPurchase(
-      request: RequestPurchase(
-        ios: RequestPurchaseIOS(sku: productId, quantity: 1),
-        android: RequestPurchaseAndroid(skus: [productId]),
+    final requestProps = RequestPurchaseProps.inApp(
+      request: RequestPurchasePropsByPlatforms(
+        ios: RequestPurchaseIosProps(
+          sku: productId,
+          quantity: 1,
+        ),
+        android: RequestPurchaseAndroidProps(
+          skus: [productId],
+        ),
       ),
-      type: PurchaseType.inapp,
     );
+
+    await _iap.requestPurchase(requestProps);
   }
 
   void dispose() {

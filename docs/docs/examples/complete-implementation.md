@@ -45,15 +45,15 @@ class IAPService {
 
   Future<bool> initialize() async {
     try {
-      final result = await FlutterInappPurchase.instance.initialize();
+      final result = await FlutterInappPurchase.instance.initConnection();
 
-      _purchaseUpdatedSubscription = FlutterInappPurchase
+      _purchaseUpdatedSubscription = FlutterInappPurchase.instance
           .purchaseUpdated.listen(_handlePurchaseUpdate);
 
-      _purchaseErrorSubscription = FlutterInappPurchase
+      _purchaseErrorSubscription = FlutterInappPurchase.instance
           .purchaseError.listen(_handlePurchaseError);
 
-      return result != null;
+      return result;
     } catch (e) {
       print('IAP initialization failed: $e');
       return false;
@@ -105,12 +105,13 @@ class IAPService {
 
   Future<List<ProductCommon>> fetchInAppProducts(List<String> productIds) async {
     try {
-      return await FlutterInappPurchase.instance.fetchProducts(
+      final result = await FlutterInappPurchase.instance.fetchProducts(
         ProductRequest(
           skus: productIds,
           type: ProductQueryType.InApp,
         ),
       );
+      return result.value;
     } catch (e) {
       print('Failed to get products: $e');
       return [];
@@ -119,12 +120,13 @@ class IAPService {
 
   Future<List<ProductCommon>> fetchSubscriptionProducts(List<String> subscriptionIds) async {
     try {
-      return await FlutterInappPurchase.instance.fetchProducts(
+      final result = await FlutterInappPurchase.instance.fetchProducts(
         ProductRequest(
           skus: subscriptionIds,
           type: ProductQueryType.Subs,
         ),
       );
+      return result.value;
     } catch (e) {
       print('Failed to get subscriptions: $e');
       return [];
@@ -132,11 +134,19 @@ class IAPService {
   }
 
   Future<void> requestPurchase(String productId) async {
-    await FlutterInappPurchase.instance.requestPurchase(productId);
-  }
+    final requestProps = RequestPurchaseProps.inApp(
+      request: RequestPurchasePropsByPlatforms(
+        ios: RequestPurchaseIosProps(
+          sku: productId,
+          quantity: 1,
+        ),
+        android: RequestPurchaseAndroidProps(
+          skus: [productId],
+        ),
+      ),
+    );
 
-  Future<void> requestPurchase(String productId) async {
-    await FlutterInappPurchase.instance.requestPurchase(productId);
+    await FlutterInappPurchase.instance.requestPurchase(requestProps);
   }
 
   Future<List<Purchase>> getAvailablePurchases() async {
@@ -205,16 +215,19 @@ class IAPService {
 
   Future<void> _completeTransaction(Purchase item) async {
     if (Platform.isIOS) {
-      await FlutterInappPurchase.instance.finishTransaction(item);
+      await FlutterInappPurchase.instance.finishTransaction(
+        purchase: item,
+        isConsumable: ProductConfig.isConsumable(item.productId!),
+      );
     } else if (Platform.isAndroid) {
       final isConsumable = ProductConfig.isConsumable(item.productId!);
 
       if (isConsumable) {
-        await FlutterInappPurchase.instance.consumePurchase(
+        await FlutterInappPurchase.instance.consumePurchaseAndroid(
           purchaseToken: item.purchaseToken!,
         );
       } else {
-        await FlutterInappPurchase.instance.acknowledgePurchase(
+        await FlutterInappPurchase.instance.acknowledgePurchaseAndroid(
           purchaseToken: item.purchaseToken!,
         );
       }

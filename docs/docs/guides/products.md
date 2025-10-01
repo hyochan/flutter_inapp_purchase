@@ -39,13 +39,19 @@ final List<String> productIds = [
 // Load products
 Future<void> loadProducts() async {
   try {
-    List<IapItem> products = await FlutterInappPurchase.instance
-        .fetchProducts(skus: productIds, type: 'inapp');
+    final result = await FlutterInappPurchase.instance.fetchProducts(
+      ProductRequest(
+        skus: productIds,
+        type: ProductQueryType.InApp,
+      ),
+    );
+
+    final products = result.value;
 
     for (var product in products) {
-      print('Product: ${product.productId}');
+      print('Product: ${product.id}');
       print('Title: ${product.title}');
-      print('Price: ${product.localizedPrice}');
+      print('Price: ${product.displayPrice}');
     }
   } catch (e) {
     print('Failed to load products: $e');
@@ -55,24 +61,20 @@ Future<void> loadProducts() async {
 
 ### Product Information
 
-The `IapItem` class contains:
+The `Product` class contains:
 
 ```dart
-class IapItem {
-  String? productId;          // Unique identifier
-  String? price;              // Raw price value
-  String? currency;           // Currency code
-  String? localizedPrice;     // Formatted price string
-  String? title;              // Product name
-  String? description;        // Product description
+class Product {
+  String id;                  // Unique identifier
+  double? price;              // Raw price value
+  String currency;            // Currency code
+  String displayPrice;        // Formatted price string
+  String title;               // Product name
+  String description;         // Product description
+  ProductType type;           // Product type (InApp or Subs)
+  IapPlatform platform;       // Platform (iOS or Android)
 
-  // iOS specific
-  String? introductoryPrice;
-  String? subscriptionPeriodNumberIOS;
-
-  // Android specific
-  String? signatureAndroid;
-  String? originalJsonAndroid;
+  // Platform-specific fields available in ProductIOS and ProductAndroid
 }
 ```
 
@@ -95,7 +97,19 @@ class ProductStore {
 
   Future<void> purchaseProduct(String productId) async {
     try {
-      await FlutterInappPurchase.instance.requestPurchase(productId);
+      final requestProps = RequestPurchaseProps.inApp(
+        request: RequestPurchasePropsByPlatforms(
+          ios: RequestPurchaseIosProps(
+            sku: productId,
+            quantity: 1,
+          ),
+          android: RequestPurchaseAndroidProps(
+            skus: [productId],
+          ),
+        ),
+      );
+
+      await FlutterInappPurchase.instance.requestPurchase(requestProps);
       // Purchase result will be delivered via stream
     } catch (e) {
       handlePurchaseError(e);
@@ -124,7 +138,10 @@ class ProductStore {
 All purchases must be finished:
 
 ```dart
-await FlutterInappPurchase.instance.finishTransaction(item);
+await FlutterInappPurchase.instance.finishTransaction(
+  purchase: item,
+  isConsumable: true, // Set to false for non-consumables
+);
 ```
 
 #### Android
@@ -133,12 +150,12 @@ Consumable products must be consumed:
 
 ```dart
 // For consumable products
-await FlutterInappPurchase.instance.consumePurchase(
+await FlutterInappPurchase.instance.consumePurchaseAndroid(
   purchaseToken: item.purchaseToken!,
 );
 
 // For non-consumable products
-await FlutterInappPurchase.instance.acknowledgePurchase(
+await FlutterInappPurchase.instance.acknowledgePurchaseAndroid(
   purchaseToken: item.purchaseToken!,
 );
 ```
@@ -224,14 +241,17 @@ class ConsumableManager {
 
     // Consume the purchase (Android)
     if (Platform.isAndroid) {
-      await FlutterInappPurchase.instance.consumePurchase(
+      await FlutterInappPurchase.instance.consumePurchaseAndroid(
         purchaseToken: item.purchaseToken!,
       );
     }
 
     // Finish transaction (iOS)
     if (Platform.isIOS) {
-      await FlutterInappPurchase.instance.finishTransaction(item);
+      await FlutterInappPurchase.instance.finishTransaction(
+        purchase: item,
+        isConsumable: true,
+      );
     }
   }
 
@@ -261,14 +281,17 @@ class NonConsumableManager {
 
     // Acknowledge purchase (Android)
     if (Platform.isAndroid && item.isAcknowledgedAndroid == false) {
-      await FlutterInappPurchase.instance.acknowledgePurchase(
+      await FlutterInappPurchase.instance.acknowledgePurchaseAndroid(
         purchaseToken: item.purchaseToken!,
       );
     }
 
     // Finish transaction (iOS)
     if (Platform.isIOS) {
-      await FlutterInappPurchase.instance.finishTransaction(item);
+      await FlutterInappPurchase.instance.finishTransaction(
+        purchase: item,
+        isConsumable: false,
+      );
     }
   }
 

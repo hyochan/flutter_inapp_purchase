@@ -1,75 +1,35 @@
 ---
 sidebar_position: 1
-title: Migration Guide
+title: Migration from v5.x
 ---
 
-# Migration Guide
+# Migration from v5.x to v6.8+
 
-This guide helps you migrate your existing flutter_inapp_purchase implementation to the latest version.
+This guide helps you migrate from flutter_inapp_purchase v5.x to the latest v6.8+ version.
 
-## Version Support
+## Overview
 
-- **v6.8.0** (Current) - Full OpenIAP ecosystem adoption with unified helpers
-- **v6.3.x - 6.6.x** - Previous stable releases with transitional APIs
+Version 6.8+ is a **major update** with significant breaking changes to align with the OpenIAP specification and support modern platform APIs.
 
-## Migration from v6.3.x to v6.8.0 (Current)
+## Key Changes Summary
 
-### Breaking Changes
-
-#### Simplified fetchProducts API
-
-The `fetchProducts` method now accepts direct parameters instead of a wrapper object:
-
-**Before (v6.3.x):**
-
-```dart
-final products = await iap.fetchProducts(
-  RequestProductsParams(
-    skus: ['product_id'],
-    type: PurchaseType.inapp,
-  ),
-);
-```
-
-**After (v6.8.0):**
-
-```dart
-final products = await iap.fetchProducts(
-  ProductRequest(
-    skus: ['product_id'],
-    type: ProductQueryType.InApp,
-  ),
-);
-```
-
-The new `ProductRequest` input provides type-safe product queries,
-and the method now directly returns a list of products based on the query type,
-simplifying the API and removing the need for helper extensions.
-
-## Migration from v5.x to v6.0.0
-
-### Overview
-
-Version 6.0.0 is a **major release** with breaking changes to support modern platform APIs and improve developer experience.
-
-### Key Changes Summary
-
+- ✅ **OpenIAP Compliance** - Full alignment with OpenIAP specification
 - ✅ **StoreKit 2 Support** for iOS 15.0+
 - ✅ **Billing Client v8** for Android
-- ✅ **Improved Error Handling** with better error codes
-- ✅ **Enhanced Type Safety** with refined APIs
-- ⚠️ **Breaking Changes** in error codes and some method signatures
+- ✅ **Improved Type Safety** with refined APIs
+- ✅ **Better Error Handling** with standardized error codes
+- ⚠️ **Breaking Changes** in error codes, method signatures, and data models
 
-### Breaking Changes
+## Major Breaking Changes
 
-#### 1. Error Code Enum Changes (CRITICAL)
+### 1. Error Code Format (CRITICAL)
 
 The most significant breaking change is the error code enum format.
 
 **v5.x (Old):**
 
 ```dart
-// SCREAMING_SNAKE_CASE format
+// SCREAMING_SNAKE_CASE with E_ prefix
 ErrorCode.E_USER_CANCELLED
 ErrorCode.E_NETWORK_ERROR
 ErrorCode.E_ITEM_UNAVAILABLE
@@ -77,10 +37,10 @@ ErrorCode.E_ALREADY_OWNED
 ErrorCode.E_DEVELOPER_ERROR
 ```
 
-**v6.0 (New):**
+**v6.8+ (New):**
 
 ```dart
-// PascalCase format
+// PascalCase format (OpenIAP standard)
 ErrorCode.UserCancelled
 ErrorCode.NetworkError
 ErrorCode.ItemUnavailable
@@ -88,49 +48,160 @@ ErrorCode.AlreadyOwned
 ErrorCode.DeveloperError
 ```
 
-**Before (v5.x):**
+**Migration:**
 
 ```dart
-Future<List<IAPItem>> legacyProductLoader(List<String> skus) async
-Future<String> requestPurchase(String sku) async
+// Before
+if (error.code == ErrorCode.E_USER_CANCELLED) { ... }
+
+// After
+if (error.code == ErrorCode.UserCancelled) { ... }
 ```
 
-**After (v6.x):**
+### 2. Data Models
+
+**v5.x:**
+
+- `IAPItem` for products
+- String-based product IDs
+- Nullable fields everywhere
+
+**v6.8+:**
+
+- `Product` / `ProductCommon` for products
+- Strongly typed with required fields
+- Better null safety
 
 ```dart
-Future<List<Product>> fetchProducts(ProductRequest request) async
-Future<void> requestPurchase(RequestPurchaseProps params) async
+// Before (v5.x)
+class IAPItem {
+  String? productId;
+  String? price;
+  String? currency;
+  String? localizedPrice;
+}
+
+// After (v6.8+)
+class Product {
+  String id;              // Required
+  double? price;          // Numeric
+  String currency;        // Required
+  String displayPrice;    // Required (localized)
+  ProductType type;       // Required
+}
 ```
 
-### 2. Method Return Types
+### 3. fetchProducts API
 
-Several methods now return `void` instead of `String`:
+**v5.x:**
 
 ```dart
-// Old
-String result = await FlutterInappPurchase.instance.requestPurchase(sku);
-
-// New
-await FlutterInappPurchase.instance.requestPurchase(sku);
-// Result comes through purchaseUpdated stream
+// Old approach
+List<IAPItem> items = await FlutterInappPurchase.instance
+    .fetchProducts(skus: _productIds, type: 'inapp');
 ```
 
-### 3. Stream Names
-
-Purchase streams have been renamed for clarity:
-
-**Before:**
+**v6.8+:**
 
 ```dart
-FlutterInappPurchase.connectionUpdated.listen(...);
+// New OpenIAP-compliant approach
+final result = await FlutterInappPurchase.instance.fetchProducts(
+  ProductRequest(
+    skus: _productIds,
+    type: ProductQueryType.InApp,
+  ),
+);
+final products = result.value;
+```
+
+### 4. requestPurchase API
+
+**v5.x:**
+
+```dart
+// Simple string-based request
+String msg = await FlutterInappPurchase.instance
+    .requestPurchase(item.productId);
+```
+
+**v6.8+:**
+
+```dart
+// Structured request with platform-specific options
+final requestProps = RequestPurchaseProps.inApp(
+  request: RequestPurchasePropsByPlatforms(
+    ios: RequestPurchaseIosProps(
+      sku: productId,
+      quantity: 1,
+    ),
+    android: RequestPurchaseAndroidProps(
+      skus: [productId],
+    ),
+  ),
+);
+
+await FlutterInappPurchase.instance.requestPurchase(requestProps);
+```
+
+### 5. finishTransaction API
+
+**v5.x:**
+
+```dart
+// iOS only, simple call
+await FlutterInappPurchase.instance.finishTransaction(item);
+```
+
+**v6.8+:**
+
+```dart
+// Cross-platform with explicit consumable flag
+await FlutterInappPurchase.instance.finishTransaction(
+  purchase: item,
+  isConsumable: true, // Required parameter
+);
+```
+
+### 6. Stream Access
+
+**v5.x:**
+
+```dart
+// Direct static stream access
 FlutterInappPurchase.iapUpdated.listen(...);
 ```
 
-**After:**
+**v6.8+:**
 
 ```dart
-FlutterInappPurchase.purchaseUpdated.listen(...);
-FlutterInappPurchase.purchaseError.listen(...);
+// Instance-based stream access
+FlutterInappPurchase.instance.purchaseUpdated.listen(...);
+FlutterInappPurchase.instance.purchaseError.listen(...);
+```
+
+### 7. Android Methods
+
+**v5.x:**
+
+```dart
+await FlutterInappPurchase.instance.consumePurchase(
+  purchaseToken: token,
+);
+await FlutterInappPurchase.instance.acknowledgePurchase(
+  purchaseToken: token,
+);
+```
+
+**v6.8+:**
+
+```dart
+// Explicit Android suffix for clarity
+await FlutterInappPurchase.instance.consumePurchaseAndroid(
+  purchaseToken: token,
+);
+await FlutterInappPurchase.instance.acknowledgePurchaseAndroid(
+  purchaseToken: token,
+);
 ```
 
 ## Step-by-Step Migration
@@ -141,7 +212,7 @@ Update your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flutter_inapp_purchase: ^6.8.0 # Updated version
+  flutter_inapp_purchase: ^6.8.0
 ```
 
 Run:
@@ -150,43 +221,29 @@ Run:
 flutter pub get
 ```
 
-### Step 2: Enable Null Safety
+### Step 2: Update Error Code Handling
 
-If you haven't already, migrate your project to null safety:
+Find and replace all error code references:
 
-```bash
-dart migrate
-```
-
-### Step 3: Update Initialization
-
-**Before:**
+**Search for:**
 
 ```dart
-Future<void> initPlatformState() async {
-  try {
-    await FlutterInappPurchase.instance.initConnection();
-    print('IAP connection initialized');
-  } on PlatformException catch (e) {
-    print('Failed to initialize connection: $e');
-  }
-}
+ErrorCode.E_USER_CANCELLED
+ErrorCode.E_NETWORK_ERROR
+ErrorCode.E_ITEM_UNAVAILABLE
+ErrorCode.E_ALREADY_OWNED
 ```
 
-**After:**
+**Replace with:**
 
 ```dart
-Future<void> initPlatformState() async {
-  try {
-    await FlutterInappPurchase.instance.initConnection();
-    print('IAP connection initialized');
-  } catch (e) {
-    print('Failed to initialize IAP: $e');
-  }
-}
+ErrorCode.UserCancelled
+ErrorCode.NetworkError
+ErrorCode.ItemUnavailable
+ErrorCode.AlreadyOwned
 ```
 
-### Step 4: Update Stream Listeners
+### Step 3: Update Stream Listeners
 
 **Before:**
 
@@ -203,237 +260,300 @@ _purchaseErrorSubscription = FlutterInappPurchase.iapUpdated.listen((data) {
 **After:**
 
 ```dart
-_purchaseUpdatedSubscription = FlutterInappPurchase.purchaseUpdated.listen((productItem) {
-  if (productItem != null) {
-    print('purchase-updated: ${productItem.productId}');
-    _handlePurchaseUpdate(productItem);
+_purchaseUpdatedSubscription = FlutterInappPurchase.instance
+    .purchaseUpdated.listen((purchase) {
+  if (purchase != null) {
+    print('purchase-updated: ${purchase.productId}');
+    _handlePurchaseUpdate(purchase);
   }
 });
 
-_purchaseErrorSubscription = FlutterInappPurchase.purchaseError.listen((productItem) {
-  print('purchase-error: ${productItem?.productId}');
-  _handlePurchaseError(productItem);
+_purchaseErrorSubscription = FlutterInappPurchase.instance
+    .purchaseError.listen((error) {
+  print('purchase-error: ${error?.message}');
+  _handlePurchaseError(error);
 });
 ```
 
-### Step 5: Update Purchase Methods
+### Step 4: Update Product Fetching
 
 **Before:**
 
 ```dart
-try {
-  String msg = await FlutterInappPurchase.instance.requestPurchase(item.productId);
-  print('requestPurchase: $msg');
-} catch (error) {
-  print('requestPurchase error: $error');
+Future<void> _getProducts() async {
+  List<IAPItem> items = await FlutterInappPurchase.instance
+      .fetchProducts(skus: _productIds, type: 'inapp');
+  setState(() {
+    _items = items;
+  });
 }
 ```
 
 **After:**
 
 ```dart
-try {
-  await FlutterInappPurchase.instance.requestPurchase(item.productId!);
-  // Success/failure will be delivered via streams
-} catch (error) {
-  print('requestPurchase error: $error');
+Future<void> _getProducts() async {
+  final result = await FlutterInappPurchase.instance.fetchProducts(
+    ProductRequest(
+      skus: _productIds,
+      type: ProductQueryType.InApp,
+    ),
+  );
+  setState(() {
+    _items = result.value;
+  });
 }
 ```
 
-### Step 6: Update Data Model Access
+### Step 5: Update Purchase Requests
 
 **Before:**
 
 ```dart
-// Accessing properties without null checks
-String productId = item.productId;
-String price = item.localizedPrice;
-```
-
-**After:**
-
-```dart
-// Null-safe property access
-String? productId = item.productId;
-String? price = item.localizedPrice;
-
-// With null coalescing
-String displayPrice = item.localizedPrice ?? 'N/A';
-```
-
-### Step 7: Update Transaction Completion
-
-**Before:**
-
-```dart
-try {
-  String msg = await FlutterInappPurchase.instance.finishTransaction(item);
-} catch (err) {
-  print('finishTransaction error: $err');
+void _requestPurchase(IAPItem item) {
+  FlutterInappPurchase.instance.requestPurchase(item.productId);
 }
 ```
 
 **After:**
 
 ```dart
-try {
-  String? result = await FlutterInappPurchase.instance.finishTransaction(item);
-  print('Transaction finished: $result');
-} catch (err) {
-  print('finishTransaction error: $err');
+Future<void> _requestPurchase(ProductCommon item) async {
+  final requestProps = RequestPurchaseProps.inApp(
+    request: RequestPurchasePropsByPlatforms(
+      ios: RequestPurchaseIosProps(
+        sku: item.id,
+        quantity: 1,
+      ),
+      android: RequestPurchaseAndroidProps(
+        skus: [item.id],
+      ),
+    ),
+  );
+
+  await FlutterInappPurchase.instance.requestPurchase(requestProps);
 }
+```
+
+### Step 6: Update Transaction Completion
+
+**Before:**
+
+```dart
+// iOS
+await FlutterInappPurchase.instance.finishTransaction(item);
+
+// Android
+await FlutterInappPurchase.instance.consumePurchase(
+  purchaseToken: item.purchaseToken!,
+);
+```
+
+**After:**
+
+```dart
+// iOS
+await FlutterInappPurchase.instance.finishTransaction(
+  purchase: item,
+  isConsumable: true,
+);
+
+// Android
+await FlutterInappPurchase.instance.consumePurchaseAndroid(
+  purchaseToken: item.purchaseToken!,
+);
+```
+
+### Step 7: Update Field Access
+
+**Before:**
+
+```dart
+final id = product.productId;
+final price = product.localizedPrice;
+```
+
+**After:**
+
+```dart
+final id = product.id;
+final price = product.displayPrice;
 ```
 
 ## Complete Migration Example
 
-Here's a complete before/after example:
-
 ### Before (v5.x)
 
 ```dart
-class _MyAppState extends State<MyApp> {
-  StreamSubscription _purchaseUpdatedSubscription;
-  StreamSubscription _purchaseErrorSubscription;
-  List<ProductCommon> _items = [];
-  List<Purchase> _purchases = [];
+class _MyStoreState extends State<MyStore> {
+  StreamSubscription? _purchaseSubscription;
+  List<IAPItem> _items = [];
 
   @override
   void initState() {
     super.initState();
-    initPlatformState();
+    _init();
   }
 
-  Future<void> initPlatformState() async {
+  Future<void> _init() async {
     await FlutterInappPurchase.instance.initConnection();
 
-    _purchaseUpdatedSubscription = FlutterInappPurchase.iapUpdated.listen((data) {
-      print('purchase-updated: $data');
-      setState(() {
-        _purchases.add(data);
-      });
+    _purchaseSubscription = FlutterInappPurchase.iapUpdated.listen((data) {
+      print('purchase: $data');
+      _finishTransaction(data);
     });
 
-    _purchaseErrorSubscription = FlutterInappPurchase.iapUpdated.listen((data) {
-      print('purchase-error: $data');
-    });
+    final items = await FlutterInappPurchase.instance
+        .fetchProducts(skus: _productIds, type: 'inapp');
 
-    _getProduct();
-  }
-
-  void _requestPurchase(IAPItem item) {
-    FlutterInappPurchase.instance.requestPurchase(item.productId);
-  }
-
-  Future _getProduct() async {
-    List<IAPItem> items = await FlutterInappPurchase.instance.fetchProducts(skus: _kProductIds, type: 'inapp');
     setState(() {
       _items = items;
     });
   }
+
+  void _buy(IAPItem item) {
+    FlutterInappPurchase.instance.requestPurchase(item.productId);
+  }
+
+  void _finishTransaction(Purchase item) {
+    FlutterInappPurchase.instance.finishTransaction(item);
+  }
 }
 ```
 
-### After (v6.x)
+### After (v6.8+)
 
 ```dart
-class _MyAppState extends State<MyApp> {
-  StreamSubscription? _purchaseUpdatedSubscription;
-  StreamSubscription? _purchaseErrorSubscription;
+class _MyStoreState extends State<MyStore> {
+  StreamSubscription? _purchaseSubscription;
   List<ProductCommon> _items = [];
-  List<Purchase> _purchases = [];
 
   @override
   void initState() {
     super.initState();
-    initPlatformState();
+    _init();
   }
 
-  Future<void> initPlatformState() async {
-    try {
-      await FlutterInappPurchase.instance.initConnection();
-      print('IAP connection initialized');
-    } catch (e) {
-      print('Failed to initialize: $e');
-    }
+  Future<void> _init() async {
+    await FlutterInappPurchase.instance.initConnection();
 
-    _purchaseUpdatedSubscription = FlutterInappPurchase
-        .purchaseUpdated.listen((productItem) {
-      if (productItem != null) {
-        print('purchase-updated: ${productItem.productId}');
-        setState(() {
-          _purchases.add(productItem);
-        });
-        // Finish the transaction
-        _finishTransaction(productItem);
+    _purchaseSubscription = FlutterInappPurchase.instance
+        .purchaseUpdated.listen((purchase) {
+      if (purchase != null) {
+        print('purchase: ${purchase.productId}');
+        _finishTransaction(purchase);
       }
     });
 
-    _purchaseErrorSubscription = FlutterInappPurchase
-        .purchaseError.listen((result) {
-      print('purchase-error: ${result?.message}');
-      // Handle error
-    });
+    final result = await FlutterInappPurchase.instance.fetchProducts(
+      ProductRequest(
+        skus: _productIds,
+        type: ProductQueryType.InApp,
+      ),
+    );
 
-    _getProduct();
+    setState(() {
+      _items = result.value;
+    });
   }
 
-  void _requestPurchase(IapItem item) async {
-    try {
-      await FlutterInappPurchase.instance.requestPurchase(item.productId!);
-    } catch (e) {
-      print('Purchase request failed: $e');
-    }
+  Future<void> _buy(ProductCommon item) async {
+    final requestProps = RequestPurchaseProps.inApp(
+      request: RequestPurchasePropsByPlatforms(
+        ios: RequestPurchaseIosProps(
+          sku: item.id,
+          quantity: 1,
+        ),
+        android: RequestPurchaseAndroidProps(
+          skus: [item.id],
+        ),
+      ),
+    );
+
+    await FlutterInappPurchase.instance.requestPurchase(requestProps);
   }
 
   Future<void> _finishTransaction(Purchase item) async {
-    try {
-      await FlutterInappPurchase.instance.finishTransaction(item);
-    } catch (e) {
-      print('Failed to finish transaction: $e');
-    }
-  }
-
-  Future<void> _getProduct() async {
-    try {
-      final result = await FlutterInappPurchase.instance.fetchProducts(
-        ProductRequest(
-          skus: _kProductIds,
-          type: ProductQueryType.InApp,
-        ),
-      );
-      setState(() {
-        _items = items;
-      });
-    } catch (e) {
-      print('Failed to get products: $e');
-    }
+    await FlutterInappPurchase.instance.finishTransaction(
+      purchase: item,
+      isConsumable: true,
+    );
   }
 
   @override
   void dispose() {
-    _purchaseUpdatedSubscription?.cancel();
-    _purchaseErrorSubscription?.cancel();
+    _purchaseSubscription?.cancel();
     super.dispose();
   }
 }
 ```
 
-## Testing Your Migration
+## Testing Checklist
 
-1. **Compile Check:** Ensure your code compiles without errors
-2. **Initialize Test:** Verify IAP initialization works
-3. **Product Loading:** Test product fetching
-4. **Purchase Flow:** Test complete purchase flow
-5. **Stream Handling:** Verify purchase update streams work
-6. **Transaction Completion:** Test finishing transactions
+After migration, test the following:
 
-## Benefits of v6.x
+- [ ] App compiles without errors
+- [ ] IAP connection initializes successfully
+- [ ] Products load correctly
+- [ ] Purchase flow completes
+- [ ] Transactions finish properly
+- [ ] Error handling works (test by cancelling a purchase)
+- [ ] Restore purchases works
+- [ ] Both iOS and Android platforms tested
 
-- **Null Safety:** Better type safety and fewer runtime errors
-- **Improved Error Handling:** More precise error information
-- **Better Stream API:** Clearer separation of success and error streams
-- **Updated Dependencies:** Latest Android and iOS billing libraries
-- **Performance Improvements:** Optimized native code
+## Common Migration Issues
+
+### Issue 1: "ErrorCode.E_USER_CANCELLED not found"
+
+**Solution:** Update to new PascalCase format:
+
+```dart
+ErrorCode.UserCancelled
+```
+
+### Issue 2: "productId doesn't exist"
+
+**Solution:** Change to `id`:
+
+```dart
+// Before
+item.productId
+
+// After
+item.id
+```
+
+### Issue 3: "localizedPrice doesn't exist"
+
+**Solution:** Change to `displayPrice`:
+
+```dart
+// Before
+item.localizedPrice
+
+// After
+item.displayPrice
+```
+
+### Issue 4: "type argument required"
+
+**Solution:** Add ProductQueryType:
+
+```dart
+ProductRequest(
+  skus: ['product_id'],
+  type: ProductQueryType.InApp, // Required
+)
+```
+
+## Benefits of v6.8+
+
+- **OpenIAP Standard**: Full compliance with OpenIAP specification
+- **Better Type Safety**: Strongly typed APIs with fewer runtime errors
+- **Improved Error Handling**: Clearer error codes and messages
+- **Modern Platform Support**: Latest iOS StoreKit 2 and Android Billing v8
+- **Better Documentation**: Comprehensive guides aligned with OpenIAP
+- **Cross-Platform Consistency**: Unified API across iOS and Android
 
 ## Need Help?
 
@@ -443,3 +563,12 @@ If you encounter issues during migration:
 2. Review the [API Documentation](../api/overview)
 3. Look at the [Examples](../examples/basic-store)
 4. [Open an issue](https://github.com/hyochan/flutter_inapp_purchase/issues) on GitHub
+5. Join our [Discord Community](https://discord.gg/hyo)
+
+## Related Documentation
+
+- [OpenIAP Specification](https://www.openiap.dev)
+- [Quick Start Guide](../getting-started/quickstart)
+- [Error Handling Guide](../guides/error-handling)
+- [Products Guide](../guides/products)
+- [Purchases Guide](../guides/purchases)

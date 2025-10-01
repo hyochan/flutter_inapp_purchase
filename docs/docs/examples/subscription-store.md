@@ -32,7 +32,7 @@ class _SubscriptionStoreState extends State<SubscriptionStore> {
   StreamSubscription? _purchaseUpdatedSubscription;
   StreamSubscription? _purchaseErrorSubscription;
 
-  List<IapItem> _subscriptions = [];
+  List<ProductCommon> _subscriptions = [];
   List<Purchase> _purchases = [];
   bool _isLoading = true;
 
@@ -60,14 +60,14 @@ class _SubscriptionStoreState extends State<SubscriptionStore> {
   Future<void> _initializeStore() async {
     try {
       // Initialize connection
-      await FlutterInappPurchase.instance.initialize();
+      await FlutterInappPurchase.instance.initConnection();
 
       // Set up listeners
       _purchaseUpdatedSubscription =
-          FlutterInappPurchase.purchaseUpdated.listen(_handlePurchaseUpdate);
+          FlutterInappPurchase.instance.purchaseUpdated.listen(_handlePurchaseUpdate);
 
       _purchaseErrorSubscription =
-          FlutterInappPurchase.purchaseError.listen(_handlePurchaseError);
+          FlutterInappPurchase.instance.purchaseError.listen(_handlePurchaseError);
 
       // Load subscriptions and purchases
       await _loadSubscriptions();
@@ -82,11 +82,15 @@ class _SubscriptionStoreState extends State<SubscriptionStore> {
 
   Future<void> _loadSubscriptions() async {
     try {
-      final subscriptions = await FlutterInappPurchase.instance
-          .fetchProducts(skus: _subscriptionIds, type: 'subs');
+      final result = await FlutterInappPurchase.instance.fetchProducts(
+        ProductRequest(
+          skus: _subscriptionIds,
+          type: ProductQueryType.Subs,
+        ),
+      );
 
       setState(() {
-        _subscriptions = subscriptions;
+        _subscriptions = result.value;
       });
     } catch (e) {
       _showError('Failed to load subscriptions: $e');
@@ -95,11 +99,10 @@ class _SubscriptionStoreState extends State<SubscriptionStore> {
 
   Future<void> _loadPurchases() async {
     try {
-      final purchases = await FlutterInappPurchase.instance
-          .getAvailablePurchases();
+      final purchases = await FlutterInappPurchase.instance.getAvailablePurchases();
 
       setState(() {
-        _purchases = purchases ?? [];
+        _purchases = purchases;
       });
     } catch (e) {
       _showError('Failed to load purchases: $e');
@@ -134,14 +137,26 @@ class _SubscriptionStoreState extends State<SubscriptionStore> {
     }
   }
 
-  void _handlePurchaseError(Purchase? item) {
+  void _handlePurchaseError(PurchaseError? error) {
+    if (error == null) return;
     // Handle purchase errors
-    _showError('Purchase failed');
+    _showError('Purchase failed: ${error.message}');
   }
 
   Future<void> _requestPurchase(String productId) async {
     try {
-      await FlutterInappPurchase.instance.requestPurchase(productId);
+      final requestProps = RequestPurchaseProps.subs(
+        request: RequestSubscriptionPropsByPlatforms(
+          ios: RequestSubscriptionIosProps(
+            sku: productId,
+          ),
+          android: RequestSubscriptionAndroidProps(
+            skus: [productId],
+          ),
+        ),
+      );
+
+      await FlutterInappPurchase.instance.requestPurchase(requestProps);
     } catch (e) {
       _showError('Failed to request subscription: $e');
     }
@@ -172,12 +187,15 @@ class _SubscriptionStoreState extends State<SubscriptionStore> {
 
   Future<void> _completeTransaction(Purchase item) async {
     if (Platform.isIOS) {
-      await FlutterInappPurchase.instance.finishTransaction(item);
+      await FlutterInappPurchase.instance.finishTransaction(
+        purchase: item,
+        isConsumable: false, // Subscriptions are never consumable
+      );
     } else if (Platform.isAndroid) {
       // Subscriptions are auto-acknowledged on Android
       // But you might want to acknowledge manually for better control
       if (item.isAcknowledgedAndroid == false) {
-        await FlutterInappPurchase.instance.acknowledgePurchase(
+        await FlutterInappPurchase.instance.acknowledgePurchaseAndroid(
           purchaseToken: item.purchaseToken!,
         );
       }
@@ -253,10 +271,10 @@ class _SubscriptionStoreState extends State<SubscriptionStore> {
 
   Widget _buildSubscriptionPlans() {
     // Group subscriptions by tier
-    final Map<String, List<IapItem>> groupedSubs = {};
+    final Map<String, List<ProductCommon>> groupedSubs = {};
 
     for (final sub in _subscriptions) {
-      final tier = _getSubscriptionTier(sub.productId!);
+      final tier = _getSubscriptionTier(sub.id);
       groupedSubs.putIfAbsent(tier, () => []).add(sub);
     }
 
@@ -338,7 +356,7 @@ class _SubscriptionStoreState extends State<SubscriptionStore> {
     );
   }
 
-  Widget _buildTierSection(String tier, List<IapItem> subscriptions) {
+  Widget _buildTierSection(String tier, List<ProductCommon> subscriptions) {
     final color = _getTierColor(tier);
 
     return Card(
@@ -370,13 +388,13 @@ class _SubscriptionStoreState extends State<SubscriptionStore> {
     );
   }
 
-  Widget _buildSubscriptionTile(IapItem subscription, Color color) {
-    final isActive = _isSubscriptionActive(subscription.productId!);
-    final period = _getSubscriptionPeriod(subscription.productId!);
+  Widget _buildSubscriptionTile(ProductCommon subscription, Color color) {
+    final isActive = _isSubscriptionActive(subscription.id);
+    final period = _getSubscriptionPeriod(subscription.id);
 
     return ListTile(
-      title: Text(subscription.title ?? period),
-      subtitle: Text(subscription.description ?? ''),
+      title: Text(subscription.title),
+      subtitle: Text(subscription.description),
       trailing: isActive
           ? Container(
               padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -394,12 +412,12 @@ class _SubscriptionStoreState extends State<SubscriptionStore> {
               ),
             )
           : ElevatedButton(
-              onPressed: () => _requestPurchase(subscription.productId!),
+              onPressed: () => _requestPurchase(subscription.id),
               style: ElevatedButton.styleFrom(
                 backgroundColor: color,
                 foregroundColor: Colors.white,
               ),
-              child: Text(subscription.localizedPrice ?? 'Subscribe'),
+              child: Text(subscription.displayPrice),
             ),
     );
   }
@@ -413,10 +431,10 @@ class _SubscriptionStoreState extends State<SubscriptionStore> {
 The store groups subscriptions by tier (Premium, Pro) for better organization:
 
 ```dart
-final Map<String, List<IapItem>> groupedSubs = {};
+final Map<String, List<ProductCommon>> groupedSubs = {};
 
 for (final sub in _subscriptions) {
-  final tier = _getSubscriptionTier(sub.productId!);
+  final tier = _getSubscriptionTier(sub.id);
   groupedSubs.putIfAbsent(tier, () => []).add(sub);
 }
 ```

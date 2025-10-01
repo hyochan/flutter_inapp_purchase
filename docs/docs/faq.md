@@ -80,15 +80,18 @@ Products must be properly configured and approved in the respective stores.
 ```dart
 if (Platform.isIOS) {
   // iOS: Always finish transaction
-  await FlutterInappPurchase.instance.finishTransaction(item);
+  await FlutterInappPurchase.instance.finishTransaction(
+    purchase: item,
+    isConsumable: isConsumable,
+  );
 } else {
   // Android: Consume or acknowledge
   if (isConsumable) {
-    await FlutterInappPurchase.instance.consumePurchase(
+    await FlutterInappPurchase.instance.consumePurchaseAndroid(
       purchaseToken: item.purchaseToken!,
     );
   } else {
-    await FlutterInappPurchase.instance.acknowledgePurchase(
+    await FlutterInappPurchase.instance.acknowledgePurchaseAndroid(
       purchaseToken: item.purchaseToken!,
     );
   }
@@ -110,7 +113,7 @@ The plugin will return trial information in the product data.
 
 ```dart
 final purchases = await FlutterInappPurchase.instance.getAvailablePurchases();
-final activeSubscriptions = purchases?.where((p) =>
+final activeSubscriptions = purchases.where((p) =>
   subscriptionIds.contains(p.productId) && isActive(p));
 ```
 
@@ -136,7 +139,7 @@ Future<void> restorePurchases() async {
   try {
     final purchases = await FlutterInappPurchase.instance.getAvailablePurchases();
 
-    for (final purchase in purchases ?? []) {
+    for (final purchase in purchases) {
       // Re-deliver non-consumable products
       if (isNonConsumable(purchase.productId)) {
         await deliverProduct(purchase);
@@ -161,11 +164,14 @@ Future<void> restorePurchases() async {
 **A:** Android purchases can be pending for various payment methods:
 
 ```dart
-void _handlePurchaseUpdate(Purchase item) {
-  if (item.purchaseStateAndroid == 0) {
+void _handlePurchaseUpdate(Purchase? item) {
+  if (item == null) return;
+
+  // Check Android purchase state
+  if (item.purchaseStateAndroid == PurchaseState.purchased) {
     // Purchase completed
     _deliverProduct(item);
-  } else if (item.purchaseStateAndroid == 1) {
+  } else if (item.purchaseStateAndroid == PurchaseState.pending) {
     // Purchase pending - show pending UI
     _showPendingMessage();
   }
@@ -231,8 +237,8 @@ await validateTokenOnServer(token, item.productId);
 **A:** Listen for specific error codes:
 
 ```dart
-FlutterInappPurchase.purchaseError.listen((error) {
-  if (error?.code == 'E_USER_CANCELLED') {
+FlutterInappPurchase.instance.purchaseError.listen((error) {
+  if (error?.code == ErrorCode.UserCancelled) {
     // User cancelled - no error message needed
   } else {
     // Show error message

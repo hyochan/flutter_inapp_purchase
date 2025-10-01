@@ -64,12 +64,13 @@ class _MyStoreState extends State<MyStore> {
 
   Future<void> _initializeStore() async {
     await FlutterInappPurchase.instance.initConnection();
-    products = await FlutterInappPurchase.instance.fetchProducts(
+    final result = await FlutterInappPurchase.instance.fetchProducts(
       ProductRequest(
         skus: productIds,
         type: ProductQueryType.InApp,
       ),
     );
+    products = result.value;
     setState(() {});
   }
 }
@@ -80,13 +81,13 @@ class _MyStoreState extends State<MyStore> {
 **expo-iap:**
 
 ```typescript
-// Fetch products by type
+// Returns array directly
 const products = await getProducts({
   skus: ["product1", "product2"],
   type: "inapp",
 });
 
-// Fetch subscriptions
+// Returns array directly
 const subscriptions = await getProducts({
   skus: ["sub1", "sub2"],
   type: "subs",
@@ -96,24 +97,29 @@ const subscriptions = await getProducts({
 **flutter_inapp_purchase:**
 
 ```dart
-// Fetch products
+// Returns FetchProductsResult object, access .value for array
 final inAppResult = await FlutterInappPurchase.instance.fetchProducts(
   ProductRequest(
     skus: ['product1', 'product2'],
     type: ProductQueryType.InApp,
   ),
 );
-final products = inAppResult.inAppProducts();
+final products = inAppResult.value ?? []; // Array of products
 
-// Fetch subscriptions
+// Same pattern for subscriptions
 final subResult = await FlutterInappPurchase.instance.fetchProducts(
   ProductRequest(
     skus: ['sub1', 'sub2'],
     type: ProductQueryType.Subs,
   ),
 );
-final subscriptions = subResult.subscriptionProducts();
+final subscriptions = subResult.value ?? []; // Array of subscriptions
 ```
+
+**Key Difference:**
+
+- **expo-iap**: `getProducts()` returns an array directly
+- **flutter_inapp_purchase**: `fetchProducts()` returns a `FetchProductsResult` object with `.value` property containing the array (nullable)
 
 ### Purchase Flow
 
@@ -159,7 +165,7 @@ void initState() {
   super.initState();
 
   // Listen to purchase updates
-  _purchaseSubscription = FlutterInappPurchase
+  _purchaseSubscription = FlutterInappPurchase.instance
       .purchaseUpdated.listen((productItem) {
     if (productItem != null) {
       _handlePurchaseUpdate(productItem);
@@ -169,7 +175,19 @@ void initState() {
 
 // Request purchase
 Future<void> _requestPurchase(String productId) async {
-  await FlutterInappPurchase.instance.requestPurchase(productId);
+  final requestProps = RequestPurchaseProps.inApp(
+    request: RequestPurchasePropsByPlatforms(
+      ios: RequestPurchaseIosProps(
+        sku: productId,
+        quantity: 1,
+      ),
+      android: RequestPurchaseAndroidProps(
+        skus: [productId],
+      ),
+    ),
+  );
+
+  await FlutterInappPurchase.instance.requestPurchase(requestProps);
 }
 
 // Handle purchase completion
@@ -179,10 +197,13 @@ void _handlePurchaseUpdate(Purchase item) async {
 
   // Finish transaction
   if (Platform.isIOS) {
-    await FlutterInappPurchase.instance.finishTransaction(item);
+    await FlutterInappPurchase.instance.finishTransaction(
+      purchase: item,
+      isConsumable: true, // Set based on product type
+    );
   } else {
     // Android - consume or acknowledge
-    await FlutterInappPurchase.instance.consumePurchase(
+    await FlutterInappPurchase.instance.consumePurchaseAndroid(
       purchaseToken: item.purchaseToken!,
     );
   }
@@ -206,16 +227,16 @@ interface Product {
 }
 ```
 
-**flutter_inapp_purchase IapItem:**
+**flutter_inapp_purchase Product:**
 
 ```dart
-class IapItem {
-  String? productId;      // maps to id
-  String? title;          // same
-  String? description;    // same
-  String? localizedPrice; // maps to displayPrice
-  String? currency;       // same
-  // No type field - determined by method used
+class Product {
+  String id;              // maps to id
+  String title;           // same
+  String description;     // same
+  String displayPrice;    // same as displayPrice
+  String currency;        // same
+  ProductType type;       // InApp or Subs
 }
 ```
 
@@ -355,7 +376,7 @@ class _StoreState extends State<Store> {
       await FlutterInappPurchase.instance.initConnection();
       connected = true;
 
-      _purchaseSubscription = FlutterInappPurchase
+      _purchaseSubscription = FlutterInappPurchase.instance
           .purchaseUpdated.listen(_handlePurchase);
 
       await _loadProducts();
@@ -374,7 +395,7 @@ class _StoreState extends State<Store> {
           ),
         );
         setState(() {
-          products = items;
+          products = result.value;
         });
       } catch (e) {
         print('Failed to get products: $e');
@@ -390,17 +411,20 @@ class _StoreState extends State<Store> {
 
       // Finish transaction
       if (Platform.isIOS) {
-        await FlutterInappPurchase.instance.finishTransaction(item);
+        await FlutterInappPurchase.instance.finishTransaction(
+          purchase: item,
+          isConsumable: item.productId == 'coins_100',
+        );
       } else {
         // Determine if consumable
         bool isConsumable = item.productId == 'coins_100';
 
         if (isConsumable) {
-          await FlutterInappPurchase.instance.consumePurchase(
+          await FlutterInappPurchase.instance.consumePurchaseAndroid(
             purchaseToken: item.purchaseToken!,
           );
         } else {
-          await FlutterInappPurchase.instance.acknowledgePurchase(
+          await FlutterInappPurchase.instance.acknowledgePurchaseAndroid(
             purchaseToken: item.purchaseToken!,
           );
         }
@@ -412,7 +436,19 @@ class _StoreState extends State<Store> {
 
   Future<void> _buyProduct(String productId) async {
     try {
-      await FlutterInappPurchase.instance.requestPurchase(productId);
+      final requestProps = RequestPurchaseProps.inApp(
+        request: RequestPurchasePropsByPlatforms(
+          ios: RequestPurchaseIosProps(
+            sku: productId,
+            quantity: 1,
+          ),
+          android: RequestPurchaseAndroidProps(
+            skus: [productId],
+          ),
+        ),
+      );
+
+      await FlutterInappPurchase.instance.requestPurchase(requestProps);
     } catch (e) {
       print('Purchase failed: $e');
     }
@@ -427,9 +463,9 @@ class _StoreState extends State<Store> {
         itemBuilder: (context, index) {
           final product = products[index];
           return ListTile(
-            title: Text(product.title ?? ''),
-            subtitle: Text(product.localizedPrice ?? ''),
-            onTap: () => _buyProduct(product.productId!),
+            title: Text(product.title),
+            subtitle: Text(product.displayPrice),
+            onTap: () => _buyProduct(product.id),
           );
         },
       ),

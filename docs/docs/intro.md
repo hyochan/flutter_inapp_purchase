@@ -74,23 +74,26 @@ final result = await FlutterInappPurchase.instance.fetchProducts(
   ),
 );
 
-final products = result.inAppProducts();
-
-// Build a platform-aware purchase request
-final purchaseRequest = RequestPurchase(
-  ios: RequestPurchaseIOS(sku: 'product_id', quantity: 1),
-  android: RequestPurchaseAndroid(skus: ['product_id']),
-);
+final products = result.value;
 
 // Request purchase
-await FlutterInappPurchase.instance.requestPurchase(
-  request: purchaseRequest,
-  type: PurchaseType.inapp,
+final requestProps = RequestPurchaseProps.inApp(
+  request: RequestPurchasePropsByPlatforms(
+    ios: RequestPurchaseIosProps(
+      sku: 'product_id',
+      quantity: 1,
+    ),
+    android: RequestPurchaseAndroidProps(
+      skus: ['product_id'],
+    ),
+  ),
 );
+
+await FlutterInappPurchase.instance.requestPurchase(requestProps);
 
 // Restore active purchases (include expired iOS receipts if needed)
 final purchases = await FlutterInappPurchase.instance.getAvailablePurchases(
-  const PurchaseOptions(
+  PurchaseOptions(
     onlyIncludeActiveItemsIOS: true,
   ),
 );

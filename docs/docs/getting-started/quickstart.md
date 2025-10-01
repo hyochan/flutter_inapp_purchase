@@ -54,8 +54,8 @@ class _SimpleStoreState extends State<SimpleStore> {
 
   // Initialize the plugin
   Future<void> initIAP() async {
-    // Create IAP instance (or use FlutterInappPurchase.instance for singleton)
-    final iap = FlutterInappPurchase();
+    // Use singleton instance
+    final iap = FlutterInappPurchase.instance;
 
     // Initialize connection
     await iap.initConnection();
@@ -89,7 +89,6 @@ class _SimpleStoreState extends State<SimpleStore> {
           type: ProductQueryType.InApp,
         ),
       );
-      final products = inAppResult.inAppProducts();
 
       // Get subscriptions
       final subResult = await FlutterInappPurchase.instance.fetchProducts(
@@ -98,11 +97,10 @@ class _SimpleStoreState extends State<SimpleStore> {
           type: ProductQueryType.Subs,
         ),
       );
-      final subscriptions = subResult.subscriptionProducts();
 
       setState(() {
-        _products = products;
-        _subscriptions = subscriptions;
+        _products = inAppResult.products;
+        _subscriptions = subResult.products;
       });
     } catch (e) {
       _showError('Failed to load products: $e');
@@ -134,13 +132,16 @@ class _SimpleStoreState extends State<SimpleStore> {
 
       // Finish the transaction
       if (Platform.isIOS) {
-        await FlutterInappPurchase.instance.finishTransaction(productItem);
+        await FlutterInappPurchase.instance.finishTransaction(
+          purchase: productItem,
+          isConsumable: true, // Set based on your product type
+        );
       } else if (productItem.isConsumableAndroid ?? false) {
-        await FlutterInappPurchase.instance.consumePurchase(
+        await FlutterInappPurchase.instance.consumePurchaseAndroid(
           purchaseToken: productItem.purchaseToken!,
         );
       } else {
-        await FlutterInappPurchase.instance.acknowledgePurchase(
+        await FlutterInappPurchase.instance.acknowledgePurchaseAndroid(
           purchaseToken: productItem.purchaseToken!,
         );
       }
@@ -154,28 +155,39 @@ class _SimpleStoreState extends State<SimpleStore> {
   // Request a purchase
   Future<void> _requestPurchase(String productId) async {
     try {
-      await FlutterInappPurchase.instance.requestPurchase(
-        request: RequestPurchase(
-          ios: RequestPurchaseIOS(sku: productId),
-          android: RequestPurchaseAndroid(skus: [productId]),
+      final requestProps = RequestPurchaseProps.inApp(
+        request: RequestPurchasePropsByPlatforms(
+          ios: RequestPurchaseIosProps(
+            sku: productId,
+            quantity: 1,
+          ),
+          android: RequestPurchaseAndroidProps(
+            skus: [productId],
+          ),
         ),
-        type: PurchaseType.inapp,
       );
+
+      await FlutterInappPurchase.instance.requestPurchase(requestProps);
     } catch (e) {
       _showError('Purchase failed: $e');
     }
   }
 
   // Request a subscription
-  Future<void> _requestPurchase(String productId) async {
+  Future<void> _requestSubscription(String productId) async {
     try {
-      await FlutterInappPurchase.instance.requestPurchase(
-        request: RequestPurchase(
-          ios: RequestPurchaseIOS(sku: productId),
-          android: RequestPurchaseAndroid(skus: [productId]),
+      final requestProps = RequestPurchaseProps.subs(
+        request: RequestSubscriptionPropsByPlatforms(
+          ios: RequestSubscriptionIosProps(
+            sku: productId,
+          ),
+          android: RequestSubscriptionAndroidProps(
+            skus: [productId],
+          ),
         ),
-        type: PurchaseType.subs,
       );
+
+      await FlutterInappPurchase.instance.requestPurchase(requestProps);
     } catch (e) {
       _showError('Subscription failed: $e');
     }
@@ -184,7 +196,8 @@ class _SimpleStoreState extends State<SimpleStore> {
   // Restore purchases
   Future<void> _restorePurchases() async {
     try {
-      await FlutterInappPurchase.instance.getAvailablePurchases();
+      await FlutterInappPurchase.instance.restorePurchases();
+      await _getPurchases();
       _showSuccess('Purchases restored!');
     } catch (e) {
       _showError('Restore failed: $e');
@@ -353,15 +366,18 @@ Handle platform-specific requirements:
 ```dart
 if (Platform.isIOS) {
   // iOS: Always finish transactions
-  await FlutterInappPurchase.instance.finishTransaction(item);
+  await FlutterInappPurchase.instance.finishTransaction(
+    purchase: item,
+    isConsumable: isConsumable,
+  );
 } else {
   // Android: Acknowledge or consume
   if (isConsumable) {
-    await FlutterInappPurchase.instance.consumePurchase(
+    await FlutterInappPurchase.instance.consumePurchaseAndroid(
       purchaseToken: item.purchaseToken!,
     );
   } else {
-    await FlutterInappPurchase.instance.acknowledgePurchase(
+    await FlutterInappPurchase.instance.acknowledgePurchaseAndroid(
       purchaseToken: item.purchaseToken!,
     );
   }

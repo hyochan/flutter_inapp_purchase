@@ -10,35 +10,50 @@ title: fetchProducts
 ## Signature
 
 ```dart
-Future<List<Product>> fetchProducts(ProductRequest params)
+Future<FetchProductsResult> fetchProducts(ProductRequest params)
 ```
 
 ## Parameters
 
-| Parameter | Type | Required | Description |
-| --- | --- | --- | --- |
-| `params.skus` | `List<String>` | ✅ | Store identifiers to query (Google Play product IDs / App Store product identifiers) |
-| `params.type` | `ProductQueryType?` | ❌ | `ProductQueryType.InApp` (default) or `ProductQueryType.Subs` |
+| Parameter     | Type                | Required | Description                                                                          |
+| ------------- | ------------------- | -------- | ------------------------------------------------------------------------------------ |
+| `params.skus` | `List<String>`      | ✅       | Store identifiers to query (Google Play product IDs / App Store product identifiers) |
+| `params.type` | `ProductQueryType?` | ❌       | `ProductQueryType.InApp` (default) or `ProductQueryType.Subs`                        |
 
 ## Return Value
 
-The method resolves to a `List<Product>` containing the requested products:
+The method returns a `FetchProductsResult` union type:
 
-- For `ProductQueryType.InApp`: returns a list of in-app products
-- For `ProductQueryType.Subs`: returns a list of subscription products
+**FetchProductsResultProducts:**
+
+- Contains `.value` property with `List<Product>?` (nullable list)
+- Returned for `ProductQueryType.InApp` queries
+
+**FetchProductsResultSubscriptions:**
+
+- Contains `.value` property with `List<ProductSubscription>?` (nullable list)
+- Returned for `ProductQueryType.Subs` queries
+
+**Important:** Always access the product list via the `.value` property:
+
+```dart
+final result = await fetchProducts(...);
+final products = result.value ?? []; // Handle nullable list
+```
 
 ## Usage Examples
 
 ### Fetch in-app products
 
 ```dart
-final products = await FlutterInappPurchase.instance.fetchProducts(
+final result = await FlutterInappPurchase.instance.fetchProducts(
   ProductRequest(
     skus: ['coins_100', 'remove_ads'],
     type: ProductQueryType.InApp,
   ),
 );
-for (final product in products) {
+
+for (final product in result.value) {
   print('${product.title}: ${product.displayPrice}');
 }
 ```
@@ -46,13 +61,14 @@ for (final product in products) {
 ### Fetch subscriptions
 
 ```dart
-final subscriptions = await FlutterInappPurchase.instance.fetchProducts(
+final result = await FlutterInappPurchase.instance.fetchProducts(
   ProductRequest(
     skus: ['premium_monthly', 'premium_yearly'],
     type: ProductQueryType.Subs,
   ),
 );
-for (final sub in subscriptions) {
+
+for (final sub in result.value) {
   print('${sub.title}: ${sub.displayPrice}');
   print('Period: ${sub.subscriptionPeriodUnitIOS ?? sub.subscriptionInfoAndroid?.billingPeriod}');
 }
@@ -62,16 +78,16 @@ for (final sub in subscriptions) {
 
 ```dart
 Future<void> loadCatalog() async {
-  final inApps = await FlutterInappPurchase.instance.fetchProducts(
+  final inAppsResult = await FlutterInappPurchase.instance.fetchProducts(
     ProductRequest(skus: ['coins_100', 'remove_ads'], type: ProductQueryType.InApp),
   );
-  final subs = await FlutterInappPurchase.instance.fetchProducts(
+  final subsResult = await FlutterInappPurchase.instance.fetchProducts(
     ProductRequest(skus: ['premium_monthly'], type: ProductQueryType.Subs),
   );
 
   final allProducts = [
-    ...inApps,
-    ...subs,
+    ...inAppsResult.value ?? [],
+    ...subsResult.value ?? [],
   ];
 
   for (final item in allProducts) {
@@ -84,18 +100,21 @@ Future<void> loadCatalog() async {
 
 ```dart
 try {
-  final products = await FlutterInappPurchase.instance.fetchProducts(
+  final result = await FlutterInappPurchase.instance.fetchProducts(
     ProductRequest(skus: productIds, type: ProductQueryType.InApp),
   );
-  if (products.isEmpty) {
+  if (result.value.isEmpty) {
     debugPrint('No products returned for: $productIds');
+  }
+  if (result.invalidProductIds.isNotEmpty) {
+    debugPrint('Invalid product IDs: ${result.invalidProductIds}');
   }
 } on PurchaseError catch (error) {
   switch (error.code) {
-    case ErrorCode.NotPrepared:
+    case 'E_NOT_PREPARED':
       debugPrint('Call initConnection() before fetching products');
       break;
-    case ErrorCode.NetworkError:
+    case 'E_NETWORK_ERROR':
       debugPrint('Network error – prompt the user to retry');
       break;
     default:

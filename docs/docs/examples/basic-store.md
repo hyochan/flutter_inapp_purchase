@@ -64,14 +64,13 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
   // State management
   bool _isConnected = false;
   bool _isLoading = false;
-  List<IapItem> _products = [];
+  List<ProductCommon> _products = [];
   String? _errorMessage;
   Purchase? _latestPurchase;
 
   // Stream subscriptions
   StreamSubscription<Purchase>? _purchaseSubscription;
   StreamSubscription<PurchaseError>? _errorSubscription;
-  StreamSubscription<ConnectionResult>? _connectionSubscription;
 
   // Product IDs - Replace with your actual product IDs
   final List<String> _productIds = [
@@ -91,7 +90,6 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
   void dispose() {
     _purchaseSubscription?.cancel();
     _errorSubscription?.cancel();
-    _connectionSubscription?.cancel();
     _iap.endConnection();
     super.dispose();
   }
@@ -105,10 +103,10 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
 
     try {
       // Initialize connection
-      await _iap.initConnection();
+      final connected = await _iap.initConnection();
 
       // Set up purchase success listener
-      _purchaseSubscription = _iap.purchaseUpdatedListener.listen(
+      _purchaseSubscription = _iap.purchaseUpdated.listen(
         (purchase) {
           _handlePurchaseSuccess(purchase);
         },
@@ -118,27 +116,14 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
       );
 
       // Set up purchase error listener
-      _errorSubscription = _iap.purchaseErrorListener.listen(
+      _errorSubscription = _iap.purchaseError.listen(
         (error) {
           _handlePurchaseError(error);
         },
       );
 
-      // Set up connection listener
-      _connectionSubscription = FlutterInappPurchase.connectionUpdated.listen(
-        (connectionResult) {
-          setState(() {
-            _isConnected = connectionResult.connected;
-          });
-
-          if (connectionResult.connected) {
-            _loadProducts();
-          }
-        },
-      );
-
       setState(() {
-        _isConnected = true;
+        _isConnected = connected;
       });
 
       // Load products
@@ -163,18 +148,20 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
     });
 
     try {
-      final products = await _iap.fetchProducts(
-        skus: _productIds,
-        type: PurchaseType.inapp,
+      final result = await _iap.fetchProducts(
+        ProductRequest(
+          skus: _productIds,
+          type: ProductQueryType.InApp,
+        ),
       );
 
       setState(() {
-        _products = products;
+        _products = result.value;
       });
 
-      print('✅ Loaded ${products.length} products');
-      for (final product in products) {
-        print('Product: ${product.productId} - ${product.localizedPrice}');
+      print('✅ Loaded ${result.value.length} products');
+      for (final product in result.value) {
+        print('Product: ${product.id} - ${product.displayPrice}');
       }
 
     } catch (e) {
@@ -187,7 +174,9 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
   }
 
   /// Handle successful purchase
-  Future<void> _handlePurchaseSuccess(Purchase purchase) async {
+  Future<void> _handlePurchaseSuccess(Purchase? purchase) async {
+    if (purchase == null) return;
+
     print('✅ Purchase successful: ${purchase.productId}');
 
     setState(() {
@@ -220,7 +209,9 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
   }
 
   /// Handle purchase errors
-  void _handlePurchaseError(PurchaseError error) {
+  void _handlePurchaseError(PurchaseError? error) {
+    if (error == null) return;
+
     print('❌ Purchase failed: ${error.message}');
 
     setState(() {
@@ -228,22 +219,16 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
     });
 
     // Handle specific error codes
-    switch (error.responseCode) {
-      case 1: // User cancelled
-        // Don't show error for user cancellation
-        print('User cancelled purchase');
-        break;
-
-      case 2: // Network error
-        _showError('Network error. Please check your connection and try again.');
-        break;
-
-      case 7: // Already owned
-        _showError('You already own this item. Try restoring your purchases.');
-        break;
-
-      default:
-        _showError(error.message ?? 'Purchase failed. Please try again.');
+    final code = error.code;
+    if (code == 'E_USER_CANCELLED') {
+      // Don't show error for user cancellation
+      print('User cancelled purchase');
+    } else if (code == 'E_NETWORK_ERROR') {
+      _showError('Network error. Please check your connection and try again.');
+    } else if (code == 'E_ALREADY_OWNED') {
+      _showError('You already own this item. Try restoring your purchases.');
+    } else {
+      _showError(error.message ?? 'Purchase failed. Please try again.');
     }
   }
 
@@ -298,15 +283,22 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
       if (Platform.isAndroid) {
         // For Android, consume the purchase if it's a consumable product
         if (purchase.purchaseToken != null) {
-          await _iap.consumePurchaseAndroid(
-            purchaseToken: purchase.purchaseToken!,
-          );
-          print('✅ Android purchase consumed');
+          if (_isConsumableProduct(purchase.productId)) {
+            await _iap.consumePurchaseAndroid(
+              purchaseToken: purchase.purchaseToken!,
+            );
+            print('✅ Android purchase consumed');
+          } else {
+            await _iap.acknowledgePurchaseAndroid(
+              purchaseToken: purchase.purchaseToken!,
+            );
+            print('✅ Android purchase acknowledged');
+          }
         }
       } else if (Platform.isIOS) {
         // For iOS, finish the transaction
-        await _iap.finishTransactionIOS(
-          purchase,
+        await _iap.finishTransaction(
+          purchase: purchase,
           isConsumable: _isConsumableProduct(purchase.productId),
         );
         print('✅ iOS transaction finished');
@@ -341,20 +333,19 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
     });
 
     try {
-      final request = RequestPurchase(
-        ios: RequestPurchaseIOS(
-          sku: productId,
-          quantity: 1,
-        ),
-        android: RequestPurchaseAndroid(
-          skus: [productId],
+      final requestProps = RequestPurchaseProps.inApp(
+        request: RequestPurchasePropsByPlatforms(
+          ios: RequestPurchaseIosProps(
+            sku: productId,
+            quantity: 1,
+          ),
+          android: RequestPurchaseAndroidProps(
+            skus: [productId],
+          ),
         ),
       );
 
-      await _iap.requestPurchase(
-        request: request,
-        type: PurchaseType.inapp,
-      );
+      await _iap.requestPurchase(requestProps);
 
       print('🛒 Purchase requested for: $productId');
 
@@ -375,12 +366,10 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
     });
 
     try {
-      await _iap.restorePurchases();
-
       // Get available purchases
-      final availablePurchases = await _iap.getAvailableItemsIOS();
+      final availablePurchases = await _iap.getAvailablePurchases();
 
-      if (availablePurchases != null && availablePurchases.isNotEmpty) {
+      if (availablePurchases.isNotEmpty) {
         _showSuccessSnackBar('Restored ${availablePurchases.length} purchases');
 
         // Process restored purchases
@@ -590,7 +579,7 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
     );
   }
 
-  Widget _buildProductCard(IapItem product) {
+  Widget _buildProductCard(ProductCommon product) {
     return Card(
       margin: EdgeInsets.only(bottom: 12),
       elevation: 4,
@@ -608,7 +597,7 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
-                    _getProductIcon(product.productId),
+                    _getProductIcon(product.id),
                     color: Colors.blue[800],
                   ),
                 ),
@@ -618,20 +607,19 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        product.title ?? product.productId ?? 'Unknown',
+                        product.title,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      if (product.description != null)
-                        Text(
-                          product.description!,
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 14,
-                          ),
+                      Text(
+                        product.description,
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 14,
                         ),
+                      ),
                     ],
                   ),
                 ),
@@ -642,7 +630,7 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  product.localizedPrice ?? product.price ?? 'Unknown',
+                  product.displayPrice,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -650,9 +638,9 @@ class _BasicStoreScreenState extends State<BasicStoreScreen> {
                   ),
                 ),
                 ElevatedButton(
-                  onPressed: _isLoading || product.productId == null
+                  onPressed: _isLoading
                     ? null
-                    : () => _makePurchase(product.productId!),
+                    : () => _makePurchase(product.id),
                   child: Text('Buy Now'),
                 ),
               ],
@@ -694,10 +682,13 @@ await _iap.initConnection();
 ### 2. Product Loading
 
 ```dart
-final products = await _iap.fetchProducts(
-  skus: _productIds,
-  type: PurchaseType.inapp,
+final result = await _iap.fetchProducts(
+  ProductRequest(
+    skus: _productIds,
+    type: ProductQueryType.InApp,
+  ),
 );
+final products = result.value;
 ```
 
 - Fetches product information from the store
@@ -707,11 +698,19 @@ final products = await _iap.fetchProducts(
 ### 3. Purchase Flow
 
 ```dart
-final request = RequestPurchase(
-  ios: RequestPurchaseIOS(sku: productId, quantity: 1),
-  android: RequestPurchaseAndroid(skus: [productId]),
+final requestProps = RequestPurchaseProps.inApp(
+  request: RequestPurchasePropsByPlatforms(
+    ios: RequestPurchaseIosProps(
+      sku: productId,
+      quantity: 1,
+    ),
+    android: RequestPurchaseAndroidProps(
+      skus: [productId],
+    ),
+  ),
 );
-await _iap.requestPurchase(request: request, type: PurchaseType.inapp);
+
+await _iap.requestPurchase(requestProps);
 ```
 
 - Platform-specific request objects handle iOS/Android differences
@@ -722,15 +721,18 @@ await _iap.requestPurchase(request: request, type: PurchaseType.inapp);
 
 ```dart
 // iOS
-await _iap.finishTransactionIOS(purchase, isConsumable: true);
+await _iap.finishTransaction(purchase: purchase, isConsumable: true);
 
-// Android
+// Android - Consumable
 await _iap.consumePurchaseAndroid(purchaseToken: token);
+
+// Android - Non-consumable
+await _iap.acknowledgePurchaseAndroid(purchaseToken: token);
 ```
 
 - Essential for completing the purchase flow
-- iOS: `finishTransactionIOS` for all purchases
-- Android: `consumePurchaseAndroid` for consumables
+- iOS: `finishTransaction` for all purchases
+- Android: `consumePurchaseAndroid` for consumables, `acknowledgePurchaseAndroid` for non-consumables
 
 ### 5. Error Handling
 
@@ -768,13 +770,18 @@ bool _isConsumableProduct(String productId) {
 ### Custom Error Handling
 
 ```dart
-void _handlePurchaseError(PurchaseError error) {
-  switch (error.code) {
-    case 1: /* User cancelled */
-    case 2: /* Network error */
-    case 7: /* Already owned */
-    // Add your custom error handling
+void _handlePurchaseError(PurchaseError? error) {
+  if (error == null) return;
+
+  final code = error.code;
+  if (code == 'E_USER_CANCELLED') {
+    // User cancelled
+  } else if (code == 'E_NETWORK_ERROR') {
+    // Network error
+  } else if (code == 'E_ALREADY_OWNED') {
+    // Already owned
   }
+  // Add your custom error handling
 }
 ```
 

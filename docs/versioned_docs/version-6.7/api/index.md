@@ -14,6 +14,7 @@ Complete reference for flutter_inapp_purchase v6.7.0 - A unified API for impleme
 ## Available APIs
 
 ### Core Methods
+
 Essential methods for initializing connections, loading products, and processing purchases.
 
 - **Connection Management**: `initConnection()`
@@ -23,12 +24,14 @@ Essential methods for initializing connections, loading products, and processing
 - **Transaction Management**: `finishTransaction()`, `consumePurchase()`
 
 ### Platform-Specific Methods
+
 Access iOS and Android specific features and capabilities.
 
 - **iOS Features**: Offer code redemption, subscription management, StoreKit 2 support
 - **Android Features**: Billing client state, pending purchases, deep links
 
 ### Event Listeners (Open IAP Spec)
+
 Real-time streams for monitoring purchase events and connection states.
 
 - **purchaseUpdatedListener**: Stream for successful purchase updates
@@ -36,6 +39,7 @@ Real-time streams for monitoring purchase events and connection states.
 - **Connection Events**: Store connection status updates
 
 ### Types & Enums
+
 Comprehensive type definitions for type-safe development.
 
 - **Request Objects**: Platform-specific purchase and product requests
@@ -54,9 +58,6 @@ final iap = FlutterInappPurchase();
 
 // Option 2: Use singleton for global state management
 final iap = FlutterInappPurchase.instance;
-
-// Option 3: Use with IapProvider (recommended for Flutter apps)
-final iapProvider = IapProvider.of(context);
 ```
 
 ### Basic Implementation
@@ -72,21 +73,21 @@ class PurchaseManager {
   Future<void> initializePurchases() async {
     // Initialize connection
     await iap.initConnection();
-    
+
     // Set up listeners (Open IAP spec)
     _purchaseSubscription = iap.purchaseUpdatedListener.listen(
       (purchase) {
         handlePurchaseSuccess(purchase);
       },
     );
-    
+
     _errorSubscription = iap.purchaseErrorListener.listen(
       (error) {
         handlePurchaseError(error);
       },
     );
   }
-  
+
   Future<void> makePurchase(String productId) async {
     await iap.requestPurchase(
       request: RequestPurchase(

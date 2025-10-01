@@ -154,7 +154,7 @@ The plugin automatically adds the required billing permission to your manifest.
 
 ### Initialize the Plugin
 
-You have three options for managing IAP instances:
+You have two options for managing IAP instances:
 
 #### Option 1: Create Your Own Instance
 
@@ -207,19 +207,6 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _initializeIAP() async {
     await iap.initConnection();
-  }
-}
-```
-
-#### Option 3: With Flutter Hooks
-
-```dart
-class MyWidget extends HookWidget {
-  @override
-  Widget build(BuildContext context) {
-    final iapState = useIAP();
-
-    return Text('Connected: ${iapState.connected}');
   }
 }
 ```

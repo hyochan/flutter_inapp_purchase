@@ -84,52 +84,7 @@ class PurchaseHandler {
 }
 ```
 
-### 2. Using with Hooks (Recommended)
-
-For a more structured approach, use this purchase handler pattern:
-
-```dart
-class ProductsScreen extends StatefulWidget {
-  @override
-  State<ProductsScreen> createState() => _ProductsScreenState();
-}
-
-class _ProductsScreenState extends State<ProductsScreen> {
-  final List<String> productIds = [
-    'dev.hyo.martie.10bulbs',
-    'dev.hyo.martie.30bulbs',
-  ];
-
-  String? _purchaseResult;
-  bool _isProcessing = false;
-  StreamSubscription<Purchase?>? _purchaseUpdatedSubscription;
-  StreamSubscription<PurchaseResult?>? _purchaseErrorSubscription;
-
-  @override
-  void initState() {
-    super.initState();
-    _setupPurchaseListeners();
-
-    // Load products after initialization
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (mounted) {
-        _loadProducts();
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _purchaseUpdatedSubscription?.cancel();
-    _purchaseErrorSubscription?.cancel();
-    super.dispose();
-  }
-
-  // Purchase listener setup...
-}
-```
-
-### 3. Request a Purchase
+### 2. Request a Purchase
 
 Use the new `requestPurchase` API for initiating purchases:
 
