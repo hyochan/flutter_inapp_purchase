@@ -9,8 +9,6 @@ const sidebars: SidebarsConfig = {
       collapsed: false,
       items: [
         "getting-started/installation",
-        "getting-started/ios-setup",
-        "getting-started/android-setup",
       ],
     },
     {
@@ -19,9 +17,20 @@ const sidebars: SidebarsConfig = {
       items: [
         "guides/purchases",
         "guides/lifecycle",
+        "guides/subscription-offers",
+        "guides/subscription-validation",
         "guides/offer-code-redemption",
+        "guides/error-handling",
         "guides/troubleshooting",
         "guides/faq",
+        "guides/support",
+      ],
+    },
+    {
+      type: "category",
+      label: "Migration",
+      items: [
+        "migration/from-v6",
         "migration/from-v5",
       ],
     },
@@ -43,9 +52,10 @@ const sidebars: SidebarsConfig = {
       type: "category",
       label: "Examples",
       items: [
-        "examples/basic-store",
-        "examples/subscription-store",
-        "examples/complete-implementation",
+        "examples/purchase-flow",
+        "examples/subscription-flow",
+        "examples/available-purchases",
+        "examples/offer-code",
       ],
     },
     {

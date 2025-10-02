@@ -1,5 +1,22 @@
 # CHANGELOG
 
+## 7.0.0-rc.1
+
+- **Breaking**: Major API redesign with named parameters
+  - `fetchProducts()` now uses named parameters instead of `ProductRequest` object
+  - `getAvailablePurchases()` now uses named parameters instead of `PurchaseOptions` object
+  - `finishTransaction()` simplified to accept `Purchase` object directly
+  - `validateReceiptIOS()`, `deepLinkToSubscriptions()` now use named parameters
+  - `RequestPurchaseProps.inApp()` / `.subs()` factory methods removed (use constructor with `type` parameter)
+- **Breaking**: Removed deprecated iOS-specific methods
+  - `getAvailableItemsIOS()` - Use `getAvailablePurchases()` instead
+  - `getAppTransactionTypedIOS()` - Use `getAppTransactionIOS()` instead
+  - `getPurchaseHistoriesIOS()` - Use `getAvailablePurchases()` with options instead
+- **Feature**: Added `AlternativeBillingModeAndroid` enum for Android alternative billing support
+- **Improvement**: Moved `_buildIosPurchasePayload` to public utils for better code organization
+- 👉 [full release notes](https://hyochan.github.io/flutter_inapp_purchase/blog/7.0.0-rc.1-release)
+- 👉 [migration guide](https://hyochan.github.io/flutter_inapp_purchase/docs/migration/from-v6)
+
 ## 6.8.8
 
 - Update OpenIAP google module to `1.2.10`
