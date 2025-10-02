@@ -9,25 +9,23 @@ Retrieves non-consumed purchases with optional filters for platform-specific beh
 
 ## Overview
 
-The `getAvailablePurchases()` method returns a list of purchases that haven't been consumed or finished. Use it to restore purchases, check subscription status, and handle incomplete transactions. On iOS you can pass `PurchaseOptions` to include expired subscriptions or publish restored receipts to the purchase event stream.
+The `getAvailablePurchases()` method returns a list of purchases that haven't been consumed or finished. Use it to restore purchases, check subscription status, and handle incomplete transactions. On iOS you can use named parameters to include expired subscriptions or publish restored receipts to the purchase event stream.
 
-## Signatures
+## Signature
 
-### expo-iap Compatible
 ```dart
-Future<List<Purchase>> getAvailablePurchases([PurchaseOptions? options])
-```
-
-### Legacy Method
-```dart
-Future<List<Purchase>?> getAvailableItemsIOS()
+Future<List<Purchase>> getAvailablePurchases({
+  bool? alsoPublishToEventListenerIOS,
+  bool? onlyIncludeActiveItemsIOS,
+})
 ```
 
 ## Parameters
 
 | Parameter | Type               | Required | Default | Description |
 | --------- | ------------------ | -------- | ------- | ----------- |
-| `options` | `PurchaseOptions?` | No       | `null`  | Controls whether expired iOS receipts are included and if restored purchases should be re-emitted via `purchaseUpdated` |
+| `alsoPublishToEventListenerIOS` | `bool?` | No       | `false`  | Whether to publish restored purchases to the event listener (iOS only) |
+| `onlyIncludeActiveItemsIOS` | `bool?` | No       | `true`  | Whether to only include active items, excluding expired subscriptions (iOS only) |
 
 ## Returns
 
@@ -59,10 +57,8 @@ final purchases = await FlutterInappPurchase.instance.getAvailablePurchases();
 
 // Include expired iOS subscriptions and publish them to purchaseUpdated
 final allPurchases = await FlutterInappPurchase.instance.getAvailablePurchases(
-  PurchaseOptions(
-    onlyIncludeActiveItemsIOS: false,
-    alsoPublishToEventListenerIOS: true,
-  ),
+  onlyIncludeActiveItemsIOS: false,
+  alsoPublishToEventListenerIOS: true,
 );
 
 for (var purchase in purchases) {

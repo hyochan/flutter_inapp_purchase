@@ -1,15 +1,30 @@
 ---
-sidebar_position: 1
+sidebar_position: 2
 title: Migration from v5.x
 ---
 
-# Migration from v5.x to v6.8+
+# Migration from v5.x to v7.0+
 
-This guide helps you migrate from flutter_inapp_purchase v5.x to the latest v6.8+ version.
+This guide helps you migrate from flutter_inapp_purchase v5.x to the latest v7.0+ version.
 
 ## Overview
 
-Version 6.8+ is a **major update** with significant breaking changes to align with the OpenIAP specification and support modern platform APIs.
+Version 7.0+ is a **major update** with significant breaking changes to align with the OpenIAP specification and support modern platform APIs.
+
+:::tip Migration Path
+If you're migrating from v5.x, we recommend:
+1. First migrate to v6.8 following this guide
+2. Then migrate from v6.8 to v7.0 using the [v6 to v7 migration guide](./from-v6)
+:::
+
+## Installation
+
+Update your `pubspec.yaml`:
+
+```yaml
+dependencies:
+  flutter_inapp_purchase: ^7.0.0
+```
 
 ## Key Changes Summary
 

@@ -186,7 +186,7 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
           try {
             debugPrint('Calling finishTransaction...');
             await _iap.finishTransaction(
-              purchase: purchase.toInput(),
+              purchase: purchase,
             );
             debugPrint('Transaction finished successfully');
           } catch (e) {
@@ -297,10 +297,8 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
       debugPrint('🔄 Loading subscriptions with SKUs: $subscriptionIds');
 
       final result = await _iap.fetchProducts(
-        ProductRequest(
-          skus: subscriptionIds,
-          type: ProductQueryType.Subs,
-        ),
+        skus: subscriptionIds,
+        type: ProductQueryType.Subs,
       );
 
       debugPrint('📦 Received result type: ${result.runtimeType}');
@@ -360,80 +358,32 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
       debugPrint('Active subscription summaries: ${summaries.length}');
       for (final summary in summaries) {
         debugPrint(
-          '  • ${summary.productId} (tx: ${summary.transactionId}, expires: ${summary.expirationDateIOS})',
+          '  • ${summary.productId} (tx: ${summary.transactionId}, autoRenew: ${summary.autoRenewingAndroid})',
         );
       }
 
+      // Get corresponding Purchase objects for additional details
       final purchases = await _iap.getAvailablePurchases(
-        const PurchaseOptions(onlyIncludeActiveItemsIOS: true),
+        onlyIncludeActiveItemsIOS: true,
       );
 
       debugPrint('Total available purchases found: ${purchases.length}');
-      for (final p in purchases) {
-        final token = p.purchaseToken;
-        final tokenPreview = token == null
-            ? 'null'
-            : token.length <= 20
-                ? token
-                : '${token.substring(0, 20)}...';
-        debugPrint(
-          '  - ${p.productId}: token=$tokenPreview',
-        );
-      }
 
-      const double matchToleranceMs = 2000; // 2 seconds tolerance
-
+      // Create map of summaries by product ID
       final Map<String, ActiveSubscription> summaryByProduct = {};
       for (final summary in summaries) {
-        final existing = summaryByProduct[summary.productId];
-        if (existing == null ||
-            summary.transactionDate > existing.transactionDate) {
-          summaryByProduct[summary.productId] = summary;
-        }
+        summaryByProduct[summary.productId] = summary;
       }
 
+      // Match purchases with summaries
       final List<Purchase> activeSubs = [];
       final Set<String> addedProducts = <String>{};
 
-      for (final entry in summaryByProduct.entries) {
-        final summary = entry.value;
-        Purchase? matched;
-
-        for (final purchase in purchases) {
-          if (purchase.productId != summary.productId) {
-            continue;
-          }
-
-          final matchesTransaction = purchase.id == summary.transactionId ||
-              (purchase.ids?.contains(summary.transactionId) ?? false);
-          final matchesToken = summary.purchaseToken != null &&
-              summary.purchaseToken!.isNotEmpty &&
-              summary.purchaseToken == purchase.purchaseToken;
-          final matchesDate =
-              (purchase.transactionDate - summary.transactionDate).abs() <=
-                  matchToleranceMs;
-
-          if (matchesTransaction || matchesToken || matchesDate) {
-            matched = purchase;
-            break;
-          }
-        }
-
-        if (matched != null && addedProducts.add(matched.productId)) {
-          activeSubs.add(matched);
-        } else if (matched == null) {
-          debugPrint(
-            '⚠️ No matching purchase found for active subscription ${summary.productId}',
-          );
-        }
-      }
-
-      if (activeSubs.isEmpty && summaryByProduct.isNotEmpty) {
-        for (final purchase in purchases) {
-          if (summaryByProduct.containsKey(purchase.productId) &&
-              addedProducts.add(purchase.productId)) {
-            activeSubs.add(purchase);
-          }
+      for (final purchase in purchases) {
+        if (summaryByProduct.containsKey(purchase.productId) &&
+            addedProducts.add(purchase.productId)) {
+          activeSubs.add(purchase);
+          debugPrint('  ✓ Matched purchase: ${purchase.productId}');
         }
       }
 
@@ -529,44 +479,38 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
           debugPrint(
               'Using purchase token: ${_currentSubscription!.purchaseToken}');
 
-          final requestProps = RequestPurchaseProps.subs(
-            request: RequestSubscriptionPropsByPlatforms(
-              android: RequestSubscriptionAndroidProps(
-                skus: [item.id],
-                subscriptionOffers:
-                    selectedOffer != null ? [selectedOffer] : androidOffers,
-                purchaseTokenAndroid: _currentSubscription!.purchaseToken,
-                replacementModeAndroid: _selectedProrationMode,
-              ),
+          final requestProps = RequestPurchaseProps.subs((
+            ios: null,
+            android: RequestSubscriptionAndroidProps(
+              skus: [item.id],
             ),
-          );
+            useAlternativeBilling: null,
+          ));
 
           await _iap.requestPurchase(requestProps);
         } else {
           // This is a new subscription purchase
           debugPrint('Purchasing new subscription');
 
-          final requestProps = RequestPurchaseProps.subs(
-            request: RequestSubscriptionPropsByPlatforms(
-              android: RequestSubscriptionAndroidProps(
-                skus: [item.id],
-                subscriptionOffers:
-                    selectedOffer != null ? [selectedOffer] : androidOffers,
-              ),
+          final requestProps = RequestPurchaseProps.subs((
+            ios: null,
+            android: RequestSubscriptionAndroidProps(
+              skus: [item.id],
             ),
-          );
+            useAlternativeBilling: null,
+          ));
 
           await _iap.requestPurchase(requestProps);
         }
       } else {
         // iOS
-        final requestProps = RequestPurchaseProps.subs(
-          request: RequestSubscriptionPropsByPlatforms(
-            ios: RequestSubscriptionIosProps(
-              sku: item.id,
-            ),
+        final requestProps = RequestPurchaseProps.subs((
+          ios: RequestSubscriptionIosProps(
+            sku: item.id,
           ),
-        );
+          android: null,
+          useAlternativeBilling: null,
+        ));
 
         await _iap.requestPurchase(requestProps);
       }
@@ -601,17 +545,13 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
           'fake_token_for_testing_${DateTime.now().millisecondsSinceEpoch}';
       debugPrint('Using fake token: $fakeToken');
 
-      final requestProps = RequestPurchaseProps.subs(
-        request: RequestSubscriptionPropsByPlatforms(
-          android: RequestSubscriptionAndroidProps(
-            skus: [item.id],
-            subscriptionOffers: _androidOffersFor(item),
-            purchaseTokenAndroid:
-                fakeToken, // Fake token that will fail on native side
-            replacementModeAndroid: AndroidReplacementMode.deferred.value,
-          ),
+      final requestProps = RequestPurchaseProps.subs((
+        ios: null,
+        android: RequestSubscriptionAndroidProps(
+          skus: [item.id],
         ),
-      );
+        useAlternativeBilling: null,
+      ));
 
       await _iap.requestPurchase(requestProps);
 
@@ -646,17 +586,13 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
       debugPrint('Using test token: ${testToken.substring(0, 20)}...');
 
       // Test with empty string - but pass validation by using a non-empty token
-      final requestProps = RequestPurchaseProps.subs(
-        request: RequestSubscriptionPropsByPlatforms(
-          android: RequestSubscriptionAndroidProps(
-            skus: [item.id],
-            subscriptionOffers: _androidOffersFor(item),
-            purchaseTokenAndroid:
-                testToken, // Use test token to pass validation
-            replacementModeAndroid: AndroidReplacementMode.deferred.value,
-          ),
+      final requestProps = RequestPurchaseProps.subs((
+        ios: null,
+        android: RequestSubscriptionAndroidProps(
+          skus: [item.id],
         ),
-      );
+        useAlternativeBilling: null,
+      ));
 
       await _iap.requestPurchase(requestProps);
 

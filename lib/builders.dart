@@ -133,11 +133,11 @@ class RequestPurchaseBuilder {
     final androidProps = android.skus.isNotEmpty ? android.build() : null;
 
     if (_type == ProductQueryType.InApp) {
-      final payload = RequestPurchasePropsByPlatforms(
+      return RequestPurchaseProps.inApp((
         ios: iosProps,
         android: androidProps,
-      );
-      return RequestPurchaseProps.inApp(request: payload);
+        useAlternativeBilling: null,
+      ));
     }
 
     if (_type == ProductQueryType.Subs) {
@@ -166,11 +166,11 @@ class RequestPurchaseBuilder {
               subscriptionOffers: null,
             );
 
-      final subscriptionPayload = RequestSubscriptionPropsByPlatforms(
+      return RequestPurchaseProps.subs((
         ios: iosSub,
         android: androidSub,
-      );
-      return RequestPurchaseProps.subs(request: subscriptionPayload);
+        useAlternativeBilling: null,
+      ));
     }
 
     throw ArgumentError(
@@ -237,11 +237,10 @@ class RequestSubscriptionBuilder {
     final iosProps = ios.sku.isNotEmpty ? ios.build() : null;
     final androidProps = android.skus.isNotEmpty ? android.build() : null;
 
-    return RequestPurchaseProps.subs(
-      request: RequestSubscriptionPropsByPlatforms(
-        ios: iosProps,
-        android: androidProps,
-      ),
-    );
+    return RequestPurchaseProps.subs((
+      ios: iosProps,
+      android: androidProps,
+      useAlternativeBilling: null,
+    ));
   }
 }

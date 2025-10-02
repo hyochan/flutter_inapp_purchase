@@ -290,7 +290,7 @@ Purchase Token: $truncatedToken...
     // For consumable products (like bulb packs), set isConsumable to true
     try {
       await _iap.finishTransaction(
-        purchase: purchase.toInput(),
+        purchase: purchase,
         isConsumable: true,
       );
       debugPrint('Transaction finished successfully');
@@ -329,10 +329,8 @@ Message: ${error.message}
     try {
       debugPrint('🔍 Loading products for IDs: ${productIds.join(", ")}');
       final result = await _iap.fetchProducts(
-        ProductRequest(
-          skus: productIds,
-          type: ProductQueryType.InApp,
-        ),
+        skus: productIds,
+        type: ProductQueryType.InApp,
       );
 
       // Extract products from the union type
@@ -387,17 +385,16 @@ Message: ${error.message}
       debugPrint('Product ID: $productId');
 
       // Build platform-specific request and call unified requestPurchase
-      final requestProps = RequestPurchaseProps.inApp(
-        request: RequestPurchasePropsByPlatforms(
-          ios: RequestPurchaseIosProps(
-            sku: productId,
-            quantity: 1,
-          ),
-          android: RequestPurchaseAndroidProps(
-            skus: [productId],
-          ),
+      final requestProps = RequestPurchaseProps.inApp((
+        ios: RequestPurchaseIosProps(
+          sku: productId,
+          quantity: 1,
         ),
-      );
+        android: RequestPurchaseAndroidProps(
+          skus: [productId],
+        ),
+        useAlternativeBilling: null,
+      ));
 
       await _iap.requestPurchase(requestProps);
 

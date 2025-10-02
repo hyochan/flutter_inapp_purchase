@@ -183,10 +183,8 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
       // Fetch all products using ProductQueryType.All
       // The library now handles both Product and ProductSubscription types internally
       final result = await _iap.fetchProducts(
-        ProductRequest(
-          skus: IapConstants.allProductIds,
-          type: ProductQueryType.All,
-        ),
+        skus: IapConstants.allProductIds,
+        type: ProductQueryType.All,
       );
 
       // Extract products directly from the result
@@ -253,31 +251,28 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
           }
         }
 
-        params = RequestPurchaseProps.subs(
-          request: RequestSubscriptionPropsByPlatforms(
-            ios: Platform.isIOS
-                ? RequestSubscriptionIosProps(sku: product.id)
-                : null,
-            android: Platform.isAndroid
-                ? RequestSubscriptionAndroidProps(
-                    skus: [product.id],
-                    subscriptionOffers: androidOffers,
-                  )
-                : null,
-          ),
-        );
+        params = RequestPurchaseProps.subs((
+          ios: Platform.isIOS
+              ? RequestSubscriptionIosProps(sku: product.id, quantity: 1)
+              : null,
+          android: Platform.isAndroid
+              ? RequestSubscriptionAndroidProps(
+                  skus: [product.id],
+                )
+              : null,
+          useAlternativeBilling: null,
+        ));
       } else {
         // In-app purchase
-        params = RequestPurchaseProps.inApp(
-          request: RequestPurchasePropsByPlatforms(
-            ios: Platform.isIOS
-                ? RequestPurchaseIosProps(sku: product.id, quantity: 1)
-                : null,
-            android: Platform.isAndroid
-                ? RequestPurchaseAndroidProps(skus: [product.id])
-                : null,
-          ),
-        );
+        params = RequestPurchaseProps.inApp((
+          ios: Platform.isIOS
+              ? RequestPurchaseIosProps(sku: product.id, quantity: 1)
+              : null,
+          android: Platform.isAndroid
+              ? RequestPurchaseAndroidProps(skus: [product.id])
+              : null,
+          useAlternativeBilling: null,
+        ));
       }
       await _iap.requestPurchase(params);
     } catch (e) {
@@ -301,7 +296,7 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
       final prod = _originalProducts[purchase.productId];
       final isConsumable = prod != null && IapConstants.isConsumable(prod.id);
       await _iap.finishTransaction(
-        purchase: purchase.toInput(),
+        purchase: purchase,
         isConsumable: isConsumable,
       );
       debugPrint('Purchase finalized successfully');

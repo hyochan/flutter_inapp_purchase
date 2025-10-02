@@ -7,280 +7,142 @@ title: Purchase States
 
 Types and enums representing the state of purchases and transactions.
 
-## Purchase Class
+## PurchaseState
 
-Main class representing a completed or pending purchase.
-
-```dart
-class Purchase {
-  final String productId;
-  final String? transactionId;
-  final String? transactionReceipt;
-  final String? purchaseToken;
-  final DateTime? transactionDate;
-  final IAPPlatform platform;
-  final bool? isAcknowledgedAndroid;
-  final String? purchaseStateAndroid;
-  final String? originalTransactionIdentifierIOS;
-  final Map<String, dynamic>? originalJson;
-
-  // StoreKit 2 specific fields
-  final String? transactionState;
-  final bool? isUpgraded;
-  final DateTime? expirationDate;
-  final DateTime? revocationDate;
-  final int? revocationReason;
-}
-```
-
-### Common Properties
-
-- `productId` - The product identifier that was purchased
-- `transactionId` - Unique transaction identifier
-- `transactionReceipt` - Receipt data (iOS primarily)
-- `purchaseToken` - Purchase token (Android primarily)
-- `transactionDate` - When the transaction occurred
-- `platform` - Platform where purchase was made
-
-### Android-Specific Properties
-
-- `isAcknowledgedAndroid` - Whether purchase has been acknowledged
-- `purchaseStateAndroid` - Current state of the purchase
-
-### iOS-Specific Properties
-
-- `originalTransactionIdentifierIOS` - Original transaction ID for renewals
-- `transactionState` - Current transaction state
-- `isUpgraded` - Whether subscription was upgraded
-- `expirationDate` - When subscription expires
-- `revocationDate` - When purchase was revoked
-- `revocationReason` - Reason for revocation
-
-## PurchaseState (Android)
-
-Enum representing the state of an Android purchase.
+Enum representing the state of a purchase.
 
 ```dart
 enum PurchaseState {
-  pending,      // Purchase is pending (awaiting payment)
-  purchased,    // Purchase completed successfully
-  unspecified   // Unknown/unspecified state
+  Pending,      // Purchase is pending (awaiting payment)
+  Purchased,    // Purchase completed successfully
+  Failed,       // Purchase failed
+  Restored,     // Purchase was restored
+  Deferred,     // Purchase deferred (e.g., Ask to Buy on iOS)
+  Unknown,      // Unknown/unspecified state
 }
 ```
 
 ### Usage
 
 ```dart
-void handleAndroidPurchase(Purchase item) {
-  switch (item.purchaseStateAndroid) {
-    case PurchaseState.purchased:
+void _handlePurchase(Purchase purchase) {
+  // PurchaseState is available in both PurchaseIOS and PurchaseAndroid
+  final state = purchase is PurchaseIOS
+    ? purchase.transactionState
+    : (purchase as PurchaseAndroid).purchaseState;
+
+  switch (state) {
+    case PurchaseState.Purchased:
       // Purchase completed - safe to deliver content
-      deliverContent(item.productId);
+      _deliverContent(purchase.productId);
       break;
-    case PurchaseState.pending:
+
+    case PurchaseState.Pending:
       // Payment pending - wait for completion
-      showPendingMessage();
+      _showPendingMessage();
       break;
-    case PurchaseState.unspecified:
+
+    case PurchaseState.Failed:
+      // Purchase failed
+      _showErrorMessage();
+      break;
+
+    case PurchaseState.Restored:
+      // Purchase was restored
+      _deliverContent(purchase.productId);
+      break;
+
+    case PurchaseState.Deferred:
+      // Waiting for parental approval (iOS Ask to Buy)
+      _showDeferredMessage();
+      break;
+
+    case PurchaseState.Unknown:
       // Unknown state - handle cautiously
-      logUnknownState(item);
+      debugPrint('Unknown purchase state');
       break;
   }
 }
 ```
 
-## TransactionState (iOS)
+## Purchase Classes
 
-Enum representing the state of an iOS transaction.
+flutter_inapp_purchase uses union types for purchases. When you receive purchases, you get platform-specific purchase types.
+
+### PurchaseIOS
 
 ```dart
-enum TransactionState {
-  purchasing,  // Transaction is being processed
-  purchased,   // Transaction completed successfully
-  failed,      // Transaction failed
-  restored,    // Transaction was restored
-  deferred     // Transaction pending external approval (e.g., Ask to Buy)
+class PurchaseIOS extends Purchase {
+  final String id;
+  final String originalId;
+  final String productId;
+  final DateTime purchaseDate;
+  final PurchaseState transactionState;
+  final String? receiptData;
+  // ... additional iOS-specific properties
 }
 ```
 
-### Usage
+### PurchaseAndroid
 
 ```dart
-void handleIOSTransaction(Purchase item) {
-  switch (item.transactionStateIOS) {
-    case TransactionState.purchased:
-    case TransactionState.restored:
-      // Safe to deliver content and finish transaction
-      deliverContent(item.productId);
-      FlutterInappPurchase.instance.finishTransaction(item);
-      break;
-    case TransactionState.failed:
-      // Transaction failed - don't deliver content
-      showErrorMessage();
-      // Still need to finish failed transactions
-      FlutterInappPurchase.instance.finishTransaction(item);
-      break;
-    case TransactionState.purchasing:
-      // Still processing - wait
-      showLoadingIndicator();
-      break;
-    case TransactionState.deferred:
-      // Waiting for parental approval
-      showDeferredMessage();
-      break;
-  }
+class PurchaseAndroid extends Purchase {
+  final String? orderId;
+  final String productId;
+  final PurchaseState purchaseState;
+  final int purchaseTime;
+  final String purchaseToken;
+  final bool acknowledged;
+  // ... additional Android-specific properties
 }
 ```
 
-## Complete State Handling
+## Handling Purchase States
+
+### Basic Purchase Handling
 
 ```dart
-class PurchaseStateHandler {
-  void processPurchase(Purchase purchase) {
-    if (Platform.isAndroid) {
-      _handleAndroidPurchase(purchase);
-    } else if (Platform.isIOS) {
-      _handleIOSPurchase(purchase);
+void _handlePurchase(Purchase purchase) async {
+  if (purchase is PurchaseIOS) {
+    switch (purchase.transactionState) {
+      case PurchaseState.Purchased:
+      case PurchaseState.Restored:
+        await _deliverContent(purchase.productId);
+        await iap.finishTransaction(
+          purchase: purchase,
+          isConsumable: false,
+        );
+        break;
+
+      case PurchaseState.Deferred:
+        _showMessage('Waiting for approval...');
+        break;
+
+      case PurchaseState.Failed:
+        _showMessage('Purchase failed');
+        break;
+
+      default:
+        break;
     }
-  }
-
-  void _handleAndroidPurchase(Purchase purchase) {
-    switch (purchase.purchaseStateAndroid) {
-      case PurchaseState.purchased:
-        if (purchase.isAcknowledgedAndroid == false) {
-          // Need to acknowledge within 3 days
-          _acknowledgePurchase(purchase);
+  } else if (purchase is PurchaseAndroid) {
+    switch (purchase.purchaseState) {
+      case PurchaseState.Purchased:
+        if (!purchase.acknowledged) {
+          await _deliverContent(purchase.productId);
+          await iap.finishTransaction(
+            purchase: purchase,
+            isConsumable: false,
+          );
         }
-        _deliverContent(purchase);
         break;
 
-      case PurchaseState.pending:
-        // Store pending purchase for later processing
-        _storePendingPurchase(purchase);
-        _showPendingUI();
+      case PurchaseState.Pending:
+        _showMessage('Purchase pending...');
         break;
 
-      case PurchaseState.unspecified:
-        // Log for investigation
-        _logUnknownPurchaseState(purchase);
+      default:
         break;
-    }
-  }
-
-  void _handleIOSPurchase(Purchase purchase) {
-    switch (purchase.transactionStateIOS) {
-      case TransactionState.purchased:
-        _deliverContent(purchase);
-        _finishTransaction(purchase);
-        break;
-
-      case TransactionState.restored:
-        _restoreContent(purchase);
-        _finishTransaction(purchase);
-        break;
-
-      case TransactionState.failed:
-        _handleFailure(purchase);
-        _finishTransaction(purchase); // Still need to finish
-        break;
-
-      case TransactionState.deferred:
-        _handleDeferred(purchase);
-        // Don't finish - wait for final state
-        break;
-
-      case TransactionState.purchasing:
-        _showPurchasingUI();
-        // Don't finish - wait for completion
-        break;
-    }
-  }
-}
-```
-
-## State Transitions
-
-### Android Purchase Flow
-
-```
-User initiates purchase
-         ↓
- Payment method selected
-         ↓
-    PurchaseState.pending (if async payment)
-         ↓
-    Payment processed
-         ↓
-    PurchaseState.purchased
-         ↓
-    App acknowledges purchase
-         ↓
-    Purchase complete
-```
-
-### iOS Transaction Flow
-
-```
-User initiates purchase
-         ↓
-    TransactionState.purchasing
-         ↓
-    Payment processed
-         ↓
-    TransactionState.purchased
-         ↓
-    App delivers content
-         ↓
-    App finishes transaction
-         ↓
-    Transaction removed from queue
-```
-
-## Error States and Recovery
-
-```dart
-class StateRecoveryHandler {
-  Future<void> recoverPendingStates() async {
-    // Get all available purchases
-    final purchases = await FlutterInappPurchase.instance.getAvailablePurchases();
-
-    for (var purchase in purchases) {
-      await _recoverPurchaseState(purchase);
-    }
-  }
-
-  Future<void> _recoverPurchaseState(Purchase purchase) async {
-    if (Platform.isAndroid) {
-      // Check if acknowledgment is needed
-      if (purchase.purchaseStateAndroid == PurchaseState.purchased &&
-          purchase.isAcknowledgedAndroid == false) {
-
-        // Check if content was already delivered
-        if (await _wasContentDelivered(purchase.transactionId)) {
-          // Just acknowledge without re-delivering
-          await _acknowledgePurchaseOnly(purchase);
-        } else {
-          // Deliver content and acknowledge
-          await _deliverContentAndAcknowledge(purchase);
-        }
-      }
-    } else if (Platform.isIOS) {
-      // Check for unfinished transactions
-      final pending = await FlutterInappPurchase.instance.getPendingTransactionsIOS();
-
-      for (var transaction in pending ?? []) {
-        if (transaction.transactionStateIOS == TransactionState.purchased ||
-            transaction.transactionStateIOS == TransactionState.restored) {
-
-          // Verify content delivery
-          if (!await _wasContentDelivered(transaction.transactionId)) {
-            await _deliverContent(transaction);
-          }
-
-          // Finish the transaction
-          await FlutterInappPurchase.instance.finishTransactionIOS(transaction);
-        }
-      }
     }
   }
 }
@@ -288,68 +150,14 @@ class StateRecoveryHandler {
 
 ## Best Practices
 
-### State Checking
+1. **Handle all states** - Don't assume purchases will always be in `Purchased` state
+2. **Check acknowledgment** - On Android, check if purchase needs acknowledgment
+3. **Finish transactions** - Always finish transactions after delivering content
+4. **Handle pending** - Support pending purchases for async payment methods
+5. **Persist state** - Save purchase state locally for recovery
 
-```dart
-bool isPurchaseComplete(Purchase purchase) {
-  if (Platform.isAndroid) {
-    return purchase.purchaseStateAndroid == PurchaseState.purchased &&
-           purchase.isAcknowledgedAndroid == true;
-  } else if (Platform.isIOS) {
-    // On iOS, if we receive the purchase, it's valid
-    // State checking is for transaction management
-    return true;
-  }
-  return false;
-}
+## Related
 
-bool needsAcknowledgment(Purchase purchase) {
-  return Platform.isAndroid &&
-         purchase.purchaseStateAndroid == PurchaseState.purchased &&
-         purchase.isAcknowledgedAndroid == false;
-}
-
-bool canFinishTransaction(Purchase item) {
-  if (Platform.isIOS) {
-    return item.transactionStateIOS == TransactionState.purchased ||
-           item.transactionStateIOS == TransactionState.restored ||
-           item.transactionStateIOS == TransactionState.failed;
-  }
-  return true; // Android transactions can always be "finished"
-}
-```
-
-### State Persistence
-
-```dart
-class PurchaseStateManager {
-  final SharedPreferences prefs;
-
-  Future<void> savePurchaseState(Purchase purchase) async {
-    final stateData = {
-      'productId': purchase.productId,
-      'transactionId': purchase.transactionId,
-      'state': Platform.isAndroid
-          ? purchase.purchaseStateAndroid
-          : purchase.transactionState,
-      'acknowledged': purchase.isAcknowledgedAndroid,
-      'timestamp': DateTime.now().millisecondsSinceEpoch,
-    };
-
-    await prefs.setString(
-      'purchase_state_${purchase.transactionId}',
-      json.encode(stateData),
-    );
-  }
-
-  Future<Map<String, dynamic>?> getPurchaseState(String transactionId) async {
-    final stateJson = prefs.getString('purchase_state_$transactionId');
-    return stateJson != null ? json.decode(stateJson) : null;
-  }
-}
-```
-
-## Related Types
-
-- [Error Codes](./error-codes.md) - Error states and codes
-- [Product Types](./product-type.md) - Product-related types
+- [Error Codes](./error-codes) - Error states and codes
+- [Product Types](./product-type) - Product-related types
+- [Purchase Lifecycle](../../guides/lifecycle) - Complete purchase flow

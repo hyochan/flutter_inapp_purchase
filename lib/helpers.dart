@@ -768,17 +768,8 @@ gentype.PurchaseState _mapAndroidPurchaseState(int stateValue) {
 
 extension PurchaseInputConversion on gentype.Purchase {
   gentype.PurchaseInput toInput() {
-    return gentype.PurchaseInput(
-      id: id,
-      ids: ids,
-      isAutoRenewing: isAutoRenewing,
-      platform: platform,
-      productId: productId,
-      purchaseState: purchaseState,
-      purchaseToken: purchaseToken,
-      quantity: quantity,
-      transactionDate: transactionDate,
-    );
+    // PurchaseInput is now just a typedef for Purchase, so return this directly
+    return this;
   }
 }
 

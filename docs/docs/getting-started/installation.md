@@ -34,7 +34,7 @@ Or add it manually to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flutter_inapp_purchase: ^6.8.0
+  flutter_inapp_purchase: ^7.0.0
 ```
 
 Then run:
@@ -219,17 +219,15 @@ Test your setup with this verification code:
 Future<void> _testConnection() async {
   final iap = FlutterInappPurchase(); // or FlutterInappPurchase.instance
   try {
-    final String? result = await iap.initConnection();
-    print('Connection result: $result');
+    final bool connected = await iap.initConnection();
+    print('Connection result: $connected');
 
     // Test product fetching
-    final products = await iap.fetchProducts(
-      ProductRequest(
-        skus: ['test_product_id'],
-        type: ProductQueryType.InApp,
-      ),
+    final result = await iap.fetchProducts(
+      skus: ['test_product_id'],
+      type: ProductQueryType.InApp,
     );
-    print('Found ${products.length} products');
+    print('Found ${result.value.length} products');
 
   } catch (e) {
     print('Connection test failed: $e');

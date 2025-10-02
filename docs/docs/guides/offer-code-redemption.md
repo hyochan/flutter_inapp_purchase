@@ -1,310 +1,169 @@
 ---
-sidebar_position: 8
+sidebar_position: 5
 title: Offer Code Redemption
 ---
 
 # Offer Code Redemption
 
-Guide to implementing promotional offer codes and subscription management with flutter_inapp_purchase v6.8.0, covering iOS and Android platforms.
+This guide explains how to implement offer code redemption functionality in your app using flutter_inapp_purchase.
 
 ## Overview
 
-This plugin provides native support for:
+Offer codes (also known as promo codes or redemption codes) allow users to redeem special offers for in-app purchases and subscriptions. The implementation differs between iOS and Android platforms.
 
-- **iOS**: Offer code redemption sheet and subscription management (iOS 14+)
-- **Android**: Deep linking to subscription management
-- **Cross-platform**: Introductory offer eligibility checking
+## iOS Implementation
 
-## iOS Offer Code Redemption
+On iOS, flutter_inapp_purchase provides a native method to present Apple's code redemption sheet directly within your app.
 
-### Present Code Redemption Sheet
+### Usage
 
 ```dart
 import 'dart:io';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 
-class OfferCodeHandler {
-  final _iap = FlutterInappPurchase.instance;
-  
-  /// Present iOS system offer code redemption sheet (iOS 16+)
-  Future<void> presentOfferCodeRedemption() async {
-    if (!Platform.isIOS) {
-      debugPrint('Offer code redemption is only available on iOS');
-      return;
-    }
-    
-    try {
-      // Present the system offer code redemption sheet
-      await _iap.presentCodeRedemptionSheet();
-      debugPrint('Offer code redemption sheet presented');
-      
-      // Results will come through purchaseUpdated stream
-      _listenForRedemptionResults();
-      
-    } catch (e) {
-      debugPrint('Failed to present offer code sheet: $e');
-    }
+// Present the code redemption sheet
+Future<void> presentRedemptionSheet() async {
+  if (!Platform.isIOS) {
+    print('Offer code redemption is only available on iOS');
+    return;
   }
-  
-  /// Alternative method for iOS 14+ compatibility
-  Future<void> presentOfferCodeRedemptionIOS() async {
-    if (!Platform.isIOS) return;
-    
-    try {
-      await _iap.presentCodeRedemptionSheetIOS();
-      debugPrint('iOS offer code redemption sheet presented');
-    } catch (e) {
-      debugPrint('Failed to present iOS offer code sheet: $e');
-    }
-  }
-  
-  void _listenForRedemptionResults() {
-    FlutterInappPurchase.purchaseUpdated.listen((purchase) {
-      if (purchase != null) {
-        debugPrint('Offer code redeemed: ${purchase.productId}');
-        // Handle successful redemption
-        _handleRedeemedPurchase(purchase);
-      }
-    });
-  }
-  
-  void _handleRedeemedPurchase(Purchase purchase) {
-    // Process the redeemed purchase
-    // Verify receipt, deliver content, etc.
+
+  try {
+    await FlutterInappPurchase.instance.presentCodeRedemptionSheetIOS();
+    print('Code redemption sheet presented successfully');
+    // The system will handle the redemption process
+    // Listen for purchase updates via purchaseUpdatedListener
+  } catch (error) {
+    print('Failed to present code redemption sheet: $error');
   }
 }
 ```
 
-### Introductory Offers
+### Important Notes
+
+- This method only works on real iOS devices (not simulators)
+- The redemption sheet is handled by the iOS system
+- After successful redemption, purchase updates will be delivered through your existing `purchaseUpdatedListener`
+
+## Android Implementation
+
+Google Play does not provide a direct API to redeem codes within the app. Instead, users must redeem codes through the Google Play Store app or website.
+
+### Usage
 
 ```dart
-class IntroductoryOfferHandler {
-  final _iap = FlutterInappPurchase.instance;
-  
-  /// Check if user is eligible for introductory offer (iOS only)
-  Future<bool> isEligibleForIntroductoryOffer(String productId) async {
-    if (!Platform.isIOS) return false;
-    
-    try {
-      final isEligible = await _iap.isEligibleForIntroOfferIOS(productId);
-      debugPrint('Intro offer eligibility for $productId: $isEligible');
-      return isEligible;
-    } catch (e) {
-      debugPrint('Failed to check intro offer eligibility: $e');
-      return false;
-    }
+import 'dart:io';
+import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
+
+// Open Google Play Store subscription management
+Future<void> openPlayStoreRedemption() async {
+  if (!Platform.isAndroid) {
+    print('This feature is only available on Android');
+    return;
   }
-  
-  /// Get subscription status for a specific product
-  Future<Map<String, dynamic>?> getSubscriptionStatus(String productId) async {
-    if (!Platform.isIOS) return null;
-    
-    try {
-      final status = await _iap.getSubscriptionStatusIOS(productId);
-      debugPrint('Subscription status for $productId: $status');
-      return status;
-    } catch (e) {
-      debugPrint('Failed to get subscription status: $e');
-      return null;
-    }
+
+  try {
+    await FlutterInappPurchase.instance.deepLinkToSubscriptions();
+    // This will open the Play Store where users can manage subscriptions
+  } catch (error) {
+    print('Failed to open Play Store: $error');
   }
 }
 ```
 
-## Subscription Management
+### Alternative Approach
 
-### iOS Subscription Management
+You can also direct users to redeem codes via a custom URL:
 
 ```dart
-class SubscriptionManager {
-  final _iap = FlutterInappPurchase.instance;
-  
-  /// Show iOS subscription management screen (iOS 15+)
-  Future<void> showManageSubscriptions() async {
-    if (!Platform.isIOS) {
-      debugPrint('Subscription management is only available on iOS');
-      return;
-    }
-    
-    try {
-      await _iap.showManageSubscriptions();
-      debugPrint('Subscription management screen presented');
-    } catch (e) {
-      debugPrint('Failed to show subscription management: $e');
-    }
-  }
-  
-  /// Alternative method for iOS-specific subscription management
-  Future<void> showManageSubscriptionsIOS() async {
-    if (!Platform.isIOS) return;
-    
-    try {
-      await _iap.showManageSubscriptionsIOS();
-      debugPrint('iOS subscription management screen presented');
-    } catch (e) {
-      debugPrint('Failed to show iOS subscription management: $e');
-    }
-  }
-  
-  /// Get subscription group information (iOS only)
-  Future<String?> getSubscriptionGroup(String productId) async {
-    if (!Platform.isIOS) return null;
-    
-    try {
-      final group = await _iap.getSubscriptionGroupIOS(productId);
-      debugPrint('Subscription group for $productId: $group');
-      return group;
-    } catch (e) {
-      debugPrint('Failed to get subscription group: $e');
-      return null;
-    }
+import 'package:url_launcher/url_launcher.dart';
+
+Future<void> redeemCode(String code) async {
+  final url = Uri.parse('https://play.google.com/redeem?code=$code');
+  if (await canLaunchUrl(url)) {
+    await launchUrl(url, mode: LaunchMode.externalApplication);
   }
 }
 ```
 
-## Android Subscription Management
+## Complete Example
 
-### Deep Linking to Subscriptions
+Here's a complete example that handles both platforms:
 
 ```dart
-class AndroidSubscriptionManager {
-  final _iap = FlutterInappPurchase.instance;
-  
-  /// Open Android subscription management (deep link to Play Store)
-  Future<void> openSubscriptionManagement([String? productId]) async {
-    if (!Platform.isAndroid) {
-      debugPrint('Android subscription management is only available on Android');
-      return;
-    }
-    
-    try {
-      // Deep link to subscription management in Play Store
-      await _iap.deepLinkToSubscriptionsAndroid(sku: productId);
-      debugPrint('Opened Android subscription management');
-    } catch (e) {
-      debugPrint('Failed to open subscription management: $e');
-    }
-  }
+import 'dart:io';
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
+
+class OfferCodeScreen extends StatefulWidget {
+  const OfferCodeScreen({Key? key}) : super(key: key);
+
+  @override
+  State<OfferCodeScreen> createState() => _OfferCodeScreenState();
 }
-```
 
-## Complete Implementation Example
-
-### Cross-Platform Offer Handler
-
-```dart
-class CrossPlatformOfferHandler {
+class _OfferCodeScreenState extends State<OfferCodeScreen> {
   final _iap = FlutterInappPurchase.instance;
-  
-  /// Present offer code redemption (iOS) or subscription management (Android)
-  Future<void> handleOfferRedemption() async {
+  StreamSubscription<Purchase>? _purchaseSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _setupPurchaseListener();
+  }
+
+  @override
+  void dispose() {
+    _purchaseSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _setupPurchaseListener() {
+    _purchaseSubscription = _iap.purchaseUpdatedListener.listen(
+      (purchase) {
+        print('Purchase updated after redemption: ${purchase.productId}');
+        // Handle the new purchase/subscription
+        _handlePurchase(purchase);
+      },
+    );
+  }
+
+  Future<void> _handlePurchase(Purchase purchase) async {
+    // Validate and process the purchase
+    await _iap.finishTransaction(
+      purchase: purchase,
+      isConsumable: false,
+    );
+  }
+
+  Future<void> handleRedeemCode() async {
     try {
       if (Platform.isIOS) {
-        // iOS: Present code redemption sheet
-        await _iap.presentCodeRedemptionSheet();
-        debugPrint('iOS offer code redemption sheet presented');
-        _listenForPurchases();
+        // Present native iOS redemption sheet
+        await _iap.presentCodeRedemptionSheetIOS();
+        print('Redemption sheet presented');
       } else if (Platform.isAndroid) {
-        // Android: Open subscription management
-        await _iap.deepLinkToSubscriptionsAndroid();
-        debugPrint('Android subscription management opened');
+        // Open Play Store for Android
+        await _iap.deepLinkToSubscriptions();
       }
-    } catch (e) {
-      debugPrint('Failed to handle offer redemption: $e');
+    } catch (error) {
+      print('Error redeeming code: $error');
     }
   }
-  
-  /// Check introductory offer eligibility (iOS only)
-  Future<bool> checkIntroOfferEligibility(String productId) async {
-    if (!Platform.isIOS) return false;
-    
-    try {
-      return await _iap.isEligibleForIntroOfferIOS(productId);
-    } catch (e) {
-      debugPrint('Failed to check intro offer eligibility: $e');
-      return false;
-    }
-  }
-  
-  void _listenForPurchases() {
-    FlutterInappPurchase.purchaseUpdated.listen((purchase) {
-      if (purchase != null) {
-        debugPrint('Purchase received: ${purchase.productId}');
-        // Handle the purchase
-      }
-    });
-  }
-}
-```
 
-## Additional Features
-
-### App Store Information (iOS)
-
-```dart
-class AppStoreInfo {
-  final _iap = FlutterInappPurchase.instance;
-  /// Get promoted product (iOS only)
-  Future<String?> getPromotedProduct() async {
-    if (!Platform.isIOS) return null;
-    
-    try {
-      final productId = await _iap.getPromotedProduct();
-      debugPrint('Promoted product: $productId');
-      return productId;
-    } catch (e) {
-      debugPrint('Failed to get promoted product: $e');
-      return null;
-    }
-  }
-}
-```
-
-## Usage Examples
-
-### In a Flutter App
-
-```dart
-class OfferRedemptionPage extends StatelessWidget {
-  final _offerHandler = CrossPlatformOfferHandler();
-  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Redeem Offers'),
+        title: const Text('Redeem Offer Code'),
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (Platform.isIOS) ...[
-              ElevatedButton(
-                onPressed: () async {
-                  await _offerHandler.handleOfferRedemption();
-                },
-                child: Text('Redeem Offer Code'),
-              ),
-              SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () async {
-                  final eligible = await _offerHandler.checkIntroOfferEligibility('your_product_id');
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Eligible for intro offer: $eligible')),
-                  );
-                },
-                child: Text('Check Intro Offer Eligibility'),
-              ),
-            ],
-            if (Platform.isAndroid) ...[
-              ElevatedButton(
-                onPressed: () async {
-                  await _offerHandler.handleOfferRedemption();
-                },
-                child: Text('Manage Subscriptions'),
-              ),
-            ],
-          ],
+        child: ElevatedButton(
+          onPressed: handleRedeemCode,
+          child: Text(
+            Platform.isIOS ? 'Redeem Offer Code' : 'Manage Subscriptions',
+          ),
         ),
       ),
     );
@@ -312,23 +171,41 @@ class OfferRedemptionPage extends StatelessWidget {
 }
 ```
 
-## Important Notes
+## Best Practices
 
-### Platform Differences
+1. **User Experience**: Clearly communicate to users where they can find and how to use offer codes
+2. **Error Handling**: Always wrap redemption calls in try-catch blocks
+3. **Platform Detection**: Use platform-specific methods appropriately
+4. **Purchase Validation**: Always validate purchases on your server after redemption
 
-- **iOS**: Full support for offer code redemption through system sheet (iOS 14+)
-- **Android**: No direct promo code API - users must redeem through Play Store
-- **Subscription Management**: Both platforms support opening native subscription management
+## Testing
 
-### Requirements
+### iOS Testing
 
-- **iOS**: Minimum iOS 14.0 for offer code redemption
-- **iOS**: Minimum iOS 15.0 for subscription management  
-- **Android**: Requires Google Play Billing Library 5.x+
+- Offer codes can only be tested on real devices
+- Use TestFlight or App Store Connect to generate test codes
+- Sandbox environment supports offer code testing
 
-### Best Practices
+### Android Testing
 
-1. Always check platform before calling platform-specific methods
-2. Handle errors gracefully as native dialogs may fail
-3. Listen to purchase streams when presenting offer code redemption
-4. Use subscription management for user convenience
+- Test with promo codes generated in Google Play Console
+- Ensure your app is properly configured for in-app purchases
+
+## Troubleshooting
+
+### iOS Issues
+
+- **"Not available on simulator"**: Use a real device for testing
+- **Sheet doesn't appear**: Ensure StoreKit is properly configured
+- **User cancellation**: This is normal behavior and doesn't throw an error
+
+### Android Issues
+
+- **Play Store doesn't open**: Check if Play Store is installed and updated
+- **Invalid code**: Verify the code format and validity in Play Console
+
+## Next Steps
+
+- [Subscription Offers](./subscription-offers) - Handle subscription purchases
+- [Error Handling](./error-handling) - Handle redemption errors
+- [Troubleshooting](./troubleshooting) - Debug issues

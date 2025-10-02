@@ -114,29 +114,5 @@ void main() {
         throwsA(isA<PlatformException>()),
       );
     });
-
-    test('promoted product & available items parsing', () async {
-      final promoted = await iapIOS.getPromotedProductIOS();
-      expect(promoted, isNotNull);
-      expect(promoted!.id, 'sku.promoted');
-
-      final items = await iapIOS.getAvailableItemsIOS();
-      expect(items, isNotNull);
-      expect(items!.first.productId, 'p1');
-    });
-
-    test('app transaction (typed) and histories', () async {
-      final tx = await iapIOS.getAppTransactionIOS();
-      expect(tx, isNotNull);
-      expect(tx!.bundleId, 'com.example');
-
-      final typed = await iapIOS.getAppTransactionTypedIOS();
-      expect(typed, isNotNull);
-      expect(typed!.appTransactionId, 'tx-1');
-
-      final histories = await iapIOS.getPurchaseHistoriesIOS();
-      expect(histories.length, 1);
-      expect(histories.first.productId, 'p2');
-    });
   });
 }

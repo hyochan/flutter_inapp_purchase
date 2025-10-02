@@ -11,24 +11,21 @@ Completes a transaction and removes it from the queue.
 
 The `finishTransaction()` method marks a transaction as complete, removing it from the pending transactions queue. This is crucial for proper transaction management on both iOS and Android platforms.
 
-## Signatures
-
-### expo-iap Compatible
+## Signature
 
 ```dart
-Future<String?> finishTransaction(Purchase purchase, {bool isConsumable = false})
-```
-
-### Legacy Method
-
-```dart
-Future<String?> finishTransactionIOS(Purchase purchasedItem, {bool isConsumable = false})
+Future<void> finishTransaction({
+  required Purchase purchase,
+  bool? isConsumable,
+})
 ```
 
 ## Parameters
 
-- `purchase` / `purchasedItem` - The purchase to finish
-- `isConsumable` - Whether the product is consumable (affects Android behavior)
+| Parameter      | Type       | Required | Description                                                     |
+| -------------- | ---------- | -------- | --------------------------------------------------------------- |
+| `purchase`     | `Purchase` | ✅       | The purchase object to finish                                   |
+| `isConsumable` | `bool?`    | ❌       | Whether the product is consumable (affects Android behavior)    |
 
 ## Platform Behavior
 
@@ -56,25 +53,25 @@ FlutterInappPurchase.purchaseUpdated.listen((Purchase? purchase) async {
     await _verifyAndDeliver(purchase);
 
     // Finish the transaction
-    await FlutterInappPurchase.instance.finishTransactionIOS(
-      purchase,
+    await FlutterInappPurchase.instance.finishTransaction(
+      purchase: purchase,
       isConsumable: _isConsumable(purchase.productId),
     );
   }
 });
 ```
 
-### expo-iap Compatible Usage
+### With Purchase Stream
 
 ```dart
-// Using the expo-iap compatible method
+// Using the purchase stream
 FlutterInappPurchase.instance.purchaseUpdatedListener.listen((Purchase purchase) async {
   // Process the purchase
   await _processPurchase(purchase);
 
   // Finish the transaction
   await FlutterInappPurchase.instance.finishTransaction(
-    purchase,
+    purchase: purchase,
     isConsumable: true,
   );
 });
@@ -107,7 +104,10 @@ class PurchaseHandler {
 
       // Step 3: Finish the transaction
       final isConsumable = _consumableIds.contains(purchase.productId);
-      await _iap.finishTransactionIOS(purchase, isConsumable: isConsumable);
+      await _iap.finishTransaction(
+        purchase: purchase,
+        isConsumable: isConsumable,
+      );
 
       print('Transaction completed successfully');
 
@@ -199,7 +199,9 @@ class TransactionManager {
       }
 
       // Finish the transaction
-      await FlutterInappPurchase.instance.finishTransaction(item);
+      await FlutterInappPurchase.instance.finishTransaction(
+        purchase: item,
+      );
     }
   }
 }
@@ -222,8 +224,8 @@ Future<void> safeFinishTransaction(Purchase item) async {
 
   while (retryCount < maxRetries) {
     try {
-      await _iap.finishTransactionIOS(
-        item,
+      await _iap.finishTransaction(
+        purchase: item,
         isConsumable: _isConsumable(item.productId),
       );
       print('Transaction finished successfully');
@@ -290,6 +292,33 @@ void handleTransactionState(Purchase item) {
 - [`getAvailablePurchases()`](./get-available-purchases.md) - Gets unfinished purchases
 - `acknowledgePurchaseAndroid()` - Android-specific acknowledgment (see example above)
 - `consumePurchaseAndroid()` - Android-specific consumption (see example above)
+
+## Migration from v6.x
+
+Version 7.0 significantly simplifies the `finishTransaction` API:
+
+```dart
+// Before (v6.x) - 10 individual parameters
+await iap.finishTransaction(
+  id: purchase.id,
+  isAutoRenewing: purchase.isAutoRenewing,
+  platform: purchase.platform,
+  productId: purchase.productId,
+  purchaseState: purchase.purchaseState,
+  purchaseToken: purchase.purchaseToken,
+  quantity: purchase.quantity,
+  transactionDate: purchase.transactionDate,
+  isConsumable: true,
+);
+
+// After (v7.0) - Just pass the Purchase object
+await iap.finishTransaction(
+  purchase: purchase,
+  isConsumable: true,
+);
+```
+
+This reduces boilerplate by **80%** while maintaining all functionality. The method now handles serialization internally.
 
 ## Important Notes
 
