@@ -25,11 +25,11 @@ void main() {
 
       await expectLater(
         iap.requestPurchase(
-          types.RequestPurchaseProps.inApp(
-            request: const types.RequestPurchasePropsByPlatforms(
-              ios: types.RequestPurchaseIosProps(sku: 'demo.sku'),
-            ),
-          ),
+          const types.RequestPurchaseProps.inApp((
+            ios: types.RequestPurchaseIosProps(sku: 'demo.sku'),
+            android: null,
+            useAlternativeBilling: null,
+          )),
         ),
         throwsA(
           isA<PurchaseError>().having(
@@ -61,23 +61,23 @@ void main() {
 
       await iap.initConnection();
 
-      final props = types.RequestPurchaseProps.inApp(
-        request: const types.RequestPurchasePropsByPlatforms(
-          ios: types.RequestPurchaseIosProps(
-            sku: 'ios.sku',
-            appAccountToken: 'app-token',
-            quantity: 3,
-            andDangerouslyFinishTransactionAutomatically: null,
-            withOffer: types.DiscountOfferInputIOS(
-              identifier: 'offer-id',
-              keyIdentifier: 'key-id',
-              nonce: 'nonce',
-              signature: 'signature',
-              timestamp: 123456.0,
-            ),
+      const props = types.RequestPurchaseProps.inApp((
+        ios: types.RequestPurchaseIosProps(
+          sku: 'ios.sku',
+          appAccountToken: 'app-token',
+          quantity: 3,
+          andDangerouslyFinishTransactionAutomatically: null,
+          withOffer: types.DiscountOfferInputIOS(
+            identifier: 'offer-id',
+            keyIdentifier: 'key-id',
+            nonce: 'nonce',
+            signature: 'signature',
+            timestamp: 123456.0,
           ),
         ),
-      );
+        android: null,
+        useAlternativeBilling: null,
+      ));
 
       await iap.requestPurchase(props);
 
@@ -220,12 +220,19 @@ void main() {
       );
     });
 
-    test('throws when Android subscription proration is missing purchase token',
-        () async {
+    // Note: Android subscription proration (purchaseTokenAndroid, replacementModeAndroid)
+    // is not supported in RequestPurchaseAndroidProps. These fields only exist in
+    // RequestSubscriptionAndroidProps which is used in specialized subscription APIs.
+    test('sends subscription request without proration fields', () async {
+      final calls = <MethodCall>[];
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(channel, (MethodCall call) async {
+        calls.add(call);
         if (call.method == 'initConnection') {
           return true;
+        }
+        if (call.method == 'requestPurchase') {
+          return null;
         }
         return null;
       });
@@ -236,25 +243,27 @@ void main() {
 
       await iap.initConnection();
 
-      final props = types.RequestPurchaseProps.subs(
-        request: const types.RequestSubscriptionPropsByPlatforms(
-          android: types.RequestSubscriptionAndroidProps(
-            skus: <String>['sub.premium'],
-            replacementModeAndroid: 2,
-          ),
+      const props = types.RequestPurchaseProps.subs((
+        ios: null,
+        android: types.RequestSubscriptionAndroidProps(
+          skus: <String>['sub.premium'],
         ),
-      );
+        useAlternativeBilling: null,
+      ));
 
-      await expectLater(
-        () => iap.requestPurchase(props),
-        throwsA(
-          isA<PurchaseError>().having(
-            (error) => error.code,
-            'code',
-            types.ErrorCode.DeveloperError,
-          ),
-        ),
-      );
+      await iap.requestPurchase(props);
+
+      final requestCall =
+          calls.singleWhere((MethodCall c) => c.method == 'requestPurchase');
+      final payload = Map<String, dynamic>.from(
+          requestCall.arguments as Map<dynamic, dynamic>);
+
+      expect(payload['type'], 'subs');
+      expect(payload['productId'], 'sub.premium');
+      expect(payload['skus'], <String>['sub.premium']);
+      // Proration fields should not be present
+      expect(payload.containsKey('purchaseToken'), isFalse);
+      expect(payload.containsKey('replacementMode'), isFalse);
     });
 
     test('sends expected payload for Android subscriptions', () async {
@@ -277,24 +286,16 @@ void main() {
 
       await iap.initConnection();
 
-      final props = types.RequestPurchaseProps.subs(
-        request: const types.RequestSubscriptionPropsByPlatforms(
-          android: types.RequestSubscriptionAndroidProps(
-            skus: <String>['sub.premium'],
-            isOfferPersonalized: true,
-            obfuscatedAccountIdAndroid: 'acc-id',
-            obfuscatedProfileIdAndroid: 'profile-id',
-            purchaseTokenAndroid: 'existing-token',
-            replacementModeAndroid: 3,
-            subscriptionOffers: <types.AndroidSubscriptionOfferInput>[
-              types.AndroidSubscriptionOfferInput(
-                offerToken: 'offer-token',
-                sku: 'sub.premium',
-              ),
-            ],
-          ),
+      const props = types.RequestPurchaseProps.subs((
+        ios: null,
+        android: types.RequestSubscriptionAndroidProps(
+          skus: <String>['sub.premium'],
+          isOfferPersonalized: true,
+          obfuscatedAccountIdAndroid: 'acc-id',
+          obfuscatedProfileIdAndroid: 'profile-id',
         ),
-      );
+        useAlternativeBilling: null,
+      ));
 
       await iap.requestPurchase(props);
 
@@ -311,17 +312,12 @@ void main() {
       expect(payload['obfuscatedAccountIdAndroid'], 'acc-id');
       expect(payload['obfuscatedProfileId'], 'profile-id');
       expect(payload['obfuscatedProfileIdAndroid'], 'profile-id');
-      expect(payload['purchaseToken'], 'existing-token');
-      expect(payload['purchaseTokenAndroid'], 'existing-token');
-      expect(payload['replacementMode'], 3);
-      expect(payload['replacementModeAndroid'], 3);
-      final offers = List<Map<String, dynamic>>.from(
-        (payload['subscriptionOffers'] as List<dynamic>).map(
-          (dynamic e) => Map<String, dynamic>.from(e as Map),
-        ),
-      );
-      expect(offers.single['offerToken'], 'offer-token');
-      expect(offers.single['sku'], 'sub.premium');
+      // Note: purchaseToken, replacementMode, and subscriptionOffers
+      // are not in RequestPurchaseAndroidProps
+      // They only exist in RequestSubscriptionAndroidProps
+      expect(payload.containsKey('purchaseToken'), isFalse);
+      expect(payload.containsKey('replacementMode'), isFalse);
+      expect(payload.containsKey('subscriptionOffers'), isFalse);
     });
   });
 
@@ -346,13 +342,13 @@ void main() {
 
       await expectLater(
         () => iap.requestPurchase(
-          types.RequestPurchaseProps.inApp(
-            request: const types.RequestPurchasePropsByPlatforms(
-              android: types.RequestPurchaseAndroidProps(
-                skus: <String>['android-only'],
-              ),
+          const types.RequestPurchaseProps.inApp((
+            ios: null,
+            android: types.RequestPurchaseAndroidProps(
+              skus: <String>['android-only'],
             ),
-          ),
+            useAlternativeBilling: null,
+          )),
         ),
         throwsA(
           isA<PurchaseError>().having(
@@ -385,11 +381,11 @@ void main() {
 
       await expectLater(
         () => iap.requestPurchase(
-          types.RequestPurchaseProps.inApp(
-            request: const types.RequestPurchasePropsByPlatforms(
-              ios: types.RequestPurchaseIosProps(sku: 'ignored'),
-            ),
-          ),
+          const types.RequestPurchaseProps.inApp((
+            ios: types.RequestPurchaseIosProps(sku: 'ignored'),
+            android: null,
+            useAlternativeBilling: null,
+          )),
         ),
         throwsA(
           isA<PurchaseError>().having(
@@ -424,16 +420,16 @@ void main() {
       await iap.initConnection();
 
       await iap.requestPurchase(
-        types.RequestPurchaseProps.inApp(
-          request: const types.RequestPurchasePropsByPlatforms(
-            android: types.RequestPurchaseAndroidProps(
-              skus: <String>['coin.pack'],
-              isOfferPersonalized: true,
-              obfuscatedAccountIdAndroid: 'account-1',
-              obfuscatedProfileIdAndroid: 'profile-1',
-            ),
+        const types.RequestPurchaseProps.inApp((
+          ios: null,
+          android: types.RequestPurchaseAndroidProps(
+            skus: <String>['coin.pack'],
+            isOfferPersonalized: true,
+            obfuscatedAccountIdAndroid: 'account-1',
+            obfuscatedProfileIdAndroid: 'profile-1',
           ),
-        ),
+          useAlternativeBilling: null,
+        )),
       );
 
       final requestCall =
@@ -491,10 +487,8 @@ void main() {
       await iap.initConnection();
 
       final purchases = await iap.getAvailablePurchases(
-        const types.PurchaseOptions(
-          onlyIncludeActiveItemsIOS: false,
-          alsoPublishToEventListenerIOS: true,
-        ),
+        onlyIncludeActiveItemsIOS: false,
+        alsoPublishToEventListenerIOS: true,
       );
 
       final args = Map<String, dynamic>.from(

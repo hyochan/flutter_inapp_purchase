@@ -125,7 +125,7 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
     try {
       // Load available purchases (non-consumed / active)
       final availablePurchases = await _iap.getAvailablePurchases(
-        const PurchaseOptions(onlyIncludeActiveItemsIOS: true),
+        onlyIncludeActiveItemsIOS: true,
       );
       debugPrint(
           'Loaded ${availablePurchases.length} available purchases (non-consumed/non-acknowledged)');
@@ -185,10 +185,8 @@ class _AvailablePurchasesScreenState extends State<AvailablePurchasesScreen> {
 
     try {
       final purchaseHistory = await _iap.getAvailablePurchases(
-        const PurchaseOptions(
-          onlyIncludeActiveItemsIOS: false,
-          alsoPublishToEventListenerIOS: false,
-        ),
+        onlyIncludeActiveItemsIOS: false,
+        alsoPublishToEventListenerIOS: false,
       );
       debugPrint('Loaded ${purchaseHistory.length} purchases from history');
 

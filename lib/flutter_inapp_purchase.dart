@@ -173,7 +173,9 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
   }
 
   /// Initialize connection (flutter IAP compatible)
-  gentype.MutationInitConnectionHandler get initConnection => () async {
+  gentype.MutationInitConnectionHandler get initConnection => (
+          {gentype.AlternativeBillingModeAndroid?
+              alternativeBillingModeAndroid}) async {
         if (_isInitialized) {
           return true;
         }
@@ -221,7 +223,13 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           );
         }
 
-        if (params.type == gentype.ProductQueryType.All) {
+        // Determine type based on factory constructor used
+        final type = params.toJson()['type'] as String;
+        final productType = type == 'in-app'
+            ? gentype.ProductQueryType.InApp
+            : gentype.ProductQueryType.Subs;
+
+        if (productType == gentype.ProductQueryType.All) {
           throw PurchaseError(
             code: gentype.ErrorCode.DeveloperError,
             message:
@@ -229,27 +237,42 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           );
         }
 
-        final nativeType = resolveProductType(params.type);
+        final nativeType = resolveProductType(productType);
 
         try {
           if (_platform.isIOS) {
-            final requestVariant = params.request;
+            // Extract props from the JSON representation
+            final json = params.toJson();
+            final requestKey =
+                type == 'in-app' ? 'requestPurchase' : 'requestSubscription';
+            final requestData = json[requestKey] as Map<String, dynamic>?;
 
-            Map<String, dynamic>? payload;
-
-            if (requestVariant
-                is gentype.RequestPurchasePropsRequestSubscription) {
-              payload = _buildIosPurchasePayload(
-                nativeType,
-                requestVariant.value.ios,
-              );
-            } else if (requestVariant
-                is gentype.RequestPurchasePropsRequestPurchase) {
-              payload = _buildIosPurchasePayload(
-                nativeType,
-                requestVariant.value.ios,
+            if (requestData == null) {
+              throw PurchaseError(
+                code: gentype.ErrorCode.DeveloperError,
+                message:
+                    'Missing request data. JSON: ${json.toString().substring(0, 200)}',
               );
             }
+
+            final iosData = requestData['ios'] as Map<String, dynamic>?;
+
+            if (iosData == null) {
+              throw PurchaseError(
+                code: gentype.ErrorCode.DeveloperError,
+                message:
+                    'Missing iOS purchase parameters. Request data keys: ${requestData.keys.join(", ")}',
+              );
+            }
+
+            final iosProps = type == 'in-app'
+                ? gentype.RequestPurchaseIosProps.fromJson(iosData)
+                : gentype.RequestSubscriptionIosProps.fromJson(iosData);
+
+            final payload = buildIosPurchasePayload(
+              nativeType,
+              iosProps,
+            );
 
             if (payload == null) {
               throw PurchaseError(
@@ -263,88 +286,51 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           }
 
           if (_platform.isAndroid) {
-            final requestVariant = params.request;
+            // Extract props from the JSON representation
+            final json = params.toJson();
+            final requestKey =
+                type == 'in-app' ? 'requestPurchase' : 'requestSubscription';
+            final requestData = json[requestKey] as Map<String, dynamic>?;
+            final androidData =
+                requestData?['android'] as Map<String, dynamic>?;
 
-            if (requestVariant
-                is gentype.RequestPurchasePropsRequestSubscription) {
-              final androidProps = requestVariant.value.android;
-              if (androidProps == null) {
-                throw PurchaseError(
-                  code: gentype.ErrorCode.DeveloperError,
-                  message: 'Missing Android subscription parameters',
-                );
-              }
-              if (androidProps.skus.isEmpty) {
-                throw PurchaseError(
-                  code: gentype.ErrorCode.EmptySkuList,
-                  message: 'Android subscription requires at least one SKU',
-                );
-              }
-              if (androidProps.replacementModeAndroid != null &&
-                  androidProps.replacementModeAndroid != -1 &&
-                  (androidProps.purchaseTokenAndroid == null ||
-                      androidProps.purchaseTokenAndroid!.isEmpty)) {
-                throw PurchaseError(
-                  code: gentype.ErrorCode.DeveloperError,
-                  message:
-                      'purchaseTokenAndroid is required when using replacementModeAndroid (proration mode). '
-                      'Use getAvailablePurchases() to obtain the current purchase token.',
-                );
-              }
-
-              final payload = <String, dynamic>{
-                'type': nativeType,
-                'skus': androidProps.skus,
-                'productId': androidProps.skus.first,
-                'isOfferPersonalized':
-                    androidProps.isOfferPersonalized ?? false,
-              };
-
-              final obfuscatedAccount = androidProps.obfuscatedAccountIdAndroid;
-              if (obfuscatedAccount != null) {
-                payload['obfuscatedAccountId'] = obfuscatedAccount;
-                payload['obfuscatedAccountIdAndroid'] = obfuscatedAccount;
-              }
-
-              final obfuscatedProfile = androidProps.obfuscatedProfileIdAndroid;
-              if (obfuscatedProfile != null) {
-                payload['obfuscatedProfileId'] = obfuscatedProfile;
-                payload['obfuscatedProfileIdAndroid'] = obfuscatedProfile;
-              }
-
-              final purchaseToken = androidProps.purchaseTokenAndroid;
-              if (purchaseToken != null) {
-                payload['purchaseToken'] = purchaseToken;
-                payload['purchaseTokenAndroid'] = purchaseToken;
-              }
-
-              final replacementMode = androidProps.replacementModeAndroid;
-              if (replacementMode != null) {
-                payload['replacementMode'] = replacementMode;
-                payload['replacementModeAndroid'] = replacementMode;
-              }
-
-              final offers = androidProps.subscriptionOffers;
-              if (offers != null && offers.isNotEmpty) {
-                payload['subscriptionOffers'] =
-                    offers.map((offer) => offer.toJson()).toList();
-              }
-
-              await _channel.invokeMethod('requestPurchase', payload);
-              return null;
-            }
-
-            final androidProps =
-                (requestVariant as gentype.RequestPurchasePropsRequestPurchase)
-                    .value
-                    .android;
-            if (androidProps == null) {
+            if (androidData == null) {
               throw PurchaseError(
                 code: gentype.ErrorCode.DeveloperError,
                 message: 'Missing Android purchase parameters',
               );
             }
-            if (androidProps.skus.isEmpty) {
+
+            // Parse Android props based on type
+            final androidProps = type == 'inapp'
+                ? gentype.RequestPurchaseAndroidProps.fromJson(androidData)
+                : gentype.RequestSubscriptionAndroidProps.fromJson(androidData);
+
+            // Handle both RequestPurchaseAndroidProps and RequestSubscriptionAndroidProps
+            final List<String> skus;
+            final bool? isOfferPersonalized;
+            final String? obfuscatedAccount;
+            final String? obfuscatedProfile;
+
+            if (androidProps is gentype.RequestPurchaseAndroidProps) {
+              skus = androidProps.skus;
+              isOfferPersonalized = androidProps.isOfferPersonalized;
+              obfuscatedAccount = androidProps.obfuscatedAccountIdAndroid;
+              obfuscatedProfile = androidProps.obfuscatedProfileIdAndroid;
+            } else if (androidProps
+                is gentype.RequestSubscriptionAndroidProps) {
+              skus = androidProps.skus;
+              isOfferPersonalized = androidProps.isOfferPersonalized;
+              obfuscatedAccount = androidProps.obfuscatedAccountIdAndroid;
+              obfuscatedProfile = androidProps.obfuscatedProfileIdAndroid;
+            } else {
+              throw PurchaseError(
+                code: gentype.ErrorCode.DeveloperError,
+                message: 'Invalid Android purchase parameters type',
+              );
+            }
+
+            if (skus.isEmpty) {
               throw PurchaseError(
                 code: gentype.ErrorCode.EmptySkuList,
                 message: 'Android purchase requires at least one SKU',
@@ -353,18 +339,16 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
 
             final payload = <String, dynamic>{
               'type': nativeType,
-              'skus': androidProps.skus,
-              'productId': androidProps.skus.first,
-              'isOfferPersonalized': androidProps.isOfferPersonalized ?? false,
+              'skus': skus,
+              'productId': skus.first,
+              'isOfferPersonalized': isOfferPersonalized ?? false,
             };
 
-            final obfuscatedAccount = androidProps.obfuscatedAccountIdAndroid;
             if (obfuscatedAccount != null) {
               payload['obfuscatedAccountId'] = obfuscatedAccount;
               payload['obfuscatedAccountIdAndroid'] = obfuscatedAccount;
             }
 
-            final obfuscatedProfile = androidProps.obfuscatedProfileIdAndroid;
             if (obfuscatedProfile != null) {
               payload['obfuscatedProfileId'] = obfuscatedProfile;
               payload['obfuscatedProfileIdAndroid'] = obfuscatedProfile;
@@ -398,8 +382,9 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
   /// [options] - Optional configuration for the method behavior
   /// - onlyIncludeActiveItemsIOS: Whether to only include active items (default: true)
   ///   Set to false to include expired subscriptions
-  gentype.QueryGetAvailablePurchasesHandler get getAvailablePurchases =>
-      ([options]) async {
+  gentype.QueryGetAvailablePurchasesHandler get getAvailablePurchases => (
+          {bool? alsoPublishToEventListenerIOS,
+          bool? onlyIncludeActiveItemsIOS}) async {
         if (!_isInitialized) {
           throw PurchaseError(
             code: gentype.ErrorCode.NotPrepared,
@@ -410,9 +395,8 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
         try {
           final normalizedOptions = gentype.PurchaseOptions(
             alsoPublishToEventListenerIOS:
-                options?.alsoPublishToEventListenerIOS ?? false,
-            onlyIncludeActiveItemsIOS:
-                options?.onlyIncludeActiveItemsIOS ?? true,
+                alsoPublishToEventListenerIOS ?? false,
+            onlyIncludeActiveItemsIOS: onlyIncludeActiveItemsIOS ?? true,
           );
 
           bool hasResolvableIdentifier(gentype.Purchase purchase) {
@@ -474,59 +458,6 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           );
         }
       };
-
-  Map<String, dynamic>? _buildIosPurchasePayload(
-    String nativeType,
-    Object? iosProps,
-  ) {
-    if (iosProps == null) {
-      return null;
-    }
-
-    Map<String, dynamic> propsJson;
-    if (iosProps is gentype.RequestPurchaseIosProps) {
-      propsJson = iosProps.toJson();
-    } else if (iosProps is gentype.RequestSubscriptionIosProps) {
-      propsJson = iosProps.toJson();
-    } else {
-      return null;
-    }
-
-    final String? sku = propsJson['sku'] as String?;
-    if (sku == null || sku.isEmpty) {
-      return null;
-    }
-
-    final payload = <String, dynamic>{
-      'sku': sku,
-      'type': nativeType,
-      'andDangerouslyFinishTransactionAutomatically':
-          (propsJson['andDangerouslyFinishTransactionAutomatically']
-                  as bool?) ??
-              false,
-    };
-
-    final String? appAccountToken = propsJson['appAccountToken'] as String?;
-    if (appAccountToken != null && appAccountToken.isNotEmpty) {
-      payload['appAccountToken'] = appAccountToken;
-    }
-
-    final dynamic quantityValue = propsJson['quantity'];
-    if (quantityValue is int) {
-      payload['quantity'] = quantityValue;
-    } else if (quantityValue is num) {
-      payload['quantity'] = quantityValue.toInt();
-    }
-
-    final dynamic offerValue = propsJson['withOffer'];
-    if (offerValue is Map) {
-      payload['withOffer'] = offerValue.map<String, dynamic>(
-          (key, value) => MapEntry(key.toString(), value));
-    }
-
-    payload.removeWhere((_, value) => value == null);
-    return payload;
-  }
 
   /// Get the current storefront country code (unified method)
   gentype.QueryGetStorefrontHandler get getStorefront => () async {
@@ -724,26 +655,6 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
             }
           };
 
-  Future<List<gentype.Purchase>?> getAvailableItemsIOS() async {
-    if (!_platform.isIOS) {
-      return null;
-    }
-
-    try {
-      final dynamic result = await _channel.invokeMethod('getAvailableItems');
-      final items = extractPurchases(
-        result,
-        platformIsAndroid: false,
-        platformIsIOS: true,
-        acknowledgedAndroidPurchaseTokens: _acknowledgedAndroidPurchaseTokens,
-      );
-      return items;
-    } catch (error) {
-      debugPrint('Error getting available items (iOS): $error');
-      return null;
-    }
-  }
-
   gentype.QueryGetAppTransactionIOSHandler get getAppTransactionIOS =>
       () async {
         if (!_platform.isIOS) {
@@ -766,31 +677,6 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           return null;
         }
       };
-
-  Future<gentype.AppTransaction?> getAppTransactionTypedIOS() async {
-    return await getAppTransactionIOS();
-  }
-
-  Future<List<gentype.Purchase>> getPurchaseHistoriesIOS() async {
-    if (!_platform.isIOS) {
-      return <gentype.Purchase>[];
-    }
-
-    try {
-      final dynamic result =
-          await _channel.invokeMethod('getPurchaseHistoriesIOS');
-      final items = extractPurchases(
-        result,
-        platformIsAndroid: false,
-        platformIsIOS: true,
-        acknowledgedAndroidPurchaseTokens: _acknowledgedAndroidPurchaseTokens,
-      );
-      return items;
-    } catch (error) {
-      debugPrint('Error getting purchase histories (iOS): $error');
-      return <gentype.Purchase>[];
-    }
-  }
 
   /// iOS specific: Present code redemption sheet
   gentype.MutationPresentCodeRedemptionSheetIOSHandler
@@ -941,7 +827,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
       };
 
   gentype.MutationDeepLinkToSubscriptionsHandler get deepLinkToSubscriptions =>
-      ([options]) async {
+      ({String? packageNameAndroid, String? skuAndroid}) async {
         if (!_platform.isAndroid) {
           throw PurchaseError(
             code: gentype.ErrorCode.IapNotAvailable,
@@ -951,15 +837,13 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
         }
 
         final args = <String, dynamic>{};
-        final opts = options;
-        if (opts?.packageNameAndroid != null &&
-            opts!.packageNameAndroid!.isNotEmpty) {
-          args['packageNameAndroid'] = opts.packageNameAndroid;
-          args['packageName'] = opts.packageNameAndroid;
+        if (packageNameAndroid != null && packageNameAndroid.isNotEmpty) {
+          args['packageNameAndroid'] = packageNameAndroid;
+          args['packageName'] = packageNameAndroid;
         }
-        if (opts?.skuAndroid != null && opts!.skuAndroid!.isNotEmpty) {
-          args['skuAndroid'] = opts.skuAndroid;
-          args['sku'] = opts.skuAndroid;
+        if (skuAndroid != null && skuAndroid.isNotEmpty) {
+          args['skuAndroid'] = skuAndroid;
+          args['sku'] = skuAndroid;
         }
 
         await _channel.invokeMethod('deepLinkToSubscriptionsAndroid', args);
@@ -967,15 +851,15 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
 
   /// Finish a transaction using OpenIAP generated handler signature
   gentype.MutationFinishTransactionHandler get finishTransaction => ({
-        required purchase,
+        required gentype.Purchase purchase,
         bool? isConsumable,
       }) async {
         final bool consumable = isConsumable ?? false;
         final transactionId = purchase.id;
 
         if (_platform.isAndroid) {
-          final purchaseToken = purchase.purchaseToken;
-          if (purchaseToken == null || purchaseToken.isEmpty) {
+          if (purchase.purchaseToken == null ||
+              purchase.purchaseToken!.isEmpty) {
             throw PurchaseError(
               code: gentype.ErrorCode.PurchaseError,
               message:
@@ -985,11 +869,11 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
 
           if (consumable) {
             debugPrint(
-              '[FlutterInappPurchase] Android: Consuming product with token: $purchaseToken',
+              '[FlutterInappPurchase] Android: Consuming product with token: ${purchase.purchaseToken}',
             );
             final result = await _channel.invokeMethod(
               'consumePurchaseAndroid',
-              <String, dynamic>{'purchaseToken': purchaseToken},
+              <String, dynamic>{'purchaseToken': purchase.purchaseToken},
             );
             parseAndLogAndroidResponse(
               result,
@@ -998,12 +882,13 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
               failureLog:
                   '[FlutterInappPurchase] Android: Failed to parse consume response',
             );
-            _acknowledgedAndroidPurchaseTokens.remove(purchaseToken);
+            _acknowledgedAndroidPurchaseTokens.remove(purchase.purchaseToken!);
             return;
           }
 
           final alreadyAcknowledged =
-              _acknowledgedAndroidPurchaseTokens[purchaseToken] ?? false;
+              _acknowledgedAndroidPurchaseTokens[purchase.purchaseToken!] ??
+                  false;
           if (alreadyAcknowledged) {
             if (kDebugMode) {
               debugPrint(
@@ -1013,7 +898,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
             return;
           }
 
-          final maskedToken = purchaseToken.replaceAllMapped(
+          final maskedToken = purchase.purchaseToken!.replaceAllMapped(
             RegExp(r'.(?=.{4})'),
             (m) => '*',
           );
@@ -1032,7 +917,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           final result = await _channel.invokeMethod(
             methodName,
             <String, dynamic>{
-              'purchaseToken': purchaseToken,
+              'purchaseToken': purchase.purchaseToken,
             },
           );
           bool didAcknowledgeSucceed(dynamic response) {
@@ -1089,7 +974,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
                 '[FlutterInappPurchase] Android: Failed to parse acknowledge response',
           );
           if (didAcknowledge) {
-            _acknowledgedAndroidPurchaseTokens[purchaseToken] = true;
+            _acknowledgedAndroidPurchaseTokens[purchase.purchaseToken!] = true;
           } else if (kDebugMode) {
             debugPrint(
               '[FlutterInappPurchase] Android: Acknowledge response indicated failure; will retry later ($maskedToken)',
@@ -1155,8 +1040,9 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
   /// ```
   ///
   /// Note: This method requires iOS 15.0+ for StoreKit 2 support.
-  gentype.QueryValidateReceiptIOSHandler get validateReceiptIOS =>
-      (options) async {
+  gentype.QueryValidateReceiptIOSHandler get validateReceiptIOS => (
+          {required String sku,
+          gentype.ReceiptValidationAndroidOptions? androidOptions}) async {
         if (!_platform.isIOS) {
           throw errors.PurchaseError(
             code: errors.ErrorCode.IapNotAvailable,
@@ -1171,8 +1057,8 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           );
         }
 
-        final sku = options.sku.trim();
-        if (sku.isEmpty) {
+        final skuTrimmed = sku.trim();
+        if (skuTrimmed.isEmpty) {
           throw PurchaseError(
             code: gentype.ErrorCode.DeveloperError,
             message: 'sku cannot be empty',
@@ -1182,7 +1068,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
         try {
           final result = await _channel.invokeMethod<Map<dynamic, dynamic>>(
             'validateReceiptIOS',
-            {'sku': sku},
+            {'sku': skuTrimmed},
           );
 
           if (result == null) {
@@ -1222,10 +1108,12 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           );
         }
       };
-  gentype.MutationValidateReceiptHandler get validateReceipt =>
-      (options) async {
+  gentype.MutationValidateReceiptHandler get validateReceipt => (
+          {required String sku,
+          gentype.ReceiptValidationAndroidOptions? androidOptions}) async {
         if (_platform.isIOS) {
-          return await validateReceiptIOS(options);
+          return await validateReceiptIOS(
+              sku: sku, androidOptions: androidOptions);
         }
         if (_platform.isAndroid) {
           throw PurchaseError(
@@ -1241,9 +1129,9 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
 
   // flutter IAP compatible methods
 
-  gentype.QueryFetchProductsHandler get fetchProducts => (options) async {
-        final skus = options.skus;
-        final queryType = options.type ?? gentype.ProductQueryType.InApp;
+  gentype.QueryFetchProductsHandler get fetchProducts =>
+      ({required List<String> skus, gentype.ProductQueryType? type}) async {
+        final queryType = type ?? gentype.ProductQueryType.InApp;
 
         if (!_isInitialized) {
           throw PurchaseError(
@@ -1497,11 +1385,15 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
             }
 
             if (purchase is gentype.PurchaseAndroid) {
-              final bool isSubscription = purchase.autoRenewingAndroid ?? false;
-              final bool isActive = isSubscription &&
+              // A purchase is an active subscription if it's in Purchased state
+              // Note: We don't check isAcknowledgedAndroid because:
+              // 1. The purchase might have just been acknowledged but not yet refreshed
+              // 2. autoRenewingAndroid can be false for test purchases or non-renewing subs
+              // 3. If it's in our purchase list and state is Purchased, it's valid
+              final bool isActive =
                   purchase.purchaseState == gentype.PurchaseState.Purchased;
 
-              if (isSubscription && isActive) {
+              if (isActive) {
                 activeSubscriptions.add(
                   gentype.ActiveSubscription(
                     productId: purchase.productId,

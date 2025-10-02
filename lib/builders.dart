@@ -133,44 +133,21 @@ class RequestPurchaseBuilder {
     final androidProps = android.skus.isNotEmpty ? android.build() : null;
 
     if (_type == ProductQueryType.InApp) {
-      final payload = RequestPurchasePropsByPlatforms(
+      return RequestPurchaseProps.inApp((
         ios: iosProps,
         android: androidProps,
-      );
-      return RequestPurchaseProps.inApp(request: payload);
+        useAlternativeBilling: null,
+      ));
     }
 
     if (_type == ProductQueryType.Subs) {
-      final iosSub = iosProps == null
-          ? null
-          : RequestSubscriptionIosProps(
-              sku: iosProps.sku,
-              andDangerouslyFinishTransactionAutomatically:
-                  iosProps.andDangerouslyFinishTransactionAutomatically,
-              appAccountToken: iosProps.appAccountToken,
-              quantity: iosProps.quantity,
-              withOffer: iosProps.withOffer,
-            );
-
-      final androidSub = androidProps == null
-          ? null
-          : RequestSubscriptionAndroidProps(
-              skus: androidProps.skus,
-              isOfferPersonalized: androidProps.isOfferPersonalized,
-              obfuscatedAccountIdAndroid:
-                  androidProps.obfuscatedAccountIdAndroid,
-              obfuscatedProfileIdAndroid:
-                  androidProps.obfuscatedProfileIdAndroid,
-              purchaseTokenAndroid: null,
-              replacementModeAndroid: null,
-              subscriptionOffers: null,
-            );
-
-      final subscriptionPayload = RequestSubscriptionPropsByPlatforms(
-        ios: iosSub,
-        android: androidSub,
-      );
-      return RequestPurchaseProps.subs(request: subscriptionPayload);
+      // For subscriptions through this builder, we use inApp constructor
+      // because we're building RequestPurchaseIosProps/AndroidProps
+      return RequestPurchaseProps.inApp((
+        ios: iosProps,
+        android: androidProps,
+        useAlternativeBilling: null,
+      ));
     }
 
     throw ArgumentError(
@@ -237,11 +214,10 @@ class RequestSubscriptionBuilder {
     final iosProps = ios.sku.isNotEmpty ? ios.build() : null;
     final androidProps = android.skus.isNotEmpty ? android.build() : null;
 
-    return RequestPurchaseProps.subs(
-      request: RequestSubscriptionPropsByPlatforms(
-        ios: iosProps,
-        android: androidProps,
-      ),
-    );
+    return RequestPurchaseProps.subs((
+      ios: iosProps,
+      android: androidProps,
+      useAlternativeBilling: null,
+    ));
   }
 }

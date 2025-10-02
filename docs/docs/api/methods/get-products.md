@@ -10,15 +10,18 @@ title: fetchProducts
 ## Signature
 
 ```dart
-Future<FetchProductsResult> fetchProducts(ProductRequest params)
+Future<FetchProductsResult> fetchProducts({
+  required List<String> skus,
+  ProductQueryType? type,
+})
 ```
 
 ## Parameters
 
-| Parameter     | Type                | Required | Description                                                                          |
-| ------------- | ------------------- | -------- | ------------------------------------------------------------------------------------ |
-| `params.skus` | `List<String>`      | ✅       | Store identifiers to query (Google Play product IDs / App Store product identifiers) |
-| `params.type` | `ProductQueryType?` | ❌       | `ProductQueryType.InApp` (default) or `ProductQueryType.Subs`                        |
+| Parameter | Type                | Required | Description                                                                          |
+| --------- | ------------------- | -------- | ------------------------------------------------------------------------------------ |
+| `skus`    | `List<String>`      | ✅       | Store identifiers to query (Google Play product IDs / App Store product identifiers) |
+| `type`    | `ProductQueryType?` | ❌       | `ProductQueryType.InApp` (default) or `ProductQueryType.Subs`                        |
 
 ## Return Value
 
@@ -47,10 +50,8 @@ final products = result.value ?? []; // Handle nullable list
 
 ```dart
 final result = await FlutterInappPurchase.instance.fetchProducts(
-  ProductRequest(
-    skus: ['coins_100', 'remove_ads'],
-    type: ProductQueryType.InApp,
-  ),
+  skus: ['coins_100', 'remove_ads'],
+  type: ProductQueryType.InApp,
 );
 
 for (final product in result.value) {
@@ -62,10 +63,8 @@ for (final product in result.value) {
 
 ```dart
 final result = await FlutterInappPurchase.instance.fetchProducts(
-  ProductRequest(
-    skus: ['premium_monthly', 'premium_yearly'],
-    type: ProductQueryType.Subs,
-  ),
+  skus: ['premium_monthly', 'premium_yearly'],
+  type: ProductQueryType.Subs,
 );
 
 for (final sub in result.value) {
@@ -79,10 +78,12 @@ for (final sub in result.value) {
 ```dart
 Future<void> loadCatalog() async {
   final inAppsResult = await FlutterInappPurchase.instance.fetchProducts(
-    ProductRequest(skus: ['coins_100', 'remove_ads'], type: ProductQueryType.InApp),
+    skus: ['coins_100', 'remove_ads'],
+    type: ProductQueryType.InApp,
   );
   final subsResult = await FlutterInappPurchase.instance.fetchProducts(
-    ProductRequest(skus: ['premium_monthly'], type: ProductQueryType.Subs),
+    skus: ['premium_monthly'],
+    type: ProductQueryType.Subs,
   );
 
   final allProducts = [
@@ -101,7 +102,8 @@ Future<void> loadCatalog() async {
 ```dart
 try {
   final result = await FlutterInappPurchase.instance.fetchProducts(
-    ProductRequest(skus: productIds, type: ProductQueryType.InApp),
+    skus: productIds,
+    type: ProductQueryType.InApp,
   );
   if (result.value.isEmpty) {
     debugPrint('No products returned for: $productIds');
@@ -139,7 +141,27 @@ try {
 
 ## Migration Notes
 
-- Replace `requestProducts()` calls with `fetchProducts(ProductRequest(...))`
+### From v6.x to v7.0
+
+```dart
+// Before (v6.x)
+final result = await iap.fetchProducts(
+  ProductRequest(
+    skus: ['product_id'],
+    type: ProductQueryType.InApp,
+  ),
+);
+
+// After (v7.0)
+final result = await iap.fetchProducts(
+  skus: ['product_id'],
+  type: ProductQueryType.InApp,
+);
+```
+
+### From legacy APIs
+
+- Replace `requestProducts()` calls with `fetchProducts()`
 - Convert the returned `FetchProductsResult` using `inAppProducts()`, `subscriptionProducts()`, or `allProducts()` depending on the query type
 - Replace any legacy product-loading helpers in your codebase with `fetchProducts()`
 

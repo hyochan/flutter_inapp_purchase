@@ -173,7 +173,7 @@ void main() {
       await iap.initConnection();
 
       final result = await iap.validateReceiptIOS(
-        const ReceiptValidationProps(sku: 'com.example.prod1'),
+        sku: 'com.example.prod1',
       );
 
       expect(result.isValid, isTrue);
@@ -184,7 +184,7 @@ void main() {
     test('validateReceiptIOS throws when connection not initialized', () async {
       await expectLater(
         iap.validateReceiptIOS(
-          const ReceiptValidationProps(sku: 'com.example.prod1'),
+          sku: 'com.example.prod1',
         ),
         throwsA(
           isA<PurchaseError>().having(
@@ -200,7 +200,7 @@ void main() {
       await iap.initConnection();
 
       await expectLater(
-        iap.validateReceiptIOS(const ReceiptValidationProps(sku: '   ')),
+        iap.validateReceiptIOS(sku: '   '),
         throwsA(
           isA<PurchaseError>().having(
             (error) => error.code,
@@ -227,7 +227,7 @@ void main() {
 
       await expectLater(
         iap.validateReceiptIOS(
-          const ReceiptValidationProps(sku: 'com.example.prod1'),
+          sku: 'com.example.prod1',
         ),
         throwsA(
           isA<PurchaseError>().having(
@@ -246,7 +246,7 @@ void main() {
 
       await expectLater(
         androidIap.validateReceipt(
-          const ReceiptValidationProps(sku: 'com.example.prod1'),
+          sku: 'com.example.prod1',
         ),
         throwsA(
           isA<PurchaseError>().having(
@@ -291,26 +291,11 @@ void main() {
       expect(statuses.single.state, 'expired');
     });
 
-    test('getAvailableItemsIOS returns parsed purchases', () async {
-      final items = await iap.getAvailableItemsIOS();
-      expect(items, isNotNull);
-      expect(items, isA<List<Purchase>>());
-      expect(items!.single.productId, 'com.example.prod1');
-      expect(calls.last.method, 'getAvailableItems');
-    });
-
     test('getAppTransactionIOS returns typed transaction', () async {
       final transaction = await iap.getAppTransactionIOS();
       expect(transaction, isNotNull);
       expect(transaction!.bundleId, 'com.example');
       expect(calls.last.method, 'getAppTransaction');
-    });
-
-    test('getPurchaseHistoriesIOS returns list', () async {
-      final histories = await iap.getPurchaseHistoriesIOS();
-      expect(histories, hasLength(1));
-      expect(histories.single.productId, 'com.example.prod1');
-      expect(calls.last.method, 'getPurchaseHistoriesIOS');
     });
 
     test('getStorefrontIOS throws when country code missing', () async {
@@ -356,14 +341,6 @@ void main() {
       );
     });
 
-    test('getAvailableItemsIOS returns null on non-iOS', () async {
-      final androidIap = FlutterInappPurchase.private(
-        FakePlatform(operatingSystem: 'android'),
-      );
-
-      expect(await androidIap.getAvailableItemsIOS(), isNull);
-    });
-
     test('getAppTransactionIOS returns null when native layer returns null',
         () async {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -376,19 +353,6 @@ void main() {
 
       final transaction = await iap.getAppTransactionIOS();
       expect(transaction, isNull);
-    });
-
-    test('getPurchaseHistoriesIOS returns empty list on error', () async {
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-        if (methodCall.method == 'getPurchaseHistoriesIOS') {
-          throw PlatformException(code: '500', message: 'failure');
-        }
-        return null;
-      });
-
-      final histories = await iap.getPurchaseHistoriesIOS();
-      expect(histories, isEmpty);
     });
 
     test('clearTransactionIOS returns true when native call succeeds',
@@ -470,19 +434,6 @@ void main() {
       expect(statuses, isEmpty);
     });
 
-    test('getAvailableItemsIOS returns null when native throws', () async {
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-        if (methodCall.method == 'getAvailableItems') {
-          throw PlatformException(code: '500', message: 'fail');
-        }
-        return null;
-      });
-
-      final items = await iap.getAvailableItemsIOS();
-      expect(items, isNull);
-    });
-
     test('getPromotedProductIOS returns null when native throws', () async {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
@@ -500,7 +451,7 @@ void main() {
       await iap.initConnection();
 
       final result = await iap.validateReceipt(
-        const ReceiptValidationProps(sku: 'com.example.prod1'),
+        sku: 'com.example.prod1',
       );
 
       expect(result, isA<ReceiptValidationResultIOS>());

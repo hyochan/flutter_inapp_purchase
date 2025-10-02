@@ -73,10 +73,8 @@ void main() {
     await iap.initConnection();
 
     final result = await iap.fetchProducts(
-      const types.ProductRequest(
-        skus: ['premium_monthly', 'coin_pack'],
-        type: types.ProductQueryType.InApp,
-      ),
+      skus: const ['premium_monthly', 'coin_pack'],
+      type: types.ProductQueryType.InApp,
     );
 
     expect(result, isA<types.FetchProductsResultProducts>());
@@ -93,10 +91,8 @@ void main() {
     await iap.initConnection();
 
     final result = await iap.fetchProducts(
-      const types.ProductRequest(
-        skus: ['premium_monthly', 'coin_pack'],
-        type: types.ProductQueryType.Subs,
-      ),
+      skus: const ['premium_monthly', 'coin_pack'],
+      type: types.ProductQueryType.Subs,
     );
 
     expect(result, isA<types.FetchProductsResultProducts>());
