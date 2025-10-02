@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkflutter_inapp_purchase_docs=self.webpackChunkflutter_inapp_purchase_docs||[]).push([[3104],{9769:e=>{e.exports=JSON.parse('{"metadata":{"permalink":"/flutter_inapp_purchase/blog","page":1,"postsPerPage":10,"totalPages":1,"totalCount":8,"blogDescription":"Blog","blogTitle":"Blog"}}')}}]);
