@@ -141,11 +141,34 @@ class RequestPurchaseBuilder {
     }
 
     if (_type == ProductQueryType.Subs) {
-      // For subscriptions through this builder, we use inApp constructor
-      // because we're building RequestPurchaseIosProps/AndroidProps
-      return RequestPurchaseProps.inApp((
-        ios: iosProps,
-        android: androidProps,
+      final iosSub = iosProps == null
+          ? null
+          : RequestSubscriptionIosProps(
+              sku: iosProps.sku,
+              andDangerouslyFinishTransactionAutomatically:
+                  iosProps.andDangerouslyFinishTransactionAutomatically,
+              appAccountToken: iosProps.appAccountToken,
+              quantity: iosProps.quantity,
+              withOffer: iosProps.withOffer,
+            );
+
+      final androidSub = androidProps == null
+          ? null
+          : RequestSubscriptionAndroidProps(
+              skus: androidProps.skus,
+              isOfferPersonalized: androidProps.isOfferPersonalized,
+              obfuscatedAccountIdAndroid:
+                  androidProps.obfuscatedAccountIdAndroid,
+              obfuscatedProfileIdAndroid:
+                  androidProps.obfuscatedProfileIdAndroid,
+              purchaseTokenAndroid: null,
+              replacementModeAndroid: null,
+              subscriptionOffers: null,
+            );
+
+      return RequestPurchaseProps.subs((
+        ios: iosSub,
+        android: androidSub,
         useAlternativeBilling: null,
       ));
     }

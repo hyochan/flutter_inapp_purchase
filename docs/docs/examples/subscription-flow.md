@@ -43,11 +43,13 @@ void _setupListeners() {
 
 ```dart
 final result = await iap.fetchProducts(
-  skus: ['monthly_sub', 'yearly_sub'],
-  type: ProductQueryType.Subs,
+  ProductRequest(
+    skus: ['monthly_sub', 'yearly_sub'],
+    type: ProductQueryType.Subs,
+  ),
 );
 
-if (result is FetchProductsResultProducts) {
+if (result is FetchProductsResultSubscriptions) {
   final subscriptions = result.value ?? [];
   for (final product in subscriptions) {
     if (product is ProductSubscriptionIOS) {
@@ -66,12 +68,12 @@ if (result is FetchProductsResultProducts) {
 final summaries = await iap.getActiveSubscriptions(['monthly_sub']);
 if (summaries.isNotEmpty) {
   debugPrint('Active subscription: ${summaries.first.productId}');
-  debugPrint('Expires: ${summaries.first.expiresDate}');
+  debugPrint('Expires: ${summaries.first.expirationDateIOS}');
 }
 
 // Detailed check - returns full purchase objects
 final purchases = await iap.getAvailablePurchases(
-  onlyIncludeActiveItemsIOS: true,
+  PurchaseOptions(onlyIncludeActiveItemsIOS: true),
 );
 ```
 

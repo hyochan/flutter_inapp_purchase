@@ -260,7 +260,8 @@ void handleTransactionState(Purchase item) {
         _finishTransaction(item);
         break;
       case TransactionState.failed:
-        // Don't finish failed transactions
+        // Finish failed transactions to clear them from the queue
+        _finishTransaction(item);
         print('Transaction failed');
         break;
       case TransactionState.purchasing:

@@ -22,13 +22,13 @@ final subscriptions = await iap.fetchProducts(
 
 ```dart
 // Get available offers for Android
-List<SubscriptionOfferAndroid> getAndroidOffers(ProductCommon product) {
+List<AndroidSubscriptionOfferInput> getAndroidOffers(ProductCommon product) {
   if (product is ProductAndroid) {
     final details = product.subscriptionOfferDetailsAndroid;
     if (details != null && details.isNotEmpty) {
       return [
         for (final offer in details)
-          SubscriptionOfferAndroid(
+          AndroidSubscriptionOfferInput(
             offerToken: offer.offerToken,
             sku: product.id, // Use productId, not basePlanId
           ),
@@ -38,13 +38,15 @@ List<SubscriptionOfferAndroid> getAndroidOffers(ProductCommon product) {
   return [];
 }
 
-// Purchase subscription
+// Purchase subscription with offers
 Future<void> purchaseSubscription(ProductCommon product) async {
   if (Platform.isAndroid) {
+    final offers = getAndroidOffers(product);
     final requestProps = RequestPurchaseProps.subs((
       ios: null,
       android: RequestSubscriptionAndroidProps(
         skus: [product.id],
+        subscriptionOffers: offers.isNotEmpty ? offers : null,
       ),
       useAlternativeBilling: null,
     ));

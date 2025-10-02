@@ -116,15 +116,19 @@ Subscription offer details for subscription products (optional).
 
 ```dart
 final result = await FlutterInappPurchase.instance.fetchProducts(
-  skus: ['premium_feature', 'remove_ads'],
-  type: ProductQueryType.InApp,
+  ProductRequest(
+    skus: ['premium_feature', 'remove_ads'],
+    type: ProductQueryType.InApp,
+  ),
 );
 
-for (final product in result.value) {
-  print('Product ID: ${product.id}');
-  print('Title: ${product.title}');
-  print('Price: ${product.displayPrice}');
-  print('Description: ${product.description}');
+if (result is FetchProductsResultProducts) {
+  for (final product in result.value ?? const []) {
+    print('Product ID: ${product.id}');
+    print('Title: ${product.title}');
+    print('Price: ${product.displayPrice}');
+    print('Description: ${product.description}');
+  }
 }
 ```
 
@@ -211,30 +215,34 @@ For subscription products, use `ProductSubscription`:
 
 ```dart
 final result = await FlutterInappPurchase.instance.fetchProducts(
-  skus: ['monthly_sub', 'yearly_sub'],
-  type: ProductQueryType.Subs,
+  ProductRequest(
+    skus: ['monthly_sub', 'yearly_sub'],
+    type: ProductQueryType.Subs,
+  ),
 );
 
-for (final subscription in result.value) {
-  if (subscription is ProductSubscriptionIOS) {
-    print('iOS Subscription: ${subscription.title}');
-    print('Period: ${subscription.subscriptionPeriodUnitIOS}');
-    print('Period Number: ${subscription.subscriptionPeriodNumberIOS}');
+if (result is FetchProductsResultSubscriptions) {
+  for (final subscription in result.value ?? const []) {
+    if (subscription is ProductSubscriptionIOS) {
+      print('iOS Subscription: ${subscription.title}');
+      print('Period: ${subscription.subscriptionPeriodUnitIOS}');
+      print('Period Number: ${subscription.subscriptionPeriodNumberIOS}');
 
-    if (subscription.introductoryPriceIOS != null) {
-      print('Intro Price: ${subscription.introductoryPriceIOS}');
-      print('Intro Period: ${subscription.introductoryPriceSubscriptionPeriodIOS}');
-    }
-  } else if (subscription is ProductSubscriptionAndroid) {
-    print('Android Subscription: ${subscription.title}');
+      if (subscription.introductoryPriceIOS != null) {
+        print('Intro Price: ${subscription.introductoryPriceIOS}');
+        print('Intro Period: ${subscription.introductoryPriceSubscriptionPeriodIOS}');
+      }
+    } else if (subscription is ProductSubscriptionAndroid) {
+      print('Android Subscription: ${subscription.title}');
 
-    for (var offer in subscription.subscriptionOfferDetailsAndroid) {
-      print('Base Plan: ${offer.basePlanId}');
+      for (var offer in subscription.subscriptionOfferDetailsAndroid) {
+        print('Base Plan: ${offer.basePlanId}');
 
-      for (var phase in offer.pricingPhases.pricingPhaseList) {
-        print('Phase Price: ${phase.formattedPrice}');
-        print('Billing Period: ${phase.billingPeriod}');
-        print('Billing Cycle Count: ${phase.billingCycleCount}');
+        for (var phase in offer.pricingPhases.pricingPhaseList) {
+          print('Phase Price: ${phase.formattedPrice}');
+          print('Billing Period: ${phase.billingPeriod}');
+          print('Billing Cycle Count: ${phase.billingCycleCount}');
+        }
       }
     }
   }

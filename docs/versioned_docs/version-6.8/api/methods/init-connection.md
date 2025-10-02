@@ -61,10 +61,10 @@ class IAPService {
     } catch (e) {
       if (e is PurchaseError) {
         switch (e.code) {
-          case ErrorCode.E_ALREADY_INITIALIZED:
+          case ErrorCode.AlreadyInitialized:
             print('IAP already initialized');
             break;
-          case ErrorCode.E_NOT_INITIALIZED:
+          case ErrorCode.NotInitialized:
             print('Failed to initialize IAP: ${e.message}');
             break;
           default:

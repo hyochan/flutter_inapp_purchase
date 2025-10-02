@@ -143,7 +143,13 @@ Provide fallback experiences:
 ```dart
 Future<void> handlePurchase(String productId) async {
   try {
-    await _iap.requestPurchase(sku: productId);
+    await _iap.requestPurchase(
+      RequestPurchaseProps.inApp((
+        ios: RequestPurchaseIosProps(sku: productId),
+        android: RequestPurchaseAndroidProps(skus: [productId]),
+        useAlternativeBilling: null,
+      )),
+    );
   } on PurchaseError catch (error) {
     if (error.code == ErrorCode.IapNotAvailable) {
       // Redirect to web subscription

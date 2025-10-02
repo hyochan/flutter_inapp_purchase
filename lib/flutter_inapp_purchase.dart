@@ -311,18 +311,28 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
             final bool? isOfferPersonalized;
             final String? obfuscatedAccount;
             final String? obfuscatedProfile;
+            final String? purchaseToken;
+            final int? replacementMode;
+            final List<gentype.AndroidSubscriptionOfferInput>?
+                subscriptionOffers;
 
             if (androidProps is gentype.RequestPurchaseAndroidProps) {
               skus = androidProps.skus;
               isOfferPersonalized = androidProps.isOfferPersonalized;
               obfuscatedAccount = androidProps.obfuscatedAccountIdAndroid;
               obfuscatedProfile = androidProps.obfuscatedProfileIdAndroid;
+              purchaseToken = null;
+              replacementMode = null;
+              subscriptionOffers = null;
             } else if (androidProps
                 is gentype.RequestSubscriptionAndroidProps) {
               skus = androidProps.skus;
               isOfferPersonalized = androidProps.isOfferPersonalized;
               obfuscatedAccount = androidProps.obfuscatedAccountIdAndroid;
               obfuscatedProfile = androidProps.obfuscatedProfileIdAndroid;
+              purchaseToken = androidProps.purchaseTokenAndroid;
+              replacementMode = androidProps.replacementModeAndroid;
+              subscriptionOffers = androidProps.subscriptionOffers;
             } else {
               throw PurchaseError(
                 code: gentype.ErrorCode.DeveloperError,
@@ -352,6 +362,19 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
             if (obfuscatedProfile != null) {
               payload['obfuscatedProfileId'] = obfuscatedProfile;
               payload['obfuscatedProfileIdAndroid'] = obfuscatedProfile;
+            }
+
+            if (purchaseToken != null) {
+              payload['purchaseTokenAndroid'] = purchaseToken;
+            }
+
+            if (replacementMode != null) {
+              payload['replacementModeAndroid'] = replacementMode;
+            }
+
+            if (subscriptionOffers != null && subscriptionOffers.isNotEmpty) {
+              payload['subscriptionOffers'] =
+                  subscriptionOffers.map((offer) => offer.toJson()).toList();
             }
 
             await _channel.invokeMethod('requestPurchase', payload);
