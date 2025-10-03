@@ -36,11 +36,9 @@ final iap = FlutterInappPurchase();
 await iap.initConnection();
 
 // Fetch products
-final products = await iap.fetchProducts(
-  ProductRequest(
-    skus: ['product_id'],
-    type: ProductQueryType.InApp,
-  ),
+final result = await iap.fetchProducts(
+  skus: ['product_id'],
+  type: ProductQueryType.InApp,
 );
 
 // Request purchase (builder DSL)
@@ -54,26 +52,9 @@ await iap.requestPurchaseWithBuilder(
 );
 ```
 
-### iOS Notes
-
-- This plugin uses the OpenIAP Apple native module via CocoaPods (`openiap 1.1.9`).
-- After upgrading, run `pod install` in your iOS project (e.g., `example/ios`).
-- Minimum iOS deployment target is `15.0` for StoreKit 2 support.
-
 ## 🛠️ Development
 
-- Install dependencies: `flutter pub get`
-- Run lints: `dart analyze`
-- Run tests: `flutter test`
-- Enable Git hooks (recommended): `git config core.hooksPath .githooks`
-  - The pre-commit hook auto-formats staged Dart files and fails if any file remains unformatted. It also runs tests.
-  - Tests: runs changed tests first, then full suite (fail-fast).
-  - Env toggles:
-    - `SKIP_PRECOMMIT_TESTS=1` to skip tests
-    - `PRECOMMIT_TEST_CONCURRENCY=<N>` to control concurrency (default 4)
-    - `PRECOMMIT_FAIL_FAST=0` to disable `--fail-fast`
-    - `PRECOMMIT_RUN_ALL_TESTS=0` to only run changed tests
-    - `ENFORCE_ANALYZE=1` to fail commit on analyzer warnings
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines.
 
 ### Singleton Usage
 

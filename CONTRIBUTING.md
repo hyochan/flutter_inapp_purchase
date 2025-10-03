@@ -17,6 +17,19 @@ cd flutter_inapp_purchase
 flutter pub get
 ```
 
+### Platform-Specific Setup
+
+#### iOS
+
+- This plugin uses the OpenIAP Apple native module via CocoaPods. See [openiap-versions.json](./openiap-versions.json) for the current version.
+- After upgrading or cloning, run `pod install` in your iOS project (e.g., `example/ios`).
+- Minimum iOS deployment target is `15.0` for StoreKit 2 support.
+
+#### Android
+
+- This plugin uses the OpenIAP Google native module. See [openiap-versions.json](./openiap-versions.json) for the current version.
+- The module is automatically fetched from Maven Central during build.
+
 ### 3. Enable Git Hooks (recommended)
 
 This repo ships with Git hooks under `.githooks` that auto-format, analyze, and test your changes before committing. Enable them once per clone:
