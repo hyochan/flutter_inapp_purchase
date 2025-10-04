@@ -261,18 +261,16 @@ class _AndroidUserChoiceBillingState extends State<AndroidUserChoiceBilling> {
 
     // Listen for Google Play purchases
     _purchaseSubscription =
-        FlutterInappPurchase.purchaseUpdated.listen((purchase) {
-      if (purchase != null) {
-        print('Google Play purchase: ${purchase.productId}');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Purchase via Google Play successful')),
-        );
-      }
+        FlutterInappPurchase.instance.purchaseUpdatedListener.listen((purchase) {
+      print('Google Play purchase: ${purchase.productId}');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Purchase via Google Play successful')),
+      );
     });
 
     // Listen for alternative billing choices
     _userChoiceSubscription =
-        FlutterInappPurchase.userChoiceBillingAndroid.listen((details) {
+        FlutterInappPurchase.instance.userChoiceBillingAndroid.listen((details) {
       print('User selected alternative billing');
       print('Products: ${details.products}');
       print('Token: ${details.externalTransactionToken}');

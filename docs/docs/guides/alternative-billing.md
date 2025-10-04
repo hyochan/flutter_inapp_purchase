@@ -343,12 +343,12 @@ Future<void> initializeWithUserChoice() async {
   );
 
   // Set up listeners
-  FlutterInappPurchase.purchaseUpdated.listen((purchase) {
+  FlutterInappPurchase.instance.purchaseUpdatedListener.listen((purchase) {
     // This fires if user selects Google Play
-    print('Google Play purchase: ${purchase?.productId}');
+    print('Google Play purchase: ${purchase.productId}');
   });
 
-  FlutterInappPurchase.userChoiceBillingAndroid.listen((details) {
+  FlutterInappPurchase.instance.userChoiceBillingAndroid.listen((details) {
     // This fires if user selects alternative billing
     print('Alternative billing selected: ${details.products}');
     print('Token: ${details.externalTransactionToken}');
