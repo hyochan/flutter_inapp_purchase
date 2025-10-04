@@ -276,8 +276,14 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                             OpenIapLog.d(TAG, "Ending connection before reinitializing (current ready state: $connectionReady)")
                             openIap?.endConnection()
                             connectionReady = false
-                            // Add a delay to ensure cleanup completes
-                            kotlinx.coroutines.delay(200)
+
+                            // WORKAROUND: OpenIAP's endConnection() is synchronous but may trigger
+                            // async cleanup in the background (e.g., disconnecting from Play Store).
+                            // A small delay reduces the risk of race conditions where initConnection()
+                            // is called before cleanup completes. This is not ideal but necessary
+                            // until OpenIAP provides an async endConnection() or callback mechanism.
+                            // Increase this delay if experiencing connection issues.
+                            kotlinx.coroutines.delay(300)
                         } catch (e: Exception) {
                             OpenIapLog.w(TAG, "Error ending connection: ${e.message}")
                         }
@@ -452,11 +458,11 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                                     OpenIapError.NotPrepared.MESSAGE,
                                     "Connection not ready. Call initConnection() first with the desired billing mode."
                                 )
-                                return@withLock
+                                return@launch
                             }
                         } catch (e: Exception) {
                             safe.error(OpenIapError.BillingError.CODE, OpenIapError.BillingError.MESSAGE, e.message)
-                            return@withLock
+                            return@launch
                         }
                     }
 

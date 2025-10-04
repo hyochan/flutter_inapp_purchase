@@ -80,6 +80,7 @@ class _AlternativeBillingScreenState extends State<AlternativeBillingScreen> {
       await FlutterInappPurchase.instance
           .initConnection(alternativeBillingModeAndroid: _billingMode);
 
+      if (!mounted) return;
       setState(() {
         _connected = true;
       });
@@ -100,13 +101,27 @@ class _AlternativeBillingScreenState extends State<AlternativeBillingScreen> {
         .instance.purchaseUpdatedListener
         .listen((purchase) async {
       debugPrint('Purchase successful: ${purchase.productId}');
+
+      final transactionDate = purchase.transactionDate;
+      int? transactionMillis;
+      if (transactionDate is num) {
+        transactionMillis = transactionDate.toInt();
+      } else if (transactionDate is String) {
+        transactionMillis = int.tryParse(transactionDate);
+      }
+      final transactionDateString = transactionMillis != null
+          ? DateTime.fromMillisecondsSinceEpoch(transactionMillis)
+              .toLocal()
+              .toString()
+          : 'unknown';
+
       setState(() {
         _isProcessing = false;
         _purchaseResult = '''
 ✅ Purchase successful
 Product: ${purchase.productId}
 Transaction ID: ${purchase.id}
-Date: ${DateTime.fromMillisecondsSinceEpoch(purchase.transactionDate.toInt()).toLocal()}
+Date: $transactionDateString
 ''';
       });
 
@@ -193,6 +208,7 @@ Token: ${details.externalTransactionToken.length > 20 ? details.externalTransact
         type: ProductQueryType.InApp,
       );
 
+      if (!mounted) return;
       setState(() {
         if (result is FetchProductsResultProducts) {
           _products = result.value?.cast<Product>() ?? [];
@@ -220,11 +236,15 @@ Token: ${details.externalTransactionToken.length > 20 ? details.externalTransact
       });
 
       await FlutterInappPurchase.instance.endConnection();
-      await Future.delayed(const Duration(milliseconds: 500));
+
+      // Small delay to allow connection cleanup to complete
+      // This prevents race conditions when switching billing modes
+      await Future.delayed(const Duration(milliseconds: 300));
 
       await FlutterInappPurchase.instance
           .initConnection(alternativeBillingModeAndroid: newMode);
 
+      if (!mounted) return;
       setState(() {
         _billingMode = newMode;
         _connected = true;
@@ -235,10 +255,12 @@ Token: ${details.externalTransactionToken.length > 20 ? details.externalTransact
 
       await _loadProducts();
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _purchaseResult = '❌ Reconnection failed: $e';
       });
     } finally {
+      if (!mounted) return;
       setState(() {
         _isReconnecting = false;
       });
@@ -270,6 +292,7 @@ Token: ${details.externalTransactionToken.length > 20 ? details.externalTransact
 
       debugPrint('[iOS] External purchase link result: $result');
 
+      if (!mounted) return;
       setState(() {
         if (result.error != null) {
           _purchaseResult = '❌ Error: ${result.error}';
@@ -304,6 +327,7 @@ Note: Complete purchase on your website and implement server-side validation.
       }
     } catch (e) {
       debugPrint('[iOS] Alternative billing error: $e');
+      if (!mounted) return;
       setState(() {
         _purchaseResult = '❌ Error: $e';
       });
@@ -313,6 +337,7 @@ Note: Complete purchase on your website and implement server-side validation.
         );
       }
     } finally {
+      if (!mounted) return;
       setState(() {
         _isProcessing = false;
       });
@@ -337,6 +362,7 @@ Note: Complete purchase on your website and implement server-side validation.
       debugPrint('[Android] Alternative billing available: $isAvailable');
 
       if (!isAvailable) {
+        if (!mounted) return;
         setState(() {
           _purchaseResult = '❌ Alternative billing not available';
         });
@@ -352,6 +378,7 @@ Note: Complete purchase on your website and implement server-side validation.
         return;
       }
 
+      if (!mounted) return;
       setState(() {
         _purchaseResult = 'Showing information dialog...';
       });
@@ -363,12 +390,14 @@ Note: Complete purchase on your website and implement server-side validation.
       debugPrint('[Android] User accepted dialog: $userAccepted');
 
       if (!userAccepted) {
+        if (!mounted) return;
         setState(() {
           _purchaseResult = 'ℹ️ User cancelled';
         });
         return;
       }
 
+      if (!mounted) return;
       setState(() {
         _purchaseResult = 'Creating token...';
       });
@@ -382,6 +411,7 @@ Note: Complete purchase on your website and implement server-side validation.
 
       debugPrint('[Android] Token created: $token');
 
+      if (!mounted) return;
       setState(() {
         if (token != null) {
           _purchaseResult = '''
@@ -417,6 +447,7 @@ Token: ${token.length > 20 ? token.substring(0, 20) : token}...
       }
     } catch (e) {
       debugPrint('[Android] Alternative billing error: $e');
+      if (!mounted) return;
       setState(() {
         _purchaseResult = '❌ Error: $e';
       });
@@ -426,6 +457,7 @@ Token: ${token.length > 20 ? token.substring(0, 20) : token}...
         );
       }
     } finally {
+      if (!mounted) return;
       setState(() {
         _isProcessing = false;
       });
@@ -452,6 +484,7 @@ Token: ${token.length > 20 ? token.substring(0, 20) : token}...
       // Google will show selection dialog
       // If user selects Google Play: purchaseUpdatedListener callback
       // If user selects alternative: userChoiceBillingAndroid callback
+      if (!mounted) return;
       setState(() {
         _purchaseResult = '''
 🔄 User choice dialog shown
@@ -465,6 +498,7 @@ If user selects:
       });
     } catch (e) {
       debugPrint('[Android] User choice billing error: $e');
+      if (!mounted) return;
       setState(() {
         _purchaseResult = '❌ Error: $e';
       });

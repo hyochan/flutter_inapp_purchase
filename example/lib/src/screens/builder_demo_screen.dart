@@ -219,7 +219,18 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
           setState(() => _status = 'User cancelled external purchase');
         }
       } else {
-        // Android: Use builder with Alternative Billing
+        // Android: Check availability first
+        final availability =
+            await _iap.checkAlternativeBillingAvailabilityAndroid();
+        if (!availability) {
+          setState(() => _status = 'Alternative billing unavailable');
+          return;
+        }
+
+        // Show information dialog (required for user-choice mode)
+        await _iap.showAlternativeBillingDialogAndroid();
+
+        // Use builder with Alternative Billing
         await _iap.requestPurchaseWithBuilder(
           build: (RequestPurchaseBuilder r) => r
             ..type = ProductType.InApp
@@ -258,7 +269,18 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
           setState(() => _status = 'User cancelled external purchase');
         }
       } else {
-        // Android: Use builder with Alternative Billing
+        // Android: Check availability first
+        final availability =
+            await _iap.checkAlternativeBillingAvailabilityAndroid();
+        if (!availability) {
+          setState(() => _status = 'Alternative billing unavailable');
+          return;
+        }
+
+        // Show information dialog (required for user-choice mode)
+        await _iap.showAlternativeBillingDialogAndroid();
+
+        // Use builder with Alternative Billing
         await _iap.requestPurchaseWithBuilder(
           build: (RequestPurchaseBuilder r) => r
             ..type = ProductType.Subs

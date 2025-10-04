@@ -626,7 +626,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
         }
     }
 
-    @available(iOS 18.2, *)
+    @available(iOS 16.0, *)
     private func presentExternalPurchaseLinkIOS(url: String, result: @escaping FlutterResult) {
         FlutterIapLog.debug("presentExternalPurchaseLinkIOS called with url: \(url)")
         Task { @MainActor in

@@ -169,12 +169,10 @@ Future<RequestPurchaseResult> requestPurchase(
 
 ```dart
 await iap.requestPurchase(
-  RequestPurchaseProps.inApp(
-    request: RequestPurchasePropsByPlatforms(
-      ios: RequestPurchaseIosProps(sku: 'product_id'),
-      android: RequestPurchaseAndroidProps(skus: ['product_id']),
-    ),
-  ),
+  RequestPurchaseProps.inApp((
+    ios: RequestPurchaseIosProps(sku: 'product_id'),
+    android: RequestPurchaseAndroidProps(skus: ['product_id']),
+  )),
 );
 ```
 

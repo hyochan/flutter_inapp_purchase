@@ -35,15 +35,13 @@ class IOSAlternativeBilling extends StatelessWidget {
 
     try {
       await FlutterInappPurchase.instance.requestPurchase(
-        RequestPurchaseProps.inApp(
-          request: RequestPurchasePropsByPlatforms(
-            ios: RequestPurchaseIosProps(
-              sku: product.id,
-              quantity: 1,
-            ),
+        RequestPurchaseProps.inApp((
+          ios: RequestPurchaseIosProps(
+            sku: product.id,
+            quantity: 1,
           ),
           useAlternativeBilling: true,
-        ),
+        )),
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -296,12 +294,10 @@ class _AndroidUserChoiceBillingState extends State<AndroidUserChoiceBilling> {
     try {
       // Google will show selection dialog automatically
       await FlutterInappPurchase.instance.requestPurchase(
-        RequestPurchaseProps.inApp(
-          request: RequestPurchasePropsByPlatforms(
-            android: RequestPurchaseAndroidProps(skus: [product.id]),
-          ),
+        RequestPurchaseProps.inApp((
+          android: RequestPurchaseAndroidProps(skus: [product.id]),
           useAlternativeBilling: true,
-        ),
+        )),
       );
 
       // If user selects Google Play: purchaseUpdated stream

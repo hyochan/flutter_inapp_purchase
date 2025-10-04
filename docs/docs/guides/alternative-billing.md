@@ -173,15 +173,13 @@ import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 Future<void> purchaseWithExternalUrl() async {
   try {
     await FlutterInappPurchase.instance.requestPurchase(
-      RequestPurchaseProps.inApp(
-        request: RequestPurchasePropsByPlatforms(
-          ios: RequestPurchaseIosProps(
-            sku: 'com.example.product',
-            quantity: 1,
-          ),
+      RequestPurchaseProps.inApp((
+        ios: RequestPurchaseIosProps(
+          sku: 'com.example.product',
+          quantity: 1,
         ),
         useAlternativeBilling: true,
-      ),
+      )),
     );
 
     // User will be redirected to the external URL configured in Info.plist
@@ -364,12 +362,10 @@ Future<void> handleUserChoicePurchase(String productId) async {
   try {
     // Google will show selection dialog automatically
     await FlutterInappPurchase.instance.requestPurchase(
-      RequestPurchaseProps.inApp(
-        request: RequestPurchasePropsByPlatforms(
-          android: RequestPurchaseAndroidProps(skus: [productId]),
-        ),
+      RequestPurchaseProps.inApp((
+        android: RequestPurchaseAndroidProps(skus: [productId]),
         useAlternativeBilling: true,
-      ),
+      )),
     );
 
     // If user selects Google Play: purchaseUpdated stream
