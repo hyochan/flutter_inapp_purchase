@@ -52,3 +52,13 @@ openiap:
   label: OpenIAP
   permalink: /openiap
   description: OpenIAP ecosystem updates
+
+breaking-change:
+  label: Breaking Change
+  permalink: /breaking-change
+  description: Breaking changes and migration guides
+
+alternative-billing:
+  label: Alternative Billing
+  permalink: /alternative-billing
+  description: Alternative billing and external payment features

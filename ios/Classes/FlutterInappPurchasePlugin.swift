@@ -156,7 +156,39 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 return
             }
             validateReceiptIOS(productId: sku, result: result)
-            
+
+        case "canPresentExternalPurchaseNoticeIOS":
+            if #available(iOS 18.2, *) {
+                canPresentExternalPurchaseNoticeIOS(result: result)
+            } else {
+                let code: ErrorCode = .featureNotSupported
+                result(FlutterError(code: code.rawValue, message: "External purchase notice requires iOS 18.2+", details: nil))
+            }
+
+        case "presentExternalPurchaseNoticeSheetIOS":
+            if #available(iOS 18.2, *) {
+                presentExternalPurchaseNoticeSheetIOS(result: result)
+            } else {
+                let code: ErrorCode = .featureNotSupported
+                result(FlutterError(code: code.rawValue, message: "External purchase notice requires iOS 18.2+", details: nil))
+            }
+
+        case "presentExternalPurchaseLinkIOS":
+            if #available(iOS 16.0, *) {
+                if let args = call.arguments as? [String: Any],
+                   let url = args["url"] as? String {
+                    presentExternalPurchaseLinkIOS(url: url, result: result)
+                } else if let url = call.arguments as? String {
+                    presentExternalPurchaseLinkIOS(url: url, result: result)
+                } else {
+                    let code: ErrorCode = .developerError
+                    result(FlutterError(code: code.rawValue, message: "url required", details: nil))
+                }
+            } else {
+                let code: ErrorCode = .featureNotSupported
+                result(FlutterError(code: code.rawValue, message: "External purchase link requires iOS 16.0+", details: nil))
+            }
+
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -217,12 +249,16 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
             Task { @MainActor in
                 guard let self else { return }
                 FlutterIapLog.debug("purchaseErrorListener fired")
-                let errorData: [String: Any?] = [
+                let _ : [String: Any?] = [
                     "code": error.code.rawValue,
                     "message": error.message,
                     "productId": error.productId
                 ]
-                let compacted = FlutterIapHelper.sanitizeDictionary(errorData)
+                let compacted = FlutterIapHelper.sanitizeDictionary([
+                    "code": error.code.rawValue,
+                    "message": error.message,
+                    "productId": error.productId
+                ])
                 if let jsonString = FlutterIapHelper.jsonString(from: compacted) {
                     self.channel?.invokeMethod("purchase-error", arguments: jsonString)
                 }
@@ -332,15 +368,6 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 result(nil)
             } catch let purchaseError as PurchaseError {
                 FlutterIapLog.failure("requestPurchase", error: purchaseError)
-                let errorData: [String: Any?] = [
-                    "code": purchaseError.code.rawValue,
-                    "message": purchaseError.message.isEmpty ? defaultMessage(for: purchaseError.code) : purchaseError.message,
-                    "productId": purchaseError.productId ?? sku
-                ]
-                // Don't send purchase-error event here - purchaseErrorListener will handle it
-                // if let payload = FlutterIapHelper.jsonString(from: FlutterIapHelper.sanitizeDictionary(errorData)) {
-                //     channel?.invokeMethod("purchase-error", arguments: payload)
-                // }
                 result(FlutterError(
                     code: purchaseError.code.rawValue,
                     message: purchaseError.message,
@@ -349,15 +376,6 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
             } catch {
                 FlutterIapLog.failure("requestPurchase", error: error)
                 let code: ErrorCode = .purchaseError
-                let errorData: [String: Any?] = [
-                    "code": code.rawValue,
-                    "message": error.localizedDescription,
-                    "productId": sku
-                ]
-                // Don't send purchase-error event here - purchaseErrorListener will handle it
-                // if let payload = FlutterIapHelper.jsonString(from: FlutterIapHelper.sanitizeDictionary(errorData)) {
-                //     channel?.invokeMethod("purchase-error", arguments: payload)
-                // }
                 result(FlutterError(code: code.rawValue, message: defaultMessage(for: code), details: error.localizedDescription))
             }
         }
@@ -444,7 +462,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
         FlutterIapLog.debug("requestPurchaseOnPromotedProductIOS called")
         Task { @MainActor in
             do {
-                try await OpenIapModule.shared.requestPurchaseOnPromotedProductIOS()
+                _ = try await OpenIapModule.shared.requestPurchaseOnPromotedProductIOS()
                 FlutterIapLog.result("requestPurchaseOnPromotedProductIOS", value: true)
                 result(nil)
             } catch {
@@ -529,7 +547,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
         FlutterIapLog.debug("clearTransactionIOS called")
         Task { @MainActor in
             do {
-                try await OpenIapModule.shared.clearTransactionIOS()
+                _ = try await OpenIapModule.shared.clearTransactionIOS()
                 FlutterIapLog.result("clearTransactionIOS", value: true)
                 result(nil)
             } catch {
@@ -542,7 +560,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
     }
     
     // MARK: - Receipt Validation (OpenIAP)
-    
+
     private func validateReceiptIOS(productId: String, result: @escaping FlutterResult) {
         FlutterIapLog.debug("validateReceiptIOS called for product: \(productId)")
         Task { @MainActor in
@@ -565,6 +583,61 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
             } catch {
                 await MainActor.run {
                     let code: ErrorCode = .transactionValidationFailed
+                    result(FlutterError(code: code.rawValue, message: defaultMessage(for: code), details: nil))
+                }
+            }
+        }
+    }
+
+    // MARK: - Alternative Billing (iOS 18.2+)
+
+    @available(iOS 18.2, *)
+    private func canPresentExternalPurchaseNoticeIOS(result: @escaping FlutterResult) {
+        FlutterIapLog.debug("canPresentExternalPurchaseNoticeIOS called")
+        Task { @MainActor in
+            do {
+                let canPresent = try await OpenIapModule.shared.canPresentExternalPurchaseNoticeIOS()
+                FlutterIapLog.result("canPresentExternalPurchaseNoticeIOS", value: canPresent)
+                result(canPresent)
+            } catch {
+                await MainActor.run {
+                    let code: ErrorCode = .serviceError
+                    result(FlutterError(code: code.rawValue, message: defaultMessage(for: code), details: nil))
+                }
+            }
+        }
+    }
+
+    @available(iOS 18.2, *)
+    private func presentExternalPurchaseNoticeSheetIOS(result: @escaping FlutterResult) {
+        FlutterIapLog.debug("presentExternalPurchaseNoticeSheetIOS called")
+        Task { @MainActor in
+            do {
+                let res = try await OpenIapModule.shared.presentExternalPurchaseNoticeSheetIOS()
+                let payload = FlutterIapHelper.sanitizeDictionary(OpenIapSerialization.encode(res))
+                FlutterIapLog.result("presentExternalPurchaseNoticeSheetIOS", value: payload)
+                result(payload)
+            } catch {
+                await MainActor.run {
+                    let code: ErrorCode = .serviceError
+                    result(FlutterError(code: code.rawValue, message: defaultMessage(for: code), details: nil))
+                }
+            }
+        }
+    }
+
+    @available(iOS 16.0, *)
+    private func presentExternalPurchaseLinkIOS(url: String, result: @escaping FlutterResult) {
+        FlutterIapLog.debug("presentExternalPurchaseLinkIOS called with url: \(url)")
+        Task { @MainActor in
+            do {
+                let res = try await OpenIapModule.shared.presentExternalPurchaseLinkIOS(url)
+                let payload = FlutterIapHelper.sanitizeDictionary(OpenIapSerialization.encode(res))
+                FlutterIapLog.result("presentExternalPurchaseLinkIOS", value: payload)
+                result(payload)
+            } catch {
+                await MainActor.run {
+                    let code: ErrorCode = .serviceError
                     result(FlutterError(code: code.rawValue, message: defaultMessage(for: code), details: nil))
                 }
             }

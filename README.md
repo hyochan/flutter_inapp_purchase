@@ -52,12 +52,6 @@ await iap.requestPurchaseWithBuilder(
 );
 ```
 
-### iOS Notes
-
-- This plugin uses the OpenIAP Apple native module via CocoaPods (`openiap 1.1.9`).
-- After upgrading, run `pod install` in your iOS project (e.g., `example/ios`).
-- Minimum iOS deployment target is `15.0` for StoreKit 2 support.
-
 ## 🛠️ Development
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines.
