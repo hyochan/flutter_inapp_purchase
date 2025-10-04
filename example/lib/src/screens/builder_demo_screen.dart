@@ -227,10 +227,9 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
           return;
         }
 
-        // Show information dialog (required for user-choice mode)
-        await _iap.showAlternativeBillingDialogAndroid();
-
         // Use builder with Alternative Billing
+        // Note: When useAlternativeBilling is true, Google Play will automatically
+        // show the user-choice dialog (if in user-choice mode)
         await _iap.requestPurchaseWithBuilder(
           build: (RequestPurchaseBuilder r) => r
             ..type = ProductType.InApp
@@ -277,10 +276,9 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
           return;
         }
 
-        // Show information dialog (required for user-choice mode)
-        await _iap.showAlternativeBillingDialogAndroid();
-
         // Use builder with Alternative Billing
+        // Note: When useAlternativeBilling is true, Google Play will automatically
+        // show the user-choice dialog (if in user-choice mode)
         await _iap.requestPurchaseWithBuilder(
           build: (RequestPurchaseBuilder r) => r
             ..type = ProductType.Subs
