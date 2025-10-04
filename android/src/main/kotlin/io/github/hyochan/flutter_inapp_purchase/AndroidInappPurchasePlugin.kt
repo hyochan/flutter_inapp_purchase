@@ -11,6 +11,7 @@ import dev.hyo.openiap.DeepLinkOptions
 import dev.hyo.openiap.FetchProductsResult
 import dev.hyo.openiap.FetchProductsResultProducts
 import dev.hyo.openiap.FetchProductsResultSubscriptions
+import dev.hyo.openiap.InitConnectionConfig
 import dev.hyo.openiap.OpenIapError
 import dev.hyo.openiap.OpenIapModule
 import dev.hyo.openiap.ProductQueryType
@@ -275,7 +276,18 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                 openIap?.setActivity(activity)
                 scope.launch {
                     try {
-                        val ok = openIap?.initConnection() ?: false
+                        // Parse alternativeBillingModeAndroid from arguments
+                        val params = call.arguments as? Map<*, *>
+                        val configMap = mutableMapOf<String, Any?>()
+                        params?.get("alternativeBillingModeAndroid")?.let {
+                            configMap["alternativeBillingModeAndroid"] = it
+                        }
+                        val config = if (configMap.isEmpty()) {
+                            InitConnectionConfig()
+                        } else {
+                            InitConnectionConfig.fromJson(configMap)
+                        }
+                        val ok = openIap?.initConnection(config) ?: false
                         connectionReady = ok
                         // Emit connection-updated for compatibility
                         val item = JSONObject().apply { put("connected", ok) }
@@ -326,7 +338,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                             attachListenersIfNeeded()
                             openIap?.setActivity(activity)
                             if (!connectionReady) {
-                                val ok = openIap?.initConnection() ?: false
+                                val ok = openIap?.initConnection(InitConnectionConfig()) ?: false
                                 connectionReady = ok
                                 val item = JSONObject().apply { put("connected", ok) }
                                 channel?.invokeMethod("connection-updated", item.toString())
@@ -364,7 +376,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                             attachListenersIfNeeded()
                             openIap?.setActivity(activity)
                             if (!connectionReady) {
-                                val ok = openIap?.initConnection() ?: false
+                                val ok = openIap?.initConnection(InitConnectionConfig()) ?: false
                                 connectionReady = ok
                                 val item = JSONObject().apply { put("connected", ok) }
                                 channel?.invokeMethod("connection-updated", item.toString())
@@ -429,7 +441,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                             attachListenersIfNeeded()
                             openIap?.setActivity(activity)
                             if (!connectionReady) {
-                                val ok = openIap?.initConnection() ?: false
+                                val ok = openIap?.initConnection(InitConnectionConfig()) ?: false
                                 connectionReady = ok
                                 val item = JSONObject().apply { put("connected", ok) }
                                 channel?.invokeMethod("connection-updated", item.toString())
@@ -584,6 +596,58 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                 }
             }
 
+            // Alternative Billing APIs
+            "checkAlternativeBillingAvailabilityAndroid" -> {
+                scope.launch {
+                    try {
+                        val iap = openIap
+                        if (iap == null) {
+                            safe.error(OpenIapError.NotPrepared.CODE, OpenIapError.NotPrepared.MESSAGE, "IAP module not initialized.")
+                            return@launch
+                        }
+                        val isAvailable = iap.checkAlternativeBillingAvailability()
+                        safe.success(isAvailable)
+                    } catch (e: Exception) {
+                        safe.error(OpenIapError.BillingError.CODE, OpenIapError.BillingError.MESSAGE, e.message)
+                    }
+                }
+            }
+            "showAlternativeBillingDialogAndroid" -> {
+                scope.launch {
+                    try {
+                        val iap = openIap
+                        if (iap == null) {
+                            safe.error(OpenIapError.NotPrepared.CODE, OpenIapError.NotPrepared.MESSAGE, "IAP module not initialized.")
+                            return@launch
+                        }
+                        val act = activity
+                        if (act == null) {
+                            safe.error(OpenIapError.ActivityUnavailable.CODE, OpenIapError.ActivityUnavailable.MESSAGE, "Activity not available")
+                            return@launch
+                        }
+                        val userAccepted = iap.showAlternativeBillingInformationDialog(act)
+                        safe.success(userAccepted)
+                    } catch (e: Exception) {
+                        safe.error(OpenIapError.BillingError.CODE, OpenIapError.BillingError.MESSAGE, e.message)
+                    }
+                }
+            }
+            "createAlternativeBillingTokenAndroid" -> {
+                scope.launch {
+                    try {
+                        val iap = openIap
+                        if (iap == null) {
+                            safe.error(OpenIapError.NotPrepared.CODE, OpenIapError.NotPrepared.MESSAGE, "IAP module not initialized.")
+                            return@launch
+                        }
+                        val token = iap.createAlternativeBillingReportingToken()
+                        safe.success(token)
+                    } catch (e: Exception) {
+                        safe.error(OpenIapError.BillingError.CODE, OpenIapError.BillingError.MESSAGE, e.message)
+                    }
+                }
+            }
+
 
             // Legacy/compat purchases queries
             "getAvailableItemsByType" -> {
@@ -597,7 +661,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                             attachListenersIfNeeded()
                             openIap?.setActivity(activity)
                             if (!connectionReady) {
-                                val ok = openIap?.initConnection() ?: false
+                                val ok = openIap?.initConnection(InitConnectionConfig()) ?: false
                                 connectionReady = ok
                                 val item = JSONObject().apply { put("connected", ok) }
                                 channel?.invokeMethod("connection-updated", item.toString())
@@ -636,7 +700,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                             attachListenersIfNeeded()
                             openIap?.setActivity(activity)
                             if (!connectionReady) {
-                                val ok = openIap?.initConnection() ?: false
+                                val ok = openIap?.initConnection(InitConnectionConfig()) ?: false
                                 connectionReady = ok
                                 val item = JSONObject().apply { put("connected", ok) }
                                 channel?.invokeMethod("connection-updated", item.toString())
@@ -692,7 +756,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                             attachListenersIfNeeded()
                             openIap?.setActivity(activity)
                             if (!connectionReady) {
-                                val ok = openIap?.initConnection() ?: false
+                                val ok = openIap?.initConnection(InitConnectionConfig()) ?: false
                                 connectionReady = ok
                                 val item = JSONObject().apply { put("connected", ok) }
                                 channel?.invokeMethod("connection-updated", item.toString())
@@ -861,6 +925,16 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                 }
             }
         })
+        openIap?.addUserChoiceBillingListener { details ->
+            scope.launch {
+                try {
+                    val payload = JSONObject(details.toJson())
+                    channel?.invokeMethod("user-choice-billing-android", payload.toString())
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to send user-choice-billing-android", e)
+                }
+            }
+        }
     }
 
     companion object {

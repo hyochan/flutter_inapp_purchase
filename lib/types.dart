@@ -229,10 +229,38 @@ enum ErrorCode {
   String toJson() => value;
 }
 
+/// User actions on external purchase notice sheet (iOS 18.2+)
+enum ExternalPurchaseNoticeAction {
+  /// User chose to continue to external purchase
+  Continue('continue'),
+  /// User dismissed the notice sheet
+  Dismissed('dismissed');
+
+  const ExternalPurchaseNoticeAction(this.value);
+  final String value;
+
+  factory ExternalPurchaseNoticeAction.fromJson(String value) {
+    switch (value) {
+      case 'continue':
+      case 'CONTINUE':
+      case 'Continue':
+        return ExternalPurchaseNoticeAction.Continue;
+      case 'dismissed':
+      case 'DISMISSED':
+      case 'Dismissed':
+        return ExternalPurchaseNoticeAction.Dismissed;
+    }
+    throw ArgumentError('Unknown ExternalPurchaseNoticeAction value: $value');
+  }
+
+  String toJson() => value;
+}
+
 enum IapEvent {
   PurchaseUpdated('purchase-updated'),
   PurchaseError('purchase-error'),
-  PromotedProductIOS('promoted-product-ios');
+  PromotedProductIOS('promoted-product-ios'),
+  UserChoiceBillingAndroid('user-choice-billing-android');
 
   const IapEvent(this.value);
   final String value;
@@ -251,6 +279,10 @@ enum IapEvent {
       case 'PROMOTED_PRODUCT_IOS':
       case 'PromotedProductIOS':
         return IapEvent.PromotedProductIOS;
+      case 'user-choice-billing-android':
+      case 'USER_CHOICE_BILLING_ANDROID':
+      case 'UserChoiceBillingAndroid':
+        return IapEvent.UserChoiceBillingAndroid;
     }
     throw ArgumentError('Unknown IapEvent value: $value');
   }
@@ -525,6 +557,11 @@ abstract class ProductCommon {
 }
 
 abstract class PurchaseCommon {
+  /// The current plan identifier. This is:
+  /// - On Android: the basePlanId (e.g., "premium", "premium-year")
+  /// - On iOS: the productId (e.g., "com.example.premium_monthly", "com.example.premium_yearly")
+  /// This provides a unified way to identify which specific plan/tier the user is subscribed to.
+  String? get currentPlanId;
   String get id;
   List<String>? get ids;
   bool get isAutoRenewing;
@@ -542,24 +579,40 @@ abstract class PurchaseCommon {
 class ActiveSubscription {
   const ActiveSubscription({
     this.autoRenewingAndroid,
+    this.basePlanIdAndroid,
+    /// The current plan identifier. This is:
+    /// - On Android: the basePlanId (e.g., "premium", "premium-year")
+    /// - On iOS: the productId (e.g., "com.example.premium_monthly", "com.example.premium_yearly")
+    /// This provides a unified way to identify which specific plan/tier the user is subscribed to.
+    this.currentPlanId,
     this.daysUntilExpirationIOS,
     this.environmentIOS,
     this.expirationDateIOS,
     required this.isActive,
     required this.productId,
     this.purchaseToken,
+    /// Required for subscription upgrade/downgrade on Android
+    this.purchaseTokenAndroid,
     required this.transactionDate,
     required this.transactionId,
     this.willExpireSoon,
   });
 
   final bool? autoRenewingAndroid;
+  final String? basePlanIdAndroid;
+  /// The current plan identifier. This is:
+  /// - On Android: the basePlanId (e.g., "premium", "premium-year")
+  /// - On iOS: the productId (e.g., "com.example.premium_monthly", "com.example.premium_yearly")
+  /// This provides a unified way to identify which specific plan/tier the user is subscribed to.
+  final String? currentPlanId;
   final double? daysUntilExpirationIOS;
   final String? environmentIOS;
   final double? expirationDateIOS;
   final bool isActive;
   final String productId;
   final String? purchaseToken;
+  /// Required for subscription upgrade/downgrade on Android
+  final String? purchaseTokenAndroid;
   final double transactionDate;
   final String transactionId;
   final bool? willExpireSoon;
@@ -567,12 +620,15 @@ class ActiveSubscription {
   factory ActiveSubscription.fromJson(Map<String, dynamic> json) {
     return ActiveSubscription(
       autoRenewingAndroid: json['autoRenewingAndroid'] as bool?,
+      basePlanIdAndroid: json['basePlanIdAndroid'] as String?,
+      currentPlanId: json['currentPlanId'] as String?,
       daysUntilExpirationIOS: (json['daysUntilExpirationIOS'] as num?)?.toDouble(),
       environmentIOS: json['environmentIOS'] as String?,
       expirationDateIOS: (json['expirationDateIOS'] as num?)?.toDouble(),
       isActive: json['isActive'] as bool,
       productId: json['productId'] as String,
       purchaseToken: json['purchaseToken'] as String?,
+      purchaseTokenAndroid: json['purchaseTokenAndroid'] as String?,
       transactionDate: (json['transactionDate'] as num).toDouble(),
       transactionId: json['transactionId'] as String,
       willExpireSoon: json['willExpireSoon'] as bool?,
@@ -583,12 +639,15 @@ class ActiveSubscription {
     return {
       '__typename': 'ActiveSubscription',
       'autoRenewingAndroid': autoRenewingAndroid,
+      'basePlanIdAndroid': basePlanIdAndroid,
+      'currentPlanId': currentPlanId,
       'daysUntilExpirationIOS': daysUntilExpirationIOS,
       'environmentIOS': environmentIOS,
       'expirationDateIOS': expirationDateIOS,
       'isActive': isActive,
       'productId': productId,
       'purchaseToken': purchaseToken,
+      'purchaseTokenAndroid': purchaseTokenAndroid,
       'transactionDate': transactionDate,
       'transactionId': transactionId,
       'willExpireSoon': willExpireSoon,
@@ -786,6 +845,66 @@ class EntitlementIOS {
       'jsonRepresentation': jsonRepresentation,
       'sku': sku,
       'transactionId': transactionId,
+    };
+  }
+}
+
+/// Result of presenting an external purchase link (iOS 18.2+)
+class ExternalPurchaseLinkResultIOS {
+  const ExternalPurchaseLinkResultIOS({
+    /// Optional error message if the presentation failed
+    this.error,
+    /// Whether the user completed the external purchase flow
+    required this.success,
+  });
+
+  /// Optional error message if the presentation failed
+  final String? error;
+  /// Whether the user completed the external purchase flow
+  final bool success;
+
+  factory ExternalPurchaseLinkResultIOS.fromJson(Map<String, dynamic> json) {
+    return ExternalPurchaseLinkResultIOS(
+      error: json['error'] as String?,
+      success: json['success'] as bool,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '__typename': 'ExternalPurchaseLinkResultIOS',
+      'error': error,
+      'success': success,
+    };
+  }
+}
+
+/// Result of presenting external purchase notice sheet (iOS 18.2+)
+class ExternalPurchaseNoticeResultIOS {
+  const ExternalPurchaseNoticeResultIOS({
+    /// Optional error message if the presentation failed
+    this.error,
+    /// Notice result indicating user action
+    required this.result,
+  });
+
+  /// Optional error message if the presentation failed
+  final String? error;
+  /// Notice result indicating user action
+  final ExternalPurchaseNoticeAction result;
+
+  factory ExternalPurchaseNoticeResultIOS.fromJson(Map<String, dynamic> json) {
+    return ExternalPurchaseNoticeResultIOS(
+      error: json['error'] as String?,
+      result: ExternalPurchaseNoticeAction.fromJson(json['result'] as String),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '__typename': 'ExternalPurchaseNoticeResultIOS',
+      'error': error,
+      'result': result.toJson(),
     };
   }
 }
@@ -1263,6 +1382,7 @@ class ProductSubscriptionIOS extends ProductSubscription implements ProductCommo
 class PurchaseAndroid extends Purchase implements PurchaseCommon {
   const PurchaseAndroid({
     this.autoRenewingAndroid,
+    this.currentPlanId,
     this.dataAndroid,
     this.developerPayloadAndroid,
     required this.id,
@@ -1284,6 +1404,7 @@ class PurchaseAndroid extends Purchase implements PurchaseCommon {
   });
 
   final bool? autoRenewingAndroid;
+  final String? currentPlanId;
   final String? dataAndroid;
   final String? developerPayloadAndroid;
   final String id;
@@ -1306,6 +1427,7 @@ class PurchaseAndroid extends Purchase implements PurchaseCommon {
   factory PurchaseAndroid.fromJson(Map<String, dynamic> json) {
     return PurchaseAndroid(
       autoRenewingAndroid: json['autoRenewingAndroid'] as bool?,
+      currentPlanId: json['currentPlanId'] as String?,
       dataAndroid: json['dataAndroid'] as String?,
       developerPayloadAndroid: json['developerPayloadAndroid'] as String?,
       id: json['id'] as String,
@@ -1332,6 +1454,7 @@ class PurchaseAndroid extends Purchase implements PurchaseCommon {
     return {
       '__typename': 'PurchaseAndroid',
       'autoRenewingAndroid': autoRenewingAndroid,
+      'currentPlanId': currentPlanId,
       'dataAndroid': dataAndroid,
       'developerPayloadAndroid': developerPayloadAndroid,
       'id': id,
@@ -1390,6 +1513,7 @@ class PurchaseIOS extends Purchase implements PurchaseCommon {
     this.countryCodeIOS,
     this.currencyCodeIOS,
     this.currencySymbolIOS,
+    this.currentPlanId,
     this.environmentIOS,
     this.expirationDateIOS,
     required this.id,
@@ -1424,6 +1548,7 @@ class PurchaseIOS extends Purchase implements PurchaseCommon {
   final String? countryCodeIOS;
   final String? currencyCodeIOS;
   final String? currencySymbolIOS;
+  final String? currentPlanId;
   final String? environmentIOS;
   final double? expirationDateIOS;
   final String id;
@@ -1459,6 +1584,7 @@ class PurchaseIOS extends Purchase implements PurchaseCommon {
       countryCodeIOS: json['countryCodeIOS'] as String?,
       currencyCodeIOS: json['currencyCodeIOS'] as String?,
       currencySymbolIOS: json['currencySymbolIOS'] as String?,
+      currentPlanId: json['currentPlanId'] as String?,
       environmentIOS: json['environmentIOS'] as String?,
       expirationDateIOS: (json['expirationDateIOS'] as num?)?.toDouble(),
       id: json['id'] as String,
@@ -1498,6 +1624,7 @@ class PurchaseIOS extends Purchase implements PurchaseCommon {
       'countryCodeIOS': countryCodeIOS,
       'currencyCodeIOS': currencyCodeIOS,
       'currencySymbolIOS': currencySymbolIOS,
+      'currentPlanId': currentPlanId,
       'environmentIOS': environmentIOS,
       'expirationDateIOS': expirationDateIOS,
       'id': id,
@@ -1886,6 +2013,37 @@ class SubscriptionStatusIOS {
   }
 }
 
+/// User Choice Billing event details (Android)
+/// Fired when a user selects alternative billing in the User Choice Billing dialog
+class UserChoiceBillingDetails {
+  const UserChoiceBillingDetails({
+    /// Token that must be reported to Google Play within 24 hours
+    required this.externalTransactionToken,
+    /// List of product IDs selected by the user
+    required this.products,
+  });
+
+  /// Token that must be reported to Google Play within 24 hours
+  final String externalTransactionToken;
+  /// List of product IDs selected by the user
+  final List<String> products;
+
+  factory UserChoiceBillingDetails.fromJson(Map<String, dynamic> json) {
+    return UserChoiceBillingDetails(
+      externalTransactionToken: json['externalTransactionToken'] as String,
+      products: (json['products'] as List<dynamic>).map((e) => e as String).toList(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '__typename': 'UserChoiceBillingDetails',
+      'externalTransactionToken': externalTransactionToken,
+      'products': products.map((e) => e).toList(),
+    };
+  }
+}
+
 typedef VoidResult = void;
 
 // MARK: - Input Objects
@@ -2177,8 +2335,6 @@ class RequestPurchaseIosProps {
     this.andDangerouslyFinishTransactionAutomatically,
     /// App account token for user tracking
     this.appAccountToken,
-    /// External purchase URL for alternative billing (iOS)
-    this.externalPurchaseUrl,
     /// Purchase quantity
     this.quantity,
     /// Product SKU
@@ -2191,8 +2347,6 @@ class RequestPurchaseIosProps {
   final bool? andDangerouslyFinishTransactionAutomatically;
   /// App account token for user tracking
   final String? appAccountToken;
-  /// External purchase URL for alternative billing (iOS)
-  final String? externalPurchaseUrl;
   /// Purchase quantity
   final int? quantity;
   /// Product SKU
@@ -2204,7 +2358,6 @@ class RequestPurchaseIosProps {
     return RequestPurchaseIosProps(
       andDangerouslyFinishTransactionAutomatically: json['andDangerouslyFinishTransactionAutomatically'] as bool?,
       appAccountToken: json['appAccountToken'] as String?,
-      externalPurchaseUrl: json['externalPurchaseUrl'] as String?,
       quantity: json['quantity'] as int?,
       sku: json['sku'] as String,
       withOffer: json['withOffer'] != null ? DiscountOfferInputIOS.fromJson(json['withOffer'] as Map<String, dynamic>) : null,
@@ -2215,7 +2368,6 @@ class RequestPurchaseIosProps {
     return {
       'andDangerouslyFinishTransactionAutomatically': andDangerouslyFinishTransactionAutomatically,
       'appAccountToken': appAccountToken,
-      'externalPurchaseUrl': externalPurchaseUrl,
       'quantity': quantity,
       'sku': sku,
       'withOffer': withOffer?.toJson(),
@@ -2373,8 +2525,6 @@ class RequestSubscriptionIosProps {
   const RequestSubscriptionIosProps({
     this.andDangerouslyFinishTransactionAutomatically,
     this.appAccountToken,
-    /// External purchase URL for alternative billing (iOS)
-    this.externalPurchaseUrl,
     this.quantity,
     required this.sku,
     this.withOffer,
@@ -2382,8 +2532,6 @@ class RequestSubscriptionIosProps {
 
   final bool? andDangerouslyFinishTransactionAutomatically;
   final String? appAccountToken;
-  /// External purchase URL for alternative billing (iOS)
-  final String? externalPurchaseUrl;
   final int? quantity;
   final String sku;
   final DiscountOfferInputIOS? withOffer;
@@ -2392,7 +2540,6 @@ class RequestSubscriptionIosProps {
     return RequestSubscriptionIosProps(
       andDangerouslyFinishTransactionAutomatically: json['andDangerouslyFinishTransactionAutomatically'] as bool?,
       appAccountToken: json['appAccountToken'] as String?,
-      externalPurchaseUrl: json['externalPurchaseUrl'] as String?,
       quantity: json['quantity'] as int?,
       sku: json['sku'] as String,
       withOffer: json['withOffer'] != null ? DiscountOfferInputIOS.fromJson(json['withOffer'] as Map<String, dynamic>) : null,
@@ -2403,7 +2550,6 @@ class RequestSubscriptionIosProps {
     return {
       'andDangerouslyFinishTransactionAutomatically': andDangerouslyFinishTransactionAutomatically,
       'appAccountToken': appAccountToken,
-      'externalPurchaseUrl': externalPurchaseUrl,
       'quantity': quantity,
       'sku': sku,
       'withOffer': withOffer?.toJson(),
@@ -2531,6 +2677,12 @@ sealed class Purchase implements PurchaseCommon {
     throw ArgumentError('Unknown __typename for Purchase: $typeName');
   }
 
+  /// The current plan identifier. This is:
+  /// - On Android: the basePlanId (e.g., "premium", "premium-year")
+  /// - On iOS: the productId (e.g., "com.example.premium_monthly", "com.example.premium_yearly")
+  /// This provides a unified way to identify which specific plan/tier the user is subscribed to.
+  @override
+  String? get currentPlanId;
   @override
   String get id;
   @override
@@ -2615,6 +2767,10 @@ abstract class MutationResolver {
   });
   /// Present the App Store code redemption sheet
   Future<bool> presentCodeRedemptionSheetIOS();
+  /// Present external purchase custom link with StoreKit UI (iOS 18.2+)
+  Future<ExternalPurchaseLinkResultIOS> presentExternalPurchaseLinkIOS(String url);
+  /// Present external purchase notice sheet (iOS 18.2+)
+  Future<ExternalPurchaseNoticeResultIOS> presentExternalPurchaseNoticeSheetIOS();
   /// Initiate a purchase flow; rely on events for final state
   Future<RequestPurchaseResult?> requestPurchase(RequestPurchaseProps params);
   /// Purchase the promoted product surfaced by the App Store
@@ -2641,6 +2797,8 @@ abstract class MutationResolver {
 
 /// GraphQL root query operations.
 abstract class QueryResolver {
+  /// Check if external purchase notice sheet can be presented (iOS 18.2+)
+  Future<bool> canPresentExternalPurchaseNoticeIOS();
   /// Get current StoreKit 2 entitlements (iOS 15+)
   Future<PurchaseIOS?> currentEntitlementIOS(String sku);
   /// Retrieve products or subscriptions from the store
@@ -2694,6 +2852,9 @@ abstract class SubscriptionResolver {
   Future<PurchaseError> purchaseError();
   /// Fires when a purchase completes successfully or a pending purchase resolves
   Future<Purchase> purchaseUpdated();
+  /// Fires when a user selects alternative billing in the User Choice Billing dialog (Android only)
+  /// Only triggered when the user selects alternative billing instead of Google Play billing
+  Future<UserChoiceBillingDetails> userChoiceBillingAndroid();
 }
 
 // MARK: - Root Operation Helpers
@@ -2719,6 +2880,8 @@ typedef MutationInitConnectionHandler = Future<bool> Function({
   AlternativeBillingModeAndroid? alternativeBillingModeAndroid,
 });
 typedef MutationPresentCodeRedemptionSheetIOSHandler = Future<bool> Function();
+typedef MutationPresentExternalPurchaseLinkIOSHandler = Future<ExternalPurchaseLinkResultIOS> Function(String url);
+typedef MutationPresentExternalPurchaseNoticeSheetIOSHandler = Future<ExternalPurchaseNoticeResultIOS> Function();
 typedef MutationRequestPurchaseHandler = Future<RequestPurchaseResult?> Function(RequestPurchaseProps params);
 typedef MutationRequestPurchaseOnPromotedProductIOSHandler = Future<bool> Function();
 typedef MutationRestorePurchasesHandler = Future<void> Function();
@@ -2743,6 +2906,8 @@ class MutationHandlers {
     this.finishTransaction,
     this.initConnection,
     this.presentCodeRedemptionSheetIOS,
+    this.presentExternalPurchaseLinkIOS,
+    this.presentExternalPurchaseNoticeSheetIOS,
     this.requestPurchase,
     this.requestPurchaseOnPromotedProductIOS,
     this.restorePurchases,
@@ -2763,6 +2928,8 @@ class MutationHandlers {
   final MutationFinishTransactionHandler? finishTransaction;
   final MutationInitConnectionHandler? initConnection;
   final MutationPresentCodeRedemptionSheetIOSHandler? presentCodeRedemptionSheetIOS;
+  final MutationPresentExternalPurchaseLinkIOSHandler? presentExternalPurchaseLinkIOS;
+  final MutationPresentExternalPurchaseNoticeSheetIOSHandler? presentExternalPurchaseNoticeSheetIOS;
   final MutationRequestPurchaseHandler? requestPurchase;
   final MutationRequestPurchaseOnPromotedProductIOSHandler? requestPurchaseOnPromotedProductIOS;
   final MutationRestorePurchasesHandler? restorePurchases;
@@ -2774,6 +2941,7 @@ class MutationHandlers {
 
 // MARK: - Query Helpers
 
+typedef QueryCanPresentExternalPurchaseNoticeIOSHandler = Future<bool> Function();
 typedef QueryCurrentEntitlementIOSHandler = Future<PurchaseIOS?> Function(String sku);
 typedef QueryFetchProductsHandler = Future<FetchProductsResult> Function({
   required List<String> skus,
@@ -2803,6 +2971,7 @@ typedef QueryValidateReceiptIOSHandler = Future<ReceiptValidationResultIOS> Func
 
 class QueryHandlers {
   const QueryHandlers({
+    this.canPresentExternalPurchaseNoticeIOS,
     this.currentEntitlementIOS,
     this.fetchProducts,
     this.getActiveSubscriptions,
@@ -2822,6 +2991,7 @@ class QueryHandlers {
     this.validateReceiptIOS,
   });
 
+  final QueryCanPresentExternalPurchaseNoticeIOSHandler? canPresentExternalPurchaseNoticeIOS;
   final QueryCurrentEntitlementIOSHandler? currentEntitlementIOS;
   final QueryFetchProductsHandler? fetchProducts;
   final QueryGetActiveSubscriptionsHandler? getActiveSubscriptions;
@@ -2846,15 +3016,18 @@ class QueryHandlers {
 typedef SubscriptionPromotedProductIOSHandler = Future<String> Function();
 typedef SubscriptionPurchaseErrorHandler = Future<PurchaseError> Function();
 typedef SubscriptionPurchaseUpdatedHandler = Future<Purchase> Function();
+typedef SubscriptionUserChoiceBillingAndroidHandler = Future<UserChoiceBillingDetails> Function();
 
 class SubscriptionHandlers {
   const SubscriptionHandlers({
     this.promotedProductIOS,
     this.purchaseError,
     this.purchaseUpdated,
+    this.userChoiceBillingAndroid,
   });
 
   final SubscriptionPromotedProductIOSHandler? promotedProductIOS;
   final SubscriptionPurchaseErrorHandler? purchaseError;
   final SubscriptionPurchaseUpdatedHandler? purchaseUpdated;
+  final SubscriptionUserChoiceBillingAndroidHandler? userChoiceBillingAndroid;
 }

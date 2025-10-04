@@ -338,4 +338,3 @@ String price = product.displayPrice;
 
 - [Purchase Class](./purchase-item.md) - Represents a completed purchase
 - [fetchProducts() Method](../methods/get-products.md) - Fetch available products
-- [Products Guide](../../guides/products.md) - Guide to working with products

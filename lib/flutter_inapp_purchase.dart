@@ -91,6 +91,9 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
       StreamController<gentype.Purchase>.broadcast();
   final StreamController<PurchaseError> _purchaseErrorListener =
       StreamController<PurchaseError>.broadcast();
+  final StreamController<gentype.UserChoiceBillingDetails>
+      _userChoiceBillingAndroidListener =
+      StreamController<gentype.UserChoiceBillingDetails>.broadcast();
 
   /// Purchase updated event stream
   Stream<gentype.Purchase> get purchaseUpdatedListener =>
@@ -99,6 +102,10 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
   /// Purchase error event stream
   Stream<PurchaseError> get purchaseErrorListener =>
       _purchaseErrorListener.stream;
+
+  /// User choice billing Android event stream
+  Stream<gentype.UserChoiceBillingDetails> get userChoiceBillingAndroid =>
+      _userChoiceBillingAndroidListener.stream;
 
   bool _isInitialized = false;
 
@@ -165,6 +172,19 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           String? productId = call.arguments as String?;
           _purchasePromotedController!.add(productId);
           break;
+        case 'user-choice-billing-android':
+          try {
+            Map<String, dynamic> result =
+                jsonDecode(call.arguments as String) as Map<String, dynamic>;
+            final details = gentype.UserChoiceBillingDetails.fromJson(result);
+            _userChoiceBillingAndroidListener.add(details);
+          } catch (e, stackTrace) {
+            debugPrint(
+              '[flutter_inapp_purchase] ERROR in user-choice-billing-android: $e',
+            );
+            debugPrint('[flutter_inapp_purchase] Stack trace: $stackTrace');
+          }
+          break;
         default:
           throw ArgumentError('Unknown method ${call.method}');
       }
@@ -182,7 +202,17 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
 
         try {
           await _setPurchaseListener();
-          await _channel.invokeMethod('initConnection');
+
+          // Build config map for alternative billing
+          final Map<String, dynamic>? config =
+              alternativeBillingModeAndroid != null
+                  ? {
+                      'alternativeBillingModeAndroid':
+                          alternativeBillingModeAndroid.toJson()
+                    }
+                  : null;
+
+          await _channel.invokeMethod('initConnection', config);
           _isInitialized = true;
           return true;
         } catch (error) {
@@ -1494,6 +1524,104 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
         }
       };
 
+  // MARK: - Alternative Billing APIs
+
+  /// Check if alternative billing is available on Android
+  gentype.MutationCheckAlternativeBillingAvailabilityAndroidHandler
+      get checkAlternativeBillingAvailabilityAndroid => () async {
+            if (!_platform.isAndroid) {
+              return false;
+            }
+            try {
+              final result = await _channel.invokeMethod<bool>(
+                  'checkAlternativeBillingAvailabilityAndroid');
+              return result ?? false;
+            } catch (error) {
+              debugPrint(
+                  'checkAlternativeBillingAvailabilityAndroid error: $error');
+              return false;
+            }
+          };
+
+  /// Show alternative billing information dialog on Android
+  gentype.MutationShowAlternativeBillingDialogAndroidHandler
+      get showAlternativeBillingDialogAndroid => () async {
+            if (!_platform.isAndroid) {
+              return false;
+            }
+            try {
+              final result = await _channel
+                  .invokeMethod<bool>('showAlternativeBillingDialogAndroid');
+              return result ?? false;
+            } catch (error) {
+              debugPrint('showAlternativeBillingDialogAndroid error: $error');
+              return false;
+            }
+          };
+
+  /// Create alternative billing reporting token on Android
+  gentype.MutationCreateAlternativeBillingTokenAndroidHandler
+      get createAlternativeBillingTokenAndroid => () async {
+            if (!_platform.isAndroid) {
+              return null;
+            }
+            try {
+              final result = await _channel
+                  .invokeMethod<String>('createAlternativeBillingTokenAndroid');
+              return result;
+            } catch (error) {
+              debugPrint('createAlternativeBillingTokenAndroid error: $error');
+              return null;
+            }
+          };
+
+  /// Present external purchase notice sheet on iOS (iOS 18.2+)
+  gentype.MutationPresentExternalPurchaseNoticeSheetIOSHandler
+      get presentExternalPurchaseNoticeSheetIOS => () async {
+            if (!_platform.isIOS) {
+              return const gentype.ExternalPurchaseNoticeResultIOS(
+                  result: gentype.ExternalPurchaseNoticeAction.Dismissed);
+            }
+            try {
+              final result = await _channel.invokeMethod<Map<dynamic, dynamic>>(
+                  'presentExternalPurchaseNoticeSheetIOS');
+              if (result != null) {
+                return gentype.ExternalPurchaseNoticeResultIOS.fromJson(
+                    Map<String, dynamic>.from(result));
+              }
+              return const gentype.ExternalPurchaseNoticeResultIOS(
+                  result: gentype.ExternalPurchaseNoticeAction.Dismissed);
+            } catch (error) {
+              debugPrint('presentExternalPurchaseNoticeSheetIOS error: $error');
+              return gentype.ExternalPurchaseNoticeResultIOS(
+                  result: gentype.ExternalPurchaseNoticeAction.Dismissed,
+                  error: error.toString());
+            }
+          };
+
+  /// Present external purchase link on iOS (iOS 16.0+)
+  gentype.MutationPresentExternalPurchaseLinkIOSHandler
+      get presentExternalPurchaseLinkIOS => (String url) async {
+            if (!_platform.isIOS) {
+              return const gentype.ExternalPurchaseLinkResultIOS(
+                  success: false);
+            }
+            try {
+              final result = await _channel.invokeMethod<Map<dynamic, dynamic>>(
+                  'presentExternalPurchaseLinkIOS', url);
+              if (result != null) {
+                return gentype.ExternalPurchaseLinkResultIOS.fromJson(
+                    Map<String, dynamic>.from(result));
+              }
+              return const gentype.ExternalPurchaseLinkResultIOS(
+                  success: false);
+            } catch (error) {
+              debugPrint('presentExternalPurchaseLinkIOS error: $error');
+              return gentype.ExternalPurchaseLinkResultIOS(
+                  success: false, error: error.toString());
+            }
+          };
+
   gentype.QueryHandlers get queryHandlers => gentype.QueryHandlers(
         fetchProducts: fetchProducts,
         getActiveSubscriptions: getActiveSubscriptions,
@@ -1525,6 +1653,16 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
         syncIOS: syncIOS,
         validateReceipt: validateReceipt,
         clearTransactionIOS: clearTransactionIOS,
+        // Alternative Billing APIs
+        checkAlternativeBillingAvailabilityAndroid:
+            checkAlternativeBillingAvailabilityAndroid,
+        showAlternativeBillingDialogAndroid:
+            showAlternativeBillingDialogAndroid,
+        createAlternativeBillingTokenAndroid:
+            createAlternativeBillingTokenAndroid,
+        presentExternalPurchaseNoticeSheetIOS:
+            presentExternalPurchaseNoticeSheetIOS,
+        presentExternalPurchaseLinkIOS: presentExternalPurchaseLinkIOS,
       );
 
   gentype.SubscriptionHandlers get subscriptionHandlers =>
@@ -1538,5 +1676,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
         purchaseError: () async =>
             await purchaseErrorListener.first as gentype.PurchaseError,
         purchaseUpdated: () async => await purchaseUpdatedListener.first,
+        userChoiceBillingAndroid: () async =>
+            await _userChoiceBillingAndroidListener.stream.first,
       );
 }

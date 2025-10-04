@@ -109,6 +109,18 @@ class HomeScreen extends StatelessWidget {
                         onTap: () =>
                             Navigator.pushNamed(context, '/builder-demo'),
                       ),
+                      const Divider(height: 1),
+                      _buildMenuItem(
+                        context,
+                        icon: CupertinoIcons.money_dollar_circle,
+                        title: 'Alternative Billing',
+                        subtitle: Platform.isAndroid
+                            ? 'Google Play alternative billing'
+                            : 'External purchase links',
+                        color: const Color(0xFFFF9800),
+                        onTap: () => Navigator.pushNamed(
+                            context, '/alternative-billing'),
+                      ),
                     ],
                   ),
                 ),
