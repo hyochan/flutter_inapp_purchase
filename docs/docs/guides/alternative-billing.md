@@ -341,9 +341,7 @@ Future<void> initializeWithUserChoice() async {
   // Initialize with user choice mode
   await FlutterInappPurchase.instance.initialize();
   await FlutterInappPurchase.instance.initConnection(
-    config: InitConnectionConfig(
-      alternativeBillingModeAndroid: AlternativeBillingModeAndroid.UserChoice,
-    ),
+    alternativeBillingModeAndroid: AlternativeBillingModeAndroid.UserChoice,
   );
 
   // Set up listeners
@@ -394,24 +392,18 @@ Future<void> initWithAlternativeBilling() async {
 
   // Option 1: Alternative Billing Only
   await FlutterInappPurchase.instance.initConnection(
-    config: InitConnectionConfig(
-      alternativeBillingModeAndroid:
-          AlternativeBillingModeAndroid.AlternativeOnly,
-    ),
+    alternativeBillingModeAndroid:
+        AlternativeBillingModeAndroid.AlternativeOnly,
   );
 
   // Option 2: User Choice Billing
   await FlutterInappPurchase.instance.initConnection(
-    config: InitConnectionConfig(
-      alternativeBillingModeAndroid: AlternativeBillingModeAndroid.UserChoice,
-    ),
+    alternativeBillingModeAndroid: AlternativeBillingModeAndroid.UserChoice,
   );
 
   // Option 3: None (default Google Play only)
   await FlutterInappPurchase.instance.initConnection(
-    config: InitConnectionConfig(
-      alternativeBillingModeAndroid: AlternativeBillingModeAndroid.None,
-    ),
+    alternativeBillingModeAndroid: AlternativeBillingModeAndroid.None,
   );
 }
 ```

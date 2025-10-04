@@ -256,10 +256,8 @@ class _AndroidUserChoiceBillingState extends State<AndroidUserChoiceBilling> {
 
     if (Platform.isAndroid) {
       await FlutterInappPurchase.instance.initConnection(
-        config: InitConnectionConfig(
-          alternativeBillingModeAndroid:
-              AlternativeBillingModeAndroid.UserChoice,
-        ),
+        alternativeBillingModeAndroid:
+            AlternativeBillingModeAndroid.UserChoice,
       );
     }
 
@@ -343,10 +341,8 @@ Future<void> initializeWithAlternativeBilling() async {
 
   if (Platform.isAndroid) {
     await FlutterInappPurchase.instance.initConnection(
-      config: InitConnectionConfig(
-        alternativeBillingModeAndroid:
-            AlternativeBillingModeAndroid.AlternativeOnly, // or UserChoice
-      ),
+      alternativeBillingModeAndroid:
+          AlternativeBillingModeAndroid.AlternativeOnly, // or UserChoice
     );
   } else {
     await FlutterInappPurchase.instance.initConnection();

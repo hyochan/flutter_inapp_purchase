@@ -154,7 +154,7 @@ Date: ${DateTime.fromMillisecondsSinceEpoch(purchase.transactionDate.toInt()).to
           _purchaseResult = '''
 🔔 User selected alternative billing
 Products: ${details.products.join(', ')}
-Token: ${details.externalTransactionToken.substring(0, 20)}...
+Token: ${details.externalTransactionToken.length > 20 ? details.externalTransactionToken.substring(0, 20) : details.externalTransactionToken}...
 
 ⚠️ Important:
 1. Process payment with your payment system
@@ -388,7 +388,7 @@ Note: Complete purchase on your website and implement server-side validation.
 ✅ Alternative billing completed (DEMO)
 
 Product: ${product.id}
-Token: ${token.substring(0, 20)}...
+Token: ${token.length > 20 ? token.substring(0, 20) : token}...
 
 ⚠️ Important:
 1. Process payment with your payment system

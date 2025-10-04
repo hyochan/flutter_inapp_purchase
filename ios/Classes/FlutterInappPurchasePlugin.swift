@@ -174,7 +174,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
             }
 
         case "presentExternalPurchaseLinkIOS":
-            if #available(iOS 18.2, *) {
+            if #available(iOS 16.0, *) {
                 if let args = call.arguments as? [String: Any],
                    let url = args["url"] as? String {
                     presentExternalPurchaseLinkIOS(url: url, result: result)
@@ -186,7 +186,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 }
             } else {
                 let code: ErrorCode = .featureNotSupported
-                result(FlutterError(code: code.rawValue, message: "External purchase link requires iOS 18.2+", details: nil))
+                result(FlutterError(code: code.rawValue, message: "External purchase link requires iOS 16.0+", details: nil))
             }
 
         default:

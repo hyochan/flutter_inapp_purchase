@@ -65,10 +65,11 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
         });
 
         // Finish transaction
+        final bool isConsumable = !purchase.isAutoRenewing;
         _iap
-            .finishTransaction(purchase: purchase, isConsumable: true)
+            .finishTransaction(purchase: purchase, isConsumable: isConsumable)
             .then((_) {
-          debugPrint('Transaction finished');
+          debugPrint('Transaction finished (consumable: $isConsumable)');
         }).catchError((error) {
           debugPrint('Failed to finish transaction: $error');
         });
