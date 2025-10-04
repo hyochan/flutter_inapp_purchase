@@ -249,12 +249,16 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
             Task { @MainActor in
                 guard let self else { return }
                 FlutterIapLog.debug("purchaseErrorListener fired")
-                let errorData: [String: Any?] = [
+                let _ : [String: Any?] = [
                     "code": error.code.rawValue,
                     "message": error.message,
                     "productId": error.productId
                 ]
-                let compacted = FlutterIapHelper.sanitizeDictionary(errorData)
+                let compacted = FlutterIapHelper.sanitizeDictionary([
+                    "code": error.code.rawValue,
+                    "message": error.message,
+                    "productId": error.productId
+                ])
                 if let jsonString = FlutterIapHelper.jsonString(from: compacted) {
                     self.channel?.invokeMethod("purchase-error", arguments: jsonString)
                 }
@@ -364,15 +368,6 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 result(nil)
             } catch let purchaseError as PurchaseError {
                 FlutterIapLog.failure("requestPurchase", error: purchaseError)
-                let errorData: [String: Any?] = [
-                    "code": purchaseError.code.rawValue,
-                    "message": purchaseError.message.isEmpty ? defaultMessage(for: purchaseError.code) : purchaseError.message,
-                    "productId": purchaseError.productId ?? sku
-                ]
-                // Don't send purchase-error event here - purchaseErrorListener will handle it
-                // if let payload = FlutterIapHelper.jsonString(from: FlutterIapHelper.sanitizeDictionary(errorData)) {
-                //     channel?.invokeMethod("purchase-error", arguments: payload)
-                // }
                 result(FlutterError(
                     code: purchaseError.code.rawValue,
                     message: purchaseError.message,
@@ -381,15 +376,6 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
             } catch {
                 FlutterIapLog.failure("requestPurchase", error: error)
                 let code: ErrorCode = .purchaseError
-                let errorData: [String: Any?] = [
-                    "code": code.rawValue,
-                    "message": error.localizedDescription,
-                    "productId": sku
-                ]
-                // Don't send purchase-error event here - purchaseErrorListener will handle it
-                // if let payload = FlutterIapHelper.jsonString(from: FlutterIapHelper.sanitizeDictionary(errorData)) {
-                //     channel?.invokeMethod("purchase-error", arguments: payload)
-                // }
                 result(FlutterError(code: code.rawValue, message: defaultMessage(for: code), details: error.localizedDescription))
             }
         }
@@ -476,7 +462,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
         FlutterIapLog.debug("requestPurchaseOnPromotedProductIOS called")
         Task { @MainActor in
             do {
-                try await OpenIapModule.shared.requestPurchaseOnPromotedProductIOS()
+                _ = try await OpenIapModule.shared.requestPurchaseOnPromotedProductIOS()
                 FlutterIapLog.result("requestPurchaseOnPromotedProductIOS", value: true)
                 result(nil)
             } catch {
@@ -561,7 +547,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
         FlutterIapLog.debug("clearTransactionIOS called")
         Task { @MainActor in
             do {
-                try await OpenIapModule.shared.clearTransactionIOS()
+                _ = try await OpenIapModule.shared.clearTransactionIOS()
                 FlutterIapLog.result("clearTransactionIOS", value: true)
                 result(nil)
             } catch {

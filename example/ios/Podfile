@@ -1,4 +1,4 @@
-# CocoaPods trunk CDN (ensures latest specs like openiap 1.1.9)
+# CocoaPods trunk CDN (ensures latest specs like openiap)
 source 'https://cdn.cocoapods.org/'
 
 require 'json'

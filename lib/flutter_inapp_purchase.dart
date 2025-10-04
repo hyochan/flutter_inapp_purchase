@@ -407,6 +407,12 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
                   subscriptionOffers.map((offer) => offer.toJson()).toList();
             }
 
+            // Add useAlternativeBilling from the RequestPurchaseProps
+            // Include it even if null or false to ensure proper mode switching
+            final useAlternativeBilling =
+                json['useAlternativeBilling'] as bool?;
+            payload['useAlternativeBilling'] = useAlternativeBilling;
+
             await _channel.invokeMethod('requestPurchase', payload);
             return null;
           }

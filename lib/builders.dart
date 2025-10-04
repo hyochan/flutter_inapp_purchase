@@ -94,6 +94,7 @@ class RequestPurchaseBuilder {
   final RequestPurchaseIosBuilder ios = RequestPurchaseIosBuilder();
   final RequestPurchaseAndroidBuilder android = RequestPurchaseAndroidBuilder();
   ProductQueryType _type = ProductQueryType.InApp;
+  bool? useAlternativeBilling = false;
 
   ProductQueryType get type => _type;
 
@@ -136,7 +137,7 @@ class RequestPurchaseBuilder {
       return RequestPurchaseProps.inApp((
         ios: iosProps,
         android: androidProps,
-        useAlternativeBilling: null,
+        useAlternativeBilling: useAlternativeBilling,
       ));
     }
 
@@ -169,7 +170,7 @@ class RequestPurchaseBuilder {
       return RequestPurchaseProps.subs((
         ios: iosSub,
         android: androidSub,
-        useAlternativeBilling: null,
+        useAlternativeBilling: useAlternativeBilling,
       ));
     }
 
@@ -222,6 +223,7 @@ class RequestSubscriptionBuilder {
   final RequestSubscriptionIosBuilder ios = RequestSubscriptionIosBuilder();
   final RequestSubscriptionAndroidBuilder android =
       RequestSubscriptionAndroidBuilder();
+  bool? useAlternativeBilling = false;
 
   RequestSubscriptionBuilder withIOS(IosSubscriptionBuilder configure) {
     configure(ios);
@@ -240,7 +242,7 @@ class RequestSubscriptionBuilder {
     return RequestPurchaseProps.subs((
       ios: iosProps,
       android: androidProps,
-      useAlternativeBilling: null,
+      useAlternativeBilling: useAlternativeBilling,
     ));
   }
 }

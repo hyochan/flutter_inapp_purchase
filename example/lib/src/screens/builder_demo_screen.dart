@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
@@ -15,6 +16,8 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
   final _iap = FlutterInappPurchase.instance;
   String _status = 'Ready';
   bool _isProcessing = false;
+  StreamSubscription<Purchase>? _purchaseUpdatedSubscription;
+  StreamSubscription<PurchaseError>? _purchaseErrorSubscription;
 
   @override
   void initState() {
@@ -22,13 +25,79 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
     _initConnection();
   }
 
+  @override
+  void dispose() {
+    _purchaseUpdatedSubscription?.cancel();
+    _purchaseErrorSubscription?.cancel();
+    super.dispose();
+  }
+
   Future<void> _initConnection() async {
     try {
+      // End any existing connection first to reset configuration
+      // This ensures we start fresh without alternative billing settings
+      try {
+        await _iap.endConnection();
+        await Future.delayed(const Duration(milliseconds: 100));
+      } catch (e) {
+        debugPrint('Note: endConnection failed (might not be connected): $e');
+      }
+
+      // Initialize with default settings (no alternative billing)
       await _iap.initConnection();
+
+      // Setup purchase listeners
+      _setupPurchaseListeners();
+
       setState(() => _status = 'Connected');
     } catch (e) {
       setState(() => _status = 'Connection failed: $e');
     }
+  }
+
+  void _setupPurchaseListeners() {
+    _purchaseUpdatedSubscription = _iap.purchaseUpdatedListener.listen(
+      (purchase) {
+        debugPrint('Purchase successful: ${purchase.productId}');
+        setState(() {
+          _status = 'Purchase successful: ${purchase.productId}';
+          _isProcessing = false;
+        });
+
+        // Finish transaction
+        _iap
+            .finishTransaction(purchase: purchase, isConsumable: true)
+            .then((_) {
+          debugPrint('Transaction finished');
+        }).catchError((error) {
+          debugPrint('Failed to finish transaction: $error');
+        });
+      },
+      onError: (error) {
+        debugPrint('Purchase stream error: $error');
+        setState(() {
+          _status = 'Stream error: $error';
+          _isProcessing = false;
+        });
+      },
+    );
+
+    _purchaseErrorSubscription = _iap.purchaseErrorListener.listen(
+      (error) {
+        debugPrint('Purchase error: ${error.message}');
+        setState(() {
+          _status = 'Error: ${error.message}';
+          _isProcessing = false;
+        });
+      },
+      onError: (error) {
+        debugPrint('Error stream error: $error');
+        setState(() {
+          _status = 'Error stream error: $error';
+          _isProcessing = false;
+        });
+      },
+    );
   }
 
   Future<void> _simplePurchase() async {
@@ -127,6 +196,84 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
     }
   }
 
+  Future<void> _alternativeBillingPurchase() async {
+    setState(() {
+      _isProcessing = true;
+      _status = 'Processing with Alternative Billing...';
+    });
+
+    try {
+      if (Platform.isIOS) {
+        // iOS: Use external purchase link
+        final result = await _iap.presentExternalPurchaseLinkIOS(
+          'https://openiap.dev',
+        );
+
+        if (result.error != null) {
+          setState(() => _status = 'Error: ${result.error}');
+        } else if (result.success) {
+          setState(
+              () => _status = 'External purchase link opened successfully');
+        } else {
+          setState(() => _status = 'User cancelled external purchase');
+        }
+      } else {
+        // Android: Use builder with Alternative Billing
+        await _iap.requestPurchaseWithBuilder(
+          build: (RequestPurchaseBuilder r) => r
+            ..type = ProductType.InApp
+            ..useAlternativeBilling = true
+            ..withAndroid((RequestPurchaseAndroidBuilder a) =>
+                a..skus = [IapConstants.inAppProductIds[0]]),
+        );
+        setState(() => _status = 'Alternative billing purchase initiated');
+      }
+    } catch (e) {
+      setState(() => _status = 'Error: $e');
+    } finally {
+      setState(() => _isProcessing = false);
+    }
+  }
+
+  Future<void> _alternativeBillingSubscription() async {
+    setState(() {
+      _isProcessing = true;
+      _status = 'Processing subscription with Alternative Billing...';
+    });
+
+    try {
+      if (Platform.isIOS) {
+        // iOS: Use external purchase link
+        final result = await _iap.presentExternalPurchaseLinkIOS(
+          'https://openiap.dev',
+        );
+
+        if (result.error != null) {
+          setState(() => _status = 'Error: ${result.error}');
+        } else if (result.success) {
+          setState(
+              () => _status = 'External purchase link opened successfully');
+        } else {
+          setState(() => _status = 'User cancelled external purchase');
+        }
+      } else {
+        // Android: Use builder with Alternative Billing
+        await _iap.requestPurchaseWithBuilder(
+          build: (RequestPurchaseBuilder r) => r
+            ..type = ProductType.Subs
+            ..useAlternativeBilling = true
+            ..withAndroid((RequestPurchaseAndroidBuilder a) =>
+                a..skus = [IapConstants.subscriptionProductIds[0]]),
+        );
+        setState(() => _status = 'Alternative billing subscription initiated');
+      }
+    } catch (e) {
+      setState(() => _status = 'Error: $e');
+    } finally {
+      setState(() => _isProcessing = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -180,6 +327,34 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
               icon: const Icon(Icons.upgrade),
               label: const Text('Upgrade Subscription (Android)'),
             ),
+            const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 8),
+            Text(
+              'Alternative Billing (Builder Pattern)',
+              style: Theme.of(context).textTheme.titleMedium,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            ElevatedButton.icon(
+              onPressed: _isProcessing ? null : _alternativeBillingPurchase,
+              icon: const Icon(Icons.payment),
+              label: const Text('Purchase with Alternative Billing'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ElevatedButton.icon(
+              onPressed: _isProcessing ? null : _alternativeBillingSubscription,
+              icon: const Icon(Icons.card_membership),
+              label: const Text('Subscription with Alternative Billing'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+              ),
+            ),
             const SizedBox(height: 24),
             Card(
               color: Colors.grey.shade100,
@@ -191,7 +366,8 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
                     Text('Code Example'),
                     SizedBox(height: 8),
                     SelectableText(
-                      """await iap.requestPurchaseWithBuilder(
+                      """// Regular purchase:
+await iap.requestPurchaseWithBuilder(
   build: (RequestPurchaseBuilder r) => r
     ..type = ProductType.InApp
     ..withIOS((RequestPurchaseIosBuilder i) => i
@@ -201,7 +377,7 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
       ..skus = ['dev.hyo.martie.10bulbs']),
 );
 
-// For subscriptions (new purchase):
+// Subscription (new purchase):
 await iap.requestPurchaseWithBuilder(
   build: (RequestPurchaseBuilder r) => r
     ..type = ProductType.Subs
@@ -209,7 +385,16 @@ await iap.requestPurchaseWithBuilder(
     ..withAndroid((RequestPurchaseAndroidBuilder a) => a..skus = ['dev.hyo.martie.premium']),
 );
 
-// For subscription upgrade/downgrade (Android):
+// Alternative Billing:
+await iap.requestPurchaseWithBuilder(
+  build: (RequestPurchaseBuilder r) => r
+    ..type = ProductType.InApp
+    ..useAlternativeBilling = true
+    ..withIOS((RequestPurchaseIosBuilder i) => i..sku = 'dev.hyo.martie.10bulbs')
+    ..withAndroid((RequestPurchaseAndroidBuilder a) => a..skus = ['dev.hyo.martie.10bulbs']),
+);
+
+// Subscription upgrade/downgrade (Android):
 final b = RequestSubscriptionBuilder()
   ..withAndroid((RequestSubscriptionAndroidBuilder a) => a
     ..skus = ['dev.hyo.martie.premium']

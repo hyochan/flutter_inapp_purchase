@@ -264,6 +264,16 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
 
   Future<void> _initConnection() async {
     try {
+      // End any existing connection first to reset configuration
+      // This ensures we start fresh without alternative billing settings
+      try {
+        await _iap.endConnection();
+        await Future.delayed(const Duration(milliseconds: 100));
+      } catch (e) {
+        debugPrint('Note: endConnection failed (might not be connected): $e');
+      }
+
+      // Initialize with default settings (no alternative billing)
       final result = await _iap.initConnection();
       debugPrint('Connection initialized: $result');
 

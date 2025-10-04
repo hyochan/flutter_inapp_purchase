@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
+import '../constants.dart';
 
 /// Alternative Billing Example
 ///
@@ -62,20 +63,22 @@ class _AlternativeBillingScreenState extends State<AlternativeBillingScreen> {
     _purchaseErrorSubscription?.cancel();
     _userChoiceBillingSubscription?.cancel();
     _urlController.dispose();
-    FlutterInappPurchase.instance.endConnection();
+
+    // End connection when leaving this screen
+    // This will reset alternative billing settings
+    FlutterInappPurchase.instance.endConnection().then((_) {
+      debugPrint('[Alternative Billing] Connection ended on dispose');
+    }).catchError((e) {
+      debugPrint('[Alternative Billing] Error ending connection: $e');
+    });
+
     super.dispose();
   }
 
   Future<void> _initConnection() async {
     try {
-      final config = Platform.isAndroid
-          ? InitConnectionConfig(
-              alternativeBillingModeAndroid: _billingMode,
-            )
-          : null;
-
-      await FlutterInappPurchase.instance.initialize();
-      await FlutterInappPurchase.instance.initConnection(config: config);
+      await FlutterInappPurchase.instance
+          .initConnection(alternativeBillingModeAndroid: _billingMode);
 
       setState(() {
         _connected = true;
@@ -93,24 +96,40 @@ class _AlternativeBillingScreenState extends State<AlternativeBillingScreen> {
   }
 
   void _setupListeners() {
-    _purchaseUpdatedSubscription =
-        FlutterInappPurchase.purchaseUpdated.listen((purchase) {
-      debugPrint('Purchase updated: ${purchase?.productId}');
-      if (purchase != null) {
-        setState(() {
-          _isProcessing = false;
-          _purchaseResult = '''
+    _purchaseUpdatedSubscription = FlutterInappPurchase
+        .instance.purchaseUpdatedListener
+        .listen((purchase) async {
+      debugPrint('Purchase successful: ${purchase.productId}');
+      setState(() {
+        _isProcessing = false;
+        _purchaseResult = '''
 ✅ Purchase successful
 Product: ${purchase.productId}
-Transaction ID: ${purchase.transactionId}
-Date: ${DateTime.fromMillisecondsSinceEpoch(purchase.transactionDate ?? 0)}
+Transaction ID: ${purchase.id}
+Date: ${DateTime.fromMillisecondsSinceEpoch(purchase.transactionDate.toInt()).toLocal()}
 ''';
-        });
+      });
+
+      // Finish transaction
+      try {
+        await FlutterInappPurchase.instance.finishTransaction(
+          purchase: purchase,
+          isConsumable: true,
+        );
+        debugPrint('Transaction finished');
+      } catch (error) {
+        debugPrint('Failed to finish transaction: $error');
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Purchase completed successfully!')),
+        );
       }
     });
 
     _purchaseErrorSubscription =
-        FlutterInappPurchase.purchaseError.listen((error) {
+        FlutterInappPurchase.instance.purchaseErrorListener.listen((error) {
       debugPrint('Purchase error: ${error.message}');
       setState(() {
         _isProcessing = false;
@@ -126,8 +145,9 @@ Date: ${DateTime.fromMillisecondsSinceEpoch(purchase.transactionDate ?? 0)}
 
     // Android User Choice Billing listener
     if (Platform.isAndroid) {
-      _userChoiceBillingSubscription =
-          FlutterInappPurchase.userChoiceBillingAndroid.listen((details) {
+      _userChoiceBillingSubscription = FlutterInappPurchase
+          .instance.userChoiceBillingAndroid
+          .listen((details) {
         debugPrint('User choice billing: ${details.products}');
         setState(() {
           _isProcessing = false;
@@ -168,18 +188,25 @@ Token: ${details.externalTransactionToken.substring(0, 20)}...
 
   Future<void> _loadProducts() async {
     try {
-      final products = await FlutterInappPurchase.instance.fetchProducts(
-        ProductRequest(
-          skus: ['android.test.purchased', 'consumable_item'],
-          type: ProductQueryType.InApp,
-        ),
+      final result = await FlutterInappPurchase.instance.fetchProducts(
+        skus: IapConstants.inAppProductIds,
+        type: ProductQueryType.InApp,
       );
 
       setState(() {
-        _products = products;
+        if (result is FetchProductsResultProducts) {
+          _products = result.value?.cast<Product>() ?? [];
+        } else {
+          _products = [];
+        }
       });
     } catch (e) {
       debugPrint('Failed to load products: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to load products')),
+        );
+      }
     }
   }
 
@@ -195,10 +222,8 @@ Token: ${details.externalTransactionToken.substring(0, 20)}...
       await FlutterInappPurchase.instance.endConnection();
       await Future.delayed(const Duration(milliseconds: 500));
 
-      final config = InitConnectionConfig(
-        alternativeBillingModeAndroid: newMode,
-      );
-      await FlutterInappPurchase.instance.initConnection(config: config);
+      await FlutterInappPurchase.instance
+          .initConnection(alternativeBillingModeAndroid: newMode);
 
       setState(() {
         _billingMode = newMode;
@@ -229,6 +254,9 @@ Token: ${details.externalTransactionToken.substring(0, 20)}...
       return;
     }
 
+    debugPrint('[iOS] Starting alternative billing purchase: ${product.id}');
+    debugPrint('[iOS] External URL: $url');
+
     setState(() {
       _isProcessing = true;
       _purchaseResult = '🌐 Opening external purchase link...';
@@ -239,6 +267,8 @@ Token: ${details.externalTransactionToken.substring(0, 20)}...
           await FlutterInappPurchase.instance.presentExternalPurchaseLinkIOS(
         url,
       );
+
+      debugPrint('[iOS] External purchase link result: $result');
 
       setState(() {
         if (result.error != null) {
@@ -256,10 +286,32 @@ Note: Complete purchase on your website and implement server-side validation.
 ''';
         }
       });
+
+      if (result.error != null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(result.error!)),
+          );
+        }
+      } else if (result.success && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Redirected to external purchase website. Complete the purchase there.',
+            ),
+          ),
+        );
+      }
     } catch (e) {
+      debugPrint('[iOS] Alternative billing error: $e');
       setState(() {
         _purchaseResult = '❌ Error: $e';
       });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
     } finally {
       setState(() {
         _isProcessing = false;
@@ -268,6 +320,10 @@ Note: Complete purchase on your website and implement server-side validation.
   }
 
   Future<void> _handleAndroidAlternativeBillingOnly(Product product) async {
+    debugPrint(
+      '[Android] Starting alternative billing only flow: ${product.id}',
+    );
+
     setState(() {
       _isProcessing = true;
       _purchaseResult = 'Checking alternative billing availability...';
@@ -278,24 +334,18 @@ Note: Complete purchase on your website and implement server-side validation.
       final isAvailable = await FlutterInappPurchase.instance
           .checkAlternativeBillingAvailabilityAndroid();
 
+      debugPrint('[Android] Alternative billing available: $isAvailable');
+
       if (!isAvailable) {
         setState(() {
           _purchaseResult = '❌ Alternative billing not available';
         });
         if (mounted) {
-          showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: const Text('Error'),
-              content: const Text(
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
                 'Alternative billing is not available for this user/device',
               ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('OK'),
-                ),
-              ],
             ),
           );
         }
@@ -310,6 +360,8 @@ Note: Complete purchase on your website and implement server-side validation.
       final userAccepted = await FlutterInappPurchase.instance
           .showAlternativeBillingDialogAndroid();
 
+      debugPrint('[Android] User accepted dialog: $userAccepted');
+
       if (!userAccepted) {
         setState(() {
           _purchaseResult = 'ℹ️ User cancelled';
@@ -321,12 +373,14 @@ Note: Complete purchase on your website and implement server-side validation.
         _purchaseResult = 'Creating token...';
       });
 
-      // Step 2.5: In production, process payment here
-      debugPrint('⚠️ Payment processing not implemented (DEMO)');
+      // Step 2.5: In production, process payment here with your payment system
+      debugPrint('[Android] ⚠️ Payment processing not implemented (DEMO)');
 
-      // Step 3: Create token
+      // Step 3: Create token (after successful payment)
       final token = await FlutterInappPurchase.instance
           .createAlternativeBillingTokenAndroid();
+
+      debugPrint('[Android] Token created: $token');
 
       setState(() {
         if (token != null) {
@@ -347,27 +401,22 @@ Token: ${token.substring(0, 20)}...
       });
 
       if (mounted && token != null) {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Demo Complete'),
-            content: const Text(
-              'Alternative billing flow completed.\n\n'
-              'In production:\n'
-              '1. Process payment with your system\n'
-              '2. Report token to Google backend\n'
-              '3. Validate on your server',
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Alternative billing flow completed.\n'
+              'In production: Process payment, report token to Google, validate on server',
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
-              ),
-            ],
+            duration: Duration(seconds: 4),
           ),
+        );
+      } else if (mounted && token == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to create reporting token')),
         );
       }
     } catch (e) {
+      debugPrint('[Android] Alternative billing error: $e');
       setState(() {
         _purchaseResult = '❌ Error: $e';
       });
@@ -384,6 +433,8 @@ Token: ${token.substring(0, 20)}...
   }
 
   Future<void> _handleAndroidUserChoiceBilling(Product product) async {
+    debugPrint('[Android] Starting user choice billing: ${product.id}');
+
     setState(() {
       _isProcessing = true;
       _purchaseResult = 'Showing user choice dialog...';
@@ -391,14 +442,16 @@ Token: ${token.substring(0, 20)}...
 
     try {
       await FlutterInappPurchase.instance.requestPurchase(
-        RequestPurchaseProps.inApp(
-          request: RequestPurchasePropsByPlatforms(
-            android: RequestPurchaseAndroidProps(skus: [product.id]),
-          ),
+        RequestPurchaseProps.inApp((
+          android: RequestPurchaseAndroidProps(skus: [product.id]),
+          ios: null,
           useAlternativeBilling: true,
-        ),
+        )),
       );
 
+      // Google will show selection dialog
+      // If user selects Google Play: purchaseUpdatedListener callback
+      // If user selects alternative: userChoiceBillingAndroid callback
       setState(() {
         _purchaseResult = '''
 🔄 User choice dialog shown
@@ -406,11 +459,12 @@ Token: ${token.substring(0, 20)}...
 Product: ${product.id}
 
 If user selects:
-- Google Play: purchaseUpdated callback
+- Google Play: purchaseUpdatedListener callback
 - Alternative: userChoiceBillingAndroid callback
 ''';
       });
     } catch (e) {
+      debugPrint('[Android] User choice billing error: $e');
       setState(() {
         _purchaseResult = '❌ Error: $e';
       });
