@@ -106,8 +106,8 @@ class _AlternativeBillingScreenState extends State<AlternativeBillingScreen> {
       int? transactionMillis;
       if (transactionDate is num) {
         transactionMillis = transactionDate.toInt();
-      } else if (transactionDate is String) {
-        transactionMillis = int.tryParse(transactionDate);
+      } else if (transactionDate != null) {
+        transactionMillis = int.tryParse(transactionDate.toString());
       }
       final transactionDateString = transactionMillis != null
           ? DateTime.fromMillisecondsSinceEpoch(transactionMillis)
