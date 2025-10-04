@@ -589,9 +589,236 @@ void dispose() {
 }
 ```
 
+## Alternative Billing Methods
+
+### iOS External Purchase Methods
+
+#### presentExternalPurchaseLinkIOS()
+
+Open an external purchase link in Safari to redirect users to your website for purchase. Requires iOS 16.0+.
+
+```dart
+Future<ExternalPurchaseLinkResultIOS> presentExternalPurchaseLinkIOS(String url)
+```
+
+**Parameters:**
+
+- `url` (String): The external purchase URL to open
+
+**Returns:** `Future<ExternalPurchaseLinkResultIOS>`
+
+```dart
+class ExternalPurchaseLinkResultIOS {
+  final String? error;
+  final bool success;
+}
+```
+
+**Example:**
+
+```dart
+final result = await FlutterInappPurchase.instance
+    .presentExternalPurchaseLinkIOS('https://your-site.com/checkout');
+
+if (result.error != null) {
+  print('Failed to open link: ${result.error}');
+} else if (result.success) {
+  print('User redirected to external purchase website');
+}
+```
+
+**Platform:** iOS 16.0+
+
+**Requirements:**
+
+- Requires Apple approval and proper provisioning profile with external purchase entitlements
+- URLs must be configured in your app's Info.plist
+- Deep linking recommended to return users to your app after purchase
+
+**Important Notes:**
+
+- Purchase listeners will NOT fire when using external URLs
+- You must handle purchase validation on your backend
+- Implement deep linking to return users to your app
+
+**See also:**
+
+- [StoreKit External Purchase documentation](https://developer.apple.com/documentation/storekit/external-purchase)
+- [Alternative Billing Guide](../guides/alternative-billing)
+
+### Android Alternative Billing Methods
+
+#### checkAlternativeBillingAvailabilityAndroid()
+
+Check if alternative billing is available for the current user. This must be called before showing the alternative billing dialog.
+
+```dart
+Future<bool> checkAlternativeBillingAvailabilityAndroid()
+```
+
+**Returns:** `Future<bool>`
+
+**Example:**
+
+```dart
+final isAvailable = await FlutterInappPurchase.instance
+    .checkAlternativeBillingAvailabilityAndroid();
+
+if (isAvailable) {
+  print('Alternative billing is available');
+} else {
+  print('Alternative billing not available for this user');
+}
+```
+
+**Platform:** Android
+
+**Requirements:**
+
+- Must initialize connection with alternative billing mode
+- User must be eligible for alternative billing (determined by Google)
+
+**See also:** [Google Play Alternative Billing documentation](https://developer.android.com/google/play/billing/alternative)
+
+#### showAlternativeBillingDialogAndroid()
+
+Show Google's required information dialog to inform users about alternative billing. This must be called after checking availability and before processing payment.
+
+```dart
+Future<bool> showAlternativeBillingDialogAndroid()
+```
+
+**Returns:** `Future<bool>` - Returns `true` if user accepted, `false` if declined
+
+**Example:**
+
+```dart
+final userAccepted = await FlutterInappPurchase.instance
+    .showAlternativeBillingDialogAndroid();
+
+if (userAccepted) {
+  print('User accepted alternative billing');
+  // Proceed with your payment flow
+} else {
+  print('User declined alternative billing');
+}
+```
+
+**Platform:** Android
+
+**Note:** This dialog is required by Google Play's alternative billing policy. You must show this before redirecting users to your payment system.
+
+#### createAlternativeBillingTokenAndroid()
+
+Generate a reporting token after successfully processing payment through your payment system. This token must be reported to Google Play within 24 hours.
+
+```dart
+Future<String?> createAlternativeBillingTokenAndroid()
+```
+
+**Returns:** `Future<String?>` - Returns the token or `null` if creation failed
+
+**Example:**
+
+```dart
+// After successfully processing payment in your system
+final token = await FlutterInappPurchase.instance
+    .createAlternativeBillingTokenAndroid();
+
+if (token != null) {
+  print('Token created: $token');
+  // Send this token to your backend to report to Google
+  await reportTokenToGooglePlay(token);
+} else {
+  print('Failed to create token');
+}
+```
+
+**Platform:** Android
+
+**Important:**
+
+- Token must be reported to Google Play backend within 24 hours
+- Requires server-side integration with Google Play Developer API
+- Failure to report will result in refund and possible account suspension
+
+#### Alternative Billing Configuration
+
+```dart
+// Initialize with alternative billing mode
+await FlutterInappPurchase.instance.initConnection(
+  alternativeBillingModeAndroid: AlternativeBillingModeAndroid.UserChoice,
+  // or AlternativeBillingModeAndroid.AlternativeOnly
+);
+
+// To change mode, reinitialize
+await FlutterInappPurchase.instance.endConnection();
+await FlutterInappPurchase.instance.initConnection(
+  alternativeBillingModeAndroid: AlternativeBillingModeAndroid.AlternativeOnly,
+);
+```
+
+**Billing Modes:**
+
+```dart
+enum AlternativeBillingModeAndroid {
+  None,              // Default - no alternative billing
+  UserChoice,        // Users choose between Google Play or your payment system
+  AlternativeOnly,   // Only your payment system is available
+}
+```
+
+**Complete Flow Example:**
+
+```dart
+Future<void> purchaseWithAlternativeBilling(String productId) async {
+  // Step 1: Check availability
+  final isAvailable = await FlutterInappPurchase.instance
+      .checkAlternativeBillingAvailabilityAndroid();
+
+  if (!isAvailable) {
+    throw Exception('Alternative billing not available');
+  }
+
+  // Step 2: Show required dialog
+  final userAccepted = await FlutterInappPurchase.instance
+      .showAlternativeBillingDialogAndroid();
+
+  if (!userAccepted) {
+    throw Exception('User declined alternative billing');
+  }
+
+  // Step 3: Process payment in your system
+  final paymentResult = await processPaymentInYourSystem(productId);
+  if (!paymentResult.success) {
+    throw Exception('Payment failed');
+  }
+
+  // Step 4: Create reporting token
+  final token = await FlutterInappPurchase.instance
+      .createAlternativeBillingTokenAndroid();
+
+  if (token == null) {
+    throw Exception('Failed to create token');
+  }
+
+  // Step 5: Report to Google (must be done within 24 hours)
+  await reportToGooglePlayBackend(token, productId, paymentResult);
+
+  print('Alternative billing completed successfully');
+}
+```
+
+**See also:**
+
+- [Google Play Alternative Billing documentation](https://developer.android.com/google/play/billing/alternative)
+- [Alternative Billing Guide](../guides/alternative-billing)
+- [Alternative Billing Example](../examples/alternative-billing)
+
 ## See Also
 
 - [Types](./types) - Type definitions
 - [Error Codes](./types/error-codes) - Error handling
 - [Purchase Lifecycle](../guides/lifecycle) - Complete purchase flow
 - [Subscription Guide](../guides/subscription-validation) - Subscription management
+- [Alternative Billing Guide](../guides/alternative-billing) - Alternative billing implementation

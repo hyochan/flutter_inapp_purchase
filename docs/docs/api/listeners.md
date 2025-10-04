@@ -335,9 +335,125 @@ void dispose() {
 }
 ```
 
+## userChoiceBillingListener
+
+Android-only listener for User Choice Billing events. This fires when a user selects alternative billing instead of Google Play billing in the User Choice Billing dialog (only in `user-choice` mode).
+
+```dart
+Stream<UserChoiceBillingResult> get userChoiceBillingListener
+```
+
+**Example:**
+
+```dart
+import 'dart:io';
+import 'dart:async';
+import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
+
+class UserChoiceBillingExample extends StatefulWidget {
+  @override
+  _UserChoiceBillingExampleState createState() => _UserChoiceBillingExampleState();
+}
+
+class _UserChoiceBillingExampleState extends State<UserChoiceBillingExample> {
+  StreamSubscription<UserChoiceBillingResult>? _userChoiceSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _setupUserChoiceBillingListener();
+  }
+
+  Future<void> _setupUserChoiceBillingListener() async {
+    if (!Platform.isAndroid) return;
+
+    // Initialize with user-choice mode
+    await FlutterInappPurchase.instance.initConnection(
+      alternativeBillingModeAndroid: AlternativeBillingModeAndroid.UserChoice,
+    );
+
+    _userChoiceSubscription = FlutterInappPurchase.instance
+        .userChoiceBillingListener.listen((details) {
+      debugPrint('User selected alternative billing');
+      debugPrint('Token: ${details.externalTransactionToken}');
+      debugPrint('Products: ${details.products}');
+
+      _handleUserChoiceBilling(details);
+    });
+  }
+
+  Future<void> _handleUserChoiceBilling(UserChoiceBillingResult details) async {
+    try {
+      // Step 1: Process payment in your payment system
+      final paymentResult = await processPaymentInYourSystem(details.products);
+
+      if (!paymentResult.success) {
+        debugPrint('Payment failed');
+        return;
+      }
+
+      // Step 2: Report token to Google Play backend within 24 hours
+      await reportTokenToGooglePlay(
+        token: details.externalTransactionToken,
+        products: details.products,
+        paymentResult: paymentResult,
+      );
+
+      debugPrint('Alternative billing completed successfully');
+    } catch (error) {
+      debugPrint('Error handling user choice billing: $error');
+    }
+  }
+
+  @override
+  void dispose() {
+    _userChoiceSubscription?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // ... your widget implementation
+  }
+}
+```
+
+**UserChoiceBillingResult Properties:**
+
+```dart
+class UserChoiceBillingResult {
+  final String externalTransactionToken;  // Token to report to Google within 24 hours
+  final List<String> products;            // Product IDs selected by user
+}
+```
+
+**Platform:** Android only (requires `user-choice` mode)
+
+**Important:**
+
+- Only fires when using `alternativeBillingModeAndroid: AlternativeBillingModeAndroid.UserChoice`
+- Token must be reported to Google Play backend within 24 hours
+- If user selects Google Play billing instead, `purchaseUpdatedListener` will fire as normal
+- Must clean up subscription in `dispose()` to prevent memory leaks
+
+**Flow:**
+
+1. User initiates purchase with `requestPurchase(useAlternativeBilling: true)`
+2. Google shows User Choice Billing dialog
+3. If user selects alternative billing → `userChoiceBillingListener` fires
+4. If user selects Google Play → `purchaseUpdatedListener` fires
+
+**See also:**
+
+- [Alternative Billing Guide](../guides/alternative-billing) - Complete implementation guide
+- [checkAlternativeBillingAvailabilityAndroid()](./core-methods#checkalternativebillingavailabilityandroid)
+- [showAlternativeBillingDialogAndroid()](./core-methods#showalternativebillingdialogandroid)
+- [createAlternativeBillingTokenAndroid()](./core-methods#createalternativebillingtokenandroid)
+
 ## See Also
 
 - [Core Methods](./core-methods) - Methods that trigger these events
 - [Types](./types) - Event data structures
 - [Error Codes](./types/error-codes) - Error handling reference
 - [Purchase Lifecycle](../guides/lifecycle) - Complete purchase flow
+- [Alternative Billing Guide](../guides/alternative-billing) - Alternative billing implementation
