@@ -1,8 +1,13 @@
 # CHANGELOG
 
-## 7.0.0-rc.1
+## 7.0.0
 
-- **Breaking**: Major API redesign with named parameters
+- **Feature**: Full Alternative Billing support for iOS and Android
+  - iOS: External purchase links via `presentExternalPurchaseLinkIOS()`
+  - Android: Alternative-Only and User-Choice billing modes
+  - New event listener: `userChoiceBillingAndroid` for Android User Choice Billing
+  - New APIs: `checkAlternativeBillingAvailabilityAndroid()`, `showAlternativeBillingDialogAndroid()`, `createAlternativeBillingTokenAndroid()`
+- **Breaking**: Major API redesign with named parameters and record types
   - `fetchProducts()` now uses named parameters instead of `ProductRequest` object
   - `getAvailablePurchases()` now uses named parameters instead of `PurchaseOptions` object
   - `finishTransaction()` simplified to accept `Purchase` object directly
@@ -12,10 +17,9 @@
   - `getAvailableItemsIOS()` - Use `getAvailablePurchases()` instead
   - `getAppTransactionTypedIOS()` - Use `getAppTransactionIOS()` instead
   - `getPurchaseHistoriesIOS()` - Use `getAvailablePurchases()` with options instead
-- **Feature**: Added `AlternativeBillingModeAndroid` enum for Android alternative billing support
 - **Improvement**: Moved `_buildIosPurchasePayload` to public utils for better code organization
-- 👉 [full release notes](https://hyochan.github.io/flutter_inapp_purchase/blog/7.0.0-rc.1-release)
-- 👉 [migration guide](https://hyochan.github.io/flutter_inapp_purchase/docs/migration/from-v6)
+- 👉 [Full release notes](https://hyochan.github.io/flutter_inapp_purchase/blog/7.0.0-release)
+- 👉 [Migration guide](https://hyochan.github.io/flutter_inapp_purchase/docs/migration/from-v6)
 
 ## 6.8.8
 
