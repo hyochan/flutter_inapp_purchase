@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 7.0.1
+
+- Add missing `isEligibleForIntroOfferIOS` method (Fixes #574)
+
 ## 7.0.0
 
 - **Feature**: Full Alternative Billing support for iOS and Android
