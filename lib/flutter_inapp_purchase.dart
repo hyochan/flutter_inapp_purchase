@@ -595,7 +595,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
 
             try {
               final result = await _channel.invokeMethod<bool>(
-                'isEligibleForIntroOffer',
+                'isEligibleForIntroOfferIOS',
                 {'productId': groupId},
               );
               return result ?? false;

@@ -48,7 +48,7 @@ void main() {
                   'isAutoRenewing': false,
                 },
               };
-            case 'isEligibleForIntroOffer':
+            case 'isEligibleForIntroOfferIOS':
               return true;
             case 'getSubscriptionStatus':
               return <Map<String, dynamic>>[
@@ -260,7 +260,7 @@ void main() {
 
     test('isEligibleForIntroOfferIOS returns platform result', () async {
       expect(await iap.isEligibleForIntroOfferIOS('group'), isTrue);
-      expect(calls.last.method, 'isEligibleForIntroOffer');
+      expect(calls.last.method, 'isEligibleForIntroOfferIOS');
     });
 
     test('isEligibleForIntroOfferIOS returns false on non-iOS', () async {
