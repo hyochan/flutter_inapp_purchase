@@ -22,7 +22,7 @@ void main() {
           case 'endConnection':
           case 'initConnection':
             return true;
-          case 'isEligibleForIntroOffer':
+          case 'isEligibleForIntroOfferIOS':
             return true;
           case 'getSubscriptionStatus':
             return <Map<String, dynamic>>[

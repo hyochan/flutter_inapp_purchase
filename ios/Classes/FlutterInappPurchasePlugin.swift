@@ -145,9 +145,16 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
             
         case "showManageSubscriptionsIOS":
             showManageSubscriptionsIOS(result: result)
-            
-            
-            
+
+        case "isEligibleForIntroOfferIOS":
+            if let args = call.arguments as? [String: Any],
+               let groupId = args["productId"] as? String {
+                isEligibleForIntroOfferIOS(groupId: groupId, result: result)
+            } else {
+                let code: ErrorCode = .developerError
+                result(FlutterError(code: code.rawValue, message: "productId required", details: nil))
+            }
+
         case "validateReceiptIOS":
             guard let args = call.arguments as? [String: Any],
                   let sku = args["sku"] as? String else {
@@ -558,7 +565,23 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
             }
         }
     }
-    
+
+    private func isEligibleForIntroOfferIOS(groupId: String, result: @escaping FlutterResult) {
+        FlutterIapLog.payload("isEligibleForIntroOfferIOS", payload: ["groupID": groupId])
+        Task { @MainActor in
+            do {
+                let eligible = try await OpenIapModule.shared.isEligibleForIntroOfferIOS(groupID: groupId)
+                FlutterIapLog.result("isEligibleForIntroOfferIOS", value: eligible)
+                result(eligible)
+            } catch {
+                await MainActor.run {
+                    let code: ErrorCode = .serviceError
+                    result(FlutterError(code: code.rawValue, message: defaultMessage(for: code), details: nil))
+                }
+            }
+        }
+    }
+
     // MARK: - Receipt Validation (OpenIAP)
 
     private func validateReceiptIOS(productId: String, result: @escaping FlutterResult) {
