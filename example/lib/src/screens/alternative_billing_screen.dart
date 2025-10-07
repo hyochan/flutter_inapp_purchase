@@ -203,18 +203,15 @@ Token: ${details.externalTransactionToken.length > 20 ? details.externalTransact
 
   Future<void> _loadProducts() async {
     try {
-      final result = await FlutterInappPurchase.instance.fetchProducts(
+      final List<Product> products =
+          await FlutterInappPurchase.instance.fetchProducts(
         skus: IapConstants.inAppProductIds,
         type: ProductQueryType.InApp,
       );
 
       if (!mounted) return;
       setState(() {
-        if (result is FetchProductsResultProducts) {
-          _products = result.value?.cast<Product>() ?? [];
-        } else {
-          _products = [];
-        }
+        _products = products;
       });
     } catch (e) {
       debugPrint('Failed to load products: $e');

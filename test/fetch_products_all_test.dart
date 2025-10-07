@@ -72,14 +72,12 @@ void main() {
 
     await iap.initConnection();
 
-    final result = await iap.fetchProducts(
+    final products = (await iap.fetchProducts(
       skus: const ['premium_monthly', 'coin_pack'],
       type: types.ProductQueryType.InApp,
-    );
+    ))
+        .cast<types.Product>();
 
-    expect(result, isA<types.FetchProductsResultProducts>());
-    final products =
-        (result as types.FetchProductsResultProducts).value ?? const [];
     expect(products, hasLength(1));
     expect(products.first.id, 'coin_pack');
   });
@@ -90,15 +88,13 @@ void main() {
 
     await iap.initConnection();
 
-    final result = await iap.fetchProducts(
+    final subscriptions = (await iap.fetchProducts(
       skus: const ['premium_monthly', 'coin_pack'],
       type: types.ProductQueryType.Subs,
-    );
+    ))
+        .cast<types.ProductSubscription>();
 
-    expect(result, isA<types.FetchProductsResultProducts>());
-    final products =
-        (result as types.FetchProductsResultProducts).value ?? const [];
-    expect(products, hasLength(1));
-    expect(products.first.id, 'premium_monthly');
+    expect(subscriptions, hasLength(1));
+    expect(subscriptions.first.id, 'premium_monthly');
   });
 }

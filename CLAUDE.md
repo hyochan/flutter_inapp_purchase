@@ -4,18 +4,34 @@
 
 ### fetchProducts API (Updated)
 
-The `fetchProducts` method now uses the OpenIAP `ProductRequest` input and returns a list of products directly:
+The `fetchProducts` method returns a dynamically-typed list. Use explicit type annotation for proper type inference:
 
 ```dart
-final products = await iap.fetchProducts(
-  ProductRequest(
-    skus: ['product_id'],
-    type: ProductQueryType.InApp, // Optional, defaults to InApp
-  ),
+// For InApp products - specify List<Product>
+final List<Product> products = await iap.fetchProducts(
+  skus: ['product_id_1', 'product_id_2'],
+  type: ProductQueryType.InApp, // Optional, defaults to InApp
 );
 
-// products is now directly a List<Product>
+// For subscriptions - specify List<ProductSubscription>
+final List<ProductSubscription> subscriptions = await iap.fetchProducts(
+  skus: ['sub_id_1', 'sub_id_2'],
+  type: ProductQueryType.Subs,
+);
+
+// For all products - specify List<ProductCommon>
+final List<ProductCommon> allProducts = await iap.fetchProducts(
+  skus: [...],
+  type: ProductQueryType.All,
+);
+
+// Simple iteration with type safety
+for (final product in products) {
+  print('${product.title}: ${product.displayPrice}');
+}
 ```
+
+**Note:** Always use explicit type annotation on the left side for proper type inference and IDE support.
 
 ### getAvailablePurchases API (v6.4.6+)
 

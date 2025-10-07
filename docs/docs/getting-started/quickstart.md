@@ -82,25 +82,23 @@ class _SimpleStoreState extends State<SimpleStore> {
   // Get available products
   Future<void> _loadProducts() async {
     try {
-      // Get consumable products
-      final inAppResult = await FlutterInappPurchase.instance.fetchProducts(
-        ProductRequest(
-          skus: _productIds,
-          type: ProductQueryType.InApp,
-        ),
+      // Get consumable products - use explicit type annotation
+      final List<Product> products =
+          await FlutterInappPurchase.instance.fetchProducts(
+        skus: _productIds,
+        type: ProductQueryType.InApp,
       );
 
-      // Get subscriptions
-      final subResult = await FlutterInappPurchase.instance.fetchProducts(
-        ProductRequest(
-          skus: _subscriptionIds,
-          type: ProductQueryType.Subs,
-        ),
+      // Get subscriptions - use explicit type annotation
+      final List<ProductSubscription> subscriptions =
+          await FlutterInappPurchase.instance.fetchProducts(
+        skus: _subscriptionIds,
+        type: ProductQueryType.Subs,
       );
 
       setState(() {
-        _products = inAppResult.products;
-        _subscriptions = subResult.products;
+        _products = products;
+        _subscriptions = subscriptions;
       });
     } catch (e) {
       _showError('Failed to load products: $e');
@@ -320,16 +318,16 @@ await FlutterInappPurchase.instance.initConnection();
 
 ### 2. Loading Products
 
-Fetch products using their IDs:
+Fetch products using their IDs with explicit type annotation:
 
 ```dart
-// Regular products
-List<ProductCommon> products = await FlutterInappPurchase.instance
-    .fetchProducts(skus: ['product_id_1', 'product_id_2'], type: PurchaseType.inapp);
+// Regular products - use List<Product>
+final List<Product> products = await FlutterInappPurchase.instance
+    .fetchProducts(skus: ['product_id_1', 'product_id_2'], type: ProductQueryType.InApp);
 
-// Subscriptions
-List<ProductCommon> subscriptions = await FlutterInappPurchase.instance
-    .fetchProducts(skus: ['subscription_id_1', 'subscription_id_2'], type: PurchaseType.subs);
+// Subscriptions - use List<ProductSubscription>
+final List<ProductSubscription> subscriptions = await FlutterInappPurchase.instance
+    .fetchProducts(skus: ['subscription_id_1', 'subscription_id_2'], type: ProductQueryType.Subs);
 ```
 
 ### 3. Purchase Flow

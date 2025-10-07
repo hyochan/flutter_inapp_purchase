@@ -306,27 +306,10 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
     try {
       debugPrint('🔄 Loading subscriptions with SKUs: $subscriptionIds');
 
-      final result = await _iap.fetchProducts(
+      final List<ProductSubscription> subscriptions = await _iap.fetchProducts(
         skus: subscriptionIds,
         type: ProductQueryType.Subs,
       );
-
-      debugPrint('📦 Received result type: ${result.runtimeType}');
-
-      // Extract subscriptions from the union type
-      // Note: Due to subscription -> Product conversion, we may get FetchProductsResultProducts
-      final List<ProductCommon> subscriptions = [];
-      if (result is FetchProductsResultSubscriptions) {
-        debugPrint('🎯 Processing FetchProductsResultSubscriptions');
-        subscriptions.addAll(result.value ?? []);
-      } else if (result is FetchProductsResultProducts) {
-        debugPrint(
-            '🔄 Processing FetchProductsResultProducts (converted subscriptions)');
-        // Handle converted subscription products
-        subscriptions.addAll(result.value ?? []);
-      } else {
-        debugPrint('❌ Unexpected result type: ${result.runtimeType}');
-      }
 
       debugPrint('✅ Loaded ${subscriptions.length} subscriptions');
       for (final sub in subscriptions) {
