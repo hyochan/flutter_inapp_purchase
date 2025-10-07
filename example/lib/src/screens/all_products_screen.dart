@@ -182,16 +182,10 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
     try {
       // Fetch all products using ProductQueryType.All
       // The library now handles both Product and ProductSubscription types internally
-      final result = await _iap.fetchProducts(
+      final List<ProductCommon> products = await _iap.fetchProducts(
         skus: IapConstants.allProductIds,
         type: ProductQueryType.All,
       );
-
-      // Extract products directly from the result
-      final List<ProductCommon> products = [];
-      if (result is FetchProductsResultProducts && result.value != null) {
-        products.addAll(result.value!);
-      }
 
       debugPrint('Loaded ${products.length} products');
       for (final product in products) {

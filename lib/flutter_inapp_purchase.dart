@@ -1188,211 +1188,146 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
 
   // flutter IAP compatible methods
 
-  gentype.QueryFetchProductsHandler get fetchProducts =>
-      ({required List<String> skus, gentype.ProductQueryType? type}) async {
-        final queryType = type ?? gentype.ProductQueryType.InApp;
+  /// Internal implementation for fetching products
+  Future<List<gentype.ProductCommon>> _fetchProductsInternal({
+    required List<String> skus,
+    required gentype.ProductQueryType queryType,
+  }) async {
+    if (!_isInitialized) {
+      throw PurchaseError(
+        code: gentype.ErrorCode.NotPrepared,
+        message: 'IAP connection not initialized',
+      );
+    }
 
-        if (!_isInitialized) {
-          throw PurchaseError(
-            code: gentype.ErrorCode.NotPrepared,
-            message: 'IAP connection not initialized',
-          );
-        }
+    try {
+      final resolvedType = resolveProductType(queryType);
+      debugPrint(
+        '[flutter_inapp_purchase] fetchProducts called with skus: $skus, type: $resolvedType',
+      );
 
+      final List<dynamic> merged = [];
+      final raw = await _channel.invokeMethod('fetchProducts', {
+        'skus': skus,
+        'type': resolvedType,
+      });
+
+      if (raw is String) {
+        merged.addAll(jsonDecode(raw) as List<dynamic>? ?? []);
+      } else if (raw is List) {
+        merged.addAll(raw);
+      }
+
+      debugPrint(
+        '[flutter_inapp_purchase] Received ${merged.length} items from native',
+      );
+
+      final products = <gentype.ProductCommon>[];
+
+      for (final item in merged) {
         try {
-          final resolvedType = resolveProductType(queryType);
-          debugPrint(
-            '[flutter_inapp_purchase] fetchProducts called with skus: $skus, type: $resolvedType',
-          );
-
-          final List<dynamic> merged = [];
-          final raw = await _channel.invokeMethod('fetchProducts', {
-            'skus': skus,
-            'type': resolvedType,
-          });
-
-          if (raw is String) {
-            merged.addAll(jsonDecode(raw) as List<dynamic>? ?? []);
-          } else if (raw is List) {
-            merged.addAll(raw);
-          }
-
-          debugPrint(
-            '[flutter_inapp_purchase] Received ${merged.length} items from native',
-          );
-
-          final products = <gentype.ProductCommon>[];
-
-          for (final item in merged) {
-            try {
-              final Map<String, dynamic> itemMap;
-              if (item is Map) {
-                final normalized = normalizeDynamicMap(item);
-                if (normalized == null) {
-                  debugPrint(
-                    '[flutter_inapp_purchase] Skipping product with null map after normalization: ${item.runtimeType}',
-                  );
-                  continue;
-                }
-                itemMap = normalized;
-              } else {
-                debugPrint(
-                  '[flutter_inapp_purchase] Skipping unexpected item type: ${item.runtimeType}',
-                );
-                continue;
-              }
-
-              final detectedType = resolvedType == 'all'
-                  ? (itemMap['type']?.toString() ?? 'in-app')
-                  : resolvedType;
-              final parsed = parseProductFromNative(
-                itemMap,
-                detectedType,
-                fallbackIsIOS: _platform.isIOS,
+          final Map<String, dynamic> itemMap;
+          if (item is Map) {
+            final normalized = normalizeDynamicMap(item);
+            if (normalized == null) {
+              debugPrint(
+                '[flutter_inapp_purchase] Skipping product with null map after normalization: ${item.runtimeType}',
               );
-
-              products.add(parsed);
-            } catch (error) {
-              debugPrint(
-                '[flutter_inapp_purchase] Skipping product due to parse error: $error',
-              );
-              debugPrint(
-                  '[flutter_inapp_purchase] Item runtimeType: ${item.runtimeType}');
-              debugPrint(
-                  '[flutter_inapp_purchase] Item values: ${jsonEncode(item)}');
+              continue;
             }
-          }
-
-          debugPrint(
-            '[flutter_inapp_purchase] Processed ${products.length} products',
-          );
-
-          // Handle different query types and return appropriate union type
-          if (queryType == gentype.ProductQueryType.All) {
-            // For 'All' type, we need to include both Product and ProductSubscription
-            // Since FetchProductsResultProducts only accepts List<Product>, we need to
-            // safely cast all compatible products
-            final allCompatibleProducts = <gentype.Product>[];
-
-            for (final product in products) {
-              if (product is gentype.Product) {
-                // Direct Product types (ProductIOS, ProductAndroid)
-                allCompatibleProducts.add(product);
-              } else if (product is gentype.ProductSubscription) {
-                // ProductSubscription types need to be converted to Product types
-                // Create a compatible Product representation
-                if (product is gentype.ProductSubscriptionIOS) {
-                  // Convert ProductSubscriptionIOS to ProductIOS
-                  final compatibleProduct = gentype.ProductIOS(
-                    currency: product.currency,
-                    debugDescription: product.debugDescription,
-                    description: product.description,
-                    displayName: product.displayName,
-                    displayNameIOS: product.displayNameIOS,
-                    displayPrice: product.displayPrice,
-                    id: product.id,
-                    isFamilyShareableIOS: product.isFamilyShareableIOS,
-                    jsonRepresentationIOS: product.jsonRepresentationIOS,
-                    platform: product.platform,
-                    price: product.price,
-                    subscriptionInfoIOS: product.subscriptionInfoIOS,
-                    title: product.title,
-                    type: product.type,
-                    typeIOS: product.typeIOS,
-                  );
-                  allCompatibleProducts.add(compatibleProduct);
-                } else if (product is gentype.ProductSubscriptionAndroid) {
-                  // Convert ProductSubscriptionAndroid to ProductAndroid
-                  final compatibleProduct = gentype.ProductAndroid(
-                    currency: product.currency,
-                    debugDescription: product.debugDescription,
-                    description: product.description,
-                    displayName: product.displayName,
-                    displayPrice: product.displayPrice,
-                    id: product.id,
-                    nameAndroid: product.nameAndroid,
-                    oneTimePurchaseOfferDetailsAndroid:
-                        null, // Subscriptions don't have one-time offers
-                    platform: product.platform,
-                    price: product.price,
-                    subscriptionOfferDetailsAndroid:
-                        product.subscriptionOfferDetailsAndroid,
-                    title: product.title,
-                    type: product.type,
-                  );
-                  allCompatibleProducts.add(compatibleProduct);
-                }
-              }
-            }
-
-            debugPrint(
-              '[flutter_inapp_purchase] Type All: returning ${allCompatibleProducts.length} total products (including converted subscriptions)',
-            );
-
-            return gentype.FetchProductsResultProducts(allCompatibleProducts);
-          } else if (queryType == gentype.ProductQueryType.Subs) {
-            // For subscription queries, we need to return converted Product types
-            // that originally were ProductSubscription types
-            final subscriptionProducts = <gentype.Product>[];
-
-            for (final product in products) {
-              if (product is gentype.ProductSubscription) {
-                // Convert ProductSubscription to Product (same as in 'All' logic)
-                if (product is gentype.ProductSubscriptionIOS) {
-                  final compatibleProduct = gentype.ProductIOS(
-                    currency: product.currency,
-                    debugDescription: product.debugDescription,
-                    description: product.description,
-                    displayName: product.displayName,
-                    displayNameIOS: product.displayNameIOS,
-                    displayPrice: product.displayPrice,
-                    id: product.id,
-                    isFamilyShareableIOS: product.isFamilyShareableIOS,
-                    jsonRepresentationIOS: product.jsonRepresentationIOS,
-                    platform: product.platform,
-                    price: product.price,
-                    subscriptionInfoIOS: product.subscriptionInfoIOS,
-                    title: product.title,
-                    type: product.type,
-                    typeIOS: product.typeIOS,
-                  );
-                  subscriptionProducts.add(compatibleProduct);
-                } else if (product is gentype.ProductSubscriptionAndroid) {
-                  final compatibleProduct = gentype.ProductAndroid(
-                    currency: product.currency,
-                    debugDescription: product.debugDescription,
-                    description: product.description,
-                    displayName: product.displayName,
-                    displayPrice: product.displayPrice,
-                    id: product.id,
-                    nameAndroid: product.nameAndroid,
-                    oneTimePurchaseOfferDetailsAndroid: null,
-                    platform: product.platform,
-                    price: product.price,
-                    subscriptionOfferDetailsAndroid:
-                        product.subscriptionOfferDetailsAndroid,
-                    title: product.title,
-                    type: product.type,
-                  );
-                  subscriptionProducts.add(compatibleProduct);
-                }
-              }
-            }
-
-            return gentype.FetchProductsResultProducts(subscriptionProducts);
+            itemMap = normalized;
           } else {
-            // Default to in-app products
-            final inApps =
-                products.whereType<gentype.Product>().toList(growable: false);
-            return gentype.FetchProductsResultProducts(inApps);
+            debugPrint(
+              '[flutter_inapp_purchase] Skipping unexpected item type: ${item.runtimeType}',
+            );
+            continue;
           }
-        } catch (error) {
-          throw PurchaseError(
-            code: gentype.ErrorCode.ServiceError,
-            message: 'Failed to fetch products: ${error.toString()}',
+
+          final detectedType = resolvedType == 'all'
+              ? (itemMap['type']?.toString() ?? 'in-app')
+              : resolvedType;
+          final parsed = parseProductFromNative(
+            itemMap,
+            detectedType,
+            fallbackIsIOS: _platform.isIOS,
           );
+
+          products.add(parsed);
+        } catch (error) {
+          debugPrint(
+            '[flutter_inapp_purchase] Skipping product due to parse error: $error',
+          );
+          debugPrint(
+              '[flutter_inapp_purchase] Item runtimeType: ${item.runtimeType}');
+          debugPrint(
+              '[flutter_inapp_purchase] Item values: ${jsonEncode(item)}');
         }
-      };
+      }
+
+      debugPrint(
+        '[flutter_inapp_purchase] Processed ${products.length} products',
+      );
+
+      // Return list directly based on query type
+      if (queryType == gentype.ProductQueryType.All) {
+        // For 'All' type, return all products
+        debugPrint(
+          '[flutter_inapp_purchase] Type All: returning ${products.length} total products',
+        );
+        return products;
+      } else if (queryType == gentype.ProductQueryType.Subs) {
+        // For subscription queries, return only subscriptions
+        final subscriptions = products
+            .whereType<gentype.ProductSubscription>()
+            .toList(growable: false);
+        debugPrint(
+          '[flutter_inapp_purchase] Type Subs: returning ${subscriptions.length} subscriptions',
+        );
+        return subscriptions;
+      } else {
+        // Default to in-app products
+        final inApps =
+            products.whereType<gentype.Product>().toList(growable: false);
+        debugPrint(
+          '[flutter_inapp_purchase] Type InApp: returning ${inApps.length} products',
+        );
+        return inApps;
+      }
+    } catch (error) {
+      throw PurchaseError(
+        code: gentype.ErrorCode.ServiceError,
+        message: 'Failed to fetch products: ${error.toString()}',
+      );
+    }
+  }
+
+  /// Fetch products from the store
+  ///
+  /// When type is InApp, returns List<Product>
+  /// When type is Subs, returns List<ProductSubscription>
+  /// When type is All, returns List<ProductCommon>
+  ///
+  /// Example:
+  /// ```dart
+  /// final products = await iap.fetchProducts(
+  ///   skus: ['product_id'],
+  ///   type: ProductQueryType.InApp,
+  /// ); // Type: List<Product>
+  ///
+  /// final subs = await iap.fetchProducts(
+  ///   skus: ['sub_id'],
+  ///   type: ProductQueryType.Subs,
+  /// ); // Type: List<ProductSubscription>
+  /// ```
+  Future<List<dynamic>> fetchProducts({
+    required List<String> skus,
+    gentype.ProductQueryType type = gentype.ProductQueryType.InApp,
+  }) async {
+    return await _fetchProductsInternal(
+      skus: skus,
+      queryType: type,
+    );
+  }
 
   // MARK: - StoreKit 2 specific methods
 
@@ -1628,8 +1563,29 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
             }
           };
 
+  // Internal wrapper for queryHandlers compatibility
+  gentype.QueryFetchProductsHandler get _fetchProductsHandler =>
+      ({required List<String> skus, gentype.ProductQueryType? type}) async {
+        final queryType = type ?? gentype.ProductQueryType.InApp;
+        final products = await _fetchProductsInternal(
+          skus: skus,
+          queryType: queryType,
+        );
+
+        // Wrap list in appropriate union type for OpenIAP compatibility
+        if (queryType == gentype.ProductQueryType.Subs) {
+          return gentype.FetchProductsResultSubscriptions(
+            products.whereType<gentype.ProductSubscription>().toList(),
+          );
+        } else {
+          return gentype.FetchProductsResultProducts(
+            products.whereType<gentype.Product>().toList(),
+          );
+        }
+      };
+
   gentype.QueryHandlers get queryHandlers => gentype.QueryHandlers(
-        fetchProducts: fetchProducts,
+        fetchProducts: _fetchProductsHandler,
         getActiveSubscriptions: getActiveSubscriptions,
         getAppTransactionIOS: getAppTransactionIOS,
         getAvailablePurchases: getAvailablePurchases,

@@ -19,7 +19,7 @@
 
 ```yaml
 dependencies:
-  flutter_inapp_purchase: ^7.0.0
+  flutter_inapp_purchase: ^7.1.0
 ```
 
 ## 🔧 Quick Start
@@ -35,8 +35,8 @@ final iap = FlutterInappPurchase();
 // Initialize connection
 await iap.initConnection();
 
-// Fetch products
-final result = await iap.fetchProducts(
+// Fetch products with explicit type
+final List<Product> products = await iap.fetchProducts(
   skus: ['product_id'],
   type: ProductQueryType.InApp,
 );

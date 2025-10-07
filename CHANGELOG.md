@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 7.1.0
+
+- **Breaking**: `fetchProducts()` now returns `Future<List<dynamic>>` instead of specific typed lists
+  - Requires explicit type annotation for proper type inference
+  - Example: `final List<Product> products = await iap.fetchProducts(skus: ['id'], type: ProductQueryType.InApp);`
+  - For subscriptions: `final List<ProductSubscription> subscriptions = await iap.fetchProducts(skus: ['id'], type: ProductQueryType.Subs);`
+  - Simplifies API by removing the need for `.value` or `.products` getters
+  - Fixes #576 - Type inference issues with `FetchProductsResult`
+
 ## 7.0.1
 
 - Add missing `isEligibleForIntroOfferIOS` method (Fixes #574)

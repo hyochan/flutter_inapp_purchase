@@ -338,18 +338,10 @@ Message: ${error.message}
 
     try {
       debugPrint('🔍 Loading products for IDs: ${productIds.join(", ")}');
-      final result = await _iap.fetchProducts(
+      final List<Product> inAppProducts = await _iap.fetchProducts(
         skus: productIds,
         type: ProductQueryType.InApp,
       );
-
-      // Extract products from the union type
-      final List<Product> inAppProducts;
-      if (result is FetchProductsResultProducts) {
-        inAppProducts = result.value ?? [];
-      } else {
-        inAppProducts = [];
-      }
 
       debugPrint(
           '📦 Received ${inAppProducts.length} products from fetchProducts');

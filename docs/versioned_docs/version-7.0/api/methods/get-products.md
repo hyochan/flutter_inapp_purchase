@@ -10,9 +10,9 @@ title: fetchProducts
 ## Signature
 
 ```dart
-Future<List<dynamic>> fetchProducts({
+Future<FetchProductsResult> fetchProducts({
   required List<String> skus,
-  ProductQueryType type = ProductQueryType.InApp,
+  ProductQueryType? type,
 })
 ```
 
@@ -21,28 +21,40 @@ Future<List<dynamic>> fetchProducts({
 | Parameter | Type                | Required | Description                                                                          |
 | --------- | ------------------- | -------- | ------------------------------------------------------------------------------------ |
 | `skus`    | `List<String>`      | ✅       | Store identifiers to query (Google Play product IDs / App Store product identifiers) |
-| `type`    | `ProductQueryType` | ❌       | `ProductQueryType.InApp` (default), `ProductQueryType.Subs`, or `ProductQueryType.All` |
+| `type`    | `ProductQueryType?` | ❌       | `ProductQueryType.InApp` (default) or `ProductQueryType.Subs`                        |
 
 ## Return Value
 
-Returns a dynamically-typed list. **Always use explicit type annotation** for proper type inference:
+The method returns a `FetchProductsResult` union type:
 
-- **InApp**: Use `List<Product>` annotation
-- **Subs**: Use `List<ProductSubscription>` annotation
-- **All**: Use `List<ProductCommon>` annotation
+**FetchProductsResultProducts:**
+
+- Contains `.value` property with `List<Product>?` (nullable list)
+- Returned for `ProductQueryType.InApp` queries
+
+**FetchProductsResultSubscriptions:**
+
+- Contains `.value` property with `List<ProductSubscription>?` (nullable list)
+- Returned for `ProductQueryType.Subs` queries
+
+**Important:** Always access the product list via the `.value` property:
+
+```dart
+final result = await fetchProducts(...);
+final products = result.value ?? []; // Handle nullable list
+```
 
 ## Usage Examples
 
 ### Fetch in-app products
 
 ```dart
-// Use explicit type annotation
-final List<Product> products = await FlutterInappPurchase.instance.fetchProducts(
+final result = await FlutterInappPurchase.instance.fetchProducts(
   skus: ['coins_100', 'remove_ads'],
   type: ProductQueryType.InApp,
 );
 
-for (final product in products) {
+for (final product in result.value) {
   print('${product.title}: ${product.displayPrice}');
 }
 ```
@@ -50,14 +62,12 @@ for (final product in products) {
 ### Fetch subscriptions
 
 ```dart
-// Use explicit type annotation
-final List<ProductSubscription> subscriptions =
-    await FlutterInappPurchase.instance.fetchProducts(
+final result = await FlutterInappPurchase.instance.fetchProducts(
   skus: ['premium_monthly', 'premium_yearly'],
   type: ProductQueryType.Subs,
 );
 
-for (final sub in subscriptions) {
+for (final sub in result.value) {
   print('${sub.title}: ${sub.displayPrice}');
   print('Period: ${sub.subscriptionPeriodUnitIOS ?? sub.subscriptionInfoAndroid?.billingPeriod}');
 }
@@ -67,23 +77,18 @@ for (final sub in subscriptions) {
 
 ```dart
 Future<void> loadCatalog() async {
-  // Use explicit type annotation
-  final List<Product> inAppProducts =
-      await FlutterInappPurchase.instance.fetchProducts(
+  final inAppsResult = await FlutterInappPurchase.instance.fetchProducts(
     skus: ['coins_100', 'remove_ads'],
     type: ProductQueryType.InApp,
   );
-
-  final List<ProductSubscription> subscriptions =
-      await FlutterInappPurchase.instance.fetchProducts(
+  final subsResult = await FlutterInappPurchase.instance.fetchProducts(
     skus: ['premium_monthly'],
     type: ProductQueryType.Subs,
   );
 
-  // Combine into a single list if needed
-  final List<ProductCommon> allProducts = [
-    ...inAppProducts,
-    ...subscriptions,
+  final allProducts = [
+    ...inAppsResult.value ?? [],
+    ...subsResult.value ?? [],
   ];
 
   for (final item in allProducts) {
@@ -92,40 +97,26 @@ Future<void> loadCatalog() async {
 }
 ```
 
-### Fetch all products at once
-
-```dart
-// Query all products together
-final List<ProductCommon> allProducts =
-    await FlutterInappPurchase.instance.fetchProducts(
-  skus: ['coins_100', 'remove_ads', 'premium_monthly'],
-  type: ProductQueryType.All,
-);
-
-for (final item in allProducts) {
-  debugPrint('Loaded ${item.id} (${item.displayPrice})');
-}
-```
-
 ## Error Handling
 
 ```dart
 try {
-  final List<Product> products =
-      await FlutterInappPurchase.instance.fetchProducts(
+  final result = await FlutterInappPurchase.instance.fetchProducts(
     skus: productIds,
     type: ProductQueryType.InApp,
   );
-
-  if (products.isEmpty) {
+  if (result.value.isEmpty) {
     debugPrint('No products returned for: $productIds');
+  }
+  if (result.invalidProductIds.isNotEmpty) {
+    debugPrint('Invalid product IDs: ${result.invalidProductIds}');
   }
 } on PurchaseError catch (error) {
   switch (error.code) {
-    case ErrorCode.NotPrepared:
+    case 'E_NOT_PREPARED':
       debugPrint('Call initConnection() before fetching products');
       break;
-    case ErrorCode.NetworkError:
+    case 'E_NETWORK_ERROR':
       debugPrint('Network error – prompt the user to retry');
       break;
     default:
@@ -152,8 +143,6 @@ try {
 
 ### From v6.x to v7.0
 
-The API now requires explicit type annotation for proper type inference:
-
 ```dart
 // Before (v6.x)
 final result = await iap.fetchProducts(
@@ -162,26 +151,19 @@ final result = await iap.fetchProducts(
     type: ProductQueryType.InApp,
   ),
 );
-final products = result.value; // or result.products
 
-// After (v7.0) - Use explicit type annotation
-final List<Product> products = await iap.fetchProducts(
+// After (v7.0)
+final result = await iap.fetchProducts(
   skus: ['product_id'],
   type: ProductQueryType.InApp,
 );
-
-// For subscriptions
-final List<ProductSubscription> subscriptions = await iap.fetchProducts(
-  skus: ['sub_id'],
-  type: ProductQueryType.Subs,
-);
 ```
 
-### Key Changes
+### From legacy APIs
 
-- **No more `.value` or `.products` getters** - The method returns the list directly
-- **Explicit type annotation required** - Use `List<Product>`, `List<ProductSubscription>`, or `List<ProductCommon>`
-- **Simplified API** - Direct iteration without unwrapping union types
+- Replace `requestProducts()` calls with `fetchProducts()`
+- Convert the returned `FetchProductsResult` using `inAppProducts()`, `subscriptionProducts()`, or `allProducts()` depending on the query type
+- Replace any legacy product-loading helpers in your codebase with `fetchProducts()`
 
 ## Related APIs
 
