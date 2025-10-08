@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 7.1.2
+
+- Upgrade openiap-apple module to `1.2.13`.
+
+## 7.1.1
+
+- Upgrade openiap-apple module to `1.2.12`.
+
 ## 7.1.0
 
 - **Breaking**: `fetchProducts()` now returns `Future<List<dynamic>>` instead of specific typed lists
