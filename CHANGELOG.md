@@ -1,8 +1,12 @@
 # CHANGELOG
 
+## 7.1.4
+
+- Fixed missing upgrade of `openiap-apple` module to `1.2.14` in the previous release.
+
 ## 7.1.3
 
-- Upgrade openiap-apple module to `1.2.14` which updates error message on promotional offer.
+- Updated `openiap-apple` to `1.2.14`, improving promotional offer error messages.
 
 ## 7.1.2
 
