@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 7.1.3
+
+- Upgrade openiap-apple module to `1.2.14` which updates error message on promotional offer.
+
 ## 7.1.2
 
 - Upgrade openiap-apple module to `1.2.13`.
