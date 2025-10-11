@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 7.1.5
+
+- Resolve issue like [react-native-iap issue #3054](https://github.com/hyochan/react-native-iap/issues/3054) by upgrading openiap-apple to `1.2.17`.
+
 ## 7.1.4
 
 - Fixed missing upgrade of `openiap-apple` module to `1.2.14` in the previous release.
