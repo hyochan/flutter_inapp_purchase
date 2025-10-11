@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 7.1.6
+
+- **fix(ios): corrected transactionReason detection for re-purchased subscriptions by upgrading openiap-apple to `1.2.18`** - Fixed an issue where previously cancelled subscriptions that were purchased again were incorrectly marked as `RENEWAL` instead of `PURCHASE`. Now uses Apple's `transactionReason` from JSON representation for accurate transaction type detection.
+
 ## 7.1.5
 
 - Resolve issue like [react-native-iap issue #3054](https://github.com/hyochan/react-native-iap/issues/3054) by upgrading openiap-apple to `1.2.17`.
