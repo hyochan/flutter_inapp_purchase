@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 7.1.8
+
+- chore(deps): openiap-apple@1.2.18
+  - [openiap-apple pr#23](https://github.com/hyodotdev/openiap-apple/pull/23)
+
 ## 7.1.7
 
 - **fix(ios): corrected transactionReason detection for re-purchased subscriptions by upgrading openiap-apple to `1.2.18`** - Fixed an issue where previously cancelled subscriptions that were purchased again were incorrectly marked as `RENEWAL` instead of `PURCHASE`. Now uses Apple's `transactionReason` from JSON representation for accurate transaction type detection.
