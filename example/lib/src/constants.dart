@@ -19,7 +19,8 @@ class IapConstants {
 
   // Subscription Product IDs
   static const List<String> subscriptionProductIds = [
-    'dev.hyo.martie.premium', // This is the actual subscription ID in the store
+    'dev.hyo.martie.premium',
+    'dev.hyo.martie.premium_year',
   ];
 
   // All product IDs combined

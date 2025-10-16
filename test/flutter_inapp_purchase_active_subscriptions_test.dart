@@ -36,17 +36,14 @@ void main() {
         switch (call.method) {
           case 'initConnection':
             return true;
-          case 'getAvailableItems':
+          case 'getActiveSubscriptions':
             return <Map<String, dynamic>>[
               <String, dynamic>{
-                'platform': 'android',
                 'productId': 'sub.android',
                 'transactionId': 'txn_android',
                 'purchaseToken': 'token-123',
-                'purchaseStateAndroid': 1,
-                'isAutoRenewing': true,
+                'isActive': true,
                 'autoRenewingAndroid': true,
-                'quantity': 1,
                 'transactionDate': 1700000000000,
               },
             ];
@@ -72,17 +69,9 @@ void main() {
         switch (call.method) {
           case 'initConnection':
             return true;
-          case 'getAvailableItems':
-            return <Map<String, dynamic>>[
-              <String, dynamic>{
-                'platform': 'ios',
-                'productId': 'sub.ios',
-                'transactionId': 'txn_ios',
-                'purchaseToken': 'receipt-data',
-                'purchaseState': 'DEFERRED',
-                'transactionDate': 1700000000000,
-              },
-            ];
+          case 'getActiveSubscriptions':
+            // Native method filters out deferred purchases
+            return <Map<String, dynamic>>[];
         }
         return null;
       });
@@ -103,14 +92,13 @@ void main() {
         switch (call.method) {
           case 'initConnection':
             return true;
-          case 'getAvailableItems':
+          case 'getActiveSubscriptions':
             return <Map<String, dynamic>>[
               <String, dynamic>{
-                'platform': 'ios',
                 'productId': 'sub.ios',
                 'transactionId': 'txn_ios',
                 'purchaseToken': 'receipt-data',
-                'purchaseState': 'PURCHASED',
+                'isActive': true,
                 'transactionDate': 1700000000000,
               },
             ];

@@ -416,6 +416,45 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                 }
             }
 
+            "getActiveSubscriptions" -> {
+                @Suppress("UNCHECKED_CAST")
+                val subscriptionIds = call.arguments as? List<String>
+
+                OpenIapLog.d(TAG, "getActiveSubscriptions called with subscriptionIds: $subscriptionIds")
+
+                scope.launch {
+                    // Ensure connection and listeners under mutex
+                    connectionMutex.withLock {
+                        try {
+                            attachListenersIfNeeded()
+                            openIap?.setActivity(activity)
+                            if (!connectionReady) {
+                                safe.error(OpenIapError.NotPrepared.CODE, OpenIapError.NotPrepared.MESSAGE, "Billing not ready")
+                                return@launch
+                            }
+                        } catch (e: Exception) {
+                            safe.error(OpenIapError.BillingError.CODE, OpenIapError.BillingError.MESSAGE, e.message)
+                            return@launch
+                        }
+                    }
+                    try {
+                        val iap = openIap
+                        if (iap == null) {
+                            safe.error(OpenIapError.NotPrepared.CODE, OpenIapError.NotPrepared.MESSAGE, "IAP module not initialized.")
+                            return@launch
+                        }
+                        val subscriptions = iap.getActiveSubscriptions(subscriptionIds)
+                        val arr = JSONArray()
+                        subscriptions.forEach { subscription ->
+                            arr.put(JSONObject(subscription.toJson()))
+                        }
+                        safe.success(arr.toString())
+                    } catch (e: Exception) {
+                        safe.error(OpenIapError.BillingError.CODE, OpenIapError.BillingError.MESSAGE, e.message)
+                    }
+                }
+            }
+
             "requestPurchase" -> {
                 val params = call.arguments as? Map<*, *> ?: emptyMap<String, Any?>()
                 val typeStr = params["type"] as? String

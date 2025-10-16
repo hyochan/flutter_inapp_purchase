@@ -1352,10 +1352,63 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
         }
       };
 
+  /// Recursively convert platform channel Map/List to proper Dart types
+  dynamic _deepConvertMap(dynamic value) {
+    if (value is Map) {
+      final Map<String, dynamic> result = {};
+      value.forEach((key, val) {
+        result[key.toString()] = _deepConvertMap(val);
+      });
+      return result;
+    } else if (value is List) {
+      return value.map((item) => _deepConvertMap(item)).toList();
+    } else {
+      return value;
+    }
+  }
+
+  /// Parse active subscriptions from native method result
+  List<gentype.ActiveSubscription> _parseActiveSubscriptions(dynamic result) {
+    List<dynamic> list;
+    if (result is String) {
+      list = json.decode(result) as List<dynamic>;
+    } else if (result is List) {
+      list = result;
+    } else {
+      list = json.decode(result.toString()) as List<dynamic>;
+    }
+
+    final subscriptions = <gentype.ActiveSubscription>[];
+    for (final dynamic item in list) {
+      try {
+        if (item is! Map) {
+          debugPrint(
+            '[flutter_inapp_purchase] Skipping subscription with unexpected type: ${item.runtimeType}',
+          );
+          continue;
+        }
+        // Recursively convert map to Map<String, dynamic>
+        final map = _deepConvertMap(item) as Map<String, dynamic>;
+        subscriptions.add(gentype.ActiveSubscription.fromJson(map));
+      } catch (error) {
+        debugPrint(
+          '[flutter_inapp_purchase] Skipping subscription due to parse error: $error',
+        );
+      }
+    }
+
+    return subscriptions;
+  }
+
   /// Get all active subscriptions with detailed information (OpenIAP compliant)
   /// Returns an array of active subscriptions. If subscriptionIds is not provided,
   /// returns all active subscriptions. Platform-specific fields are populated based
   /// on the current platform.
+  ///
+  /// This uses the native getActiveSubscriptions method on both platforms:
+  /// - iOS: includes renewalInfoIOS with subscription renewal status, pending
+  ///   upgrades/downgrades, cancellation status, and auto-renewal preferences
+  /// - Android: includes autoRenewingAndroid and other subscription details
   gentype.QueryGetActiveSubscriptionsHandler get getActiveSubscriptions =>
       ([subscriptionIds]) async {
         if (!_isInitialized) {
@@ -1366,66 +1419,20 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
         }
 
         try {
-          // Get all available purchases (which includes active subscriptions)
-          final purchases = await getAvailablePurchases();
+          // Use native getActiveSubscriptions for both iOS and Android
+          // This ensures we get complete ActiveSubscription objects including:
+          // - renewalInfoIOS on iOS (with upgrade/downgrade/cancellation status)
+          // - autoRenewingAndroid on Android
+          final result = await _channel.invokeMethod(
+            'getActiveSubscriptions',
+            subscriptionIds,
+          );
 
-          // Filter to only active subscriptions
-          final List<gentype.ActiveSubscription> activeSubscriptions = [];
-
-          for (final purchase in purchases) {
-            if (subscriptionIds != null &&
-                !subscriptionIds.contains(purchase.productId)) {
-              continue;
-            }
-
-            if (purchase is gentype.PurchaseAndroid) {
-              // A purchase is an active subscription if it's in Purchased state
-              // Note: We don't check isAcknowledgedAndroid because:
-              // 1. The purchase might have just been acknowledged but not yet refreshed
-              // 2. autoRenewingAndroid can be false for test purchases or non-renewing subs
-              // 3. If it's in our purchase list and state is Purchased, it's valid
-              final bool isActive =
-                  purchase.purchaseState == gentype.PurchaseState.Purchased;
-
-              if (isActive) {
-                activeSubscriptions.add(
-                  gentype.ActiveSubscription(
-                    productId: purchase.productId,
-                    isActive: true,
-                    autoRenewingAndroid: purchase.autoRenewingAndroid ?? false,
-                    transactionDate: purchase.transactionDate,
-                    transactionId: purchase.id,
-                    purchaseToken: purchase.purchaseToken,
-                  ),
-                );
-              }
-            } else if (purchase is gentype.PurchaseIOS) {
-              final receipt = purchase.purchaseToken;
-              final bool isSubscription =
-                  receipt != null || purchase.productId.contains('sub');
-              final bool isActive =
-                  (purchase.purchaseState == gentype.PurchaseState.Purchased ||
-                          purchase.purchaseState ==
-                              gentype.PurchaseState.Restored) &&
-                      isSubscription;
-
-              if (isSubscription && isActive) {
-                activeSubscriptions.add(
-                  gentype.ActiveSubscription(
-                    productId: purchase.productId,
-                    isActive: true,
-                    expirationDateIOS: purchase.expirationDateIOS,
-                    environmentIOS: purchase.environmentIOS,
-                    purchaseToken: purchase.purchaseToken,
-                    transactionDate: purchase.transactionDate,
-                    transactionId: purchase.id,
-                  ),
-                );
-              }
-            }
+          if (result == null) {
+            return <gentype.ActiveSubscription>[];
           }
 
-          return activeSubscriptions;
+          return _parseActiveSubscriptions(result);
         } catch (error) {
           if (error is PurchaseError) {
             rethrow;
