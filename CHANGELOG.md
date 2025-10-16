@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 7.1.10
+
+- fix: handle string timestamp in DiscountOfferInputIOS
+  - [openiap-apple/pull/26](https://github.com/hyodotdev/openiap-apple/pull/26)
+
 ## 7.1.9
 
 - **feat**: Add native `getActiveSubscriptions` support with `renewalInfoIOS`
