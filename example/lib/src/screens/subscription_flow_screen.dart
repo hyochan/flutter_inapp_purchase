@@ -304,11 +304,11 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
     try {
       debugPrint('🔄 Loading subscriptions with SKUs: $subscriptionIds');
 
-      // Use type cast on right side instead of type annotation on left
-      final subscriptions = await _iap.fetchProducts(
+      // Use explicit type annotation for proper type inference
+      final List<ProductSubscription> subscriptions = await _iap.fetchProducts(
         skus: subscriptionIds,
         type: ProductQueryType.Subs,
-      ) as List<ProductSubscription>;
+      );
 
       debugPrint('✅ Loaded ${subscriptions.length} subscriptions');
       for (final sub in subscriptions) {
