@@ -98,7 +98,11 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
         debugPrint('  Transaction state iOS: $iosTransactionState');
         debugPrint('  Is acknowledged Android: $acknowledgedAndroid');
         debugPrint('  Transaction ID: ${transactionId ?? 'N/A'}');
-        debugPrint('  Purchase token: ${purchase.purchaseToken}');
+        final token = purchase.purchaseToken;
+        final maskedToken = token == null
+            ? 'null'
+            : '${token.substring(0, token.length > 10 ? 10 : token.length)}...';
+        debugPrint('  Purchase token: $maskedToken');
         if (purchase is PurchaseAndroid) {
           debugPrint('  Auto renewing: ${purchase.autoRenewingAndroid}');
         }
@@ -621,9 +625,11 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
       });
 
       for (final subscription in _activeSubscriptionInfo.values) {
-        debugPrint(
-          'Restored: ${subscription.productId}, Token: ${subscription.purchaseToken}',
-        );
+        final t = subscription.purchaseToken;
+        final masked = t == null
+            ? 'null'
+            : '${t.substring(0, t.length > 10 ? 10 : t.length)}...';
+        debugPrint('Restored: ${subscription.productId}, Token: $masked');
       }
     } catch (error) {
       debugPrint('Failed to restore purchases: $error');
