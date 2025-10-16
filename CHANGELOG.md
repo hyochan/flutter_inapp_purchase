@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## 7.1.9
+
+- **feat**: Add native `getActiveSubscriptions` support with `renewalInfoIOS`
+  - Implemented native method calls for both iOS (openiap-apple@1.2.21) and Android (openiap-google@1.2.13)
+  - Added `renewalInfoIOS` field to `ActiveSubscription` for subscription renewal status, pending upgrades/downgrades, and cancellation detection
+  - Simplified Dart implementation from 50+ lines to ~10 lines by using native methods
+  - Added comprehensive tests for `renewalInfoIOS` parsing (upgrade detection, cancellation, billing retry, grace period)
+- **fix**: Improved `_parseActiveSubscriptions` error handling
+  - Added support for Map result type (single subscription)
+  - Safe JSON decoding with try-catch for unexpected types
+- **refactor**: Android native code - extracted `withBillingReady` helper to reduce duplication
+- **chore(deps)**: openiap-apple@1.2.21, openiap-google@1.2.13, openiap-gql@1.2.1
+
 ## 7.1.8
 
 - chore(deps): openiap-apple@1.2.18
