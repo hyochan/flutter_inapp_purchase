@@ -1374,8 +1374,18 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
       list = json.decode(result) as List<dynamic>;
     } else if (result is List) {
       list = result;
+    } else if (result is Map) {
+      // Some platforms/libs may return a single map; normalize to list
+      list = [result];
     } else {
-      list = json.decode(result.toString()) as List<dynamic>;
+      try {
+        list = json.decode(result.toString()) as List<dynamic>;
+      } catch (_) {
+        debugPrint(
+          '[flutter_inapp_purchase] Unexpected getActiveSubscriptions result type: ${result.runtimeType}',
+        );
+        list = const <dynamic>[];
+      }
     }
 
     final subscriptions = <gentype.ActiveSubscription>[];

@@ -576,7 +576,8 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
       // Use current subscription token if available, otherwise use a test token
       final testToken = _currentActiveSubscription?.purchaseToken ??
           'test_empty_token_${DateTime.now().millisecondsSinceEpoch}';
-      debugPrint('Using test token: ${testToken.substring(0, 20)}...');
+      debugPrint(
+          'Using test token: ${testToken.substring(0, testToken.length > 20 ? 20 : testToken.length)}...');
 
       // Test with empty string - but pass validation by using a non-empty token
       final requestProps = RequestPurchaseProps.subs((

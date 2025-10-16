@@ -340,40 +340,19 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                     ?: emptyList()
                 val queryType = parseQueryType(typeStr)
                 scope.launch {
-                    // Ensure connection
-                    connectionMutex.withLock {
+                    withBillingReady(safe, autoInit = true) {
                         try {
-                            attachListenersIfNeeded()
-                            openIap?.setActivity(activity)
-                            if (!connectionReady) {
-                                OpenIapLog.d(TAG, "fetchProducts: Auto-initializing connection with default config")
-                                val ok = openIap?.initConnection(InitConnectionConfig()) ?: false
-                                connectionReady = ok
-                                val item = JSONObject().apply { put("connected", ok) }
-                                channel?.invokeMethod("connection-updated", item.toString())
-                                if (!ok) {
-                                    safe.error(OpenIapError.InitConnection.CODE, OpenIapError.InitConnection.MESSAGE, "Failed to initialize connection")
-                                    return@launch
-                                }
-                            } else {
-                                OpenIapLog.d(TAG, "fetchProducts: Connection already ready")
+                            val iap = openIap
+                            if (iap == null) {
+                                safe.error(OpenIapError.NotPrepared.CODE, OpenIapError.NotPrepared.MESSAGE, "IAP module not initialized.")
+                                return@withBillingReady
                             }
+                            val result = iap.fetchProducts(ProductRequest(skuArr, queryType))
+                            val arr = fetchResultToJsonArray(result, queryType == ProductQueryType.All)
+                            safe.success(arr.toString())
                         } catch (e: Exception) {
-                            safe.error(OpenIapError.BillingError.CODE, OpenIapError.BillingError.MESSAGE, e.message)
-                            return@launch
+                            safe.error(OpenIapError.QueryProduct.CODE, OpenIapError.QueryProduct.MESSAGE, e.message)
                         }
-                    }
-                    try {
-                        val iap = openIap
-                        if (iap == null) {
-                            safe.error(OpenIapError.NotPrepared.CODE, OpenIapError.NotPrepared.MESSAGE, "IAP module not initialized.")
-                            return@launch
-                        }
-                        val result = iap.fetchProducts(ProductRequest(skuArr, queryType))
-                        val arr = fetchResultToJsonArray(result, queryType == ProductQueryType.All)
-                        safe.success(arr.toString())
-                    } catch (e: Exception) {
-                        safe.error(OpenIapError.QueryProduct.CODE, OpenIapError.QueryProduct.MESSAGE, e.message)
                     }
                 }
             }
@@ -381,37 +360,19 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
             // Expo parity: getAvailableItems()
             "getAvailableItems" -> {
                 scope.launch {
-                    // Ensure connection
-                    connectionMutex.withLock {
+                    withBillingReady(safe, autoInit = true) {
                         try {
-                            attachListenersIfNeeded()
-                            openIap?.setActivity(activity)
-                            if (!connectionReady) {
-                                val ok = openIap?.initConnection(InitConnectionConfig()) ?: false
-                                connectionReady = ok
-                                val item = JSONObject().apply { put("connected", ok) }
-                                channel?.invokeMethod("connection-updated", item.toString())
-                                if (!ok) {
-                                    safe.error(OpenIapError.InitConnection.CODE, OpenIapError.InitConnection.MESSAGE, "Failed to initialize connection")
-                                    return@launch
-                                }
+                            val iap = openIap
+                            if (iap == null) {
+                                safe.error(OpenIapError.NotPrepared.CODE, OpenIapError.NotPrepared.MESSAGE, "IAP module not initialized.")
+                                return@withBillingReady
                             }
+                            val purchases = iap.getAvailablePurchases(null)
+                            val arr = purchasesToJsonArray(purchases)
+                            safe.success(arr.toString())
                         } catch (e: Exception) {
                             safe.error(OpenIapError.BillingError.CODE, OpenIapError.BillingError.MESSAGE, e.message)
-                            return@launch
                         }
-                    }
-                    try {
-                        val iap = openIap
-                        if (iap == null) {
-                            safe.error(OpenIapError.NotPrepared.CODE, OpenIapError.NotPrepared.MESSAGE, "IAP module not initialized.")
-                            return@launch
-                        }
-                        val purchases = iap.getAvailablePurchases(null)
-                        val arr = purchasesToJsonArray(purchases)
-                        safe.success(arr.toString())
-                    } catch (e: Exception) {
-                        safe.error(OpenIapError.BillingError.CODE, OpenIapError.BillingError.MESSAGE, e.message)
                     }
                 }
             }
@@ -423,34 +384,22 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                 OpenIapLog.d(TAG, "getActiveSubscriptions called with subscriptionIds: $subscriptionIds")
 
                 scope.launch {
-                    // Ensure connection and listeners under mutex
-                    connectionMutex.withLock {
+                    withBillingReady(safe) {
                         try {
-                            attachListenersIfNeeded()
-                            openIap?.setActivity(activity)
-                            if (!connectionReady) {
-                                safe.error(OpenIapError.NotPrepared.CODE, OpenIapError.NotPrepared.MESSAGE, "Billing not ready")
-                                return@launch
+                            val iap = openIap
+                            if (iap == null) {
+                                safe.error(OpenIapError.NotPrepared.CODE, OpenIapError.NotPrepared.MESSAGE, "IAP module not initialized.")
+                                return@withBillingReady
                             }
+                            val subscriptions = iap.getActiveSubscriptions(subscriptionIds)
+                            val arr = JSONArray()
+                            subscriptions.forEach { subscription ->
+                                arr.put(JSONObject(subscription.toJson()))
+                            }
+                            safe.success(arr.toString())
                         } catch (e: Exception) {
                             safe.error(OpenIapError.BillingError.CODE, OpenIapError.BillingError.MESSAGE, e.message)
-                            return@launch
                         }
-                    }
-                    try {
-                        val iap = openIap
-                        if (iap == null) {
-                            safe.error(OpenIapError.NotPrepared.CODE, OpenIapError.NotPrepared.MESSAGE, "IAP module not initialized.")
-                            return@launch
-                        }
-                        val subscriptions = iap.getActiveSubscriptions(subscriptionIds)
-                        val arr = JSONArray()
-                        subscriptions.forEach { subscription ->
-                            arr.put(JSONObject(subscription.toJson()))
-                        }
-                        safe.success(arr.toString())
-                    } catch (e: Exception) {
-                        safe.error(OpenIapError.BillingError.CODE, OpenIapError.BillingError.MESSAGE, e.message)
                     }
                 }
             }
@@ -920,6 +869,44 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
     @Deprecated("Deprecated channel endpoint; will be removed in 7.0.0")
     private fun logDeprecated(name: String, message: String) {
         OpenIapLog.w(TAG, "[$name] is deprecated and will be removed in 7.0.0. $message")
+    }
+
+    /**
+     * Ensures billing client is ready before executing a block of code.
+     * This helper reduces duplication of connection checking logic.
+     *
+     * @param autoInit If true, automatically initializes connection if not ready
+     */
+    private suspend fun withBillingReady(
+        safe: MethodResultWrapper,
+        autoInit: Boolean = false,
+        block: suspend () -> Unit
+    ) {
+        connectionMutex.withLock {
+            try {
+                attachListenersIfNeeded()
+                openIap?.setActivity(activity)
+                if (!connectionReady) {
+                    if (autoInit) {
+                        val ok = openIap?.initConnection(InitConnectionConfig()) ?: false
+                        connectionReady = ok
+                        val item = JSONObject().apply { put("connected", ok) }
+                        channel?.invokeMethod("connection-updated", item.toString())
+                        if (!ok) {
+                            safe.error(OpenIapError.InitConnection.CODE, OpenIapError.InitConnection.MESSAGE, "Failed to initialize connection")
+                            return
+                        }
+                    } else {
+                        safe.error(OpenIapError.NotPrepared.CODE, OpenIapError.NotPrepared.MESSAGE, "Billing not ready")
+                        return
+                    }
+                }
+            } catch (e: Exception) {
+                safe.error(OpenIapError.BillingError.CODE, OpenIapError.BillingError.MESSAGE, e.message)
+                return
+            }
+        }
+        block()
     }
 
     private fun attachListenersIfNeeded() {
