@@ -139,9 +139,9 @@ Ready to implement in-app purchases in your Flutter app? Let's <Link to="/docs/g
 
 ## Sponsors & Community Support
 
-We’re building the OpenIAP ecosystem—defining the spec at
+We're building the OpenIAP ecosystem—defining the spec at
 [openiap.dev](https://www.openiap.dev), maintaining
-[openiap-gql](https://github.com/hyodotdev/openiap-gql) for the shared type
+[openiap](https://github.com/hyodotdev/openiap) for the shared type
 system, and shipping native SDKs such as
 [openiap-apple](https://github.com/hyodotdev/openiap-apple) and
 [openiap-google](https://github.com/hyodotdev/openiap-google). These modules

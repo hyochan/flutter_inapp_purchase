@@ -35,7 +35,7 @@ print(value)
 PY
 )
 
-ZIP_URL="https://github.com/hyodotdev/openiap-gql/releases/download/${OPENIAP_GQL_VERSION}/openiap-dart.zip"
+ZIP_URL="https://github.com/hyodotdev/openiap/releases/download/${OPENIAP_GQL_VERSION}/openiap-dart.zip"
 
 cleanup() {
   rm -rf "${TMP_DIR}"
