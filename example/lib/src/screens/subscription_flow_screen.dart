@@ -24,9 +24,7 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
 
   List<ProductCommon> _subscriptions = [];
   final Map<String, ProductCommon> _originalProducts = {};
-  List<Purchase> _activeSubscriptions = [];
   final Map<String, ActiveSubscription> _activeSubscriptionInfo = {};
-  Purchase? _currentSubscription;
   ActiveSubscription? _currentActiveSubscription;
   bool _hasActiveSubscription = false;
   bool _isProcessing = false;
@@ -42,8 +40,8 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
   // Track processed transactions to avoid duplicates
   final Set<String> _processedTransactionIds = {};
 
-  // Proration mode selection
-  int? _selectedProrationMode;
+  // Proration mode selection (default to Immediate with Time Proration)
+  int? _selectedProrationMode = 1;
   final Map<String, int> _prorationModes = {
     'Immediate with Time Proration': 1,
     'Immediate and Charge Prorated Price': 2,
@@ -100,7 +98,11 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
         debugPrint('  Transaction state iOS: $iosTransactionState');
         debugPrint('  Is acknowledged Android: $acknowledgedAndroid');
         debugPrint('  Transaction ID: ${transactionId ?? 'N/A'}');
-        debugPrint('  Purchase token: ${purchase.purchaseToken}');
+        final token = purchase.purchaseToken;
+        final maskedToken = token == null
+            ? 'null'
+            : '${token.substring(0, token.length > 10 ? 10 : token.length)}...';
+        debugPrint('  Purchase token: $maskedToken');
         if (purchase is PurchaseAndroid) {
           debugPrint('  Auto renewing: ${purchase.autoRenewingAndroid}');
         }
@@ -306,6 +308,7 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
     try {
       debugPrint('🔄 Loading subscriptions with SKUs: $subscriptionIds');
 
+      // Use explicit type annotation for proper type inference
       final List<ProductSubscription> subscriptions = await _iap.fetchProducts(
         skus: subscriptionIds,
         type: ProductQueryType.Subs,
@@ -353,14 +356,27 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
         debugPrint(
           '  • ${summary.productId} (tx: ${summary.transactionId}, autoRenew: ${summary.autoRenewingAndroid})',
         );
+
+        // Log renewalInfoIOS details
+        if (summary.renewalInfoIOS != null) {
+          final renewal = summary.renewalInfoIOS!;
+          debugPrint('    renewalInfo: {');
+          debugPrint('      willAutoRenew: ${renewal.willAutoRenew}');
+          debugPrint(
+              '      pendingUpgradeProductId: ${renewal.pendingUpgradeProductId}');
+          debugPrint(
+              '      autoRenewPreference: ${renewal.autoRenewPreference}');
+          debugPrint(
+              '      renewalDate: ${renewal.renewalDate != null ? DateTime.fromMillisecondsSinceEpoch(renewal.renewalDate!.toInt()) : null}');
+          debugPrint('      expirationReason: ${renewal.expirationReason}');
+          debugPrint('      isInBillingRetry: ${renewal.isInBillingRetry}');
+          debugPrint(
+              '      gracePeriodExpirationDate: ${renewal.gracePeriodExpirationDate}');
+          debugPrint(
+              '      priceIncreaseStatus: ${renewal.priceIncreaseStatus}');
+          debugPrint('    }');
+        }
       }
-
-      // Get corresponding Purchase objects for additional details
-      final purchases = await _iap.getAvailablePurchases(
-        onlyIncludeActiveItemsIOS: true,
-      );
-
-      debugPrint('Total available purchases found: ${purchases.length}');
 
       // Create map of summaries by product ID
       final Map<String, ActiveSubscription> summaryByProduct = {};
@@ -368,21 +384,9 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
         summaryByProduct[summary.productId] = summary;
       }
 
-      // Match purchases with summaries
-      final List<Purchase> activeSubs = [];
-      final Set<String> addedProducts = <String>{};
-
-      for (final purchase in purchases) {
-        if (summaryByProduct.containsKey(purchase.productId) &&
-            addedProducts.add(purchase.productId)) {
-          activeSubs.add(purchase);
-          debugPrint('  ✓ Matched purchase: ${purchase.productId}');
-        }
-      }
-
-      activeSubs.sort(
-        (a, b) => b.transactionDate.compareTo(a.transactionDate),
-      );
+      // Sort by transaction date (most recent first)
+      final sortedSummaries = List<ActiveSubscription>.from(summaries)
+        ..sort((a, b) => b.transactionDate.compareTo(a.transactionDate));
 
       if (!mounted) return;
 
@@ -390,38 +394,37 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
         _activeSubscriptionInfo
           ..clear()
           ..addAll(summaryByProduct);
-        _activeSubscriptions = activeSubs;
-        _hasActiveSubscription = activeSubs.isNotEmpty;
-        _currentSubscription = activeSubs.isNotEmpty ? activeSubs.first : null;
-        _currentActiveSubscription = _currentSubscription != null
-            ? summaryByProduct[_currentSubscription!.productId]
-            : null;
+        _hasActiveSubscription = summaries.isNotEmpty;
+        _currentActiveSubscription =
+            sortedSummaries.isNotEmpty ? sortedSummaries.first : null;
 
-        if (_currentSubscription != null) {
+        if (_currentActiveSubscription != null) {
           debugPrint(
-            'Current subscription: ${_currentSubscription!.productId}',
-          );
-          debugPrint(
-            'Purchase token: ${_currentSubscription!.purchaseToken}',
+            'Current subscription: ${_currentActiveSubscription!.productId}',
           );
 
-          final summary = _currentActiveSubscription;
+          final summary = _currentActiveSubscription!;
           final buffer = StringBuffer(
-            'Active: ${_currentSubscription!.productId}',
+            'Active: ${summary.productId}',
           );
-          if (summary?.expirationDateIOS != null) {
+          if (summary.expirationDateIOS != null) {
             buffer.write(
-              '\nExpires: ${_formatReadableDate(summary!.expirationDateIOS!)}',
+              '\nExpires: ${_formatReadableDate(summary.expirationDateIOS!)}',
             );
           }
-          if (summary?.autoRenewingAndroid != null) {
+          if (summary.autoRenewingAndroid != null) {
             buffer.write(
-              '\nAuto renew: ${summary!.autoRenewingAndroid == true}',
+              '\nAuto renew: ${summary.autoRenewingAndroid == true}',
+            );
+          }
+          if (summary.renewalInfoIOS?.willAutoRenew != null) {
+            buffer.write(
+              '\nWill auto renew (iOS): ${summary.renewalInfoIOS!.willAutoRenew}',
             );
           }
           _purchaseResult = buffer.toString();
         } else {
-          debugPrint('No active subscription found in filtered list');
+          debugPrint('No active subscription found');
           _purchaseResult = 'No active subscriptions found';
         }
       });
@@ -443,7 +446,8 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
 
     debugPrint('🛒 Starting subscription purchase: ${item.id}');
     debugPrint('  isUpgrade: $isUpgrade');
-    debugPrint('  Current subscription: ${_currentSubscription?.productId}');
+    debugPrint(
+        '  Current subscription: ${_currentActiveSubscription?.productId}');
 
     setState(() {
       _isProcessing = true;
@@ -464,13 +468,13 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
       if (Platform.isAndroid) {
         // Check if this is an upgrade/downgrade
         if (isUpgrade &&
-            _currentSubscription != null &&
+            _currentActiveSubscription != null &&
             _selectedProrationMode != null) {
           // This is an upgrade/downgrade with proration
           debugPrint(
               'Upgrading subscription with proration mode: $_selectedProrationMode');
           debugPrint(
-              'Using purchase token: ${_currentSubscription!.purchaseToken}');
+              'Using purchase token: ${_currentActiveSubscription!.purchaseToken}');
 
           final requestProps = RequestPurchaseProps.subs((
             ios: null,
@@ -574,9 +578,10 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
       debugPrint('Testing proration mode with EMPTY string purchaseToken');
 
       // Use current subscription token if available, otherwise use a test token
-      final testToken = _currentSubscription?.purchaseToken ??
+      final testToken = _currentActiveSubscription?.purchaseToken ??
           'test_empty_token_${DateTime.now().millisecondsSinceEpoch}';
-      debugPrint('Using test token: ${testToken.substring(0, 20)}...');
+      debugPrint(
+          'Using test token: ${testToken.substring(0, testToken.length > 20 ? 20 : testToken.length)}...');
 
       // Test with empty string - but pass validation by using a non-empty token
       final requestProps = RequestPurchaseProps.subs((
@@ -616,13 +621,15 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
       setState(() {
         _isProcessing = false;
         _purchaseResult =
-            '✅ Restored ${_activeSubscriptions.length} subscription(s)';
+            '✅ Restored ${_activeSubscriptionInfo.length} subscription(s)';
       });
 
-      for (final purchase in _activeSubscriptions) {
-        debugPrint(
-          'Restored: ${purchase.productId}, Token: ${purchase.purchaseToken}',
-        );
+      for (final subscription in _activeSubscriptionInfo.values) {
+        final t = subscription.purchaseToken;
+        final masked = t == null
+            ? 'null'
+            : '${t.substring(0, t.length > 10 ? 10 : t.length)}...';
+        debugPrint('Restored: ${subscription.productId}, Token: $masked');
       }
     } catch (error) {
       debugPrint('Failed to restore purchases: $error');
@@ -634,71 +641,36 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
     }
   }
 
-  Future<void> _showPurchaseDetails(Purchase purchase) async {
-    if (!mounted) return;
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom,
-            ),
-            child: DraggableScrollableSheet(
-              expand: false,
-              initialChildSize: 0.85,
-              minChildSize: 0.4,
-              maxChildSize: 0.95,
-              builder: (context, controller) {
-                return SingleChildScrollView(
-                  controller: controller,
-                  padding: const EdgeInsets.all(16),
-                  child: PurchaseDataView(
-                    purchase: purchase,
-                    statusLabel: 'Subscription Purchase',
-                    statusColor: Colors.blue.shade600,
-                  ),
-                );
-              },
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildActiveSubscriptionCard(Purchase purchase) {
-    final summary = _activeSubscriptionInfo[purchase.productId];
-    final isCurrent = _currentSubscription?.productId == purchase.productId;
+  Widget _buildActiveSubscriptionCard(ActiveSubscription subscription) {
+    final isCurrent =
+        _currentActiveSubscription?.productId == subscription.productId;
     final chips = <Widget>[
-      _infoChip('State: ${purchase.purchaseState.name}'),
-      _infoChip('Platform: ${purchase.platform.toJson().toLowerCase()}'),
-      _infoChip('Quantity: ${purchase.quantity}'),
+      _infoChip('Status: ${subscription.isActive ? 'Active' : 'Inactive'}'),
+      if (subscription.basePlanIdAndroid != null)
+        _infoChip('Plan: ${subscription.basePlanIdAndroid}'),
     ];
 
-    if (summary != null) {
-      chips.add(
-          _infoChip('Status: ${summary.isActive ? 'Active' : 'Inactive'}'));
+    final bool? autoRenew = subscription.autoRenewingAndroid ??
+        subscription.renewalInfoIOS?.willAutoRenew;
+    if (autoRenew != null) {
+      chips.add(_infoChip('Auto renew: $autoRenew'));
     }
 
-    final bool? autoRenew =
-        summary?.autoRenewingAndroid ?? purchase.isAutoRenewing;
-    chips.add(_infoChip('Auto renew: ${autoRenew ?? 'unknown'}'));
-
-    final expiration = summary?.expirationDateIOS;
+    final expiration = subscription.expirationDateIOS;
     if (expiration != null) {
       chips.add(
         _infoChip('Expires: ${_formatReadableDate(expiration)}'),
       );
     }
-    if (summary?.willExpireSoon == true) {
+    if (subscription.willExpireSoon == true) {
       chips.add(_infoChip('Expiring soon'));
     }
-    final environment = summary?.environmentIOS;
+    final environment = subscription.environmentIOS;
     if (environment != null && environment.isNotEmpty) {
       chips.add(_infoChip('Env: $environment'));
     }
+
+    final renewal = subscription.renewalInfoIOS;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -712,9 +684,9 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
               children: [
                 Expanded(
                   child: Text(
-                    purchase.productId.isEmpty
+                    subscription.productId.isEmpty
                         ? 'Unknown product'
-                        : purchase.productId,
+                        : subscription.productId,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -737,7 +709,7 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
                     ),
                   ),
                   child: Text(
-                    isCurrent ? 'Current' : 'Restored',
+                    isCurrent ? 'Current' : 'Active',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -755,17 +727,124 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
               runSpacing: 8,
               children: chips,
             ),
+
+            // renewalInfoIOS showcase
+            if (renewal != null) ...[
+              const SizedBox(height: 12),
+              const Divider(),
+              const SizedBox(height: 8),
+              const Text(
+                'Renewal Info (iOS)',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              _buildRenewalInfoRow(
+                'Auto-Renew',
+                renewal.willAutoRenew ? '✅ Enabled' : '⚠️ Disabled',
+                renewal.willAutoRenew ? Colors.green : Colors.orange,
+              ),
+              if (renewal.pendingUpgradeProductId != null)
+                _buildRenewalInfoRow(
+                  'Pending Upgrade',
+                  renewal.pendingUpgradeProductId!,
+                  Colors.blue,
+                ),
+              if (renewal.renewalDate != null)
+                _buildRenewalInfoRow(
+                  'Next Renewal',
+                  _formatReadableDate(renewal.renewalDate!),
+                  Colors.blue,
+                ),
+              if (renewal.expirationReason != null)
+                _buildRenewalInfoRow(
+                  'Expiration Reason',
+                  renewal.expirationReason!,
+                  Colors.red,
+                ),
+              if (renewal.isInBillingRetry == true)
+                _buildRenewalInfoRow(
+                  'Billing Status',
+                  '⚠️ In Billing Retry',
+                  Colors.orange,
+                ),
+              if (renewal.gracePeriodExpirationDate != null)
+                _buildRenewalInfoRow(
+                  'Grace Period Ends',
+                  _formatReadableDate(renewal.gracePeriodExpirationDate!),
+                  Colors.orange,
+                ),
+              if (renewal.priceIncreaseStatus != null)
+                _buildRenewalInfoRow(
+                  'Price Increase',
+                  renewal.priceIncreaseStatus!,
+                  Colors.purple,
+                ),
+              if (renewal.autoRenewPreference != null &&
+                  renewal.autoRenewPreference != subscription.productId)
+                _buildRenewalInfoRow(
+                  'Auto-Renew Preference',
+                  renewal.autoRenewPreference!,
+                  Colors.purple,
+                ),
+            ],
+
             const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () => _showPurchaseDetails(purchase),
-                icon: const Icon(Icons.receipt_long, size: 18),
-                label: const Text('View Purchase Data'),
+            Text(
+              'Transaction ID: ${subscription.transactionId}',
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.grey.shade600,
+                fontFamily: 'monospace',
               ),
             ),
+            if (subscription.purchaseToken != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                'Token: ${subscription.purchaseToken!.substring(0, subscription.purchaseToken!.length > 20 ? 20 : subscription.purchaseToken!.length)}...',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.grey.shade600,
+                  fontFamily: 'monospace',
+                ),
+              ),
+            ],
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildRenewalInfoRow(String label, String value, Color color) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 140,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade700,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 12,
+                color: color,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -794,7 +873,7 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
 
   Widget _buildSubscriptionTier(ProductCommon subscription) {
     final isCurrentSubscription =
-        _currentSubscription?.productId == subscription.id;
+        _currentActiveSubscription?.productId == subscription.id;
     // Note: canUpgrade logic removed - now always show proration options for testing
 
     return GestureDetector(
@@ -929,10 +1008,7 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
                 children: [
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: _isProcessing ||
-                              (_hasActiveSubscription &&
-                                  Platform.isAndroid &&
-                                  _selectedProrationMode == null)
+                      onPressed: _isProcessing || isCurrentSubscription
                           ? null
                           : () => _purchaseSubscription(subscription,
                               isUpgrade: _hasActiveSubscription),
@@ -948,11 +1024,11 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
                       child: Text(
                         _isProcessing
                             ? 'Processing...'
-                            : _hasActiveSubscription
-                                ? (isCurrentSubscription
-                                    ? 'Re-subscribe'
-                                    : 'Upgrade/Downgrade')
-                                : 'Subscribe',
+                            : isCurrentSubscription
+                                ? 'Active'
+                                : _hasActiveSubscription
+                                    ? 'Upgrade/Downgrade'
+                                    : 'Subscribe',
                       ),
                     ),
                   ),
@@ -961,7 +1037,7 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
                     // Test wrong usage button
                     Expanded(
                       child: OutlinedButton(
-                        onPressed: _isProcessing
+                        onPressed: _isProcessing || isCurrentSubscription
                             ? null
                             : () => _testWrongProrationUsage(subscription),
                         style: OutlinedButton.styleFrom(
@@ -1027,12 +1103,13 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
           style: TextStyle(color: Colors.black),
         ),
         actions: [
-          if (_currentSubscription != null)
+          if (_currentActiveSubscription != null &&
+              _currentActiveSubscription!.purchaseToken != null)
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Chip(
                 label: Text(
-                  'Token: ${_currentSubscription!.purchaseToken?.substring(0, 10)}...',
+                  'Token: ${_currentActiveSubscription!.purchaseToken!.substring(0, _currentActiveSubscription!.purchaseToken!.length > 10 ? 10 : _currentActiveSubscription!.purchaseToken!.length)}...',
                   style: const TextStyle(fontSize: 10),
                 ),
                 backgroundColor: Colors.green,
@@ -1089,7 +1166,7 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
                             ),
                             title: Text(
                               _hasActiveSubscription
-                                  ? 'Active Subscription: ${_currentSubscription?.productId}'
+                                  ? 'Active Subscription: ${_currentActiveSubscription?.productId}'
                                   : 'No Active Subscription',
                               style:
                                   const TextStyle(fontWeight: FontWeight.bold),
@@ -1104,7 +1181,155 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
 
                         const SizedBox(height: 24),
 
-                        if (_activeSubscriptions.isNotEmpty) ...[
+                        // Upgrade Detection Section
+                        if (_activeSubscriptionInfo.values.any((sub) =>
+                            sub.renewalInfoIOS?.pendingUpgradeProductId !=
+                            null)) ...[
+                          Card(
+                            color: Colors.blue.shade50,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(Icons.upgrade,
+                                          color: Colors.blue.shade700),
+                                      const SizedBox(width: 8),
+                                      const Text(
+                                        'Pending Upgrade Detected',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  ..._activeSubscriptionInfo.values
+                                      .where((sub) =>
+                                          sub.renewalInfoIOS
+                                              ?.pendingUpgradeProductId !=
+                                          null)
+                                      .map((sub) {
+                                    final renewal = sub.renewalInfoIOS!;
+                                    return Padding(
+                                      padding: const EdgeInsets.only(top: 8),
+                                      child: RichText(
+                                        text: TextSpan(
+                                          style: TextStyle(
+                                              color: Colors.grey.shade800,
+                                              fontSize: 14),
+                                          children: [
+                                            TextSpan(
+                                              text: '${sub.productId}',
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.w600),
+                                            ),
+                                            const TextSpan(text: ' → '),
+                                            TextSpan(
+                                              text: renewal
+                                                  .pendingUpgradeProductId!,
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors.blue.shade700,
+                                              ),
+                                            ),
+                                            if (renewal.renewalDate != null)
+                                              TextSpan(
+                                                text:
+                                                    '\nUpgrade takes effect: ${_formatReadableDate(renewal.renewalDate!)}',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.grey.shade600,
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  }),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+
+                        // Cancellation Detection Section
+                        if (_activeSubscriptionInfo.values.any((sub) =>
+                            sub.renewalInfoIOS?.willAutoRenew == false &&
+                            sub.renewalInfoIOS?.pendingUpgradeProductId ==
+                                null)) ...[
+                          Card(
+                            color: Colors.orange.shade50,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(Icons.warning,
+                                          color: Colors.orange.shade700),
+                                      const SizedBox(width: 8),
+                                      const Text(
+                                        'Subscription Cancelled',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  ..._activeSubscriptionInfo.values
+                                      .where((sub) =>
+                                          sub.renewalInfoIOS?.willAutoRenew ==
+                                              false &&
+                                          sub.renewalInfoIOS
+                                                  ?.pendingUpgradeProductId ==
+                                              null)
+                                      .map((sub) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(top: 8),
+                                      child: RichText(
+                                        text: TextSpan(
+                                          style: TextStyle(
+                                              color: Colors.grey.shade800,
+                                              fontSize: 14),
+                                          children: [
+                                            TextSpan(
+                                              text: '${sub.productId}',
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.w600),
+                                            ),
+                                            const TextSpan(
+                                                text:
+                                                    ' is active but will not renew'),
+                                            if (sub.expirationDateIOS != null)
+                                              TextSpan(
+                                                text:
+                                                    '\nExpires: ${_formatReadableDate(sub.expirationDateIOS!)}',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.grey.shade600,
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  }),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+
+                        if (_activeSubscriptionInfo.isNotEmpty) ...[
                           const Text(
                             'Active Subscriptions',
                             style: TextStyle(
@@ -1113,7 +1338,7 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
                             ),
                           ),
                           const SizedBox(height: 8),
-                          ..._activeSubscriptions
+                          ..._activeSubscriptionInfo.values
                               .map(_buildActiveSubscriptionCard),
                           const SizedBox(height: 24),
                         ],
@@ -1256,16 +1481,14 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
                                       ),
                                     ],
                                   ),
-                                  if (_currentSubscription != null) ...[
+                                  if (_currentActiveSubscription != null) ...[
                                     const SizedBox(height: 12),
-                                    SizedBox(
-                                      width: double.infinity,
-                                      child: OutlinedButton.icon(
-                                        onPressed: () => _showPurchaseDetails(
-                                            _currentSubscription!),
-                                        icon: const Icon(Icons.receipt_long,
-                                            size: 18),
-                                        label: const Text('View Purchase Data'),
+                                    Text(
+                                      'View subscription details above in the Active Subscriptions section',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontStyle: FontStyle.italic,
+                                        color: Colors.grey.shade600,
                                       ),
                                     ),
                                   ],

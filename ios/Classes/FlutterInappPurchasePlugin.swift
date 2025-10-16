@@ -74,12 +74,19 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 let onlyIncludeActiveItems = args["onlyIncludeActiveItemsIOS"] as? Bool ?? true
                 let alsoPublishToEventListener = args["alsoPublishToEventListenerIOS"] as? Bool ?? false
                 getAvailableItems(
-                    result: result, 
+                    result: result,
                     onlyIncludeActiveItems: onlyIncludeActiveItems,
                     alsoPublishToEventListener: alsoPublishToEventListener
                 )
             } else {
                 getAvailableItems(result: result)
+            }
+
+        case "getActiveSubscriptions":
+            if let subscriptionIds = call.arguments as? [String] {
+                getActiveSubscriptions(subscriptionIds: subscriptionIds, result: result)
+            } else {
+                getActiveSubscriptions(subscriptionIds: nil, result: result)
             }
             
         case "requestPurchase":
@@ -349,6 +356,28 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 await MainActor.run { result(serialized) }
             } catch {
                 FlutterIapLog.failure("getAvailableItems", error: error)
+                await MainActor.run {
+                    let code: ErrorCode = .serviceError
+                    result(FlutterError(code: code.rawValue, message: defaultMessage(for: code), details: error.localizedDescription))
+                }
+            }
+        }
+    }
+
+    private func getActiveSubscriptions(
+        subscriptionIds: [String]?,
+        result: @escaping FlutterResult
+    ) {
+        FlutterIapLog.debug("getActiveSubscriptions called with subscriptionIds: \(String(describing: subscriptionIds))")
+        Task { @MainActor in
+            do {
+                let subscriptions = try await OpenIapModule.shared.getActiveSubscriptions(subscriptionIds)
+                let serialized = subscriptions.map { OpenIapSerialization.encode($0) }
+                let sanitized = FlutterIapHelper.sanitizeArray(serialized)
+                FlutterIapLog.result("getActiveSubscriptions", value: sanitized)
+                await MainActor.run { result(sanitized) }
+            } catch {
+                FlutterIapLog.failure("getActiveSubscriptions", error: error)
                 await MainActor.run {
                     let code: ErrorCode = .serviceError
                     result(FlutterError(code: code.rawValue, message: defaultMessage(for: code), details: error.localizedDescription))
