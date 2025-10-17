@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 7.1.11
+
+- fix: improve subscription state handling
+  - [openiap/pull/15](https://github.com/hyodotdev/openiap/pull/15)
+
 ## 7.1.10
 
 - fix: handle string timestamp in DiscountOfferInputIOS
