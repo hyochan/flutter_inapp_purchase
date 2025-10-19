@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## 7.1.12
+
+- Update openiap-versions.
+  ```json
+  {
+    "apple": "1.2.25",
+    "google": "1.3.1",
+    "gql": "1.2.2"
+  }
+  ```
+  - [openiap-apple v1.2.25](https://github.com/hyodotdev/openiap/releases/tag/apple-v1.2.25)
+  - [openiap-google v1.3.1](https://github.com/hyodotdev/openiap/releases/tag/google-v1.3.1)
+
 ## 7.1.11
 
 - fix: improve subscription state handling
