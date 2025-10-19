@@ -182,11 +182,11 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
     try {
       // Fetch all products using ProductQueryType.All
       // The library now handles both Product and ProductSubscription types internally
-      // Use type cast on right side instead of type annotation on left
-      final products = await _iap.fetchProducts(
+      // Use explicit type parameter for proper type inference
+      final products = await _iap.fetchProducts<ProductCommon>(
         skus: IapConstants.allProductIds,
         type: ProductQueryType.All,
-      ) as List<ProductCommon>;
+      );
 
       debugPrint('Loaded ${products.length} products');
       for (final product in products) {

@@ -1309,24 +1309,25 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
   ///
   /// Example:
   /// ```dart
-  /// final products = await iap.fetchProducts(
+  /// final products = await iap.fetchProducts<Product>(
   ///   skus: ['product_id'],
   ///   type: ProductQueryType.InApp,
   /// ); // Type: List<Product>
   ///
-  /// final subs = await iap.fetchProducts(
+  /// final subs = await iap.fetchProducts<ProductSubscription>(
   ///   skus: ['sub_id'],
   ///   type: ProductQueryType.Subs,
   /// ); // Type: List<ProductSubscription>
   /// ```
-  Future<List<dynamic>> fetchProducts({
+  Future<List<T>> fetchProducts<T extends gentype.ProductCommon>({
     required List<String> skus,
     gentype.ProductQueryType type = gentype.ProductQueryType.InApp,
   }) async {
-    return await _fetchProductsInternal(
+    final result = await _fetchProductsInternal(
       skus: skus,
       queryType: type,
     );
+    return result.cast<T>();
   }
 
   // MARK: - StoreKit 2 specific methods

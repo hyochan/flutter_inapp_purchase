@@ -309,7 +309,7 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
       debugPrint('🔄 Loading subscriptions with SKUs: $subscriptionIds');
 
       // Use explicit type annotation for proper type inference
-      final List<ProductSubscription> subscriptions = await _iap.fetchProducts(
+      final subscriptions = await _iap.fetchProducts<ProductSubscription>(
         skus: subscriptionIds,
         type: ProductQueryType.Subs,
       );

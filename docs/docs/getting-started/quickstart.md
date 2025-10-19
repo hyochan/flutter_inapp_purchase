@@ -82,16 +82,16 @@ class _SimpleStoreState extends State<SimpleStore> {
   // Get available products
   Future<void> _loadProducts() async {
     try {
-      // Get consumable products - use explicit type annotation
-      final List<Product> products =
-          await FlutterInappPurchase.instance.fetchProducts(
+      // Get consumable products - use explicit type parameter
+      final products =
+          await FlutterInappPurchase.instance.fetchProducts<Product>(
         skus: _productIds,
         type: ProductQueryType.InApp,
       );
 
-      // Get subscriptions - use explicit type annotation
-      final List<ProductSubscription> subscriptions =
-          await FlutterInappPurchase.instance.fetchProducts(
+      // Get subscriptions - use explicit type parameter
+      final subscriptions =
+          await FlutterInappPurchase.instance.fetchProducts<ProductSubscription>(
         skus: _subscriptionIds,
         type: ProductQueryType.Subs,
       );
@@ -318,16 +318,16 @@ await FlutterInappPurchase.instance.initConnection();
 
 ### 2. Loading Products
 
-Fetch products using their IDs with explicit type annotation:
+Fetch products using their IDs with explicit type parameter:
 
 ```dart
-// Regular products - use List<Product>
-final List<Product> products = await FlutterInappPurchase.instance
-    .fetchProducts(skus: ['product_id_1', 'product_id_2'], type: ProductQueryType.InApp);
+// Regular products - use <Product>
+final products = await FlutterInappPurchase.instance
+    .fetchProducts<Product>(skus: ['product_id_1', 'product_id_2'], type: ProductQueryType.InApp);
 
-// Subscriptions - use List<ProductSubscription>
-final List<ProductSubscription> subscriptions = await FlutterInappPurchase.instance
-    .fetchProducts(skus: ['subscription_id_1', 'subscription_id_2'], type: ProductQueryType.Subs);
+// Subscriptions - use <ProductSubscription>
+final subscriptions = await FlutterInappPurchase.instance
+    .fetchProducts<ProductSubscription>(skus: ['subscription_id_1', 'subscription_id_2'], type: ProductQueryType.Subs);
 ```
 
 ### 3. Purchase Flow

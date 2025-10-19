@@ -203,11 +203,12 @@ Token: ${details.externalTransactionToken.length > 20 ? details.externalTransact
 
   Future<void> _loadProducts() async {
     try {
-      // Use type cast on right side instead of type annotation on left
-      final products = await FlutterInappPurchase.instance.fetchProducts(
+      // Use explicit type parameter for proper type inference
+      final products =
+          await FlutterInappPurchase.instance.fetchProducts<Product>(
         skus: IapConstants.inAppProductIds,
         type: ProductQueryType.InApp,
-      ) as List<Product>;
+      );
 
       if (!mounted) return;
       setState(() {

@@ -4,23 +4,23 @@
 
 ### fetchProducts API (Updated)
 
-The `fetchProducts` method returns a dynamically-typed list. Use explicit type annotation for proper type inference:
+The `fetchProducts` method is a generic method. Use explicit type parameter for proper type inference:
 
 ```dart
-// For InApp products - specify List<Product>
-final List<Product> products = await iap.fetchProducts(
+// For InApp products - specify <Product>
+final products = await iap.fetchProducts<Product>(
   skus: ['product_id_1', 'product_id_2'],
   type: ProductQueryType.InApp, // Optional, defaults to InApp
 );
 
-// For subscriptions - specify List<ProductSubscription>
-final List<ProductSubscription> subscriptions = await iap.fetchProducts(
+// For subscriptions - specify <ProductSubscription>
+final subscriptions = await iap.fetchProducts<ProductSubscription>(
   skus: ['sub_id_1', 'sub_id_2'],
   type: ProductQueryType.Subs,
 );
 
-// For all products - specify List<ProductCommon>
-final List<ProductCommon> allProducts = await iap.fetchProducts(
+// For all products - specify <ProductCommon>
+final allProducts = await iap.fetchProducts<ProductCommon>(
   skus: [...],
   type: ProductQueryType.All,
 );
@@ -31,7 +31,7 @@ for (final product in products) {
 }
 ```
 
-**Note:** Always use explicit type annotation on the left side for proper type inference and IDE support.
+**Note:** Always use explicit type parameter for proper type inference and IDE support.
 
 ### getAvailablePurchases API (v6.4.6+)
 

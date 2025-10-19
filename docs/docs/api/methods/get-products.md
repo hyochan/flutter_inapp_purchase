@@ -10,7 +10,7 @@ title: fetchProducts
 ## Signature
 
 ```dart
-Future<List<dynamic>> fetchProducts({
+Future<List<T>> fetchProducts<T extends ProductCommon>({
   required List<String> skus,
   ProductQueryType type = ProductQueryType.InApp,
 })
@@ -25,19 +25,19 @@ Future<List<dynamic>> fetchProducts({
 
 ## Return Value
 
-Returns a dynamically-typed list. **Always use explicit type annotation** for proper type inference:
+Returns a typed list based on the generic type parameter:
 
-- **InApp**: Use `List<Product>` annotation
-- **Subs**: Use `List<ProductSubscription>` annotation
-- **All**: Use `List<ProductCommon>` annotation
+- **InApp**: Use `<Product>` type parameter
+- **Subs**: Use `<ProductSubscription>` type parameter
+- **All**: Use `<ProductCommon>` type parameter
 
 ## Usage Examples
 
 ### Fetch in-app products
 
 ```dart
-// Use explicit type annotation
-final List<Product> products = await FlutterInappPurchase.instance.fetchProducts(
+// Use explicit type parameter
+final products = await FlutterInappPurchase.instance.fetchProducts<Product>(
   skus: ['coins_100', 'remove_ads'],
   type: ProductQueryType.InApp,
 );
@@ -50,9 +50,9 @@ for (final product in products) {
 ### Fetch subscriptions
 
 ```dart
-// Use explicit type annotation
-final List<ProductSubscription> subscriptions =
-    await FlutterInappPurchase.instance.fetchProducts(
+// Use explicit type parameter
+final subscriptions =
+    await FlutterInappPurchase.instance.fetchProducts<ProductSubscription>(
   skus: ['premium_monthly', 'premium_yearly'],
   type: ProductQueryType.Subs,
 );
@@ -67,15 +67,15 @@ for (final sub in subscriptions) {
 
 ```dart
 Future<void> loadCatalog() async {
-  // Use explicit type annotation
-  final List<Product> inAppProducts =
-      await FlutterInappPurchase.instance.fetchProducts(
+  // Use explicit type parameter
+  final inAppProducts =
+      await FlutterInappPurchase.instance.fetchProducts<Product>(
     skus: ['coins_100', 'remove_ads'],
     type: ProductQueryType.InApp,
   );
 
-  final List<ProductSubscription> subscriptions =
-      await FlutterInappPurchase.instance.fetchProducts(
+  final subscriptions =
+      await FlutterInappPurchase.instance.fetchProducts<ProductSubscription>(
     skus: ['premium_monthly'],
     type: ProductQueryType.Subs,
   );
@@ -96,8 +96,8 @@ Future<void> loadCatalog() async {
 
 ```dart
 // Query all products together
-final List<ProductCommon> allProducts =
-    await FlutterInappPurchase.instance.fetchProducts(
+final allProducts =
+    await FlutterInappPurchase.instance.fetchProducts<ProductCommon>(
   skus: ['coins_100', 'remove_ads', 'premium_monthly'],
   type: ProductQueryType.All,
 );
@@ -111,8 +111,8 @@ for (final item in allProducts) {
 
 ```dart
 try {
-  final List<Product> products =
-      await FlutterInappPurchase.instance.fetchProducts(
+  final products =
+      await FlutterInappPurchase.instance.fetchProducts<Product>(
     skus: productIds,
     type: ProductQueryType.InApp,
   );
@@ -152,7 +152,7 @@ try {
 
 ### From v6.x to v7.0
 
-The API now requires explicit type annotation for proper type inference:
+The API now uses generic type parameters for type-safe product fetching:
 
 ```dart
 // Before (v6.x)
@@ -164,14 +164,14 @@ final result = await iap.fetchProducts(
 );
 final products = result.value; // or result.products
 
-// After (v7.0) - Use explicit type annotation
-final List<Product> products = await iap.fetchProducts(
+// After (v7.0) - Use explicit type parameter
+final products = await iap.fetchProducts<Product>(
   skus: ['product_id'],
   type: ProductQueryType.InApp,
 );
 
 // For subscriptions
-final List<ProductSubscription> subscriptions = await iap.fetchProducts(
+final subscriptions = await iap.fetchProducts<ProductSubscription>(
   skus: ['sub_id'],
   type: ProductQueryType.Subs,
 );
@@ -180,7 +180,7 @@ final List<ProductSubscription> subscriptions = await iap.fetchProducts(
 ### Key Changes
 
 - **No more `.value` or `.products` getters** - The method returns the list directly
-- **Explicit type annotation required** - Use `List<Product>`, `List<ProductSubscription>`, or `List<ProductCommon>`
+- **Generic type parameter** - Use `<Product>`, `<ProductSubscription>`, or `<ProductCommon>`
 - **Simplified API** - Direct iteration without unwrapping union types
 
 ## Related APIs

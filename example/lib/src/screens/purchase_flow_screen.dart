@@ -338,11 +338,11 @@ Message: ${error.message}
 
     try {
       debugPrint('🔍 Loading products for IDs: ${productIds.join(", ")}');
-      // Use type cast on right side instead of type annotation on left
-      final inAppProducts = await _iap.fetchProducts(
+      // Use explicit type parameter for proper type inference
+      final inAppProducts = await _iap.fetchProducts<Product>(
         skus: productIds,
         type: ProductQueryType.InApp,
-      ) as List<Product>;
+      );
 
       debugPrint(
           '📦 Received ${inAppProducts.length} products from fetchProducts');
