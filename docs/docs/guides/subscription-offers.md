@@ -219,12 +219,12 @@ if (isEligible) {
 final requestProps = RequestPurchaseProps.subs((
   ios: RequestSubscriptionIosProps(
     sku: 'monthly_sub',
-    withOffer: PurchaseOfferIOS(
-      id: 'promo_offer_id',
-      keyId: 'key_identifier',
+    withOffer: DiscountOfferInputIOS(
+      identifier: 'promo_offer_id',
+      keyIdentifier: 'key_identifier',
       nonce: nonceValue,
       signature: signatureValue,
-      timestamp: DateTime.now().millisecondsSinceEpoch,
+      timestamp: timestampValue,
     ),
   ),
   android: null,
@@ -233,6 +233,205 @@ final requestProps = RequestPurchaseProps.subs((
 
 await iap.requestPurchase(requestProps);
 ```
+
+### Handle Promotional Offer Upgrades
+
+> **Related Issue**: [#578](https://github.com/hyochan/flutter_inapp_purchase/issues/578)
+
+When upgrading subscriptions using promotional offers (e.g., monthly → yearly), Apple StoreKit first emits a **renewal transaction** for the old subscription before creating the new one. This means `purchaseUpdatedListener` may initially return the old product ID.
+
+**Important**: Always check `renewalInfo.autoRenewPreference` to get the actual subscribed product.
+
+#### Example: Upgrade Monthly to Yearly with Promo Offer
+
+```dart
+StreamSubscription<Purchase>? _purchaseUpdatedSubscription;
+
+@override
+void initState() {
+  super.initState();
+  _setupPurchaseListener();
+}
+
+void _setupPurchaseListener() {
+  _purchaseUpdatedSubscription = iap.purchaseUpdatedListener.listen(
+    (purchase) async {
+      if (purchase.asIOS() case final ios?) {
+        await _handleIOSPurchase(ios);
+      }
+    },
+    onError: (error) {
+      print('Purchase error: $error');
+    },
+  );
+}
+
+Future<void> _handleIOSPurchase(PurchaseIOS purchase) async {
+  final renewalInfo = purchase.renewalInfoIOS;
+
+  // ✅ IMPORTANT: Get the effective product ID
+  final effectiveProductId = _getEffectiveProductId(purchase);
+
+  print('''
+  Purchase Update:
+  - Transaction productId: ${purchase.productId}
+  - Effective productId: $effectiveProductId
+  - Auto-renew preference: ${renewalInfo?.autoRenewPreference}
+  - Pending upgrade: ${renewalInfo?.pendingUpgradeProductId}
+  ''');
+
+  // Use effectiveProductId for your business logic
+  await activateSubscription(effectiveProductId);
+
+  // Finish the transaction
+  await iap.finishTransaction(purchase, isConsumable: false);
+}
+
+String _getEffectiveProductId(PurchaseIOS purchase) {
+  final renewalInfo = purchase.renewalInfoIOS;
+
+  // Priority 1: Check for pending upgrade
+  if (renewalInfo?.pendingUpgradeProductId != null) {
+    return renewalInfo!.pendingUpgradeProductId!;
+  }
+
+  // Priority 2: Use autoRenewPreference (the product that will renew)
+  if (renewalInfo?.autoRenewPreference != null) {
+    return renewalInfo!.autoRenewPreference!;
+  }
+
+  // Priority 3: Fall back to transaction productId
+  return purchase.productId;
+}
+
+Future<void> purchasePromotionalOffer({
+  required String productId,
+  required String offerId,
+  required String keyId,
+  required String nonce,
+  required String signature,
+  required double timestamp,
+}) async {
+  try {
+    await iap.requestPurchase(
+      RequestPurchaseProps.subs((
+        android: null,
+        ios: RequestSubscriptionIosProps(
+          sku: productId,
+          appAccountToken: '',
+          withOffer: DiscountOfferInputIOS(
+            identifier: offerId,
+            keyIdentifier: keyId,
+            nonce: nonce,
+            signature: signature,
+            timestamp: timestamp,
+          ),
+        ),
+        useAlternativeBilling: null,
+      )),
+    );
+
+    // Note: purchaseUpdatedListener will handle the purchase
+    // and use _getEffectiveProductId() to get the correct product
+
+  } catch (error) {
+    print('Purchase failed: $error');
+    rethrow;
+  }
+}
+
+@override
+void dispose() {
+  _purchaseUpdatedSubscription?.cancel();
+  super.dispose();
+}
+```
+
+#### Alternative: Reload Subscriptions After Purchase
+
+You can also reload subscriptions to get the complete updated state:
+
+```dart
+Future<void> purchasePromotionalOfferWithReload({
+  required String productId,
+  required String offerId,
+  required String keyId,
+  required String nonce,
+  required String signature,
+  required double timestamp,
+}) async {
+  try {
+    await iap.requestPurchase(
+      RequestPurchaseProps.subs((
+        android: null,
+        ios: RequestSubscriptionIosProps(
+          sku: productId,
+          appAccountToken: '',
+          withOffer: DiscountOfferInputIOS(
+            identifier: offerId,
+            keyIdentifier: keyId,
+            nonce: nonce,
+            signature: signature,
+            timestamp: timestamp,
+          ),
+        ),
+        useAlternativeBilling: null,
+      )),
+    );
+
+    // Wait for StoreKit to process
+    await Future.delayed(Duration(seconds: 2));
+
+    // Reload to get updated subscription state
+    final activeSubscriptions = await iap.getActiveSubscriptions(null);
+
+    if (activeSubscriptions.isNotEmpty) {
+      final subscription = activeSubscriptions.first;
+      print('Active subscription: ${subscription.productId}');
+      await activateSubscription(subscription.productId);
+    }
+
+  } catch (error) {
+    print('Purchase failed: $error');
+    rethrow;
+  }
+}
+```
+
+#### Why This Happens
+
+During a promotional offer upgrade:
+1. User purchases yearly subscription (ProductIdv2) with promotional offer
+2. StoreKit processes it as a "renewal with plan change"
+3. First emits the **existing monthly subscription's renewal** transaction (ProductIdv1)
+4. `renewalInfo.autoRenewPreference` immediately reflects the new product (ProductIdv2)
+5. The actual new subscription transaction is created later (can take several minutes in sandbox)
+
+This is Apple's normal behavior and is also acknowledged in the `openiap` example app:
+
+```swift
+// From openiap's SubscriptionFlowScreen.swift
+// Reload subscription state after upgrade/downgrade
+// (onPurchaseSuccess may fire with old subscription for upgrades)
+await loadPurchases()
+```
+
+#### RenewalInfo Fields
+
+| Field | Description | Usage |
+|-------|-------------|-------|
+| `autoRenewPreference` | The product ID that will renew next | **Use this** as the effective product ID |
+| `pendingUpgradeProductId` | Set only when upgrade is pending and different from current | Indicates an upgrade in progress |
+| `willAutoRenew` | Whether subscription will auto-renew | Check if subscription is active |
+| `renewalDate` | When the next renewal will occur | Display to user |
+
+#### Sandbox Testing Notes
+
+In sandbox environment:
+- Monthly subscriptions renew every 5 minutes
+- Yearly subscriptions renew every 1 hour
+- Transaction events may arrive with slight delays
+- Always wait for current subscription to expire before testing promotional offers
 
 ## Manage Subscriptions
 
