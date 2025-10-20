@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Default app name (will be overridden by flavor-specific resValue in build.gradle) -->
+    <string name="app_name">IAP Example</string>
+</resources>

@@ -74,6 +74,19 @@ android {
     kotlinOptions {
         jvmTarget = '17'
     }
+
+    flavorDimensions "platform"
+    productFlavors {
+        // Play flavor - Google Play Billing (default)
+        play {
+            dimension "platform"
+            isDefault = true
+        }
+        // Horizon flavor - Meta Horizon Billing
+        horizon {
+            dimension "platform"
+        }
+    }
 }
 
 dependencies {
@@ -81,9 +94,14 @@ dependencies {
     implementation "io.github.hyochan.openiap:openiap-google:${openiapGoogleVersion}"
 
     // For local debugging with a checked-out module, you can switch to:
-    //   debugImplementation project(":openiap")
-    // and include the module in android/settings.gradle (see CONTRIBUTING.md)
+    //   implementation project(":openiap")
+    // and uncomment the include in android/settings.gradle
 
+    // Amazon IAP only for play flavor (legacy support)
     implementation files('jars/in-app-purchasing-2.0.76.jar')
     implementation 'androidx.annotation:annotation:1.6.0'
+
+    // Google Play Billing for direct API usage (only in play flavor)
+    // Note: This is already included in openiap, but kept for backward compatibility
+    add("playCompileOnly", "com.android.billingclient:billing-ktx:8.0.0")
 }

@@ -50,6 +50,27 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    flavorDimensions "platform"
+    productFlavors {
+        // Horizon flavor - Meta Horizon Billing (default for Quest devices)
+        horizon {
+            dimension "platform"
+            versionNameSuffix "-horizon"
+            def appId = localProperties.getProperty("EXAMPLE_HORIZON_APP_ID") ?: ""
+            manifestPlaceholders = [OCULUS_APP_ID: appId]
+            resValue "string", "app_name", "IAP Example (Horizon)"
+            isDefault = true
+        }
+        // Play flavor - Google Play Billing
+        play {
+            dimension "platform"
+            versionNameSuffix "-play"
+            // Empty placeholder for OCULUS_APP_ID (not needed for Play Store)
+            manifestPlaceholders = [OCULUS_APP_ID: ""]
+            resValue "string", "app_name", "IAP Example (Play)"
+        }
+    }
+
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.

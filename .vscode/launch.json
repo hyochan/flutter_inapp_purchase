@@ -1,13 +1,10 @@
 {
-  // Use IntelliSense to learn about possible attributes.
-  // Hover to view descriptions of existing attributes.
-  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "start documentation",
       "type": "node",
       "request": "launch",
-      "name": "Start Docusaurus",
       "cwd": "${workspaceFolder}/docs",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "start"],
@@ -18,92 +15,46 @@
       }
     },
     {
-      "type": "node",
-      "request": "launch",
-      "name": "Build Docusaurus",
-      "cwd": "${workspaceFolder}/docs",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "build"],
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Serve Docusaurus Build",
-      "cwd": "${workspaceFolder}/docs",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "serve"],
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen"
-    },
-    {
-      "name": "Open Xcode",
+      "name": "open android studio",
       "type": "node",
       "request": "launch",
       "runtimeExecutable": "/usr/bin/open",
-      "runtimeArgs": ["-a", "Xcode"],
+      "runtimeArgs": ["-a", "Android Studio", "${workspaceFolder}/example/android"],
       "console": "internalConsole",
       "internalConsoleOptions": "openOnSessionStart"
     },
     {
-      "name": "Open Android Studio",
-      "type": "node",
-      "request": "launch",
-      "runtimeExecutable": "/usr/bin/open",
-      "runtimeArgs": ["-a", "Android Studio"],
-      "console": "internalConsole",
-      "internalConsoleOptions": "openOnSessionStart"
-    },
-    {
-      "name": "Flutter: Attach to Device",
-      "type": "dart",
-      "request": "attach"
-    },
-    {
-      "name": "Flutter: Run Example App",
+      "name": "run ios",
       "type": "dart",
       "request": "launch",
       "program": "lib/main.dart",
       "cwd": "${workspaceFolder}/example",
-      "args": []
+      "args": ["-d", "ios"]
     },
     {
-      "name": "Flutter: Run Example App (Profile Mode)",
-      "type": "dart",
-      "request": "launch",
-      "program": "lib/main.dart",
-      "cwd": "${workspaceFolder}/example",
-      "flutterMode": "profile",
-      "args": []
-    },
-    {
-      "name": "Flutter: Run Example App (Release Mode)",
+      "name": "run ios (device)",
       "type": "dart",
       "request": "launch",
       "program": "lib/main.dart",
       "cwd": "${workspaceFolder}/example",
       "flutterMode": "release",
-      "args": []
+      "args": ["-d", "ios"]
     },
     {
-      "name": "Example (Flutter Pixel 2)",
+      "name": "run android",
       "type": "dart",
       "request": "launch",
       "program": "lib/main.dart",
       "cwd": "${workspaceFolder}/example",
-      "deviceId": "HT79F1A00473",
-      "args": []
+      "args": ["--flavor", "play"]
     },
     {
-      "name": "Example (iOS iPhone)",
+      "name": "run horizon",
       "type": "dart",
       "request": "launch",
       "program": "lib/main.dart",
       "cwd": "${workspaceFolder}/example",
-      "deviceId": "00008101-0006455036D8001E",
-      "args": []
+      "args": ["--flavor", "horizon"]
     }
-  ],
-  "compounds": []
+  ]
 }

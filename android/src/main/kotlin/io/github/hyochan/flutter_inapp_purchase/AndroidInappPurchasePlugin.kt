@@ -671,7 +671,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                             safe.error(OpenIapError.NotPrepared.CODE, OpenIapError.NotPrepared.MESSAGE, "IAP module not initialized.")
                             return@launch
                         }
-                        val purchases = iap.getAvailableItems(reqType)
+                        val purchases = iap.getAvailablePurchases(null)
                         val arr = purchasesToJsonArray(purchases)
                         safe.success(arr.toString())
                     } catch (e: Exception) {
@@ -710,7 +710,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                             safe.error(OpenIapError.NotPrepared.CODE, OpenIapError.NotPrepared.MESSAGE, "IAP module not initialized.")
                             return@launch
                         }
-                        val purchases = iap.getAvailableItems(reqType)
+                        val purchases = iap.getAvailablePurchases(null)
                         val arr = purchasesToJsonArray(purchases)
                         safe.success(arr.toString())
                     } catch (e: Exception) {
