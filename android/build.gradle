@@ -90,8 +90,11 @@ android {
 }
 
 dependencies {
-    // OpenIAP Google billing wrapper includes Google Play Billing
-    implementation "io.github.hyochan.openiap:openiap-google:${openiapGoogleVersion}"
+    // OpenIAP Google billing wrapper for Play Store
+    add("playImplementation", "io.github.hyochan.openiap:openiap-google:${openiapGoogleVersion}")
+
+    // OpenIAP Google Horizon billing wrapper for Meta Quest
+    add("horizonImplementation", "io.github.hyochan.openiap:openiap-google-horizon:${openiapGoogleVersion}")
 
     // For local debugging with a checked-out module, you can switch to:
     //   implementation project(":openiap")

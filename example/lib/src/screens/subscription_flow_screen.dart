@@ -350,7 +350,32 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
     try {
       debugPrint('=== Checking Active Subscriptions ===');
 
-      final summaries = await _iap.getActiveSubscriptions(subscriptionIds);
+      // HORIZON FIX: Use getAvailablePurchases instead of getActiveSubscriptions
+      // Horizon doesn't support queryPurchases(type=SUBS), so we get all purchases
+      // and filter for subscriptions
+      final allPurchases = await _iap.getAvailablePurchases();
+      final subscriptionPurchases = allPurchases
+          .where((p) => subscriptionIds.contains(p.productId))
+          .toList();
+
+      // Convert to ActiveSubscription format
+      final summaries = <ActiveSubscription>[];
+      for (final purchase in subscriptionPurchases) {
+        // Create ActiveSubscription from Purchase
+        summaries.add(ActiveSubscription(
+          productId: purchase.productId,
+          transactionId:
+              purchase.transactionIdFor ?? purchase.purchaseToken ?? '',
+          purchaseToken: purchase.purchaseToken,
+          transactionDate: purchase.transactionDate is String
+              ? double.tryParse(purchase.transactionDate as String) ?? 0.0
+              : (purchase.transactionDate as num?)?.toDouble() ?? 0.0,
+          isActive: purchase.purchaseState == PurchaseState.Purchased,
+          autoRenewingAndroid:
+              purchase is PurchaseAndroid ? purchase.autoRenewingAndroid : null,
+        ));
+      }
+
       debugPrint('Active subscription summaries: ${summaries.length}');
       for (final summary in summaries) {
         debugPrint(
