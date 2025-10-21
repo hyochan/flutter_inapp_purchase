@@ -36,7 +36,7 @@ final iap = FlutterInappPurchase();
 await iap.initConnection();
 
 // Fetch products with explicit type
-final List<Product> products = await iap.fetchProducts(
+final products = await iap.fetchProducts<Product>(
   skus: ['product_id'],
   type: ProductQueryType.InApp,
 );
