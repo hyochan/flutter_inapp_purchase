@@ -671,7 +671,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                             safe.error(OpenIapError.NotPrepared.CODE, OpenIapError.NotPrepared.MESSAGE, "IAP module not initialized.")
                             return@launch
                         }
-                        val purchases = iap.getAvailableItems(reqType)
+                        val purchases = iap.getAvailablePurchases(null)
                         val arr = purchasesToJsonArray(purchases)
                         safe.success(arr.toString())
                     } catch (e: Exception) {
@@ -710,7 +710,11 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                             safe.error(OpenIapError.NotPrepared.CODE, OpenIapError.NotPrepared.MESSAGE, "IAP module not initialized.")
                             return@launch
                         }
-                        val purchases = iap.getAvailableItems(reqType)
+                        // Note: As of v6.4.6+, getAvailablePurchases returns only active purchases on Android.
+                        // Purchase history (including expired/consumed items) is not supported on Android
+                        // by the OpenIAP library. The reqType parameter is preserved for backward compatibility
+                        // but is not used. Apps should migrate to getAvailableItems() for active purchases.
+                        val purchases = iap.getAvailablePurchases(null)
                         val arr = purchasesToJsonArray(purchases)
                         safe.success(arr.toString())
                     } catch (e: Exception) {

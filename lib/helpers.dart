@@ -656,13 +656,13 @@ dynamic normalizeDynamicValue(dynamic value) {
   return value;
 }
 
-gentype.PaymentModeIOS? _parsePaymentMode(dynamic value) {
-  if (value == null) return null;
+gentype.PaymentModeIOS _parsePaymentMode(dynamic value) {
+  if (value == null) return gentype.PaymentModeIOS.Empty;
   final raw = value.toString().toUpperCase();
   try {
     return gentype.PaymentModeIOS.fromJson(raw);
   } catch (_) {
-    return null;
+    return gentype.PaymentModeIOS.Empty;
   }
 }
 

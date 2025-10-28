@@ -350,7 +350,66 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
     try {
       debugPrint('=== Checking Active Subscriptions ===');
 
-      final summaries = await _iap.getActiveSubscriptions(subscriptionIds);
+      // HORIZON FIX: Use getAvailablePurchases instead of getActiveSubscriptions
+      // Horizon doesn't support queryPurchases(type=SUBS), so we get all purchases
+      // and filter for subscriptions
+      final allPurchases = await _iap.getAvailablePurchases();
+      final subscriptionPurchases = allPurchases
+          .where((p) => subscriptionIds.contains(p.productId))
+          .toList();
+
+      // Convert to ActiveSubscription format
+      final summaries = <ActiveSubscription>[];
+      for (final purchase in subscriptionPurchases) {
+        // Map platform-specific fields
+        final bool? autoRenewing =
+            purchase is PurchaseAndroid ? purchase.autoRenewingAndroid : null;
+        final String? basePlanId =
+            purchase is PurchaseAndroid ? purchase.currentPlanId : null;
+        final String? environmentIOS =
+            purchase is PurchaseIOS ? purchase.environmentIOS : null;
+        final double? expirationDateIOS =
+            purchase is PurchaseIOS ? purchase.expirationDateIOS : null;
+        final RenewalInfoIOS? renewalInfoIOS =
+            purchase is PurchaseIOS ? purchase.renewalInfoIOS : null;
+
+        // Calculate daysUntilExpirationIOS and willExpireSoon for iOS
+        double? daysUntilExpirationIOS;
+        bool? willExpireSoon;
+        if (expirationDateIOS != null) {
+          final expirationDate = DateTime.fromMillisecondsSinceEpoch(
+            expirationDateIOS.toInt(),
+          );
+          final now = DateTime.now();
+          final daysUntilExpiration = expirationDate.difference(now).inDays;
+          daysUntilExpirationIOS = daysUntilExpiration.toDouble();
+          // Consider subscription expiring soon if < 7 days remaining
+          willExpireSoon = daysUntilExpiration > 0 && daysUntilExpiration < 7;
+        }
+
+        // Create ActiveSubscription from Purchase
+        summaries.add(ActiveSubscription(
+          productId: purchase.productId,
+          transactionId:
+              purchase.transactionIdFor ?? purchase.purchaseToken ?? '',
+          purchaseToken: purchase.purchaseToken,
+          transactionDate: purchase.transactionDate is String
+              ? double.tryParse(purchase.transactionDate as String) ?? 0.0
+              : (purchase.transactionDate as num?)?.toDouble() ?? 0.0,
+          isActive: purchase.purchaseState == PurchaseState.Purchased,
+          autoRenewingAndroid: autoRenewing,
+          basePlanIdAndroid: basePlanId,
+          currentPlanId: purchase.currentPlanId,
+          daysUntilExpirationIOS: daysUntilExpirationIOS,
+          environmentIOS: environmentIOS,
+          expirationDateIOS: expirationDateIOS,
+          renewalInfoIOS: renewalInfoIOS,
+          purchaseTokenAndroid:
+              purchase is PurchaseAndroid ? purchase.purchaseToken : null,
+          willExpireSoon: willExpireSoon,
+        ));
+      }
+
       debugPrint('Active subscription summaries: ${summaries.length}');
       for (final summary in summaries) {
         debugPrint(

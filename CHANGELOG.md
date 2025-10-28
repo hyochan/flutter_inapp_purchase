@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## 7.1.13
+
+- **feat**: Add Horizon OS support for Meta Quest devices
+  - Added product flavor support for Meta Horizon billing (play/horizon flavors)
+  - Integrated `openiap-google-horizon` dependency for Meta Quest Platform SDK
+  - Added Horizon App ID configuration via gradle.properties and AndroidManifest.xml
+  - Example app now supports both Google Play and Meta Horizon builds
+  - Added comprehensive documentation for Horizon OS setup
+  - [Blog post: Horizon OS Support](https://hyochan.github.io/flutter_inapp_purchase/blog/horizon-os-support)
+  - [Setup guide: Horizon OS](https://hyochan.github.io/flutter_inapp_purchase/docs/getting-started/setup-horizon)
+- **BREAKING**: `introductoryPricePaymentModeIOS` is now required (non-nullable) in `ProductSubscriptionIOS`
+  - Changed from `PaymentModeIOS?` to `PaymentModeIOS` (required field)
+  - Default value is `PaymentModeIOS.Empty` when not provided
+  - Update: Modified `_parsePaymentMode` helper to return `PaymentModeIOS.Empty` instead of `null`
+  - **Migration**: Add `introductoryPricePaymentModeIOS: PaymentModeIOS.Empty` when creating `ProductSubscriptionIOS` instances manually
+
 ## 7.1.12
 
 - Update openiap-versions.

@@ -4,8 +4,8 @@ rootProject.name = 'flutter_inapp_purchase'
 // 1) git clone https://github.com/hyodotdev/openiap-google
 // 2) Update path below to your local checkout
 // 3) In android/build.gradle, switch dependency to:
-//      debugImplementation project(":openiap")
-//    (and keep release on the Maven artifact)
+//      implementation project(":openiap")
+//    (and comment out the Maven Central dependency)
 //
 // include ':openiap'
-// project(':openiap').projectDir = new File('/Users/you/path/to/openiap-google/openiap')
+// project(':openiap').projectDir = new File('/path/to/openiap/packages/google/openiap')

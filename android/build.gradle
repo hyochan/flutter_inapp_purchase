@@ -56,9 +56,16 @@ android {
     }
     compileSdkVersion 34
 
+    // Read horizonEnabled from gradle.properties, default to false (play)
+    def horizonEnabled = project.findProperty('horizonEnabled')?.toBoolean() ?: false
+
     defaultConfig {
         minSdkVersion 21
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        // Use horizonEnabled to determine platform flavor
+        def flavor = horizonEnabled ? 'horizon' : 'play'
+        missingDimensionStrategy "platform", flavor
     }
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
@@ -74,16 +81,41 @@ android {
     kotlinOptions {
         jvmTarget = '17'
     }
+
+    flavorDimensions "platform"
+    productFlavors {
+        // Play flavor - Google Play Billing (default)
+        play {
+            dimension "platform"
+            isDefault = true
+        }
+        // Horizon flavor - Meta Horizon Billing
+        horizon {
+            dimension "platform"
+        }
+    }
 }
 
 dependencies {
-    // OpenIAP Google billing wrapper includes Google Play Billing
-    implementation "io.github.hyochan.openiap:openiap-google:${openiapGoogleVersion}"
+    // Determine which OpenIAP dependency to use based on horizonEnabled flag
+    def horizonEnabled = project.findProperty('horizonEnabled')?.toBoolean() ?: false
+    if (horizonEnabled) {
+        // Use openiap-google-horizon for Meta Quest when horizonEnabled is true
+        implementation "io.github.hyochan.openiap:openiap-google-horizon:${openiapGoogleVersion}"
+    } else {
+        // Use standard Google Play Billing
+        implementation "io.github.hyochan.openiap:openiap-google:${openiapGoogleVersion}"
+    }
 
     // For local debugging with a checked-out module, you can switch to:
-    //   debugImplementation project(":openiap")
-    // and include the module in android/settings.gradle (see CONTRIBUTING.md)
+    //   implementation project(":openiap")
+    // and uncomment the include in android/settings.gradle
 
+    // Amazon IAP only for play flavor (legacy support)
     implementation files('jars/in-app-purchasing-2.0.76.jar')
     implementation 'androidx.annotation:annotation:1.6.0'
+
+    // Google Play Billing for direct API usage (only in play flavor)
+    // Note: This is already included in openiap, but kept for backward compatibility
+    add("playCompileOnly", "com.android.billingclient:billing-ktx:8.0.0")
 }

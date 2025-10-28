@@ -48,6 +48,20 @@ android {
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        // Read horizonEnabled flag from gradle.properties (default: false)
+        def horizonEnabled = project.findProperty('horizonEnabled')?.toBoolean() ?: false
+        def flavor = horizonEnabled ? 'horizon' : 'play'
+
+        // Select platform flavor from plugin's product flavors
+        missingDimensionStrategy 'platform', flavor
+
+        // Configure Horizon App ID if enabled
+        def horizonAppId = ""
+        if (horizonEnabled) {
+            horizonAppId = localProperties.getProperty("HORIZON_APP_ID") ?: ""
+        }
+        manifestPlaceholders = [HORIZON_APP_ID: horizonAppId]
     }
 
     buildTypes {

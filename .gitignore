@@ -10,6 +10,7 @@ build/
 .claude/
 
 .idea/
+!.idea/runConfigurations/
 flutter_inapp.iml
 flutter_inapp_android.iml
 flutter_export_environment*

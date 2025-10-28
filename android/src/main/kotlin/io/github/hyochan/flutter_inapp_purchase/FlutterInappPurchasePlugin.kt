@@ -31,14 +31,24 @@ class FlutterInappPurchasePlugin : FlutterPlugin, ActivityAware {
                 isAmazon = false
             }
         }
+
+        // If neither Play Store nor Amazon is detected, default to Android (for Horizon and other stores)
+        // This allows openiap to handle different billing implementations via flavors
+        if (!isAndroid && !isAmazon) {
+            android.util.Log.i("FlutterInappPurchase", "No Play Store or Amazon detected - defaulting to Android plugin (supports Horizon and other stores)")
+            isAndroid = true
+        }
+
         channel = MethodChannel(messenger, "flutter_inapp")
         if (isAndroid) {
+            android.util.Log.i("FlutterInappPurchase", "Initializing Android IAP plugin")
             val plugin = AndroidInappPurchasePlugin()
             plugin.setContext(context)
             plugin.setChannel(channel)
             androidInappPurchasePlugin = plugin
             channel!!.setMethodCallHandler(plugin)
         } else if (isAmazon) {
+            android.util.Log.i("FlutterInappPurchase", "Initializing Amazon IAP plugin")
             amazonInappPurchasePlugin = AmazonInappPurchasePlugin()
             amazonInappPurchasePlugin!!.setContext(context)
             amazonInappPurchasePlugin!!.setChannel(channel)
