@@ -1290,7 +1290,7 @@ class ProductSubscriptionIOS extends ProductSubscription implements ProductCommo
     this.introductoryPriceAsAmountIOS,
     this.introductoryPriceIOS,
     this.introductoryPriceNumberOfPeriodsIOS,
-    this.introductoryPricePaymentModeIOS,
+    required this.introductoryPricePaymentModeIOS,
     this.introductoryPriceSubscriptionPeriodIOS,
     required this.isFamilyShareableIOS,
     required this.jsonRepresentationIOS,
@@ -1315,7 +1315,7 @@ class ProductSubscriptionIOS extends ProductSubscription implements ProductCommo
   final String? introductoryPriceAsAmountIOS;
   final String? introductoryPriceIOS;
   final String? introductoryPriceNumberOfPeriodsIOS;
-  final PaymentModeIOS? introductoryPricePaymentModeIOS;
+  final PaymentModeIOS introductoryPricePaymentModeIOS;
   final SubscriptionPeriodIOS? introductoryPriceSubscriptionPeriodIOS;
   final bool isFamilyShareableIOS;
   final String jsonRepresentationIOS;
@@ -1341,7 +1341,7 @@ class ProductSubscriptionIOS extends ProductSubscription implements ProductCommo
       introductoryPriceAsAmountIOS: json['introductoryPriceAsAmountIOS'] as String?,
       introductoryPriceIOS: json['introductoryPriceIOS'] as String?,
       introductoryPriceNumberOfPeriodsIOS: json['introductoryPriceNumberOfPeriodsIOS'] as String?,
-      introductoryPricePaymentModeIOS: json['introductoryPricePaymentModeIOS'] != null ? PaymentModeIOS.fromJson(json['introductoryPricePaymentModeIOS'] as String) : null,
+      introductoryPricePaymentModeIOS: PaymentModeIOS.fromJson(json['introductoryPricePaymentModeIOS'] as String),
       introductoryPriceSubscriptionPeriodIOS: json['introductoryPriceSubscriptionPeriodIOS'] != null ? SubscriptionPeriodIOS.fromJson(json['introductoryPriceSubscriptionPeriodIOS'] as String) : null,
       isFamilyShareableIOS: json['isFamilyShareableIOS'] as bool,
       jsonRepresentationIOS: json['jsonRepresentationIOS'] as String,
@@ -1371,7 +1371,7 @@ class ProductSubscriptionIOS extends ProductSubscription implements ProductCommo
       'introductoryPriceAsAmountIOS': introductoryPriceAsAmountIOS,
       'introductoryPriceIOS': introductoryPriceIOS,
       'introductoryPriceNumberOfPeriodsIOS': introductoryPriceNumberOfPeriodsIOS,
-      'introductoryPricePaymentModeIOS': introductoryPricePaymentModeIOS?.toJson(),
+      'introductoryPricePaymentModeIOS': introductoryPricePaymentModeIOS.toJson(),
       'introductoryPriceSubscriptionPeriodIOS': introductoryPriceSubscriptionPeriodIOS?.toJson(),
       'isFamilyShareableIOS': isFamilyShareableIOS,
       'jsonRepresentationIOS': jsonRepresentationIOS,

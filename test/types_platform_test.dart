@@ -99,6 +99,7 @@ void main() {
         displayPrice: '\$5.99',
         id: 'ios_sub',
         isFamilyShareableIOS: false,
+        introductoryPricePaymentModeIOS: PaymentModeIOS.Empty,
         jsonRepresentationIOS: '{}',
         platform: IapPlatform.IOS,
         title: 'iOS Premium',

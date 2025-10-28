@@ -10,6 +10,11 @@
   - Added comprehensive documentation for Horizon OS setup
   - [Blog post: Horizon OS Support](https://hyochan.github.io/flutter_inapp_purchase/blog/horizon-os-support)
   - [Setup guide: Horizon OS](https://hyochan.github.io/flutter_inapp_purchase/docs/getting-started/setup-horizon)
+- **BREAKING**: `introductoryPricePaymentModeIOS` is now required (non-nullable) in `ProductSubscriptionIOS`
+  - Changed from `PaymentModeIOS?` to `PaymentModeIOS` (required field)
+  - Default value is `PaymentModeIOS.Empty` when not provided
+  - Update: Modified `_parsePaymentMode` helper to return `PaymentModeIOS.Empty` instead of `null`
+  - **Migration**: Add `introductoryPricePaymentModeIOS: PaymentModeIOS.Empty` when creating `ProductSubscriptionIOS` instances manually
 
 ## 7.1.12
 
