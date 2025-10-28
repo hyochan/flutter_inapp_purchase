@@ -350,9 +350,19 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
     try {
       debugPrint('=== Checking Active Subscriptions ===');
 
-      // HORIZON FIX: Use getAvailablePurchases instead of getActiveSubscriptions
-      // Horizon doesn't support queryPurchases(type=SUBS), so we get all purchases
-      // and filter for subscriptions
+      // NOTE: Two approaches for getting active subscriptions:
+      //
+      // Approach 1 (Recommended): Use getActiveSubscriptions() - works on Google Play
+      // final summaries = await _iap.getActiveSubscriptions(subscriptionIds);
+      //
+      // Approach 2 (Horizon compatible): Use getAvailablePurchases() and filter
+      // This approach is used in this example to demonstrate Horizon OS compatibility.
+      // Horizon OS doesn't support subscription-specific queries, so we get all
+      // purchases and filter for subscriptions manually.
+      //
+      // For production apps:
+      // - Use Approach 1 for Google Play Store
+      // - Use Approach 2 for Meta Horizon Store (or when supporting both)
       final allPurchases = await _iap.getAvailablePurchases();
       final subscriptionPurchases = allPurchases
           .where((p) => subscriptionIds.contains(p.productId))

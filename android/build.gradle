@@ -111,7 +111,7 @@ dependencies {
     //   implementation project(":openiap")
     // and uncomment the include in android/settings.gradle
 
-    // Amazon IAP only for play flavor (legacy support)
+    // Amazon IAP for legacy Amazon Appstore support (runtime device detection)
     implementation files('jars/in-app-purchasing-2.0.76.jar')
     implementation 'androidx.annotation:annotation:1.6.0'
 
