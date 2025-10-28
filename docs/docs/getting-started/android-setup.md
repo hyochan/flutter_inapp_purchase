@@ -67,6 +67,12 @@ For implementation examples, see:
 - Verify proration settings in Play Console
 - Test upgrade/downgrade flows in internal testing
 
+## Meta Quest / Horizon OS
+
+For Meta Quest devices using Horizon OS billing, see:
+
+- [Horizon OS Setup Guide](./setup-horizon) - Flutter-specific configuration for Meta Quest
+
 ## Next Steps
 
 - [Learn about getting started guide](./quickstart)
