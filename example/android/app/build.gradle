@@ -48,27 +48,20 @@ android {
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-    }
 
-    flavorDimensions "platform"
-    productFlavors {
-        // Horizon flavor - Meta Horizon Billing (default for Quest devices)
-        horizon {
-            dimension "platform"
-            versionNameSuffix "-horizon"
-            def appId = localProperties.getProperty("EXAMPLE_HORIZON_APP_ID") ?: ""
-            manifestPlaceholders = [OCULUS_APP_ID: appId]
-            resValue "string", "app_name", "IAP Example (Horizon)"
-            isDefault = true
+        // Read horizonEnabled flag from gradle.properties (default: false)
+        def horizonEnabled = project.findProperty('horizonEnabled')?.toBoolean() ?: false
+        def flavor = horizonEnabled ? 'horizon' : 'play'
+
+        // Select platform flavor from plugin's product flavors
+        missingDimensionStrategy 'platform', flavor
+
+        // Configure Horizon App ID if enabled
+        def horizonAppId = ""
+        if (horizonEnabled) {
+            horizonAppId = localProperties.getProperty("HORIZON_APP_ID") ?: ""
         }
-        // Play flavor - Google Play Billing
-        play {
-            dimension "platform"
-            versionNameSuffix "-play"
-            // Empty placeholder for OCULUS_APP_ID (not needed for Play Store)
-            manifestPlaceholders = [OCULUS_APP_ID: ""]
-            resValue "string", "app_name", "IAP Example (Play)"
-        }
+        manifestPlaceholders = [HORIZON_APP_ID: horizonAppId]
     }
 
     buildTypes {

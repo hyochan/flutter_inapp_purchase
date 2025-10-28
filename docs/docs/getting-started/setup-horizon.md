@@ -21,64 +21,74 @@ The guide covers:
 
 ## Flutter-Specific Configuration
 
-### 1. Enable Horizon Mode
+### 1. Add to AndroidManifest.xml
 
-Add to `android/gradle.properties`:
+Add inside `<application>` tag in `android/app/src/main/AndroidManifest.xml`:
+
+```xml
+<!-- Meta Horizon App ID - injected by Gradle -->
+<meta-data
+    android:name="com.meta.horizon.platform.ovr.HORIZON_APP_ID"
+    android:value="${HORIZON_APP_ID}" />
+```
+
+### 2. Configure Platform Selection
+
+Add to `android/app/build.gradle` inside `defaultConfig`:
+
+```gradle
+android {
+    defaultConfig {
+        // ... other configuration ...
+
+        // Read horizonEnabled flag from gradle.properties (default: false)
+        def horizonEnabled = project.findProperty('horizonEnabled')?.toBoolean() ?: false
+        def flavor = horizonEnabled ? 'horizon' : 'play'
+
+        // Select platform flavor from plugin
+        missingDimensionStrategy 'platform', flavor
+
+        // Configure Horizon App ID if enabled
+        def localProperties = new Properties()
+        def localPropertiesFile = rootProject.file('local.properties')
+        if (localPropertiesFile.exists()) {
+            localPropertiesFile.withInputStream { localProperties.load(it) }
+        }
+        def horizonAppId = horizonEnabled ? (localProperties.getProperty("HORIZON_APP_ID") ?: "") : ""
+        manifestPlaceholders = [HORIZON_APP_ID: horizonAppId]
+    }
+}
+```
+
+### 3. Enable Horizon (Optional)
+
+**For Google Play (default)**: No configuration needed! Just build and run normally.
+
+**For Meta Quest**: Add to `android/gradle.properties`:
 
 ```properties
 horizonEnabled=true
 ```
 
-### 2. Configure Horizon App ID
-
-Add to `android/local.properties`:
+And add your Horizon App ID to `android/local.properties`:
 
 ```properties
-EXAMPLE_HORIZON_APP_ID=your_horizon_app_id_here
+HORIZON_APP_ID=your_horizon_app_id_here
 ```
 
-### 3. Add Product Flavors
-
-Update `android/app/build.gradle`:
-
-```gradle
-android {
-    flavorDimensions "platform"
-    productFlavors {
-        horizon {
-            dimension "platform"
-            def appId = project.findProperty("EXAMPLE_HORIZON_APP_ID") ?: ""
-            manifestPlaceholders = [OCULUS_APP_ID: appId]
-        }
-        play {
-            dimension "platform"
-            manifestPlaceholders = [OCULUS_APP_ID: ""]
-        }
-    }
-}
-```
-
-### 4. Update AndroidManifest.xml
-
-Add to `android/app/src/main/AndroidManifest.xml`:
-
-```xml
-<application>
-    <meta-data
-        android:name="com.meta.horizon.platform.ovr.OCULUS_APP_ID"
-        android:value="${OCULUS_APP_ID}" />
-</application>
-```
-
-### 5. Build for Horizon
+### 4. Build & Run
 
 ```bash
-# Build APK for Meta Quest
-flutter build apk --flavor horizon
+# Google Play (default - no configuration needed)
+flutter run
+flutter build apk --release
 
-# Run on Quest device
-flutter run --flavor horizon -d Quest
+# Meta Quest (after enabling horizonEnabled=true)
+flutter run -d Quest
+flutter build apk --release
 ```
+
+**No flavor specification needed!** The plugin automatically selects the correct billing platform based on `horizonEnabled`.
 
 ## Code Usage
 

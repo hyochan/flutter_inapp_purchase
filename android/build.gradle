@@ -56,9 +56,16 @@ android {
     }
     compileSdkVersion 34
 
+    // Read horizonEnabled from gradle.properties, default to false (play)
+    def horizonEnabled = project.findProperty('horizonEnabled')?.toBoolean() ?: false
+
     defaultConfig {
         minSdkVersion 21
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        // Use horizonEnabled to determine platform flavor
+        def flavor = horizonEnabled ? 'horizon' : 'play'
+        missingDimensionStrategy "platform", flavor
     }
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
@@ -90,11 +97,15 @@ android {
 }
 
 dependencies {
-    // OpenIAP Google billing wrapper for Play Store
-    add("playImplementation", "io.github.hyochan.openiap:openiap-google:${openiapGoogleVersion}")
-
-    // OpenIAP Google Horizon billing wrapper for Meta Quest
-    add("horizonImplementation", "io.github.hyochan.openiap:openiap-google-horizon:${openiapGoogleVersion}")
+    // Determine which OpenIAP dependency to use based on horizonEnabled flag
+    def horizonEnabled = project.findProperty('horizonEnabled')?.toBoolean() ?: false
+    if (horizonEnabled) {
+        // Use openiap-google-horizon for Meta Quest when horizonEnabled is true
+        implementation "io.github.hyochan.openiap:openiap-google-horizon:${openiapGoogleVersion}"
+    } else {
+        // Use standard Google Play Billing
+        implementation "io.github.hyochan.openiap:openiap-google:${openiapGoogleVersion}"
+    }
 
     // For local debugging with a checked-out module, you can switch to:
     //   implementation project(":openiap")
