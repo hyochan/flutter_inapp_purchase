@@ -37,11 +37,13 @@ The run configurations are located in `.idea/runConfigurations/`.
 
 The default flavor is set to **horizon** (Meta Quest). You can:
 
-**Option 1: Use default (Quick Start)**
+#### Option 1: Use default (Quick Start)
+
 1. Press F5 or click **Start Debugging**
 2. The app will run with horizon flavor by default
 
-**Option 2: Select specific flavor**
+#### Option 2: Select specific flavor
+
 1. Go to **Run and Debug** (Cmd/Ctrl + Shift + D)
 2. Select a configuration from the dropdown:
    - `example (horizon) - Meta Quest` - Debug with Meta Horizon Billing (default)

@@ -167,6 +167,7 @@ dependencies {
 Product flavors are configured in both the plugin and your app:
 
 **Plugin** (`flutter_inapp_purchase/android/build.gradle`):
+
 ```gradle
 android {
     flavorDimensions "platform"
@@ -178,6 +179,7 @@ android {
 ```
 
 **Your App** (`android/app/build.gradle`):
+
 ```gradle
 android {
     flavorDimensions "platform"

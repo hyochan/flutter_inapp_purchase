@@ -361,6 +361,32 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
       // Convert to ActiveSubscription format
       final summaries = <ActiveSubscription>[];
       for (final purchase in subscriptionPurchases) {
+        // Map platform-specific fields
+        final bool? autoRenewing =
+            purchase is PurchaseAndroid ? purchase.autoRenewingAndroid : null;
+        final String? basePlanId =
+            purchase is PurchaseAndroid ? purchase.currentPlanId : null;
+        final String? environmentIOS =
+            purchase is PurchaseIOS ? purchase.environmentIOS : null;
+        final double? expirationDateIOS =
+            purchase is PurchaseIOS ? purchase.expirationDateIOS : null;
+        final RenewalInfoIOS? renewalInfoIOS =
+            purchase is PurchaseIOS ? purchase.renewalInfoIOS : null;
+
+        // Calculate daysUntilExpirationIOS and willExpireSoon for iOS
+        double? daysUntilExpirationIOS;
+        bool? willExpireSoon;
+        if (expirationDateIOS != null) {
+          final expirationDate = DateTime.fromMillisecondsSinceEpoch(
+            expirationDateIOS.toInt(),
+          );
+          final now = DateTime.now();
+          final daysUntilExpiration = expirationDate.difference(now).inDays;
+          daysUntilExpirationIOS = daysUntilExpiration.toDouble();
+          // Consider subscription expiring soon if < 7 days remaining
+          willExpireSoon = daysUntilExpiration > 0 && daysUntilExpiration < 7;
+        }
+
         // Create ActiveSubscription from Purchase
         summaries.add(ActiveSubscription(
           productId: purchase.productId,
@@ -371,8 +397,16 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
               ? double.tryParse(purchase.transactionDate as String) ?? 0.0
               : (purchase.transactionDate as num?)?.toDouble() ?? 0.0,
           isActive: purchase.purchaseState == PurchaseState.Purchased,
-          autoRenewingAndroid:
-              purchase is PurchaseAndroid ? purchase.autoRenewingAndroid : null,
+          autoRenewingAndroid: autoRenewing,
+          basePlanIdAndroid: basePlanId,
+          currentPlanId: purchase.currentPlanId,
+          daysUntilExpirationIOS: daysUntilExpirationIOS,
+          environmentIOS: environmentIOS,
+          expirationDateIOS: expirationDateIOS,
+          renewalInfoIOS: renewalInfoIOS,
+          purchaseTokenAndroid:
+              purchase is PurchaseAndroid ? purchase.purchaseToken : null,
+          willExpireSoon: willExpireSoon,
         ));
       }
 
