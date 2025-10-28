@@ -219,7 +219,7 @@ Complete documentation for Horizon OS setup:
 
 This feature is powered by the OpenIAP ecosystem:
 
-- [openiap-google-horizon](https://github.com/hyodotdev/openiap/tree/main/packages/google-horizon) - Horizon billing wrapper
+- [openiap-google-horizon](https://central.sonatype.com/artifact/io.github.hyochan.openiap/openiap-google-horizon) - Horizon billing wrapper
 - [OpenIAP Specification](https://openiap.dev) - Unified IAP specification
 - Cross-platform support: Flutter, React Native, Expo
 
@@ -239,7 +239,6 @@ We continue to expand platform support and improve developer experience:
 Try out Horizon OS support and let us know your feedback! If you encounter any issues or have suggestions:
 
 - [GitHub Issues](https://github.com/hyochan/flutter_inapp_purchase/issues) - Report bugs
-- [GitHub Discussions](https://github.com/hyochan/flutter_inapp_purchase/discussions) - Ask questions
 - [OpenIAP Discussions](https://github.com/hyodotdev/openiap/discussions) - Spec discussions
 
 Build amazing VR experiences with seamless in-app purchases on Meta Quest!
