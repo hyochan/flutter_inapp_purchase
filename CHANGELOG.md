@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 7.1.14
+
+- **fix(android)**: Prevent incomplete product data on repeated `fetchProducts` calls
+  - Fixed issue where `displayPrice` and other fields were missing on subsequent calls
+  - ProductManager now validates cached data integrity before returning
+  - Automatically re-queries products with incomplete cached data
+  - [openiap/pull/29](https://github.com/hyodotdev/openiap/pull/29)
+
 ## 7.1.13
 
 - **feat**: Add Horizon OS support for Meta Quest devices
