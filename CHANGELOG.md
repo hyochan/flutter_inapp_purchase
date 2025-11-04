@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 7.1.15
+
+- Update openiap-versions.
+  ```json
+  {
+    "gql": "1.2.5",
+    "google": "1.3.5",
+    "apple": "1.2.32"
+  }
+  ```
+  - [openiap-gql v1.2.5](https://github.com/hyodotdev/openiap/releases/tag/1.2.5)
+
 ## 7.1.14
 
 - **fix(android)**: Prevent incomplete product data on repeated `fetchProducts` calls
