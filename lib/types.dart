@@ -921,6 +921,11 @@ abstract class FetchProductsResult {
   const FetchProductsResult();
 }
 
+class FetchProductsResultAll extends FetchProductsResult {
+  const FetchProductsResultAll(this.value);
+  final List<ProductOrSubscription>? value;
+}
+
 class FetchProductsResultProducts extends FetchProductsResult {
   const FetchProductsResultProducts(this.value);
   final List<Product>? value;
@@ -1003,11 +1008,11 @@ class ProductAndroid extends Product implements ProductCommon {
     required this.id,
     required this.nameAndroid,
     this.oneTimePurchaseOfferDetailsAndroid,
-    required this.platform,
+    this.platform = IapPlatform.Android,
     this.price,
     this.subscriptionOfferDetailsAndroid,
     required this.title,
-    required this.type,
+    this.type = ProductType.InApp,
   });
 
   final String currency;
@@ -1103,11 +1108,11 @@ class ProductIOS extends Product implements ProductCommon {
     required this.id,
     required this.isFamilyShareableIOS,
     required this.jsonRepresentationIOS,
-    required this.platform,
+    this.platform = IapPlatform.IOS,
     this.price,
     this.subscriptionInfoIOS,
     required this.title,
-    required this.type,
+    this.type = ProductType.InApp,
     required this.typeIOS,
   });
 
@@ -1180,11 +1185,11 @@ class ProductSubscriptionAndroid extends ProductSubscription implements ProductC
     required this.id,
     required this.nameAndroid,
     this.oneTimePurchaseOfferDetailsAndroid,
-    required this.platform,
+    this.platform = IapPlatform.Android,
     this.price,
     required this.subscriptionOfferDetailsAndroid,
     required this.title,
-    required this.type,
+    this.type = ProductType.Subs,
   });
 
   final String currency;
@@ -1294,13 +1299,13 @@ class ProductSubscriptionIOS extends ProductSubscription implements ProductCommo
     this.introductoryPriceSubscriptionPeriodIOS,
     required this.isFamilyShareableIOS,
     required this.jsonRepresentationIOS,
-    required this.platform,
+    this.platform = IapPlatform.IOS,
     this.price,
     this.subscriptionInfoIOS,
     this.subscriptionPeriodNumberIOS,
     this.subscriptionPeriodUnitIOS,
     required this.title,
-    required this.type,
+    this.type = ProductType.Subs,
     required this.typeIOS,
   });
 
@@ -2699,6 +2704,43 @@ sealed class Product implements ProductCommon {
   ProductType get type;
 
   Map<String, dynamic> toJson();
+}
+
+sealed class ProductOrSubscription {
+  const ProductOrSubscription();
+
+  factory ProductOrSubscription.fromJson(Map<String, dynamic> json) {
+    final typeName = json['__typename'] as String?;
+    switch (typeName) {
+      case 'ProductAndroid':
+        return ProductOrSubscriptionProduct(Product.fromJson(json));
+      case 'ProductIOS':
+        return ProductOrSubscriptionProduct(Product.fromJson(json));
+      case 'ProductSubscriptionAndroid':
+        return ProductOrSubscriptionProductSubscription(ProductSubscription.fromJson(json));
+      case 'ProductSubscriptionIOS':
+        return ProductOrSubscriptionProductSubscription(ProductSubscription.fromJson(json));
+    }
+    throw ArgumentError('Unknown __typename for ProductOrSubscription: $typeName');
+  }
+
+  Map<String, dynamic> toJson();
+}
+
+class ProductOrSubscriptionProduct extends ProductOrSubscription {
+  const ProductOrSubscriptionProduct(this.value);
+  final Product value;
+
+  @override
+  Map<String, dynamic> toJson() => value.toJson();
+}
+
+class ProductOrSubscriptionProductSubscription extends ProductOrSubscription {
+  const ProductOrSubscriptionProductSubscription(this.value);
+  final ProductSubscription value;
+
+  @override
+  Map<String, dynamic> toJson() => value.toJson();
 }
 
 sealed class ProductSubscription implements ProductCommon {
