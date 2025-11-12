@@ -520,7 +520,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
 
   /// Get the current storefront country code (unified method)
   gentype.QueryGetStorefrontHandler get getStorefront => () async {
-        if (!_platform.isIOS || _platform.isMacOS && !_platform.isAndroid) {
+        if (!isIOS && !_platform.isAndroid) {
           return '';
         }
 
