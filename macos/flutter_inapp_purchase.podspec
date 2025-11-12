@@ -19,7 +19,7 @@ In App Purchase plugin for flutter. This project has been forked by react-native
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'Your Company' => 'email@example.com' }
   s.source           = { :path => '.' }
-  s.source_files = '../ios/Classes/**/*.swift'
+  s.source_files = 'Classes/**/*.swift'
   s.dependency 'FlutterMacOS'
   # Use OpenIAP Apple native module (via CocoaPods)
   s.dependency 'openiap', openiap_versions['apple']
