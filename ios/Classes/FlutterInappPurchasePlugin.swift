@@ -3,7 +3,7 @@ import Flutter
 // StoreKit is not directly used; relying on OpenIAP
 import OpenIAP
 
-@available(iOS 15.0, *)
+@available(iOS 15.0, macOS 14.0, tvOS 15.0, *)
 public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
     private static let TAG = "[FlutterInappPurchase]"
     private var channel: FlutterMethodChannel?
@@ -140,11 +140,11 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
             clearTransactionIOS(result: result)
 
         case "presentCodeRedemptionSheetIOS":
-            if #available(iOS 16.0, *) {
+            if #available(iOS 16.0, macOS 14.0, tvOS 16.0, *) {
                 presentCodeRedemptionSheetIOS(result: result)
             } else {
                 let code: ErrorCode = .featureNotSupported
-                result(FlutterError(code: code.rawValue, message: "Code redemption requires iOS 16.0+", details: nil))
+                result(FlutterError(code: code.rawValue, message: "Code redemption requires iOS 16.0+, macOS 14.0+, or tvOS 16.0+", details: nil))
             }
             
         case "getPromotedProductIOS":
@@ -172,23 +172,23 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
             validateReceiptIOS(productId: sku, result: result)
 
         case "canPresentExternalPurchaseNoticeIOS":
-            if #available(iOS 18.2, *) {
+            if #available(iOS 18.2, macOS 14.0, tvOS 18.2, *) {
                 canPresentExternalPurchaseNoticeIOS(result: result)
             } else {
                 let code: ErrorCode = .featureNotSupported
-                result(FlutterError(code: code.rawValue, message: "External purchase notice requires iOS 18.2+", details: nil))
+                result(FlutterError(code: code.rawValue, message: "External purchase notice requires iOS 18.2+, macOS 14.0+, or tvOS 18.2+", details: nil))
             }
 
         case "presentExternalPurchaseNoticeSheetIOS":
-            if #available(iOS 18.2, *) {
+            if #available(iOS 18.2, macOS 14.0, tvOS 18.2, *) {
                 presentExternalPurchaseNoticeSheetIOS(result: result)
             } else {
                 let code: ErrorCode = .featureNotSupported
-                result(FlutterError(code: code.rawValue, message: "External purchase notice requires iOS 18.2+", details: nil))
+                result(FlutterError(code: code.rawValue, message: "External purchase notice requires iOS 18.2+, macOS 14.0+, or tvOS 18.2+", details: nil))
             }
 
         case "presentExternalPurchaseLinkIOS":
-            if #available(iOS 16.0, *) {
+            if #available(iOS 16.0, macOS 14.0, tvOS 16.0, *) {
                 if let args = call.arguments as? [String: Any],
                    let url = args["url"] as? String {
                     presentExternalPurchaseLinkIOS(url: url, result: result)
@@ -200,7 +200,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 }
             } else {
                 let code: ErrorCode = .featureNotSupported
-                result(FlutterError(code: code.rawValue, message: "External purchase link requires iOS 16.0+", details: nil))
+                result(FlutterError(code: code.rawValue, message: "External purchase link requires iOS 16.0+, macOS 14.0+, or tvOS 16.0+", details: nil))
             }
 
         default:
@@ -458,9 +458,9 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
     }
     
     // MARK: - Additional iOS Features
-    
+
     // (Moved below iOS-specific features section to align with Expo ordering)
-    @available(iOS 16.0, *)
+    @available(iOS 16.0, macOS 14.0, tvOS 16.0, *)
     private func presentCodeRedemptionSheetIOS(result: @escaping FlutterResult) {
         FlutterIapLog.debug("presentCodeRedemptionSheetIOS called")
         Task { @MainActor in
@@ -477,7 +477,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
         }
     }
     
-    @available(iOS 15.0, *)
+    @available(iOS 15.0, macOS 14.0, tvOS 15.0, *)
     private func showManageSubscriptionsIOS(result: @escaping FlutterResult) {
         FlutterIapLog.debug("showManageSubscriptionsIOS called")
         Task { @MainActor in
@@ -643,7 +643,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
 
     // MARK: - Alternative Billing (iOS 18.2+)
 
-    @available(iOS 18.2, *)
+    @available(iOS 18.2, macOS 14.0, tvOS 18.2, *)
     private func canPresentExternalPurchaseNoticeIOS(result: @escaping FlutterResult) {
         FlutterIapLog.debug("canPresentExternalPurchaseNoticeIOS called")
         Task { @MainActor in
@@ -660,7 +660,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
         }
     }
 
-    @available(iOS 18.2, *)
+    @available(iOS 18.2, macOS 14.0, tvOS 18.2, *)
     private func presentExternalPurchaseNoticeSheetIOS(result: @escaping FlutterResult) {
         FlutterIapLog.debug("presentExternalPurchaseNoticeSheetIOS called")
         Task { @MainActor in
@@ -678,7 +678,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
         }
     }
 
-    @available(iOS 16.0, *)
+    @available(iOS 16.0, macOS 14.0, tvOS 16.0, *)
     private func presentExternalPurchaseLinkIOS(url: String, result: @escaping FlutterResult) {
         FlutterIapLog.debug("presentExternalPurchaseLinkIOS called with url: \(url)")
         Task { @MainActor in
@@ -706,18 +706,18 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
 }
 
 
-// Fallback for iOS < 15.0
+// Fallback for platforms that don't meet minimum requirements
 public class FlutterInappPurchasePluginLegacy: NSObject, FlutterPlugin {
     public static func register(with registrar: FlutterPluginRegistrar) {
-        if #unavailable(iOS 15.0) {
+        if #unavailable(iOS 15.0, macOS 14.0, tvOS 15.0) {
             let channel = FlutterMethodChannel(name: "flutter_inapp", binaryMessenger: registrar.messenger())
             let instance = FlutterInappPurchasePluginLegacy()
             registrar.addMethodCallDelegate(instance, channel: channel)
         }
     }
-    
+
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         let code: ErrorCode = .featureNotSupported
-        result(FlutterError(code: code.rawValue, message: "iOS 15.0+ required", details: nil))
+        result(FlutterError(code: code.rawValue, message: "iOS 15.0+, macOS 14.0+, or tvOS 15.0+ required", details: nil))
     }
 }
