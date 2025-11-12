@@ -270,7 +270,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
         final nativeType = resolveProductType(productType);
 
         try {
-          if (_platform.isIOS || _platform.isMacOS || _platform.isMacOS) {
+          if (_platform.isIOS || _platform.isMacOS) {
             // Extract props from the JSON representation
             final json = params.toJson();
             final requestKey =

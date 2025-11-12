@@ -15,9 +15,9 @@ Pod::Spec.new do |s|
   s.description      = <<-DESC
 In App Purchase plugin for flutter. This project has been forked by react-native-iap and we are willing to share same experience with that on react-native.
                        DESC
-  s.homepage         = 'http://example.com'
+  s.homepage         = 'https://github.com/hyochan/flutter_inapp_purchase'
   s.license          = { :file => '../LICENSE' }
-  s.author           = { 'Your Company' => 'email@example.com' }
+  s.author           = { 'Hyo Chan Jang' => 'hyo@hyo.dev' }
   s.source           = { :path => '.' }
   s.source_files = 'Classes/**/*.swift'
   s.dependency 'FlutterMacOS'

@@ -1,5 +1,9 @@
 import Foundation
+#if canImport(FlutterMacOS)
+import FlutterMacOS
+#else
 import Flutter
+#endif
 // StoreKit is not directly used; relying on OpenIAP
 import OpenIAP
 
@@ -26,7 +30,11 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
     
     public static func register(with registrar: FlutterPluginRegistrar) {
         FlutterIapLog.debug("Swift register called")
+        #if canImport(FlutterMacOS)
+        let channel = FlutterMethodChannel(name: "flutter_inapp", binaryMessenger: registrar.messenger)
+        #else
         let channel = FlutterMethodChannel(name: "flutter_inapp", binaryMessenger: registrar.messenger())
+        #endif
         let instance = FlutterInappPurchasePlugin()
         registrar.addMethodCallDelegate(instance, channel: channel)
         instance.channel = channel
@@ -710,7 +718,11 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
 public class FlutterInappPurchasePluginLegacy: NSObject, FlutterPlugin {
     public static func register(with registrar: FlutterPluginRegistrar) {
         if #unavailable(iOS 15.0, macOS 14.0, tvOS 15.0) {
+            #if canImport(FlutterMacOS)
+            let channel = FlutterMethodChannel(name: "flutter_inapp", binaryMessenger: registrar.messenger)
+            #else
             let channel = FlutterMethodChannel(name: "flutter_inapp", binaryMessenger: registrar.messenger())
+            #endif
             let instance = FlutterInappPurchasePluginLegacy()
             registrar.addMethodCallDelegate(instance, channel: channel)
         }
