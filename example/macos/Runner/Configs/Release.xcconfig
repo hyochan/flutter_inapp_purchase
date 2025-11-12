@@ -1,0 +1,5 @@
+#include? "../../Flutter/ephemeral/Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"
+#include "../../Flutter/Flutter-Release.xcconfig"
+#include "Warnings.xcconfig"
+
+MACOSX_DEPLOYMENT_TARGET = 14.0

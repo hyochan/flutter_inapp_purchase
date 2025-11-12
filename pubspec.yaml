@@ -33,3 +33,5 @@ flutter:
         pluginClass: FlutterInappPurchasePlugin
       ios:
         pluginClass: FlutterInappPurchasePlugin
+      macos:
+        pluginClass: FlutterInappPurchasePlugin

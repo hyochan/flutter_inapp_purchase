@@ -15,24 +15,21 @@ Pod::Spec.new do |s|
   s.description      = <<-DESC
 In App Purchase plugin for flutter. This project has been forked by react-native-iap and we are willing to share same experience with that on react-native.
                        DESC
-  s.homepage         = 'http://example.com'
+  s.homepage         = 'https://github.com/hyochan/flutter_inapp_purchase'
   s.license          = { :file => '../LICENSE' }
-  s.author           = { 'Your Company' => 'email@example.com' }
+  s.author           = { 'Hyo Chan Jang' => 'hyo@hyo.dev' }
   s.source           = { :path => '.' }
   s.source_files = 'Classes/**/*.swift'
-  s.dependency 'Flutter'
+  s.dependency 'FlutterMacOS'
   # Use OpenIAP Apple native module (via CocoaPods)
   s.dependency 'openiap', openiap_versions['apple']
 
-  s.ios.deployment_target = '15.0'
-  s.tvos.deployment_target = '15.0'
+  s.osx.deployment_target = '14.0'
   s.swift_version = '5.5'
 
   # Swift/Objective-C compatibility
   s.pod_target_xcconfig = {
     'DEFINES_MODULE' => 'YES',
-    'SWIFT_COMPILATION_MODE' => 'wholemodule',
-    'VALID_ARCHS' => 'arm64 x86_64',
-    'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386'
+    'SWIFT_COMPILATION_MODE' => 'wholemodule'
   }
 end

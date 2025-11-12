@@ -74,7 +74,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
 
   Platform get _platform => _pf;
   // Public getters used by platform mixins
-  bool get isIOS => _platform.isIOS;
+  bool get isIOS => _platform.isIOS || _platform.isMacOS;
   bool get isAndroid => _platform.isAndroid;
   String get operatingSystem => _platform.operatingSystem;
 
@@ -127,7 +127,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
               result,
               originalJson: result,
               platformIsAndroid: _platform.isAndroid,
-              platformIsIOS: _platform.isIOS,
+              platformIsIOS: _platform.isIOS || _platform.isMacOS,
               acknowledgedAndroidPurchaseTokens:
                   _acknowledgedAndroidPurchaseTokens,
             );
@@ -152,7 +152,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           // Also emit to Open IAP compatible stream
           final error = convertToPurchaseError(
             purchaseResult,
-            platform: _platform.isIOS
+            platform: _platform.isIOS || _platform.isMacOS
                 ? gentype.IapPlatform.IOS
                 : gentype.IapPlatform.Android,
           );
@@ -270,7 +270,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
         final nativeType = resolveProductType(productType);
 
         try {
-          if (_platform.isIOS) {
+          if (_platform.isIOS || _platform.isMacOS) {
             // Extract props from the JSON representation
             final json = params.toJson();
             final requestKey =
@@ -475,7 +475,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           Future<List<gentype.Purchase>> resolvePurchases() async {
             List<gentype.Purchase> raw = const <gentype.Purchase>[];
 
-            if (_platform.isIOS) {
+            if (_platform.isIOS || _platform.isMacOS) {
               final args = <String, dynamic>{
                 'alsoPublishToEventListenerIOS':
                     normalizedOptions.alsoPublishToEventListenerIOS ?? false,
@@ -520,7 +520,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
 
   /// Get the current storefront country code (unified method)
   gentype.QueryGetStorefrontHandler get getStorefront => () async {
-        if (!_platform.isIOS && !_platform.isAndroid) {
+        if (!isIOS && !_platform.isAndroid) {
           return '';
         }
 
@@ -542,7 +542,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
 
   /// iOS specific: Get storefront
   gentype.QueryGetStorefrontIOSHandler get getStorefrontIOS => () async {
-        if (!_platform.isIOS) {
+        if (!_platform.isIOS || _platform.isMacOS) {
           throw PurchaseError(
             code: gentype.ErrorCode.IapNotAvailable,
             message: 'Storefront is only available on iOS',
@@ -572,7 +572,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
       };
 
   gentype.MutationSyncIOSHandler get syncIOS => () async {
-        if (!_platform.isIOS) {
+        if (!_platform.isIOS || _platform.isMacOS) {
           debugPrint('syncIOS is only supported on iOS');
           return false;
         }
@@ -589,7 +589,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
 
   gentype.QueryIsEligibleForIntroOfferIOSHandler
       get isEligibleForIntroOfferIOS => (groupId) async {
-            if (!_platform.isIOS) {
+            if (!_platform.isIOS || _platform.isMacOS) {
               return false;
             }
 
@@ -607,7 +607,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
 
   gentype.QuerySubscriptionStatusIOSHandler get subscriptionStatusIOS =>
       (sku) async {
-        if (!_platform.isIOS) {
+        if (!_platform.isIOS || _platform.isMacOS) {
           return <gentype.SubscriptionStatusIOS>[];
         }
 
@@ -651,7 +651,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
 
   gentype.MutationClearTransactionIOSHandler get clearTransactionIOS =>
       () async {
-        if (!_platform.isIOS) {
+        if (!_platform.isIOS || _platform.isMacOS) {
           return false;
         }
 
@@ -666,7 +666,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
 
   gentype.QueryGetPromotedProductIOSHandler get getPromotedProductIOS =>
       () async {
-        if (!_platform.isIOS) {
+        if (!_platform.isIOS || _platform.isMacOS) {
           return null;
         }
 
@@ -698,7 +698,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
 
   gentype.MutationRequestPurchaseOnPromotedProductIOSHandler
       get requestPurchaseOnPromotedProductIOS => () async {
-            if (!_platform.isIOS) {
+            if (!_platform.isIOS || _platform.isMacOS) {
               return false;
             }
 
@@ -716,7 +716,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
 
   gentype.QueryGetAppTransactionIOSHandler get getAppTransactionIOS =>
       () async {
-        if (!_platform.isIOS) {
+        if (!_platform.isIOS || _platform.isMacOS) {
           return null;
         }
 
@@ -740,7 +740,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
   /// iOS specific: Present code redemption sheet
   gentype.MutationPresentCodeRedemptionSheetIOSHandler
       get presentCodeRedemptionSheetIOS => () async {
-            if (!_platform.isIOS) {
+            if (!_platform.isIOS || _platform.isMacOS) {
               throw PlatformException(
                 code: 'platform',
                 message:
@@ -763,7 +763,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
   /// iOS specific: Show manage subscriptions
   gentype.MutationShowManageSubscriptionsIOSHandler
       get showManageSubscriptionsIOS => () async {
-            if (!_platform.isIOS) {
+            if (!_platform.isIOS || _platform.isMacOS) {
               throw PlatformException(
                 code: 'platform',
                 message: 'showManageSubscriptionsIOS is only supported on iOS',
@@ -786,13 +786,13 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
 
   gentype.QueryGetPendingTransactionsIOSHandler get getPendingTransactionsIOS =>
       () async {
-        if (_platform.isIOS) {
+        if (_platform.isIOS || _platform.isMacOS) {
           final dynamic result =
               await _channel.invokeMethod('getPendingTransactionsIOS');
           final purchases = extractPurchases(
             result,
             platformIsAndroid: _platform.isAndroid,
-            platformIsIOS: _platform.isIOS,
+            platformIsIOS: _platform.isIOS || _platform.isMacOS,
             acknowledgedAndroidPurchaseTokens:
                 _acknowledgedAndroidPurchaseTokens,
           );
@@ -1042,7 +1042,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           return;
         }
 
-        if (_platform.isIOS) {
+        if (_platform.isIOS || _platform.isMacOS) {
           debugPrint(
             '[FlutterInappPurchase] iOS: Finishing transaction with ID: $transactionId',
           );
@@ -1102,7 +1102,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
   gentype.QueryValidateReceiptIOSHandler get validateReceiptIOS => (
           {required String sku,
           gentype.ReceiptValidationAndroidOptions? androidOptions}) async {
-        if (!_platform.isIOS) {
+        if (!_platform.isIOS || _platform.isMacOS) {
           throw errors.PurchaseError(
             code: errors.ErrorCode.IapNotAvailable,
             message: 'Receipt validation is only available on iOS',
@@ -1170,7 +1170,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
   gentype.MutationValidateReceiptHandler get validateReceipt => (
           {required String sku,
           gentype.ReceiptValidationAndroidOptions? androidOptions}) async {
-        if (_platform.isIOS) {
+        if (_platform.isIOS || _platform.isMacOS) {
           return await validateReceiptIOS(
               sku: sku, androidOptions: androidOptions);
         }
@@ -1249,7 +1249,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           final parsed = parseProductFromNative(
             itemMap,
             detectedType,
-            fallbackIsIOS: _platform.isIOS,
+            fallbackIsIOS: _platform.isIOS || _platform.isMacOS,
           );
 
           products.add(parsed);
@@ -1334,7 +1334,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
 
   gentype.MutationRestorePurchasesHandler get restorePurchases => () async {
         try {
-          if (_platform.isIOS) {
+          if (_platform.isIOS || _platform.isMacOS) {
             try {
               await syncIOS();
             } catch (error) {
@@ -1537,7 +1537,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
   /// Present external purchase notice sheet on iOS (iOS 18.2+)
   gentype.MutationPresentExternalPurchaseNoticeSheetIOSHandler
       get presentExternalPurchaseNoticeSheetIOS => () async {
-            if (!_platform.isIOS) {
+            if (!_platform.isIOS || _platform.isMacOS) {
               return const gentype.ExternalPurchaseNoticeResultIOS(
                   result: gentype.ExternalPurchaseNoticeAction.Dismissed);
             }
@@ -1561,7 +1561,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
   /// Present external purchase link on iOS (iOS 16.0+)
   gentype.MutationPresentExternalPurchaseLinkIOSHandler
       get presentExternalPurchaseLinkIOS => (String url) async {
-            if (!_platform.isIOS) {
+            if (!_platform.isIOS || _platform.isMacOS) {
               return const gentype.ExternalPurchaseLinkResultIOS(
                   success: false);
             }
