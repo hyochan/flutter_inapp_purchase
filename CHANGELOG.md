@@ -1,8 +1,13 @@
 # CHANGELOG
 
+## 7.1.16
+
+- chore(deps): openiap-apple@1.2.34
+
 ## 7.1.15
 
 - Update openiap-versions.
+
   ```json
   {
     "gql": "1.2.5",
@@ -10,6 +15,7 @@
     "apple": "1.2.32"
   }
   ```
+
   - [openiap-gql v1.2.5](https://github.com/hyodotdev/openiap/releases/tag/1.2.5)
 
 ## 7.1.14
@@ -39,6 +45,7 @@
 ## 7.1.12
 
 - Update openiap-versions.
+
   ```json
   {
     "apple": "1.2.25",
@@ -46,6 +53,7 @@
     "gql": "1.2.2"
   }
   ```
+
   - [openiap-apple v1.2.25](https://github.com/hyodotdev/openiap/releases/tag/apple-v1.2.25)
   - [openiap-google v1.3.1](https://github.com/hyodotdev/openiap/releases/tag/google-v1.3.1)
 
