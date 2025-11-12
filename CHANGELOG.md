@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 7.1.17
+
+- **feat**: Add macOS platform support
+  - Minimum deployment target: macOS 14.0
+  - Shares StoreKit 2 implementation with iOS
+
 ## 7.1.16
 
 - chore(deps): openiap-apple@1.2.34
