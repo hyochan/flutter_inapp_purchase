@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 7.1.18
+
+- chore(deps): Update openiap-versions
+
+  ```json
+  {
+    "google": "1.3.6",
+    "apple": "1.2.36"
+  }
+  ```
+
 ## 7.1.17
 
 - **feat**: Add macOS platform support
