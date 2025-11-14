@@ -78,8 +78,9 @@ For testing with StoreKit 2, create a `.storekit` configuration file:
 
 #### Update build.gradle
 
-Ensure your `android/app/build.gradle` has the minimum SDK version:
+Ensure your `android/app/build.gradle` has the minimum SDK version and platform configuration:
 
+**For Groovy (build.gradle):**
 ```gradle
 android {
     compileSdkVersion 34
@@ -87,9 +88,31 @@ android {
     defaultConfig {
         minSdkVersion 21  // Required minimum
         targetSdkVersion 34
+
+        // Required for v7.1.14+: Select Google Play platform
+        missingDimensionStrategy 'platform', 'play'
     }
 }
 ```
+
+**For Kotlin DSL (build.gradle.kts):**
+```kotlin
+android {
+    compileSdkVersion(34)
+
+    defaultConfig {
+        minSdkVersion(21)  // Required minimum
+        targetSdkVersion(34)
+
+        // Required for v7.1.14+: Select Google Play platform
+        missingDimensionStrategy("platform", "play")
+    }
+}
+```
+
+:::info
+The `missingDimensionStrategy` configuration is required since v7.1.14 due to product flavor support for Meta Horizon OS. For Meta Quest support, see the [Horizon OS Setup Guide](./setup-horizon).
+:::
 
 #### Enable ProGuard Rules (if using ProGuard)
 

@@ -43,6 +43,20 @@
   - Automatically re-queries products with incomplete cached data
   - [openiap/pull/29](https://github.com/hyodotdev/openiap/pull/29)
 
+:::warning Migration Required for v7.1.14+
+Due to product flavor support added in v7.1.13, apps using Google Play must add platform dimension configuration to avoid build errors. Add to `android/app/build.gradle`:
+
+```groovy
+android {
+    defaultConfig {
+        missingDimensionStrategy 'platform', 'play'
+    }
+}
+```
+
+See [Android Setup Guide](https://hyochan.github.io/flutter_inapp_purchase/docs/getting-started/android-setup#required-configuration-v7114) for details.
+:::
+
 ## 7.1.13
 
 - **feat**: Add Horizon OS support for Meta Quest devices
@@ -53,6 +67,9 @@
   - Added comprehensive documentation for Horizon OS setup
   - [Blog post: Horizon OS Support](https://hyochan.github.io/flutter_inapp_purchase/blog/horizon-os-support)
   - [Setup guide: Horizon OS](https://hyochan.github.io/flutter_inapp_purchase/docs/getting-started/setup-horizon)
+- **BREAKING**: Android apps must configure platform dimension
+  - Due to product flavor support, apps must add `missingDimensionStrategy 'platform', 'play'` to their build.gradle
+  - See [Android Setup Guide](https://hyochan.github.io/flutter_inapp_purchase/docs/getting-started/android-setup#required-configuration-v7114) for configuration details
 - **BREAKING**: `introductoryPricePaymentModeIOS` is now required (non-nullable) in `ProductSubscriptionIOS`
   - Changed from `PaymentModeIOS?` to `PaymentModeIOS` (required field)
   - Default value is `PaymentModeIOS.Empty` when not provided

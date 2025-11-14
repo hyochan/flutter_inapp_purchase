@@ -17,6 +17,40 @@ The guide covers:
 - Testing with internal testing tracks
 - Common troubleshooting steps
 
+## Required Configuration (v7.1.14+)
+
+:::info Required for v7.1.14+
+Since version 7.1.14, the plugin uses product flavors to support both Google Play and Meta Horizon OS. You must configure the platform dimension in your app's build.gradle file.
+:::
+
+Add the following to your `android/app/build.gradle.kts` (or `build.gradle` for Groovy) inside the `defaultConfig` block:
+
+**For Kotlin DSL (build.gradle.kts):**
+```kotlin
+android {
+    defaultConfig {
+        // ... other configuration ...
+
+        // Required: Select Google Play platform
+        missingDimensionStrategy("platform", "play")
+    }
+}
+```
+
+**For Groovy (build.gradle):**
+```groovy
+android {
+    defaultConfig {
+        // ... other configuration ...
+
+        // Required: Select Google Play platform
+        missingDimensionStrategy 'platform', 'play'
+    }
+}
+```
+
+This configuration tells Gradle to use the Google Play flavor of the plugin. If you need Meta Quest/Horizon OS support instead, see the [Horizon OS Setup Guide](./setup-horizon).
+
 ## Code Examples
 
 For implementation examples, see:
@@ -26,6 +60,19 @@ For implementation examples, see:
 - [Subscription Store Example](../examples/subscription-store)
 
 ## Common Issues
+
+### Build Failed: Could not determine dependencies (v7.1.14+)
+
+**Problem**: Gradle build fails with error about ambiguous variants (horizonReleaseRuntimeElements / playReleaseRuntimeElements)
+
+**Error message:**
+```
+Could not determine the dependencies of task ':app:mergeReleaseNativeLibs'.
+> Could not resolve all dependencies for configuration ':app:releaseRuntimeClasspath'.
+   > The consumer was configured to find a library... However we cannot choose between the following variants...
+```
+
+**Solution**: Add `missingDimensionStrategy` to your app's build.gradle file. See the [Required Configuration](#required-configuration-v7114) section above.
 
 ### Products Not Found
 
