@@ -19,7 +19,7 @@
       "type": "node",
       "request": "launch",
       "runtimeExecutable": "/usr/bin/open",
-      "runtimeArgs": ["-a", "Android Studio", "${workspaceFolder}/example/android"],
+      "runtimeArgs": ["-a", "Android Studio", "${workspaceFolder}"],
       "console": "internalConsole",
       "internalConsoleOptions": "openOnSessionStart"
     },

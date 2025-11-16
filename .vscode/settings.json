@@ -8,6 +8,9 @@
   // Dart & Flutter settings
   "dart.flutterSdkPath": null,
   "dart.doNotFormat": ["lib/types.dart"],
+  "dart.env": {
+    "FLUTTER_ROOT": "${workspaceFolder}"
+  },
   "[dart]": {
     "editor.formatOnSave": false,
     "editor.rulers": [80],
