@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 7.1.20
+
+- chore(deps): Update openiap-versions
+
+  ```json
+  {
+    "apple": "1.2.38"
+  }
+  ```
+
 ## 7.1.19
 
 - chore(deps): Update openiap-versions
