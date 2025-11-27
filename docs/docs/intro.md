@@ -2,6 +2,7 @@
 title: flutter_inapp_purchase
 sidebar_label: Introduction
 sidebar_position: 1
+slug: /
 ---
 
 import Link from "@docusaurus/Link";

@@ -41,6 +41,7 @@ const config: Config = {
       "classic",
       {
         docs: {
+          routeBasePath: "/",
           sidebarPath: "./sidebars.ts",
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
@@ -54,18 +55,7 @@ const config: Config = {
           },
           lastVersion: "current",
         },
-        blog: {
-          showReadingTime: true,
-          feedOptions: {
-            type: ["rss", "atom"],
-            xslt: true,
-          },
-          editUrl:
-            "https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/",
-          onInlineTags: "warn",
-          onInlineAuthors: "warn",
-          onUntruncatedBlogPosts: "warn",
-        },
+        blog: false,
         theme: {
           customCss: "./src/css/custom.css",
         },
@@ -84,7 +74,7 @@ const config: Config = {
         indexDocs: true,
         indexBlog: true,
         indexPages: false,
-        docsRouteBasePath: "/docs",
+        docsRouteBasePath: "/",
       },
     ],
   ],
@@ -97,7 +87,6 @@ const config: Config = {
       logo: {
         alt: "flutter_inapp_purchase Logo",
         src: "img/logo.png",
-        href: "/docs/intro",
       },
       items: [
         {
@@ -111,7 +100,6 @@ const config: Config = {
           position: "left",
           label: "Docs",
         },
-        { to: "/blog", label: "Blog", position: "left" },
         {
           href: "https://github.com/hyochan/flutter_inapp_purchase",
           label: "GitHub",
@@ -137,11 +125,11 @@ const config: Config = {
           items: [
             {
               label: "Getting Started",
-              to: "/docs/getting-started/installation",
+              to: "/getting-started/installation",
             },
             {
               label: "API Reference",
-              to: "/docs/api/",
+              to: "/api/",
             },
           ],
         },
