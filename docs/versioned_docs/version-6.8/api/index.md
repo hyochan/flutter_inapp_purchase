@@ -3,11 +3,11 @@ title: API Reference
 sidebar_position: 1
 ---
 
-import AdFitTopFixed from "@site/src/uis/AdFitTopFixed";
+import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
 
 # API Reference
 
-<AdFitTopFixed />
+<GreatFrontEnd link="https://www.greatfrontend.com/front-end-interview-playbook?fpr=hyo73" title="Front End Interview Guidebook" />
 
 Complete reference for flutter_inapp_purchase v6.8.0 - A unified API for implementing in-app purchases across iOS and Android platforms.
 

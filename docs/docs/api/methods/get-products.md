@@ -3,7 +3,11 @@ sidebar_position: 2
 title: fetchProducts
 ---
 
+import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+
 # fetchProducts()
+
+<GreatFrontEnd link="https://www.greatfrontend.com/questions/js?fpr=hyo73" title="JavaScript interview questions" />
 
 `fetchProducts()` is the unified way to load in-app products or subscriptions from the store, consolidating the legacy helpers into a single API.
 

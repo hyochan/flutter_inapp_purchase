@@ -3,7 +3,11 @@ sidebar_position: 1
 title: initConnection
 ---
 
+import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+
 # initConnection()
+
+<GreatFrontEnd link="https://www.greatfrontend.com/front-end-interview-playbook?fpr=hyo73" title="Front End Interview Guidebook" />
 
 Initializes the connection to the platform's billing service.
 

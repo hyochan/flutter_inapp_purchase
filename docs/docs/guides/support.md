@@ -3,7 +3,11 @@ sidebar_position: 10
 title: Support
 ---
 
+import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+
 # Support
+
+<GreatFrontEnd link="https://www.greatfrontend.com/questions/formats/quiz?fpr=hyo73" title="Quiz interview questions" />
 
 Need help with flutter_inapp_purchase? We're here to assist you.
 

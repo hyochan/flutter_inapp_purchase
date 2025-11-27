@@ -2,7 +2,11 @@
 sidebar_position: 4
 ---
 
+import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+
 # Offer Code Redemption
+
+<GreatFrontEnd link="https://www.greatfrontend.com/questions/formats/quiz?fpr=hyo73" title="Quiz interview questions" />
 
 > **Source Code**: [offer_code_screen.dart](https://github.com/hyochan/flutter_inapp_purchase/blob/main/example/lib/src/screens/offer_code_screen.dart)
 

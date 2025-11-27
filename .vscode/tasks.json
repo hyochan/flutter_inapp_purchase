@@ -20,7 +20,7 @@
     {
       "label": "Docusaurus: Start Dev Server",
       "type": "shell",
-      "command": "npm run start",
+      "command": "bun run start",
       "options": {
         "cwd": "${workspaceFolder}/docs"
       },
@@ -35,7 +35,7 @@
     {
       "label": "Docusaurus: Build",
       "type": "shell",
-      "command": "npm run build",
+      "command": "bun run build",
       "options": {
         "cwd": "${workspaceFolder}/docs"
       },
@@ -49,7 +49,7 @@
     {
       "label": "Docusaurus: Clear Cache",
       "type": "shell",
-      "command": "npm run clear",
+      "command": "bun run clear",
       "options": {
         "cwd": "${workspaceFolder}/docs"
       },

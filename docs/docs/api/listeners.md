@@ -3,7 +3,11 @@ title: Listeners
 sidebar_position: 4
 ---
 
+import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+
 # Event Listeners
+
+<GreatFrontEnd link="https://www.greatfrontend.com/questions?fpr=hyo73" title="Framework-specific practice questions" />
 
 Real-time event streams for monitoring purchase transactions and errors in flutter_inapp_purchase v7.0.
 

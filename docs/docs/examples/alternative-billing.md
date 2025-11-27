@@ -4,11 +4,11 @@ sidebar_label: Alternative Billing
 sidebar_position: 5
 ---
 
-import AdFitTopFixed from "@site/src/uis/AdFitTopFixed";
+import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
 
 # Alternative Billing
 
-<AdFitTopFixed />
+<GreatFrontEnd link="https://www.greatfrontend.com/behavioral-interview-playbook?fpr=hyo73" title="Behavioral interview questions" />
 
 Use alternative billing to redirect users to external payment systems or offer payment choices alongside platform billing.
 

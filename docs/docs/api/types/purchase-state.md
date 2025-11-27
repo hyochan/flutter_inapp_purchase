@@ -3,7 +3,11 @@ sidebar_position: 2
 title: Purchase States
 ---
 
+import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+
 # Purchase States
+
+<GreatFrontEnd link="https://www.greatfrontend.com/questions/js?fpr=hyo73" title="JavaScript interview questions" />
 
 Types and enums representing the state of purchases and transactions.
 

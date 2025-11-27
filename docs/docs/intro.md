@@ -4,10 +4,12 @@ sidebar_label: Introduction
 sidebar_position: 1
 ---
 
-import AdFitTopFixed from "@site/src/uis/AdFitTopFixed";
 import Link from "@docusaurus/Link";
+import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
 
 # flutter_inapp_purchase
+
+<GreatFrontEnd />
 
 A comprehensive Flutter plugin for implementing in-app purchases that **conforms to the [Open IAP specification](https://openiap.dev)**.
 
@@ -25,15 +27,6 @@ A comprehensive Flutter plugin for implementing in-app purchases that **conforms
     src={require("@site/static/img/logo.png").default}
     alt="flutter_inapp_purchase Logo"
     style={{maxWidth: '280px', width: '60%', height: 'auto'}}
-  />
-  <iframe
-    title="openiap-sponsor"
-    src="https://ads.as.criteo.com/delivery/r/afr.php?z=up3WzS8Vkro4evgkPwGduw&u=%7C0739geO7I8towJ9tri5oCTiTmgX649oG34AhnPZq7c0%3D%7C&c1=0n2XosTo5ckbeNFvq0zVIcsyhyT3WKD0h8x1vhtYGkSkO0b8TwGJzvgWDUyB9U9Fk9ZEPKD72VQWkqPVpMQYPy2yS9pZ-gO7OSDPnT0hb1ilv1ey6SSH6LJIl4QhQltdlxZES-dRiryXmM58JoKZL8qIs-2JRvoDEk9wRGVWsaUskSiD7vkrBEvDeFkuD_lJ6oyxWcaW1EMCDtGleGpKNgE3Dn-r9IM1goBLqdz0EkvWQoN1vn9NJJ8N1AOaiKSa9QZfnvEbVTqv9Q47PJcA-Md9Fz5TUzSHAK3qqyQSVJqoKjmRVMm2a-sfm8V9KF8OUbcQQKnuvGlv8_ExxTj2k7ChvMfnEwWlrg3WI25BmwtEDwN4mHS5pdF4rQBPWdIuLGI2TeLZP6FmgryAnySUen9oCKaR3Qh_PCybMGtMZnmCiiPggRcJkTkBE0DdW3FBIXuqm_7kCiM8GLFkLy7KzaRt-uukAcAMFeCMlWK7cbx2mzh1Pjv_xs9rTqmpTQzs0gaTmtfheLGe1NAsPL4uPzodz94erRDVCgKA8BINzmc4aiE3suo5ySeylvtliNfez823Dtz0YTo6dWqfFdR1SCx93598rM2EY9rxboOW1hSASyCq2vjfu1a-8Pux_LW8BIwJSuq-KSq18JOld4sFJiSEs0a0JRv04pZWyr8urC_qUdHkkRU0PLM9tmnaFwAgOBjYirzo1W-fe-q3Z_SRP6dm2PGSgvqp6In3zHR2e0M&ct0=https%3A%2F%2Fkaat.daum.net%2Fad%2Fclick_thirdparty%3Bkyson_version%3D1.0%3Brequest_id%3Df03d71b0-2c6c-4d16-b1b4-281ae42a06b8-j0zr%3Badunit_id%3DDAN-YTmjDwlbcP42HBg6%3Btemplate_seq%3D%3Bsdk_type%3Dweb%3Bmed_dsp_id%3DCRITEO_NEW%3Bbid_id%3D68d015bc19f77f7b967055c069c00000%3Bdsp_id%3DCRITEO%3Bhratio%3D%3Bnetwork_type%3DGENERAL%3Bwratio%3D%3Bsdk_version%3D4.34.1%3Bad_type%3DBanner%3Bw%3D320%3Bh%3D100%3Bssp_id%3DKAKAO%3Bdevice_type%3DPC%3Bis_test%3Dfalse%3Bdummy%3D"
-    width="320"
-    height="100"
-    frameBorder="0"
-    scrolling="no"
-    style={{border: 'none'}}
   />
 </div>
 

@@ -3,7 +3,11 @@ sidebar_position: 3
 title: Error Codes
 ---
 
+import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+
 # Error Codes
+
+<GreatFrontEnd link="https://www.greatfrontend.com/interviews/study-plans?fpr=hyo73" title="Study Plan" />
 
 Comprehensive error handling types and codes for flutter_inapp_purchase.
 

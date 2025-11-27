@@ -3,7 +3,11 @@ sidebar_position: 4
 title: requestPurchase
 ---
 
+import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+
 # requestPurchase()
+
+<GreatFrontEnd link="https://www.greatfrontend.com/behavioral-interview-playbook?fpr=hyo73" title="Behavioral interview questions" />
 
 Initiates a purchase flow for the specified product.
 

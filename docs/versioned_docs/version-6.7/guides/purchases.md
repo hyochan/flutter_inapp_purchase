@@ -3,11 +3,11 @@ sidebar_position: 3
 title: Purchases
 ---
 
-import AdFitTopFixed from "@site/src/uis/AdFitTopFixed";
+import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
 
 # Purchases
 
-<AdFitTopFixed />
+<GreatFrontEnd link="https://www.greatfrontend.com/questions/formats/quiz?fpr=hyo73" title="Quiz interview questions" />
 
 Complete guide to implementing in-app purchases with flutter_inapp_purchase v6.7.0, covering everything from basic setup to advanced purchase handling.
 

@@ -3,7 +3,11 @@ sidebar_position: 9
 title: FAQ
 ---
 
+import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+
 # Frequently Asked Questions
+
+<GreatFrontEnd link="https://www.greatfrontend.com/questions/formats/quiz?fpr=hyo73" title="Quiz interview questions" />
 
 Common questions and answers about flutter_inapp_purchase.
 

@@ -2,7 +2,11 @@
 sidebar_position: 4
 ---
 
+import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+
 # Quick Start
+
+<GreatFrontEnd link="https://www.greatfrontend.com/prepare/coding?fpr=hyo73" title="Coding interview questions" />
 
 Get up and running with Flutter In-App Purchase in minutes.
 

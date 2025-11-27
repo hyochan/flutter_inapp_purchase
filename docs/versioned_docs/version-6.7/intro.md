@@ -4,11 +4,7 @@ sidebar_label: Introduction
 sidebar_position: 1
 ---
 
-import AdFitTopFixed from "@site/src/uis/AdFitTopFixed";
-
 # flutter_inapp_purchase
-
-<AdFitTopFixed />
 
 A comprehensive Flutter plugin for implementing in-app purchases that **conforms to the [Open IAP specification](https://openiap.dev)**.
 

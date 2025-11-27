@@ -3,7 +3,11 @@ sidebar_position: 1
 title: Product Types
 ---
 
+import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+
 # Product Types
+
+<GreatFrontEnd link="https://www.greatfrontend.com/questions?fpr=hyo73" title="Framework-specific practice questions" />
 
 Types and enums related to products and purchases in flutter_inapp_purchase.
 

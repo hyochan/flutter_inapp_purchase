@@ -3,7 +3,11 @@ sidebar_position: 5
 title: Offer Code Redemption
 ---
 
+import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+
 # Offer Code Redemption
+
+<GreatFrontEnd link="https://www.greatfrontend.com/questions/js?fpr=hyo73" title="JavaScript interview questions" />
 
 This guide explains how to implement offer code redemption functionality in your app using flutter_inapp_purchase.
 

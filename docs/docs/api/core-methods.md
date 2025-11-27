@@ -3,7 +3,11 @@ title: Core Methods
 sidebar_position: 3
 ---
 
+import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+
 # Core Methods
+
+<GreatFrontEnd link="https://www.greatfrontend.com/interviews/study-plans?fpr=hyo73" title="Study Plan" />
 
 Essential methods for implementing in-app purchases with flutter_inapp_purchase v7.0. All methods follow the OpenIAP specification and support both iOS and Android platforms.
 

@@ -3,7 +3,11 @@ sidebar_position: 1
 title: FlutterInappPurchase
 ---
 
+import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+
 # FlutterInappPurchase Class
+
+<GreatFrontEnd link="https://www.greatfrontend.com/questions/js?fpr=hyo73" title="JavaScript interview questions" />
 
 The main class for handling in-app purchases in Flutter applications. This class provides a comprehensive API for managing purchases on both iOS and Android platforms.
 

@@ -3,7 +3,11 @@ sidebar_position: 2
 title: Migration from expo-iap
 ---
 
+import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+
 # Migration from expo-iap
+
+<GreatFrontEnd link="https://www.greatfrontend.com/questions/formats/quiz?fpr=hyo73" title="Quiz interview questions" />
 
 This guide helps you migrate from expo-iap to flutter_inapp_purchase, highlighting key differences and providing migration strategies.
 

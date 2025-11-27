@@ -4,11 +4,11 @@ title: Sponsors
 description: Support flutter_inapp_purchase development through sponsorship
 ---
 
-import AdFitTopFixed from '@site/src/uis/AdFitTopFixed';
+import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
 
 # Sponsors
 
-<AdFitTopFixed />
+<GreatFrontEnd link="https://www.greatfrontend.com/interviews/study-plans?fpr=hyo73" title="Study Plan" />
 
 For information about our sponsors and sponsorship opportunities, please visit:
 

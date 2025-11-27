@@ -3,7 +3,11 @@ sidebar_position: 2
 title: Migration from v5.x
 ---
 
+import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+
 # Migration from v5.x to v7.0+
+
+<GreatFrontEnd link="https://www.greatfrontend.com/behavioral-interview-playbook?fpr=hyo73" title="Behavioral interview questions" />
 
 This guide helps you migrate from flutter_inapp_purchase v5.x to the latest v7.0+ version.
 

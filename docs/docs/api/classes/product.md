@@ -3,7 +3,11 @@ sidebar_position: 2
 title: Product
 ---
 
+import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+
 # Product Class
+
+<GreatFrontEnd link="https://www.greatfrontend.com/front-end-system-design-playbook?fpr=hyo73" title="Front End System Design Guidebook" />
 
 Represents a product available for purchase from either the Google Play Store or iOS App Store.
 

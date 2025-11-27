@@ -3,11 +3,11 @@ title: Alternative Billing
 sidebar_label: Alternative Billing
 ---
 
-import AdFitTopFixed from "@site/src/uis/AdFitTopFixed";
+import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
 
 # Alternative Billing
 
-<AdFitTopFixed />
+<GreatFrontEnd link="https://www.greatfrontend.com/questions/formats/system-design?fpr=hyo73" title="Front End System design questions" />
 
 This guide explains how to implement alternative billing functionality in your app using flutter_inapp_purchase, allowing you to use external payment systems alongside or instead of the App Store/Google Play billing.
 

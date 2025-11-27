@@ -3,7 +3,11 @@ sidebar_position: 4
 title: Subscription Validation
 ---
 
+import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+
 # Subscription Validation
+
+<GreatFrontEnd link="https://www.greatfrontend.com/prepare/coding?fpr=hyo73" title="Coding interview questions" />
 
 flutter_inapp_purchase exposes modern StoreKit 2 (iOS) and Google Play Billing (Android) pipelines. This guide walks through the data available on the Dart side, how it maps to the underlying native APIs, and practical strategies to answer common lifecycle questions such as "is the user currently inside their free trial?"
 

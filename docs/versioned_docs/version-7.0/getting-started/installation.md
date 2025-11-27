@@ -4,11 +4,11 @@ sidebar_label: Installation
 sidebar_position: 1
 ---
 
-import AdFitTopFixed from "@site/src/uis/AdFitTopFixed";
+import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
 
 # Installation & Setup
 
-<AdFitTopFixed />
+<GreatFrontEnd link="https://www.greatfrontend.com/prepare/coding?fpr=hyo73" title="Coding interview questions" />
 
 Learn how to install and configure flutter_inapp_purchase in your Flutter project.
 

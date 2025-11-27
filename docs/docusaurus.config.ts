@@ -97,6 +97,7 @@ const config: Config = {
       logo: {
         alt: "flutter_inapp_purchase Logo",
         src: "img/logo.png",
+        href: "/docs/intro",
       },
       items: [
         {

@@ -4,7 +4,11 @@ sidebar_label: Android Setup
 sidebar_position: 3
 ---
 
+import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+
 # Android Setup
+
+<GreatFrontEnd link="https://www.greatfrontend.com/behavioral-interview-playbook?fpr=hyo73" title="Behavioral interview questions" />
 
 For complete Android setup instructions including Google Play Console configuration, app setup, and testing guidelines, please visit:
 

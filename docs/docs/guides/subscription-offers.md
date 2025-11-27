@@ -3,7 +3,11 @@ sidebar_position: 3
 title: Subscription Offers
 ---
 
+import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+
 # Subscription Offers
+
+<GreatFrontEnd link="https://www.greatfrontend.com/questions/formats/system-design?fpr=hyo73" title="Front End System design questions" />
 
 Handle subscription purchases, upgrades, downgrades, and promotional offers.
 

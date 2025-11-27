@@ -3,7 +3,11 @@ sidebar_position: 8
 title: validateReceipt
 ---
 
+import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+
 # validateReceipt()
+
+<GreatFrontEnd link="https://www.greatfrontend.com/interviews/study-plans?fpr=hyo73" title="Study Plan" />
 
 Validates purchase receipts with platform verification services.
 

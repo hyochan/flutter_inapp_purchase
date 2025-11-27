@@ -3,7 +3,11 @@ sidebar_position: 2
 title: Purchase Lifecycle
 ---
 
+import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+
 # Purchase Lifecycle
+
+<GreatFrontEnd link="https://www.greatfrontend.com/questions?fpr=hyo73" title="Framework-specific practice questions" />
 
 Understanding the complete purchase lifecycle is essential for proper implementation.
 
