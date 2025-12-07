@@ -890,15 +890,11 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                             (params["iapkit"] as? Map<*, *>)?.let { iapkit ->
                                 val iapkitMap = mutableMapOf<String, Any?>()
                                 (iapkit["apiKey"] as? String)?.let { iapkitMap["apiKey"] = it }
-                                (iapkit["google"] as? Map<*, *>)?.let { google ->
-                                    (google["purchaseToken"] as? String)?.let {
-                                        iapkitMap["google"] = mapOf("purchaseToken" to it)
-                                    }
+                                ((iapkit["google"] as? Map<*, *>)?.get("purchaseToken") as? String)?.let { purchaseToken ->
+                                    iapkitMap["google"] = mapOf("purchaseToken" to purchaseToken)
                                 }
-                                (iapkit["apple"] as? Map<*, *>)?.let { apple ->
-                                    (apple["jws"] as? String)?.let {
-                                        iapkitMap["apple"] = mapOf("jws" to it)
-                                    }
+                                ((iapkit["apple"] as? Map<*, *>)?.get("jws") as? String)?.let { jws ->
+                                    iapkitMap["apple"] = mapOf("jws" to jws)
                                 }
                                 propsMap["iapkit"] = iapkitMap
                             }

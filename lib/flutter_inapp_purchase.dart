@@ -1224,19 +1224,12 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
               };
 
               if (iapkit != null) {
-                final Map<String, dynamic> iapkitMap = {};
-                if (iapkit.apiKey != null) {
-                  iapkitMap['apiKey'] = iapkit.apiKey;
-                }
-                if (iapkit.apple != null) {
-                  iapkitMap['apple'] = {'jws': iapkit.apple!.jws};
-                }
-                if (iapkit.google != null) {
-                  iapkitMap['google'] = {
-                    'purchaseToken': iapkit.google!.purchaseToken
-                  };
-                }
-                args['iapkit'] = iapkitMap;
+                args['iapkit'] = {
+                  if (iapkit.apiKey != null) 'apiKey': iapkit.apiKey,
+                  if (iapkit.apple != null) 'apple': {'jws': iapkit.apple!.jws},
+                  if (iapkit.google != null)
+                    'google': {'purchaseToken': iapkit.google!.purchaseToken},
+                };
               }
 
               final result = await _channel.invokeMethod<dynamic>(

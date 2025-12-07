@@ -671,12 +671,10 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                     if let apiKey = iapkit["apiKey"] as? String {
                         iapkitDict["apiKey"] = apiKey
                     }
-                    if let apple = iapkit["apple"] as? [String: Any],
-                       let jws = apple["jws"] as? String {
+                    if let jws = (iapkit["apple"] as? [String: Any])?["jws"] as? String {
                         iapkitDict["apple"] = ["jws": jws]
                     }
-                    if let google = iapkit["google"] as? [String: Any],
-                       let purchaseToken = google["purchaseToken"] as? String {
+                    if let purchaseToken = (iapkit["google"] as? [String: Any])?["purchaseToken"] as? String {
                         iapkitDict["google"] = ["purchaseToken": purchaseToken]
                     }
                     propsDict["iapkit"] = iapkitDict
