@@ -420,9 +420,14 @@ List<gentype.Purchase> extractPurchases(
       }
       // Safely convert map keys to strings to handle cases where platform channels
       // return maps with non-string keys (e.g., Map<Object?, Object?>)
-      final map = product.map<String, dynamic>(
-          (key, value) => MapEntry(key.toString(), value));
-      final original = map; // originalJson은 변환된 데이터를 사용 (추가 필드 접근을 위해)
+      final map = normalizeDynamicMap(product);
+      if (map == null) {
+        debugPrint(
+          '[flutter_inapp_purchase] Skipping purchase: failed to normalize map',
+        );
+        continue;
+      }
+      final original = map; // Use normalized data to access additional fields
       purchases.add(
         convertToPurchase(
           map,
