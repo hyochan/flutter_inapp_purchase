@@ -25,8 +25,6 @@ extension PurchaseErrorExtensions on PurchaseError {
         return 'Store service is temporarily unavailable. Please try again later.';
       case ErrorCode.AlreadyOwned:
         return 'You already own this item';
-      case ErrorCode.PurchaseNotAllowed:
-        return 'Purchases are not allowed on this device';
       case ErrorCode.DeveloperError:
         return 'Configuration error. Please contact support.';
       default:
@@ -59,8 +57,6 @@ extension ErrorCodeExtensions on ErrorCode {
         return 'Service temporarily unavailable';
       case ErrorCode.AlreadyOwned:
         return 'Already owned';
-      case ErrorCode.PurchaseNotAllowed:
-        return 'Purchase not allowed';
       case ErrorCode.DeveloperError:
         return 'Configuration error';
       default:
@@ -107,8 +103,6 @@ String getUserFriendlyErrorMessage(dynamic error) {
         return 'Store service is temporarily unavailable. Please try again later.';
       case ErrorCode.AlreadyOwned:
         return 'You already own this item';
-      case ErrorCode.PurchaseNotAllowed:
-        return 'Purchases are not allowed on this device';
       case ErrorCode.DeveloperError:
         return 'Configuration error. Please contact support.';
       default:

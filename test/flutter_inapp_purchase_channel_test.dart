@@ -885,4 +885,191 @@ void main() {
       expect(await iap.syncIOS(), isFalse);
     });
   });
+
+  group('verifyPurchaseWithProvider', () {
+    test('throws when connection not initialized', () async {
+      final iap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'ios'),
+      );
+
+      await expectLater(
+        iap.verifyPurchaseWithProvider(
+          provider: types.PurchaseVerificationProvider.Iapkit,
+          iapkit: const types.RequestVerifyPurchaseWithIapkitProps(
+            apiKey: 'test-key',
+            apple: types.RequestVerifyPurchaseWithIapkitAppleProps(
+              jws: 'test-jws',
+            ),
+          ),
+        ),
+        throwsA(
+          isA<PurchaseError>().having(
+            (error) => error.code,
+            'code',
+            types.ErrorCode.NotPrepared,
+          ),
+        ),
+      );
+    });
+
+    test('sends correct payload for iOS verification', () async {
+      final calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall call) async {
+        calls.add(call);
+        switch (call.method) {
+          case 'initConnection':
+            return true;
+          case 'verifyPurchaseWithProvider':
+            return {
+              'provider': 'iapkit',
+              'iapkit': [
+                {
+                  'isValid': true,
+                  'state': 'entitled',
+                  'store': 'apple',
+                }
+              ],
+            };
+        }
+        return null;
+      });
+
+      final iap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'ios'),
+      );
+
+      await iap.initConnection();
+
+      final result = await iap.verifyPurchaseWithProvider(
+        provider: types.PurchaseVerificationProvider.Iapkit,
+        iapkit: const types.RequestVerifyPurchaseWithIapkitProps(
+          apiKey: 'test-api-key',
+          apple: types.RequestVerifyPurchaseWithIapkitAppleProps(
+            jws: 'test-jws-token',
+          ),
+        ),
+      );
+
+      final verifyCall = calls.singleWhere(
+          (MethodCall c) => c.method == 'verifyPurchaseWithProvider');
+      final payload = Map<String, dynamic>.from(
+          verifyCall.arguments as Map<dynamic, dynamic>);
+
+      expect(payload['provider'], 'iapkit');
+      expect(payload['iapkit'], isNotNull);
+      final iapkitPayload =
+          Map<String, dynamic>.from(payload['iapkit'] as Map<dynamic, dynamic>);
+      expect(iapkitPayload['apiKey'], 'test-api-key');
+      expect(iapkitPayload['apple'], isNotNull);
+      final applePayload = Map<String, dynamic>.from(
+          iapkitPayload['apple'] as Map<dynamic, dynamic>);
+      expect(applePayload['jws'], 'test-jws-token');
+
+      expect(result.provider, types.PurchaseVerificationProvider.Iapkit);
+      expect(result.iapkit.length, 1);
+      expect(result.iapkit.first.isValid, true);
+      expect(result.iapkit.first.state, types.IapkitPurchaseState.Entitled);
+      expect(result.iapkit.first.store, types.IapkitStore.Apple);
+    });
+
+    test('sends correct payload for Android verification', () async {
+      final calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall call) async {
+        calls.add(call);
+        switch (call.method) {
+          case 'initConnection':
+            return true;
+          case 'verifyPurchaseWithProvider':
+            return jsonEncode({
+              'provider': 'iapkit',
+              'iapkit': [
+                {
+                  'isValid': true,
+                  'state': 'pending-acknowledgment',
+                  'store': 'google',
+                }
+              ],
+            });
+        }
+        return null;
+      });
+
+      final iap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'android'),
+      );
+
+      await iap.initConnection();
+
+      final result = await iap.verifyPurchaseWithProvider(
+        provider: types.PurchaseVerificationProvider.Iapkit,
+        iapkit: const types.RequestVerifyPurchaseWithIapkitProps(
+          apiKey: 'test-api-key',
+          google: types.RequestVerifyPurchaseWithIapkitGoogleProps(
+            purchaseToken: 'test-purchase-token',
+          ),
+        ),
+      );
+
+      final verifyCall = calls.singleWhere(
+          (MethodCall c) => c.method == 'verifyPurchaseWithProvider');
+      final payload = Map<String, dynamic>.from(
+          verifyCall.arguments as Map<dynamic, dynamic>);
+
+      expect(payload['provider'], 'iapkit');
+      final iapkitPayload =
+          Map<String, dynamic>.from(payload['iapkit'] as Map<dynamic, dynamic>);
+      expect(iapkitPayload['google'], isNotNull);
+      final googlePayload = Map<String, dynamic>.from(
+          iapkitPayload['google'] as Map<dynamic, dynamic>);
+      expect(googlePayload['purchaseToken'], 'test-purchase-token');
+
+      expect(result.iapkit.first.isValid, true);
+      expect(result.iapkit.first.state,
+          types.IapkitPurchaseState.PendingAcknowledgment);
+      expect(result.iapkit.first.store, types.IapkitStore.Google);
+    });
+
+    test('throws PurchaseError on platform exception', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall call) async {
+        switch (call.method) {
+          case 'initConnection':
+            return true;
+          case 'verifyPurchaseWithProvider':
+            throw PlatformException(
+              code: 'E_PURCHASE_VERIFICATION_FAILED',
+              message: 'Verification failed',
+            );
+        }
+        return null;
+      });
+
+      final iap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'ios'),
+      );
+
+      await iap.initConnection();
+
+      await expectLater(
+        iap.verifyPurchaseWithProvider(
+          provider: types.PurchaseVerificationProvider.Iapkit,
+          iapkit: const types.RequestVerifyPurchaseWithIapkitProps(
+            apiKey: 'test-key',
+            apple: types.RequestVerifyPurchaseWithIapkitAppleProps(
+              jws: 'invalid-jws',
+            ),
+          ),
+        ),
+        throwsA(
+          isA<PurchaseError>().having(
+            (error) => error.code,
+            'code',
+            types.ErrorCode.PurchaseVerificationFailed,
+          ),
+        ),
+      );
+    });
+  });
 }

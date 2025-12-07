@@ -866,6 +866,64 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                 safe.success(true)
             }
 
+            // Verify Purchase with Provider (IAPKit)
+            "verifyPurchaseWithProvider" -> {
+                val params = call.arguments as? Map<*, *>
+                val provider = params?.get("provider") as? String
+
+                if (provider == null) {
+                    safe.error(OpenIapError.DeveloperError.CODE, "provider required", null)
+                    return
+                }
+
+                scope.launch {
+                    withBillingReady(safe, autoInit = true) {
+                        try {
+                            val iap = openIap
+                            if (iap == null) {
+                                safe.error(OpenIapError.NotPrepared.CODE, OpenIapError.NotPrepared.MESSAGE, "IAP module not initialized.")
+                                return@withBillingReady
+                            }
+
+                            // Build props map for OpenIAP
+                            val propsMap = mutableMapOf<String, Any?>("provider" to provider)
+                            (params["iapkit"] as? Map<*, *>)?.let { iapkit ->
+                                val iapkitMap = mutableMapOf<String, Any?>()
+                                (iapkit["apiKey"] as? String)?.let { iapkitMap["apiKey"] = it }
+                                ((iapkit["google"] as? Map<*, *>)?.get("purchaseToken") as? String)?.let { purchaseToken ->
+                                    iapkitMap["google"] = mapOf("purchaseToken" to purchaseToken)
+                                }
+                                ((iapkit["apple"] as? Map<*, *>)?.get("jws") as? String)?.let { jws ->
+                                    iapkitMap["apple"] = mapOf("jws" to jws)
+                                }
+                                propsMap["iapkit"] = iapkitMap
+                            }
+
+                            val props = dev.hyo.openiap.VerifyPurchaseWithProviderProps.fromJson(propsMap)
+                            val result = iap.verifyPurchaseWithProvider(props)
+
+                            // Convert result to JSON
+                            val iapkitResults = JSONArray()
+                            result.iapkit.forEach { item ->
+                                iapkitResults.put(JSONObject().apply {
+                                    put("isValid", item.isValid)
+                                    put("state", item.state.toJson())
+                                    put("store", item.store.toJson())
+                                })
+                            }
+                            val payload = JSONObject().apply {
+                                put("provider", result.provider.toJson())
+                                put("iapkit", iapkitResults)
+                            }
+                            safe.success(payload.toString())
+                        } catch (e: Exception) {
+                            OpenIapLog.e("verifyPurchaseWithProvider error", e)
+                            safe.error(OpenIapError.VerificationFailed.CODE, "Verification failed: ${e.message}", null)
+                        }
+                    }
+                }
+            }
+
             else -> safe.notImplemented()
         }
     }

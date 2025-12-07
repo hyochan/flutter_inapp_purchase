@@ -56,16 +56,10 @@ class _TestScreenState extends State<TestScreen> {
 
       // Test 3: Get simple product
       setState(() => _status = 'Getting products...');
-      final result = await _iap.fetchProducts(
-        ProductRequest(
-          skus: const ['dev.hyo.martie.10bulbs'],
-          type: ProductQueryType.InApp,
-        ),
+      final products = await _iap.fetchProducts<Product>(
+        skus: const ['dev.hyo.martie.10bulbs'],
+        type: ProductQueryType.InApp,
       );
-
-      final products = result is FetchProductsResultProducts
-          ? result.value ?? const <Product>[]
-          : const <Product>[];
 
       setState(() => _status = 'Got ${products.length} products');
 

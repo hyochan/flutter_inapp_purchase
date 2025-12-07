@@ -211,6 +211,15 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 result(FlutterError(code: code.rawValue, message: "External purchase link requires iOS 16.0+, macOS 14.0+, or tvOS 16.0+", details: nil))
             }
 
+        case "verifyPurchaseWithProvider":
+            guard let args = call.arguments as? [String: Any],
+                  let providerStr = args["provider"] as? String else {
+                let code: ErrorCode = .developerError
+                result(FlutterError(code: code.rawValue, message: "provider required", details: nil))
+                return
+            }
+            verifyPurchaseWithProvider(args: args, provider: providerStr, result: result)
+
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -625,7 +634,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
         FlutterIapLog.debug("validateReceiptIOS called for product: \(productId)")
         Task { @MainActor in
             do {
-                let props = try FlutterIapHelper.decodeReceiptValidationProps(for: productId)
+                let props = try FlutterIapHelper.decodeVerifyPurchaseProps(for: productId)
                 let res = try await OpenIapModule.shared.validateReceiptIOS(props)
                 var payload: [String: Any?] = [
                     "isValid": res.isValid,
@@ -644,6 +653,56 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 await MainActor.run {
                     let code: ErrorCode = .transactionValidationFailed
                     result(FlutterError(code: code.rawValue, message: defaultMessage(for: code), details: nil))
+                }
+            }
+        }
+    }
+
+    // MARK: - Verify Purchase with Provider (IAPKit)
+
+    private func verifyPurchaseWithProvider(args: [String: Any], provider: String, result: @escaping FlutterResult) {
+        FlutterIapLog.debug("verifyPurchaseWithProvider called with provider: \(provider)")
+        Task { @MainActor in
+            do {
+                // Build props dictionary for OpenIAP
+                var propsDict: [String: Any] = ["provider": provider]
+                if let iapkit = args["iapkit"] as? [String: Any] {
+                    var iapkitDict: [String: Any] = [:]
+                    if let apiKey = iapkit["apiKey"] as? String {
+                        iapkitDict["apiKey"] = apiKey
+                    }
+                    if let jws = (iapkit["apple"] as? [String: Any])?["jws"] as? String {
+                        iapkitDict["apple"] = ["jws": jws]
+                    }
+                    if let purchaseToken = (iapkit["google"] as? [String: Any])?["purchaseToken"] as? String {
+                        iapkitDict["google"] = ["purchaseToken": purchaseToken]
+                    }
+                    propsDict["iapkit"] = iapkitDict
+                }
+
+                // Use JSONSerialization + JSONDecoder
+                let jsonData = try JSONSerialization.data(withJSONObject: propsDict)
+                let props = try JSONDecoder().decode(VerifyPurchaseWithProviderProps.self, from: jsonData)
+                let res = try await OpenIapModule.shared.verifyPurchaseWithProvider(props)
+
+                // Convert result to dictionary
+                let iapkitResults = res.iapkit.map { item -> [String: Any] in
+                    return [
+                        "isValid": item.isValid,
+                        "state": item.state.rawValue,
+                        "store": item.store.rawValue
+                    ]
+                }
+                let payload: [String: Any] = [
+                    "provider": res.provider.rawValue,
+                    "iapkit": iapkitResults
+                ]
+                FlutterIapLog.result("verifyPurchaseWithProvider", value: payload)
+                result(payload)
+            } catch {
+                await MainActor.run {
+                    let code: ErrorCode = .purchaseVerificationFailed
+                    result(FlutterError(code: code.rawValue, message: error.localizedDescription, details: nil))
                 }
             }
         }

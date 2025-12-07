@@ -47,6 +47,10 @@ class ErrorCodeMapping {
     ErrorCode.ActivityUnavailable: 24,
     ErrorCode.AlreadyPrepared: 25,
     ErrorCode.ConnectionClosed: 26,
+    // Purchase verification codes
+    ErrorCode.PurchaseVerificationFailed: 27,
+    ErrorCode.PurchaseVerificationFinished: 28,
+    ErrorCode.PurchaseVerificationFinishFailed: 29,
   };
 
   static const Map<ErrorCode, String> android = {
@@ -82,6 +86,11 @@ class ErrorCodeMapping {
     ErrorCode.ItemNotOwned: 'E_ITEM_NOT_OWNED',
     ErrorCode.FeatureNotSupported: 'E_FEATURE_NOT_SUPPORTED',
     ErrorCode.EmptySkuList: 'E_EMPTY_SKU_LIST',
+    // Purchase verification codes
+    ErrorCode.PurchaseVerificationFailed: 'E_PURCHASE_VERIFICATION_FAILED',
+    ErrorCode.PurchaseVerificationFinished: 'E_PURCHASE_VERIFICATION_FINISHED',
+    ErrorCode.PurchaseVerificationFinishFailed:
+        'E_PURCHASE_VERIFICATION_FINISH_FAILED',
   };
 }
 
@@ -149,6 +158,12 @@ String getUserFriendlyErrorMessage(dynamic error) {
       return 'Transaction could not be verified';
     case ErrorCode.ReceiptFailed:
       return 'Receipt processing failed';
+    case ErrorCode.PurchaseVerificationFailed:
+      return 'Purchase verification failed';
+    case ErrorCode.PurchaseVerificationFinished:
+      return 'Purchase verification completed';
+    case ErrorCode.PurchaseVerificationFinishFailed:
+      return 'Failed to finish purchase verification';
     default:
       // Try to surface message from PurchaseError if available
       if (error is PurchaseError && error.message.isNotEmpty) {

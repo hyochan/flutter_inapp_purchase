@@ -454,7 +454,7 @@ void main() {
         sku: 'com.example.prod1',
       );
 
-      expect(result, isA<ReceiptValidationResultIOS>());
+      expect(result, isA<VerifyPurchaseResultIOS>());
     });
   });
 }
