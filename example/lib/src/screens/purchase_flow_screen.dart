@@ -16,6 +16,9 @@ class PurchaseFlowScreen extends StatefulWidget {
   State<PurchaseFlowScreen> createState() => _PurchaseFlowScreenState();
 }
 
+/// Verification method options
+enum VerificationMethod { ignore, local, iapkit }
+
 class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
   final FlutterInappPurchase _iap = FlutterInappPurchase.instance;
 
@@ -36,6 +39,7 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
       {}; // Track processed transactions
   final Set<String> _processedErrorMessages =
       {}; // Track processed error messages
+  VerificationMethod _verificationMethod = VerificationMethod.ignore;
 
   @override
   void initState() {
@@ -285,18 +289,22 @@ Purchase Token: $truncatedToken...
           .trim();
     });
 
-    // IMPORTANT: Server-side receipt validation should be performed here
-    // Send the receipt to your backend server for validation
-    // Example:
-    // final isValid = await validateReceiptOnServer(purchase.purchaseToken);
-    // if (!isValid) {
-    //   setState(() {
-    //     _purchaseResult = '❌ Receipt validation failed';
-    //   });
-    //   return;
-    // }
+    // Perform verification based on selected method
+    if (_verificationMethod == VerificationMethod.iapkit) {
+      await _verifyPurchaseWithIAPKit(purchase);
+    } else if (_verificationMethod == VerificationMethod.local) {
+      // Basic local verification - just check token exists
+      final hasValidToken =
+          purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpty;
+      if (!mounted) return;
+      setState(() {
+        _purchaseResult = hasValidToken
+            ? '$_purchaseResult\n\n✅ Local verification passed'
+            : '$_purchaseResult\n\n⚠️ Local verification: No valid token';
+      });
+    }
 
-    // After successful server validation, finish the transaction
+    // After verification, finish the transaction
     // For consumable products (like bulb packs), set isConsumable to true
     try {
       await _iap.finishTransaction(
@@ -331,6 +339,132 @@ Message: ${error.message}
       '''
           .trim();
     });
+  }
+
+  /// Verify purchase with IAPKit provider
+  Future<void> _verifyPurchaseWithIAPKit(Purchase purchase) async {
+    final apiKey = IapConstants.iapkitApiKey;
+    debugPrint('IAPKit API key configured: ${apiKey.isNotEmpty}');
+
+    try {
+      debugPrint('Verifying purchase with IAPKit...');
+      final jwsOrToken = purchase.purchaseToken ?? '';
+      debugPrint(
+          'Token for verification: ${jwsOrToken.substring(0, jwsOrToken.length > 50 ? 50 : jwsOrToken.length)}...');
+
+      final result = await _iap.verifyPurchaseWithProvider(
+        provider: PurchaseVerificationProvider.Iapkit,
+        iapkit: RequestVerifyPurchaseWithIapkitProps(
+          apiKey: apiKey.isNotEmpty ? apiKey : null,
+          apple: Platform.isIOS
+              ? RequestVerifyPurchaseWithIapkitAppleProps(jws: jwsOrToken)
+              : null,
+          google: Platform.isAndroid
+              ? RequestVerifyPurchaseWithIapkitGoogleProps(
+                  purchaseToken: jwsOrToken)
+              : null,
+        ),
+      );
+
+      debugPrint('IAPKit verification result: $result');
+
+      if (result.iapkit.isNotEmpty) {
+        final iapkitResult = result.iapkit.first;
+        final statusEmoji = iapkitResult.isValid ? '✅' : '⚠️';
+        final stateText = iapkitResult.state.value;
+
+        if (!mounted) return;
+        setState(() {
+          _purchaseResult = '''
+$_purchaseResult
+
+$statusEmoji IAPKit Verification
+Valid: ${iapkitResult.isValid}
+State: $stateText
+Store: ${iapkitResult.store.value}
+          '''
+              .trim();
+        });
+      }
+    } catch (e) {
+      debugPrint('IAPKit verification failed: $e');
+      if (!mounted) return;
+      setState(() {
+        _purchaseResult =
+            '$_purchaseResult\n\n❌ IAPKit verification failed: $e';
+      });
+    }
+  }
+
+  void _showVerificationMethodPicker() {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(
+                  _verificationMethod == VerificationMethod.ignore
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_off,
+                ),
+                title: const Text('Ignore'),
+                subtitle: const Text('Skip verification'),
+                onTap: () {
+                  setState(() {
+                    _verificationMethod = VerificationMethod.ignore;
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: Icon(
+                  _verificationMethod == VerificationMethod.local
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_off,
+                ),
+                title: const Text('Local'),
+                subtitle: const Text('Basic local verification'),
+                onTap: () {
+                  setState(() {
+                    _verificationMethod = VerificationMethod.local;
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: Icon(
+                  _verificationMethod == VerificationMethod.iapkit
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_off,
+                ),
+                title: const Text('IAPKit'),
+                subtitle: const Text('Server-side verification via IAPKit'),
+                onTap: () {
+                  setState(() {
+                    _verificationMethod = VerificationMethod.iapkit;
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  String _getVerificationMethodLabel() {
+    switch (_verificationMethod) {
+      case VerificationMethod.ignore:
+        return 'Ignore';
+      case VerificationMethod.local:
+        return 'Local';
+      case VerificationMethod.iapkit:
+        return 'IAPKit';
+    }
   }
 
   Future<void> _loadProducts() async {
@@ -575,6 +709,35 @@ Message: ${error.message}
                   ),
                 ),
                 const SizedBox(height: 16),
+
+                // Verification Method Selector
+                if (_connected) ...[
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.blue.shade200),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Purchase Verification:',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        OutlinedButton(
+                          onPressed: _showVerificationMethodPicker,
+                          child: Text(_getVerificationMethodLabel()),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
 
                 // Debug/Test Section
                 if (_connected) ...[

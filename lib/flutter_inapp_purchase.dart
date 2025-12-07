@@ -1101,7 +1101,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
   /// Note: This method requires iOS 15.0+ for StoreKit 2 support.
   gentype.QueryValidateReceiptIOSHandler get validateReceiptIOS => (
           {required String sku,
-          gentype.ReceiptValidationAndroidOptions? androidOptions}) async {
+          gentype.VerifyPurchaseAndroidOptions? androidOptions}) async {
         if (!_platform.isIOS || _platform.isMacOS) {
           throw errors.PurchaseError(
             code: errors.ErrorCode.IapNotAvailable,
@@ -1147,7 +1147,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
                 )
               : null;
 
-          return gentype.ReceiptValidationResultIOS(
+          return gentype.VerifyPurchaseResultIOS(
             isValid: validationResult['isValid'] as bool? ?? false,
             jwsRepresentation:
                 validationResult['jwsRepresentation']?.toString() ?? '',
@@ -1169,7 +1169,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
       };
   gentype.MutationValidateReceiptHandler get validateReceipt => (
           {required String sku,
-          gentype.ReceiptValidationAndroidOptions? androidOptions}) async {
+          gentype.VerifyPurchaseAndroidOptions? androidOptions}) async {
         if (_platform.isIOS || _platform.isMacOS) {
           return await validateReceiptIOS(
               sku: sku, androidOptions: androidOptions);
@@ -1185,6 +1185,122 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           message: 'Platform not supported for receipt validation',
         );
       };
+
+  /// Verify purchase with an external provider (IAPKit)
+  ///
+  /// This method allows you to verify purchases using external verification
+  /// providers like IAPKit. It sends the purchase receipt to the provider
+  /// for server-side verification.
+  ///
+  /// Example:
+  /// ```dart
+  /// final result = await FlutterInappPurchase.instance.verifyPurchaseWithProvider(
+  ///   provider: PurchaseVerificationProvider.Iapkit,
+  ///   iapkit: RequestVerifyPurchaseWithIapkitProps(
+  ///     apiKey: 'your-iapkit-api-key',
+  ///     apple: RequestVerifyPurchaseWithIapkitAppleProps(jws: purchase.jws),
+  ///     // or for Android:
+  ///     // google: RequestVerifyPurchaseWithIapkitGoogleProps(
+  ///     //   purchaseToken: purchase.purchaseToken,
+  ///     // ),
+  ///   ),
+  /// );
+  /// ```
+  gentype.MutationVerifyPurchaseWithProviderHandler
+      get verifyPurchaseWithProvider => ({
+            required gentype.PurchaseVerificationProvider provider,
+            gentype.RequestVerifyPurchaseWithIapkitProps? iapkit,
+          }) async {
+            if (!_isInitialized) {
+              throw PurchaseError(
+                code: gentype.ErrorCode.NotPrepared,
+                message: 'IAP connection not initialized',
+              );
+            }
+
+            try {
+              final Map<String, dynamic> args = {
+                'provider': provider.value,
+              };
+
+              if (iapkit != null) {
+                final Map<String, dynamic> iapkitMap = {};
+                if (iapkit.apiKey != null) {
+                  iapkitMap['apiKey'] = iapkit.apiKey;
+                }
+                if (iapkit.apple != null) {
+                  iapkitMap['apple'] = {'jws': iapkit.apple!.jws};
+                }
+                if (iapkit.google != null) {
+                  iapkitMap['google'] = {
+                    'purchaseToken': iapkit.google!.purchaseToken
+                  };
+                }
+                args['iapkit'] = iapkitMap;
+              }
+
+              final result = await _channel.invokeMethod<dynamic>(
+                'verifyPurchaseWithProvider',
+                args,
+              );
+
+              if (result == null) {
+                throw PurchaseError(
+                  code: gentype.ErrorCode.PurchaseVerificationFailed,
+                  message:
+                      'No verification result received from native platform',
+                );
+              }
+
+              // Parse result (can be Map or String)
+              final Map<String, dynamic> resultMap;
+              if (result is String) {
+                resultMap = jsonDecode(result) as Map<String, dynamic>;
+              } else if (result is Map) {
+                resultMap = result.map<String, dynamic>(
+                    (key, value) => MapEntry(key.toString(), value));
+              } else {
+                throw PurchaseError(
+                  code: gentype.ErrorCode.PurchaseVerificationFailed,
+                  message: 'Unexpected result type: ${result.runtimeType}',
+                );
+              }
+
+              // Parse iapkit results
+              final iapkitList =
+                  (resultMap['iapkit'] as List<dynamic>? ?? []).map((item) {
+                final itemMap = item is Map
+                    ? item.map<String, dynamic>(
+                        (k, v) => MapEntry(k.toString(), v))
+                    : <String, dynamic>{};
+                return gentype.RequestVerifyPurchaseWithIapkitResult(
+                  isValid: itemMap['isValid'] as bool? ?? false,
+                  state: gentype.IapkitPurchaseState.fromJson(
+                      itemMap['state']?.toString() ?? 'unknown'),
+                  store: gentype.IapkitStore.fromJson(
+                      itemMap['store']?.toString() ?? 'apple'),
+                );
+              }).toList();
+
+              return gentype.VerifyPurchaseWithProviderResult(
+                iapkit: iapkitList,
+                provider: gentype.PurchaseVerificationProvider.fromJson(
+                    resultMap['provider']?.toString() ?? 'iapkit'),
+              );
+            } on PlatformException catch (error) {
+              throw PurchaseError(
+                code: gentype.ErrorCode.PurchaseVerificationFailed,
+                message:
+                    'Failed to verify purchase [${error.code}]: ${error.message ?? error.details}',
+              );
+            } catch (error) {
+              if (error is PurchaseError) rethrow;
+              throw PurchaseError(
+                code: gentype.ErrorCode.PurchaseVerificationFailed,
+                message: 'Failed to verify purchase: ${error.toString()}',
+              );
+            }
+          };
 
   // flutter IAP compatible methods
 
@@ -1643,6 +1759,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
         presentExternalPurchaseNoticeSheetIOS:
             presentExternalPurchaseNoticeSheetIOS,
         presentExternalPurchaseLinkIOS: presentExternalPurchaseLinkIOS,
+        verifyPurchaseWithProvider: verifyPurchaseWithProvider,
       );
 
   gentype.SubscriptionHandlers get subscriptionHandlers =>

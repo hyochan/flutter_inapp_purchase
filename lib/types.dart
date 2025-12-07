@@ -56,6 +56,9 @@ enum ErrorCode {
   ReceiptFailed('receipt-failed'),
   ReceiptFinished('receipt-finished'),
   ReceiptFinishedFailed('receipt-finished-failed'),
+  PurchaseVerificationFailed('purchase-verification-failed'),
+  PurchaseVerificationFinished('purchase-verification-finished'),
+  PurchaseVerificationFinishFailed('purchase-verification-finish-failed'),
   NotPrepared('not-prepared'),
   NotEnded('not-ended'),
   AlreadyOwned('already-owned'),
@@ -126,6 +129,18 @@ enum ErrorCode {
       case 'RECEIPT_FINISHED_FAILED':
       case 'ReceiptFinishedFailed':
         return ErrorCode.ReceiptFinishedFailed;
+      case 'purchase-verification-failed':
+      case 'PURCHASE_VERIFICATION_FAILED':
+      case 'PurchaseVerificationFailed':
+        return ErrorCode.PurchaseVerificationFailed;
+      case 'purchase-verification-finished':
+      case 'PURCHASE_VERIFICATION_FINISHED':
+      case 'PurchaseVerificationFinished':
+        return ErrorCode.PurchaseVerificationFinished;
+      case 'purchase-verification-finish-failed':
+      case 'PURCHASE_VERIFICATION_FINISH_FAILED':
+      case 'PurchaseVerificationFinishFailed':
+        return ErrorCode.PurchaseVerificationFinishFailed;
       case 'not-prepared':
       case 'NOT_PREPARED':
       case 'NotPrepared':
@@ -285,6 +300,90 @@ enum IapEvent {
         return IapEvent.UserChoiceBillingAndroid;
     }
     throw ArgumentError('Unknown IapEvent value: $value');
+  }
+
+  String toJson() => value;
+}
+
+/// Unified purchase states from IAPKit verification response.
+enum IapkitPurchaseState {
+  /// User is entitled to the product (purchase is complete and active).
+  Entitled('entitled'),
+  /// Receipt is valid but still needs server acknowledgment.
+  PendingAcknowledgment('pending-acknowledgment'),
+  /// Purchase is in progress or awaiting confirmation.
+  Pending('pending'),
+  /// Purchase was cancelled or refunded.
+  Canceled('canceled'),
+  /// Subscription or entitlement has expired.
+  Expired('expired'),
+  /// Consumable purchase is ready to be fulfilled.
+  ReadyToConsume('ready-to-consume'),
+  /// Consumable item has been fulfilled/consumed.
+  Consumed('consumed'),
+  /// Purchase state could not be determined.
+  Unknown('unknown'),
+  /// Purchase receipt is not authentic (fraudulent or tampered).
+  Inauthentic('inauthentic');
+
+  const IapkitPurchaseState(this.value);
+  final String value;
+
+  factory IapkitPurchaseState.fromJson(String value) {
+    switch (value) {
+      case 'entitled':
+      case 'ENTITLED':
+        return IapkitPurchaseState.Entitled;
+      case 'pending-acknowledgment':
+      case 'PENDING_ACKNOWLEDGMENT':
+        return IapkitPurchaseState.PendingAcknowledgment;
+      case 'pending':
+      case 'PENDING':
+        return IapkitPurchaseState.Pending;
+      case 'canceled':
+      case 'CANCELED':
+        return IapkitPurchaseState.Canceled;
+      case 'expired':
+      case 'EXPIRED':
+        return IapkitPurchaseState.Expired;
+      case 'ready-to-consume':
+      case 'READY_TO_CONSUME':
+        return IapkitPurchaseState.ReadyToConsume;
+      case 'consumed':
+      case 'CONSUMED':
+        return IapkitPurchaseState.Consumed;
+      case 'unknown':
+      case 'UNKNOWN':
+        return IapkitPurchaseState.Unknown;
+      case 'inauthentic':
+      case 'INAUTHENTIC':
+        return IapkitPurchaseState.Inauthentic;
+    }
+    throw ArgumentError('Unknown IapkitPurchaseState value: $value');
+  }
+
+  String toJson() => value;
+}
+
+enum IapkitStore {
+  Apple('apple'),
+  Google('google');
+
+  const IapkitStore(this.value);
+  final String value;
+
+  factory IapkitStore.fromJson(String value) {
+    switch (value) {
+      case 'apple':
+      case 'APPLE':
+      case 'Apple':
+        return IapkitStore.Apple;
+      case 'google':
+      case 'GOOGLE':
+      case 'Google':
+        return IapkitStore.Google;
+    }
+    throw ArgumentError('Unknown IapkitStore value: $value');
   }
 
   String toJson() => value;
@@ -478,6 +577,25 @@ enum PurchaseState {
   String toJson() => value;
 }
 
+enum PurchaseVerificationProvider {
+  Iapkit('iapkit');
+
+  const PurchaseVerificationProvider(this.value);
+  final String value;
+
+  factory PurchaseVerificationProvider.fromJson(String value) {
+    switch (value) {
+      case 'iapkit':
+      case 'IAPKIT':
+      case 'Iapkit':
+        return PurchaseVerificationProvider.Iapkit;
+    }
+    throw ArgumentError('Unknown PurchaseVerificationProvider value: $value');
+  }
+
+  String toJson() => value;
+}
+
 enum SubscriptionOfferTypeIOS {
   Introductory('introductory'),
   Promotional('promotional');
@@ -598,6 +716,9 @@ class ActiveSubscription {
     this.renewalInfoIOS,
     required this.transactionDate,
     required this.transactionId,
+    /// @deprecated iOS only - use daysUntilExpirationIOS instead.
+    /// Whether the subscription will expire soon (within 7 days).
+    /// Consider using daysUntilExpirationIOS for more precise control.
     this.willExpireSoon,
   });
 
@@ -621,6 +742,9 @@ class ActiveSubscription {
   final RenewalInfoIOS? renewalInfoIOS;
   final double transactionDate;
   final String transactionId;
+  /// @deprecated iOS only - use daysUntilExpirationIOS instead.
+  /// Whether the subscription will expire soon (within 7 days).
+  /// Consider using daysUntilExpirationIOS for more precise control.
   final bool? willExpireSoon;
 
   factory ActiveSubscription.fromJson(Map<String, dynamic> json) {
@@ -1702,138 +1826,6 @@ class PurchaseOfferIOS {
   }
 }
 
-class ReceiptValidationResultAndroid extends ReceiptValidationResult {
-  const ReceiptValidationResultAndroid({
-    required this.autoRenewing,
-    required this.betaProduct,
-    this.cancelDate,
-    this.cancelReason,
-    this.deferredDate,
-    this.deferredSku,
-    required this.freeTrialEndDate,
-    required this.gracePeriodEndDate,
-    required this.parentProductId,
-    required this.productId,
-    required this.productType,
-    required this.purchaseDate,
-    required this.quantity,
-    required this.receiptId,
-    required this.renewalDate,
-    required this.term,
-    required this.termSku,
-    required this.testTransaction,
-  });
-
-  final bool autoRenewing;
-  final bool betaProduct;
-  final double? cancelDate;
-  final String? cancelReason;
-  final double? deferredDate;
-  final String? deferredSku;
-  final double freeTrialEndDate;
-  final double gracePeriodEndDate;
-  final String parentProductId;
-  final String productId;
-  final String productType;
-  final double purchaseDate;
-  final int quantity;
-  final String receiptId;
-  final double renewalDate;
-  final String term;
-  final String termSku;
-  final bool testTransaction;
-
-  factory ReceiptValidationResultAndroid.fromJson(Map<String, dynamic> json) {
-    return ReceiptValidationResultAndroid(
-      autoRenewing: json['autoRenewing'] as bool,
-      betaProduct: json['betaProduct'] as bool,
-      cancelDate: (json['cancelDate'] as num?)?.toDouble(),
-      cancelReason: json['cancelReason'] as String?,
-      deferredDate: (json['deferredDate'] as num?)?.toDouble(),
-      deferredSku: json['deferredSku'] as String?,
-      freeTrialEndDate: (json['freeTrialEndDate'] as num).toDouble(),
-      gracePeriodEndDate: (json['gracePeriodEndDate'] as num).toDouble(),
-      parentProductId: json['parentProductId'] as String,
-      productId: json['productId'] as String,
-      productType: json['productType'] as String,
-      purchaseDate: (json['purchaseDate'] as num).toDouble(),
-      quantity: json['quantity'] as int,
-      receiptId: json['receiptId'] as String,
-      renewalDate: (json['renewalDate'] as num).toDouble(),
-      term: json['term'] as String,
-      termSku: json['termSku'] as String,
-      testTransaction: json['testTransaction'] as bool,
-    );
-  }
-
-  @override
-  Map<String, dynamic> toJson() {
-    return {
-      '__typename': 'ReceiptValidationResultAndroid',
-      'autoRenewing': autoRenewing,
-      'betaProduct': betaProduct,
-      'cancelDate': cancelDate,
-      'cancelReason': cancelReason,
-      'deferredDate': deferredDate,
-      'deferredSku': deferredSku,
-      'freeTrialEndDate': freeTrialEndDate,
-      'gracePeriodEndDate': gracePeriodEndDate,
-      'parentProductId': parentProductId,
-      'productId': productId,
-      'productType': productType,
-      'purchaseDate': purchaseDate,
-      'quantity': quantity,
-      'receiptId': receiptId,
-      'renewalDate': renewalDate,
-      'term': term,
-      'termSku': termSku,
-      'testTransaction': testTransaction,
-    };
-  }
-}
-
-class ReceiptValidationResultIOS extends ReceiptValidationResult {
-  const ReceiptValidationResultIOS({
-    /// Whether the receipt is valid
-    required this.isValid,
-    /// JWS representation
-    required this.jwsRepresentation,
-    /// Latest transaction if available
-    this.latestTransaction,
-    /// Receipt data string
-    required this.receiptData,
-  });
-
-  /// Whether the receipt is valid
-  final bool isValid;
-  /// JWS representation
-  final String jwsRepresentation;
-  /// Latest transaction if available
-  final Purchase? latestTransaction;
-  /// Receipt data string
-  final String receiptData;
-
-  factory ReceiptValidationResultIOS.fromJson(Map<String, dynamic> json) {
-    return ReceiptValidationResultIOS(
-      isValid: json['isValid'] as bool,
-      jwsRepresentation: json['jwsRepresentation'] as String,
-      latestTransaction: json['latestTransaction'] != null ? Purchase.fromJson(json['latestTransaction'] as Map<String, dynamic>) : null,
-      receiptData: json['receiptData'] as String,
-    );
-  }
-
-  @override
-  Map<String, dynamic> toJson() {
-    return {
-      '__typename': 'ReceiptValidationResultIOS',
-      'isValid': isValid,
-      'jwsRepresentation': jwsRepresentation,
-      'latestTransaction': latestTransaction?.toJson(),
-      'receiptData': receiptData,
-    };
-  }
-}
-
 class RefundResultIOS {
   const RefundResultIOS({
     this.message,
@@ -1964,6 +1956,39 @@ class RequestPurchaseResultPurchase extends RequestPurchaseResult {
 class RequestPurchaseResultPurchases extends RequestPurchaseResult {
   const RequestPurchaseResultPurchases(this.value);
   final List<Purchase>? value;
+}
+
+class RequestVerifyPurchaseWithIapkitResult {
+  const RequestVerifyPurchaseWithIapkitResult({
+    /// Whether the purchase is valid (not falsified).
+    required this.isValid,
+    /// The current state of the purchase.
+    required this.state,
+    required this.store,
+  });
+
+  /// Whether the purchase is valid (not falsified).
+  final bool isValid;
+  /// The current state of the purchase.
+  final IapkitPurchaseState state;
+  final IapkitStore store;
+
+  factory RequestVerifyPurchaseWithIapkitResult.fromJson(Map<String, dynamic> json) {
+    return RequestVerifyPurchaseWithIapkitResult(
+      isValid: json['isValid'] as bool,
+      state: IapkitPurchaseState.fromJson(json['state'] as String),
+      store: IapkitStore.fromJson(json['store'] as String),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '__typename': 'RequestVerifyPurchaseWithIapkitResult',
+      'isValid': isValid,
+      'state': state.toJson(),
+      'store': store.toJson(),
+    };
+  }
 }
 
 class SubscriptionInfoIOS {
@@ -2121,6 +2146,165 @@ class UserChoiceBillingDetails {
       '__typename': 'UserChoiceBillingDetails',
       'externalTransactionToken': externalTransactionToken,
       'products': products.map((e) => e).toList(),
+    };
+  }
+}
+
+class VerifyPurchaseResultAndroid extends VerifyPurchaseResult {
+  const VerifyPurchaseResultAndroid({
+    required this.autoRenewing,
+    required this.betaProduct,
+    this.cancelDate,
+    this.cancelReason,
+    this.deferredDate,
+    this.deferredSku,
+    required this.freeTrialEndDate,
+    required this.gracePeriodEndDate,
+    required this.parentProductId,
+    required this.productId,
+    required this.productType,
+    required this.purchaseDate,
+    required this.quantity,
+    required this.receiptId,
+    required this.renewalDate,
+    required this.term,
+    required this.termSku,
+    required this.testTransaction,
+  });
+
+  final bool autoRenewing;
+  final bool betaProduct;
+  final double? cancelDate;
+  final String? cancelReason;
+  final double? deferredDate;
+  final String? deferredSku;
+  final double freeTrialEndDate;
+  final double gracePeriodEndDate;
+  final String parentProductId;
+  final String productId;
+  final String productType;
+  final double purchaseDate;
+  final int quantity;
+  final String receiptId;
+  final double renewalDate;
+  final String term;
+  final String termSku;
+  final bool testTransaction;
+
+  factory VerifyPurchaseResultAndroid.fromJson(Map<String, dynamic> json) {
+    return VerifyPurchaseResultAndroid(
+      autoRenewing: json['autoRenewing'] as bool,
+      betaProduct: json['betaProduct'] as bool,
+      cancelDate: (json['cancelDate'] as num?)?.toDouble(),
+      cancelReason: json['cancelReason'] as String?,
+      deferredDate: (json['deferredDate'] as num?)?.toDouble(),
+      deferredSku: json['deferredSku'] as String?,
+      freeTrialEndDate: (json['freeTrialEndDate'] as num).toDouble(),
+      gracePeriodEndDate: (json['gracePeriodEndDate'] as num).toDouble(),
+      parentProductId: json['parentProductId'] as String,
+      productId: json['productId'] as String,
+      productType: json['productType'] as String,
+      purchaseDate: (json['purchaseDate'] as num).toDouble(),
+      quantity: json['quantity'] as int,
+      receiptId: json['receiptId'] as String,
+      renewalDate: (json['renewalDate'] as num).toDouble(),
+      term: json['term'] as String,
+      termSku: json['termSku'] as String,
+      testTransaction: json['testTransaction'] as bool,
+    );
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      '__typename': 'VerifyPurchaseResultAndroid',
+      'autoRenewing': autoRenewing,
+      'betaProduct': betaProduct,
+      'cancelDate': cancelDate,
+      'cancelReason': cancelReason,
+      'deferredDate': deferredDate,
+      'deferredSku': deferredSku,
+      'freeTrialEndDate': freeTrialEndDate,
+      'gracePeriodEndDate': gracePeriodEndDate,
+      'parentProductId': parentProductId,
+      'productId': productId,
+      'productType': productType,
+      'purchaseDate': purchaseDate,
+      'quantity': quantity,
+      'receiptId': receiptId,
+      'renewalDate': renewalDate,
+      'term': term,
+      'termSku': termSku,
+      'testTransaction': testTransaction,
+    };
+  }
+}
+
+class VerifyPurchaseResultIOS extends VerifyPurchaseResult {
+  const VerifyPurchaseResultIOS({
+    /// Whether the receipt is valid
+    required this.isValid,
+    /// JWS representation
+    required this.jwsRepresentation,
+    /// Latest transaction if available
+    this.latestTransaction,
+    /// Receipt data string
+    required this.receiptData,
+  });
+
+  /// Whether the receipt is valid
+  final bool isValid;
+  /// JWS representation
+  final String jwsRepresentation;
+  /// Latest transaction if available
+  final Purchase? latestTransaction;
+  /// Receipt data string
+  final String receiptData;
+
+  factory VerifyPurchaseResultIOS.fromJson(Map<String, dynamic> json) {
+    return VerifyPurchaseResultIOS(
+      isValid: json['isValid'] as bool,
+      jwsRepresentation: json['jwsRepresentation'] as String,
+      latestTransaction: json['latestTransaction'] != null ? Purchase.fromJson(json['latestTransaction'] as Map<String, dynamic>) : null,
+      receiptData: json['receiptData'] as String,
+    );
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      '__typename': 'VerifyPurchaseResultIOS',
+      'isValid': isValid,
+      'jwsRepresentation': jwsRepresentation,
+      'latestTransaction': latestTransaction?.toJson(),
+      'receiptData': receiptData,
+    };
+  }
+}
+
+class VerifyPurchaseWithProviderResult {
+  const VerifyPurchaseWithProviderResult({
+    /// IAPKit verification results (can include Apple and Google entries)
+    required this.iapkit,
+    required this.provider,
+  });
+
+  /// IAPKit verification results (can include Apple and Google entries)
+  final List<RequestVerifyPurchaseWithIapkitResult> iapkit;
+  final PurchaseVerificationProvider provider;
+
+  factory VerifyPurchaseWithProviderResult.fromJson(Map<String, dynamic> json) {
+    return VerifyPurchaseWithProviderResult(
+      iapkit: (json['iapkit'] as List<dynamic>).map((e) => RequestVerifyPurchaseWithIapkitResult.fromJson(e as Map<String, dynamic>)).toList(),
+      provider: PurchaseVerificationProvider.fromJson(json['provider'] as String),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '__typename': 'VerifyPurchaseWithProviderResult',
+      'iapkit': iapkit.map((e) => e.toJson()).toList(),
+      'provider': provider.toJson(),
     };
   }
 }
@@ -2306,66 +2490,6 @@ class PurchaseOptions {
     return {
       'alsoPublishToEventListenerIOS': alsoPublishToEventListenerIOS,
       'onlyIncludeActiveItemsIOS': onlyIncludeActiveItemsIOS,
-    };
-  }
-}
-
-class ReceiptValidationAndroidOptions {
-  const ReceiptValidationAndroidOptions({
-    required this.accessToken,
-    this.isSub,
-    required this.packageName,
-    required this.productToken,
-  });
-
-  final String accessToken;
-  final bool? isSub;
-  final String packageName;
-  final String productToken;
-
-  factory ReceiptValidationAndroidOptions.fromJson(Map<String, dynamic> json) {
-    return ReceiptValidationAndroidOptions(
-      accessToken: json['accessToken'] as String,
-      isSub: json['isSub'] as bool?,
-      packageName: json['packageName'] as String,
-      productToken: json['productToken'] as String,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'accessToken': accessToken,
-      'isSub': isSub,
-      'packageName': packageName,
-      'productToken': productToken,
-    };
-  }
-}
-
-class ReceiptValidationProps {
-  const ReceiptValidationProps({
-    /// Android-specific validation options
-    this.androidOptions,
-    /// Product SKU to validate
-    required this.sku,
-  });
-
-  /// Android-specific validation options
-  final ReceiptValidationAndroidOptions? androidOptions;
-  /// Product SKU to validate
-  final String sku;
-
-  factory ReceiptValidationProps.fromJson(Map<String, dynamic> json) {
-    return ReceiptValidationProps(
-      androidOptions: json['androidOptions'] != null ? ReceiptValidationAndroidOptions.fromJson(json['androidOptions'] as Map<String, dynamic>) : null,
-      sku: json['sku'] as String,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'androidOptions': androidOptions?.toJson(),
-      'sku': sku,
     };
   }
 }
@@ -2666,6 +2790,168 @@ class RequestSubscriptionPropsByPlatforms {
   }
 }
 
+class RequestVerifyPurchaseWithIapkitAppleProps {
+  const RequestVerifyPurchaseWithIapkitAppleProps({
+    /// The JWS token returned with the purchase response.
+    required this.jws,
+  });
+
+  /// The JWS token returned with the purchase response.
+  final String jws;
+
+  factory RequestVerifyPurchaseWithIapkitAppleProps.fromJson(Map<String, dynamic> json) {
+    return RequestVerifyPurchaseWithIapkitAppleProps(
+      jws: json['jws'] as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'jws': jws,
+    };
+  }
+}
+
+class RequestVerifyPurchaseWithIapkitGoogleProps {
+  const RequestVerifyPurchaseWithIapkitGoogleProps({
+    /// The token provided to the user's device when the product or subscription was purchased.
+    required this.purchaseToken,
+  });
+
+  /// The token provided to the user's device when the product or subscription was purchased.
+  final String purchaseToken;
+
+  factory RequestVerifyPurchaseWithIapkitGoogleProps.fromJson(Map<String, dynamic> json) {
+    return RequestVerifyPurchaseWithIapkitGoogleProps(
+      purchaseToken: json['purchaseToken'] as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'purchaseToken': purchaseToken,
+    };
+  }
+}
+
+class RequestVerifyPurchaseWithIapkitProps {
+  const RequestVerifyPurchaseWithIapkitProps({
+    /// API key used for the Authorization header (Bearer {apiKey}).
+    this.apiKey,
+    /// Apple verification parameters.
+    this.apple,
+    /// Google verification parameters.
+    this.google,
+  });
+
+  /// API key used for the Authorization header (Bearer {apiKey}).
+  final String? apiKey;
+  /// Apple verification parameters.
+  final RequestVerifyPurchaseWithIapkitAppleProps? apple;
+  /// Google verification parameters.
+  final RequestVerifyPurchaseWithIapkitGoogleProps? google;
+
+  factory RequestVerifyPurchaseWithIapkitProps.fromJson(Map<String, dynamic> json) {
+    return RequestVerifyPurchaseWithIapkitProps(
+      apiKey: json['apiKey'] as String?,
+      apple: json['apple'] != null ? RequestVerifyPurchaseWithIapkitAppleProps.fromJson(json['apple'] as Map<String, dynamic>) : null,
+      google: json['google'] != null ? RequestVerifyPurchaseWithIapkitGoogleProps.fromJson(json['google'] as Map<String, dynamic>) : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'apiKey': apiKey,
+      'apple': apple?.toJson(),
+      'google': google?.toJson(),
+    };
+  }
+}
+
+class VerifyPurchaseAndroidOptions {
+  const VerifyPurchaseAndroidOptions({
+    required this.accessToken,
+    this.isSub,
+    required this.packageName,
+    required this.productToken,
+  });
+
+  final String accessToken;
+  final bool? isSub;
+  final String packageName;
+  final String productToken;
+
+  factory VerifyPurchaseAndroidOptions.fromJson(Map<String, dynamic> json) {
+    return VerifyPurchaseAndroidOptions(
+      accessToken: json['accessToken'] as String,
+      isSub: json['isSub'] as bool?,
+      packageName: json['packageName'] as String,
+      productToken: json['productToken'] as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'accessToken': accessToken,
+      'isSub': isSub,
+      'packageName': packageName,
+      'productToken': productToken,
+    };
+  }
+}
+
+class VerifyPurchaseProps {
+  const VerifyPurchaseProps({
+    /// Android-specific validation options
+    this.androidOptions,
+    /// Product SKU to validate
+    required this.sku,
+  });
+
+  /// Android-specific validation options
+  final VerifyPurchaseAndroidOptions? androidOptions;
+  /// Product SKU to validate
+  final String sku;
+
+  factory VerifyPurchaseProps.fromJson(Map<String, dynamic> json) {
+    return VerifyPurchaseProps(
+      androidOptions: json['androidOptions'] != null ? VerifyPurchaseAndroidOptions.fromJson(json['androidOptions'] as Map<String, dynamic>) : null,
+      sku: json['sku'] as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'androidOptions': androidOptions?.toJson(),
+      'sku': sku,
+    };
+  }
+}
+
+class VerifyPurchaseWithProviderProps {
+  const VerifyPurchaseWithProviderProps({
+    this.iapkit,
+    required this.provider,
+  });
+
+  final RequestVerifyPurchaseWithIapkitProps? iapkit;
+  final PurchaseVerificationProvider provider;
+
+  factory VerifyPurchaseWithProviderProps.fromJson(Map<String, dynamic> json) {
+    return VerifyPurchaseWithProviderProps(
+      iapkit: json['iapkit'] != null ? RequestVerifyPurchaseWithIapkitProps.fromJson(json['iapkit'] as Map<String, dynamic>) : null,
+      provider: PurchaseVerificationProvider.fromJson(json['provider'] as String),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'iapkit': iapkit?.toJson(),
+      'provider': provider.toJson(),
+    };
+  }
+}
+
 // MARK: - Unions
 
 sealed class Product implements ProductCommon {
@@ -2824,18 +3110,18 @@ sealed class Purchase implements PurchaseCommon {
   Map<String, dynamic> toJson();
 }
 
-sealed class ReceiptValidationResult {
-  const ReceiptValidationResult();
+sealed class VerifyPurchaseResult {
+  const VerifyPurchaseResult();
 
-  factory ReceiptValidationResult.fromJson(Map<String, dynamic> json) {
+  factory VerifyPurchaseResult.fromJson(Map<String, dynamic> json) {
     final typeName = json['__typename'] as String?;
     switch (typeName) {
-      case 'ReceiptValidationResultAndroid':
-        return ReceiptValidationResultAndroid.fromJson(json);
-      case 'ReceiptValidationResultIOS':
-        return ReceiptValidationResultIOS.fromJson(json);
+      case 'VerifyPurchaseResultAndroid':
+        return VerifyPurchaseResultAndroid.fromJson(json);
+      case 'VerifyPurchaseResultIOS':
+        return VerifyPurchaseResultIOS.fromJson(json);
     }
-    throw ArgumentError('Unknown __typename for ReceiptValidationResult: $typeName');
+    throw ArgumentError('Unknown __typename for VerifyPurchaseResult: $typeName');
   }
 
   Map<String, dynamic> toJson();
@@ -2907,9 +3193,19 @@ abstract class MutationResolver {
   /// Force a StoreKit sync for transactions (iOS 15+)
   Future<bool> syncIOS();
   /// Validate purchase receipts with the configured providers
-  Future<ReceiptValidationResult> validateReceipt({
-    ReceiptValidationAndroidOptions? androidOptions,
+  Future<VerifyPurchaseResult> validateReceipt({
+    VerifyPurchaseAndroidOptions? androidOptions,
     required String sku,
+  });
+  /// Verify purchases with the configured providers
+  Future<VerifyPurchaseResult> verifyPurchase({
+    VerifyPurchaseAndroidOptions? androidOptions,
+    required String sku,
+  });
+  /// Verify purchases with a specific provider (e.g., IAPKit)
+  Future<VerifyPurchaseWithProviderResult> verifyPurchaseWithProvider({
+    RequestVerifyPurchaseWithIapkitProps? iapkit,
+    required PurchaseVerificationProvider provider,
   });
 }
 
@@ -2956,8 +3252,8 @@ abstract class QueryResolver {
   /// Get StoreKit 2 subscription status details (iOS 15+)
   Future<List<SubscriptionStatusIOS>> subscriptionStatusIOS(String sku);
   /// Validate a receipt for a specific product
-  Future<ReceiptValidationResultIOS> validateReceiptIOS({
-    ReceiptValidationAndroidOptions? androidOptions,
+  Future<VerifyPurchaseResultIOS> validateReceiptIOS({
+    VerifyPurchaseAndroidOptions? androidOptions,
     required String sku,
   });
 }
@@ -3006,9 +3302,17 @@ typedef MutationRestorePurchasesHandler = Future<void> Function();
 typedef MutationShowAlternativeBillingDialogAndroidHandler = Future<bool> Function();
 typedef MutationShowManageSubscriptionsIOSHandler = Future<List<PurchaseIOS>> Function();
 typedef MutationSyncIOSHandler = Future<bool> Function();
-typedef MutationValidateReceiptHandler = Future<ReceiptValidationResult> Function({
-  ReceiptValidationAndroidOptions? androidOptions,
+typedef MutationValidateReceiptHandler = Future<VerifyPurchaseResult> Function({
+  VerifyPurchaseAndroidOptions? androidOptions,
   required String sku,
+});
+typedef MutationVerifyPurchaseHandler = Future<VerifyPurchaseResult> Function({
+  VerifyPurchaseAndroidOptions? androidOptions,
+  required String sku,
+});
+typedef MutationVerifyPurchaseWithProviderHandler = Future<VerifyPurchaseWithProviderResult> Function({
+  RequestVerifyPurchaseWithIapkitProps? iapkit,
+  required PurchaseVerificationProvider provider,
 });
 
 class MutationHandlers {
@@ -3033,6 +3337,8 @@ class MutationHandlers {
     this.showManageSubscriptionsIOS,
     this.syncIOS,
     this.validateReceipt,
+    this.verifyPurchase,
+    this.verifyPurchaseWithProvider,
   });
 
   final MutationAcknowledgePurchaseAndroidHandler? acknowledgePurchaseAndroid;
@@ -3055,6 +3361,8 @@ class MutationHandlers {
   final MutationShowManageSubscriptionsIOSHandler? showManageSubscriptionsIOS;
   final MutationSyncIOSHandler? syncIOS;
   final MutationValidateReceiptHandler? validateReceipt;
+  final MutationVerifyPurchaseHandler? verifyPurchase;
+  final MutationVerifyPurchaseWithProviderHandler? verifyPurchaseWithProvider;
 }
 
 // MARK: - Query Helpers
@@ -3082,8 +3390,8 @@ typedef QueryIsEligibleForIntroOfferIOSHandler = Future<bool> Function(String gr
 typedef QueryIsTransactionVerifiedIOSHandler = Future<bool> Function(String sku);
 typedef QueryLatestTransactionIOSHandler = Future<PurchaseIOS?> Function(String sku);
 typedef QuerySubscriptionStatusIOSHandler = Future<List<SubscriptionStatusIOS>> Function(String sku);
-typedef QueryValidateReceiptIOSHandler = Future<ReceiptValidationResultIOS> Function({
-  ReceiptValidationAndroidOptions? androidOptions,
+typedef QueryValidateReceiptIOSHandler = Future<VerifyPurchaseResultIOS> Function({
+  VerifyPurchaseAndroidOptions? androidOptions,
   required String sku,
 });
 

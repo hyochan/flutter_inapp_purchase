@@ -41,3 +41,10 @@ docs/node_modules/
 # Android build artifacts
 example/android/app/.cxx/
 *.cxx/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+example/env
+!example/env.example
