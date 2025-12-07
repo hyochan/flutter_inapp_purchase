@@ -420,8 +420,14 @@ List<gentype.Purchase> extractPurchases(
       }
       // Safely convert map keys to strings to handle cases where platform channels
       // return maps with non-string keys (e.g., Map<Object?, Object?>)
-      final map = _toSafeMap(product);
-      final original = map; // originalJson은 변환된 데이터를 사용 (추가 필드 접근을 위해)
+      final map = normalizeDynamicMap(product);
+      if (map == null) {
+        debugPrint(
+          '[flutter_inapp_purchase] Skipping purchase: failed to normalize map',
+        );
+        continue;
+      }
+      final original = map; // Use normalized data to access additional fields
       purchases.add(
         convertToPurchase(
           map,
@@ -442,34 +448,6 @@ List<gentype.Purchase> extractPurchases(
 }
 
 // Private helper functions --------------------------------------------------
-
-Map<String, dynamic> _toSafeMap(Map<dynamic, dynamic> input) {
-  final result = <String, dynamic>{};
-
-  input.forEach(
-    (key, value) {
-      final keyString = key?.toString() ?? '';
-
-      if (value is Map) {
-        // Recursively convert nested map
-        result[keyString] = _toSafeMap(value);
-      } else if (value is List) {
-        // Convert map items inside the list
-        result[keyString] = value.map((e) {
-          if (e is Map) {
-            return _toSafeMap(e);
-          }
-          return e;
-        }).toList();
-      } else {
-        // Leave primitives untouched
-        result[keyString] = value;
-      }
-    },
-  );
-
-  return result;
-}
 
 gentype.ProductType _parseProductType(dynamic value) {
   if (value is gentype.ProductType) return value;
