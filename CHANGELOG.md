@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 7.1.21
+
+- feat: Add `verifyPurchaseWithProvider` for IAPKit integration
+  - Supports server-side purchase verification via IAPKit
+  - New `VerificationMethod` option: `ignore`, `local`, `iapkit`
+  - New verification status error codes
+- fix: Deep conversion of purchase maps to avoid `_Map<Object?, Object?>` cast errors on iOS 26
+  - Fixes trial subscription purchase parsing failures
+  - Uses existing `normalizeDynamicMap` for recursive map conversion
+- chore(deps): Update openiap versions (apple: 1.2.42, google: 1.3.8, gql: 1.2.7)
+
 ## 7.1.20
 
 - chore(deps): Update openiap-versions
