@@ -54,6 +54,8 @@ void main() {
               {
                 'productId': 'p1',
                 'transactionId': 't1',
+                'platform': 'ios',
+                'store': 'apple',
               }
             ]);
           case 'getAppTransaction':
@@ -77,6 +79,7 @@ void main() {
                 'productId': 'p2',
                 'transactionId': 't2',
                 'platform': 'ios',
+                'store': 'apple',
               }
             ]);
         }

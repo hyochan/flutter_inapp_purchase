@@ -903,17 +903,18 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                             val result = iap.verifyPurchaseWithProvider(props)
 
                             // Convert result to JSON
-                            val iapkitResults = JSONArray()
-                            result.iapkit.forEach { item ->
-                                iapkitResults.put(JSONObject().apply {
+                            val iapkitResult = result.iapkit?.let { item ->
+                                JSONObject().apply {
                                     put("isValid", item.isValid)
                                     put("state", item.state.toJson())
                                     put("store", item.store.toJson())
-                                })
+                                }
                             }
                             val payload = JSONObject().apply {
                                 put("provider", result.provider.toJson())
-                                put("iapkit", iapkitResults)
+                                if (iapkitResult != null) {
+                                    put("iapkit", iapkitResult)
+                                }
                             }
                             safe.success(payload.toString())
                         } catch (e: Exception) {

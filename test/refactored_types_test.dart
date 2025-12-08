@@ -35,6 +35,7 @@ void main() {
         purchaseState: PurchaseState.Purchased,
         purchaseToken: 'android_token',
         quantity: 1,
+        store: IapStore.Google,
         transactionDate: 1700000000,
       );
 
@@ -54,6 +55,7 @@ void main() {
         productId: 'premium_upgrade',
         purchaseState: PurchaseState.Purchased,
         quantity: 1,
+        store: IapStore.Apple,
         transactionDate: 1700000300,
         transactionId: 'txn_ios',
         environmentIOS: 'Production',

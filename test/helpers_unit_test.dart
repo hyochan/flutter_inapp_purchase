@@ -82,6 +82,7 @@ void main() {
       final purchase = convertToPurchase(
         <String, dynamic>{
           'platform': 'android',
+          'store': 'google',
           'productId': 'coins_pack',
           'transactionId': 'txn-123',
           'purchaseStateAndroid': 1,
@@ -105,6 +106,7 @@ void main() {
       final purchase = convertToPurchase(
         <String, dynamic>{
           'platform': 'ios',
+          'store': 'apple',
           'productId': 'premium_monthly',
           'transactionId': 'txn-ios',
           'purchaseState': 'PURCHASED',
@@ -130,12 +132,13 @@ void main() {
       final payload = jsonEncode(<dynamic>[
         <String, dynamic>{
           'platform': 'android',
+          'store': 'google',
           'productId': 'coins_pack',
           'transactionId': 'txn-1',
           'purchaseToken': 'token-1',
           'purchaseStateAndroid': 1,
         },
-        <String, dynamic>{'platform': 'android'},
+        <String, dynamic>{'platform': 'android', 'store': 'google'},
         'unexpected',
       ]);
 
@@ -157,6 +160,7 @@ void main() {
       final payload = <dynamic>[
         <Object?, Object?>{
           'platform': 'android',
+          'store': 'google',
           'productId': 'coins_pack',
           'transactionId': 'txn-1',
           'purchaseToken': 'token-1',

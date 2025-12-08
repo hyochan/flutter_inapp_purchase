@@ -1,0 +1,8 @@
+{
+  "label": "Guides",
+  "position": 4,
+  "link": {
+    "type": "generated-index",
+    "description": "Step-by-step guides for implementing purchases, subscriptions, and advanced features."
+  }
+}

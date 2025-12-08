@@ -51,6 +51,7 @@ void main() {
         platform: IapPlatform.IOS,
         purchaseState: PurchaseState.Purchased,
         quantity: 1,
+        store: IapStore.Apple,
         transactionDate: 1700000000,
         transactionId: 't',
         expirationDateIOS: 1700005000,

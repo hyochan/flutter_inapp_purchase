@@ -356,20 +356,16 @@ Message: ${error.message}
         provider: PurchaseVerificationProvider.Iapkit,
         iapkit: RequestVerifyPurchaseWithIapkitProps(
           apiKey: apiKey.isNotEmpty ? apiKey : null,
-          apple: Platform.isIOS
-              ? RequestVerifyPurchaseWithIapkitAppleProps(jws: jwsOrToken)
-              : null,
-          google: Platform.isAndroid
-              ? RequestVerifyPurchaseWithIapkitGoogleProps(
-                  purchaseToken: jwsOrToken)
-              : null,
+          apple: RequestVerifyPurchaseWithIapkitAppleProps(jws: jwsOrToken),
+          google: RequestVerifyPurchaseWithIapkitGoogleProps(
+              purchaseToken: jwsOrToken),
         ),
       );
 
       debugPrint('IAPKit verification result: $result');
 
-      if (result.iapkit.isNotEmpty) {
-        final iapkitResult = result.iapkit.first;
+      if (result.iapkit != null) {
+        final iapkitResult = result.iapkit!;
         final statusEmoji = iapkitResult.isValid ? '✅' : '⚠️';
         final stateText = iapkitResult.state.value;
 

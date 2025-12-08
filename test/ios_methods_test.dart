@@ -41,6 +41,7 @@ void main() {
                   'id': 'txn-ios',
                   'productId': 'com.example.prod1',
                   'platform': 'IOS',
+                  'store': 'apple',
                   'purchaseState': 'PURCHASED',
                   'quantity': 1,
                   'transactionDate': 1700000000000,
@@ -58,6 +59,7 @@ void main() {
               return <Map<String, dynamic>>[
                 <String, dynamic>{
                   'platform': 'ios',
+                  'store': 'apple',
                   'productId': 'com.example.prod1',
                   'transactionId': 'txn-available',
                   'purchaseState': 'PURCHASED',
@@ -85,6 +87,7 @@ void main() {
               return <Map<String, dynamic>>[
                 <String, dynamic>{
                   'platform': 'ios',
+                  'store': 'apple',
                   'productId': 'com.example.prod1',
                   'transactionId': 'txn-history',
                   'purchaseState': 'PURCHASED',
@@ -122,6 +125,7 @@ void main() {
                   'transactionReceipt': 'xyz',
                   'purchaseToken': 'jwt-token',
                   'platform': 'ios',
+                  'store': 'apple',
                 },
               ];
             default:
