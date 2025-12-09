@@ -891,6 +891,187 @@ void main() {
     });
   });
 
+  group('verifyPurchase', () {
+    test('throws when connection not initialized', () async {
+      final iap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'ios'),
+      );
+
+      await expectLater(
+        iap.verifyPurchase(sku: 'test.sku'),
+        throwsA(
+          isA<PurchaseError>().having(
+            (error) => error.code,
+            'code',
+            types.ErrorCode.NotPrepared,
+          ),
+        ),
+      );
+    });
+
+    test('sends correct payload for iOS verification', () async {
+      final calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall call) async {
+        calls.add(call);
+        switch (call.method) {
+          case 'initConnection':
+            return true;
+          case 'verifyPurchase':
+            return {
+              '__typename': 'VerifyPurchaseResultIOS',
+              'isValid': true,
+              'jwsRepresentation': 'test-jws-representation',
+              'receiptData': 'test-receipt-data',
+            };
+        }
+        return null;
+      });
+
+      final iap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'ios'),
+      );
+
+      await iap.initConnection();
+
+      final result = await iap.verifyPurchase(sku: 'premium.upgrade');
+
+      final verifyCall =
+          calls.singleWhere((MethodCall c) => c.method == 'verifyPurchase');
+      final payload = Map<String, dynamic>.from(
+          verifyCall.arguments as Map<dynamic, dynamic>);
+
+      expect(payload['sku'], 'premium.upgrade');
+
+      expect(result, isA<types.VerifyPurchaseResultIOS>());
+      final iosResult = result as types.VerifyPurchaseResultIOS;
+      expect(iosResult.isValid, true);
+      expect(iosResult.jwsRepresentation, 'test-jws-representation');
+    });
+
+    test('sends correct payload for Android verification', () async {
+      final calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall call) async {
+        calls.add(call);
+        switch (call.method) {
+          case 'initConnection':
+            return true;
+          case 'verifyPurchase':
+            return {
+              '__typename': 'VerifyPurchaseResultAndroid',
+              'productId': 'premium.upgrade',
+              'productType': 'inapp',
+              'purchaseDate': 1705315800000.0,
+              'autoRenewing': false,
+              'betaProduct': false,
+              'freeTrialEndDate': 0.0,
+              'gracePeriodEndDate': 0.0,
+              'parentProductId': '',
+              'quantity': 1,
+              'receiptId': 'test-receipt-id',
+              'renewalDate': 0.0,
+              'term': '',
+              'termSku': '',
+              'testTransaction': false,
+            };
+        }
+        return null;
+      });
+
+      final iap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'android'),
+      );
+
+      await iap.initConnection();
+
+      final result = await iap.verifyPurchase(
+        sku: 'premium.upgrade',
+        androidOptions: const types.VerifyPurchaseAndroidOptions(
+          accessToken: 'test-access-token',
+          packageName: 'com.example.app',
+          productToken: 'test-product-token',
+        ),
+      );
+
+      final verifyCall =
+          calls.singleWhere((MethodCall c) => c.method == 'verifyPurchase');
+      final payload = Map<String, dynamic>.from(
+          verifyCall.arguments as Map<dynamic, dynamic>);
+
+      expect(payload['sku'], 'premium.upgrade');
+      expect(payload['androidOptions'], isNotNull);
+      final androidOptions = Map<String, dynamic>.from(
+          payload['androidOptions'] as Map<dynamic, dynamic>);
+      expect(androidOptions['accessToken'], 'test-access-token');
+      expect(androidOptions['packageName'], 'com.example.app');
+      expect(androidOptions['productToken'], 'test-product-token');
+
+      expect(result, isA<types.VerifyPurchaseResultAndroid>());
+      final androidResult = result as types.VerifyPurchaseResultAndroid;
+      expect(androidResult.productId, 'premium.upgrade');
+      expect(androidResult.productType, 'inapp');
+      expect(androidResult.autoRenewing, false);
+    });
+
+    test('throws PurchaseError on platform exception', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall call) async {
+        switch (call.method) {
+          case 'initConnection':
+            return true;
+          case 'verifyPurchase':
+            throw PlatformException(
+              code: 'VERIFICATION_FAILED',
+              message: 'Purchase verification failed',
+            );
+        }
+        return null;
+      });
+
+      final iap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'ios'),
+      );
+
+      await iap.initConnection();
+
+      await expectLater(
+        iap.verifyPurchase(sku: 'test.sku'),
+        throwsA(isA<PurchaseError>()),
+      );
+    });
+
+    test('throws when native returns null', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall call) async {
+        switch (call.method) {
+          case 'initConnection':
+            return true;
+          case 'verifyPurchase':
+            return null;
+        }
+        return null;
+      });
+
+      final iap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'ios'),
+      );
+
+      await iap.initConnection();
+
+      await expectLater(
+        iap.verifyPurchase(sku: 'test.sku'),
+        throwsA(
+          isA<PurchaseError>().having(
+            (error) => error.code,
+            'code',
+            types.ErrorCode.PurchaseVerificationFailed,
+          ),
+        ),
+      );
+    });
+  });
+
   group('verifyPurchaseWithProvider', () {
     test('throws when connection not initialized', () async {
       final iap = FlutterInappPurchase.private(

@@ -293,15 +293,7 @@ Purchase Token: $truncatedToken...
     if (_verificationMethod == VerificationMethod.iapkit) {
       await _verifyPurchaseWithIAPKit(purchase);
     } else if (_verificationMethod == VerificationMethod.local) {
-      // Basic local verification - just check token exists
-      final hasValidToken =
-          purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpty;
-      if (!mounted) return;
-      setState(() {
-        _purchaseResult = hasValidToken
-            ? '$_purchaseResult\n\n✅ Local verification passed'
-            : '$_purchaseResult\n\n⚠️ Local verification: No valid token';
-      });
+      await _verifyPurchaseLocally(purchase);
     }
 
     // After verification, finish the transaction
@@ -339,6 +331,62 @@ Message: ${error.message}
       '''
           .trim();
     });
+  }
+
+  /// Verify purchase using local platform verification
+  Future<void> _verifyPurchaseLocally(Purchase purchase) async {
+    final productId = purchase.productId;
+    if (productId == null || productId.isEmpty) {
+      if (!mounted) return;
+      setState(() {
+        _purchaseResult =
+            '$_purchaseResult\n\n⚠️ Local verification: No product ID';
+      });
+      return;
+    }
+
+    try {
+      debugPrint('Verifying purchase locally for: $productId');
+
+      final result = await _iap.verifyPurchase(sku: productId);
+
+      debugPrint('Local verification result: $result');
+
+      if (result is VerifyPurchaseResultIOS) {
+        final statusEmoji = result.isValid ? '✅' : '⚠️';
+        if (!mounted) return;
+        setState(() {
+          _purchaseResult = '''
+$_purchaseResult
+
+$statusEmoji Local Verification (iOS)
+Valid: ${result.isValid}
+JWS: ${result.jwsRepresentation.substring(0, result.jwsRepresentation.length > 50 ? 50 : result.jwsRepresentation.length)}...
+          '''
+              .trim();
+        });
+      } else if (result is VerifyPurchaseResultAndroid) {
+        if (!mounted) return;
+        setState(() {
+          _purchaseResult = '''
+$_purchaseResult
+
+✅ Local Verification (Android)
+Product ID: ${result.productId}
+Product Type: ${result.productType}
+Purchase Date: ${result.purchaseDate}
+Auto Renewing: ${result.autoRenewing}
+          '''
+              .trim();
+        });
+      }
+    } catch (e) {
+      debugPrint('Local verification failed: $e');
+      if (!mounted) return;
+      setState(() {
+        _purchaseResult = '$_purchaseResult\n\n❌ Local verification failed: $e';
+      });
+    }
   }
 
   /// Verify purchase with IAPKit provider

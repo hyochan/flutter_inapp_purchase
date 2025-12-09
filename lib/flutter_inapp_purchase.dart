@@ -1310,6 +1310,92 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
             }
           };
 
+  /// Verifies a purchase using the native platform's local verification.
+  ///
+  /// On iOS, this verifies the transaction using StoreKit 2's built-in
+  /// verification. On Android, this requires providing Google Play Developer
+  /// API credentials via [androidOptions].
+  ///
+  /// Example (iOS):
+  /// ```dart
+  /// final result = await iap.verifyPurchase(sku: 'premium_upgrade');
+  /// if (result is VerifyPurchaseResultIOS && result.isValid) {
+  ///   // Purchase verified locally
+  /// }
+  /// ```
+  ///
+  /// Example (Android):
+  /// ```dart
+  /// final result = await iap.verifyPurchase(
+  ///   sku: 'premium_upgrade',
+  ///   androidOptions: VerifyPurchaseAndroidOptions(
+  ///     accessToken: 'your-google-access-token',
+  ///     packageName: 'com.your.app',
+  ///     productToken: purchase.purchaseToken,
+  ///   ),
+  /// );
+  /// ```
+  gentype.MutationVerifyPurchaseHandler get verifyPurchase => ({
+        required String sku,
+        gentype.VerifyPurchaseAndroidOptions? androidOptions,
+      }) async {
+        if (!_isInitialized) {
+          throw PurchaseError(
+            code: gentype.ErrorCode.NotPrepared,
+            message: 'IAP connection not initialized',
+          );
+        }
+
+        try {
+          final Map<String, dynamic> args = {
+            'sku': sku,
+          };
+
+          if (androidOptions != null) {
+            args['androidOptions'] = androidOptions.toJson();
+          }
+
+          final result = await _channel.invokeMethod<dynamic>(
+            'verifyPurchase',
+            args,
+          );
+
+          if (result == null) {
+            throw PurchaseError(
+              code: gentype.ErrorCode.PurchaseVerificationFailed,
+              message: 'No verification result received from native platform',
+            );
+          }
+
+          final Map<String, dynamic> resultMap;
+          if (result is String) {
+            resultMap = jsonDecode(result) as Map<String, dynamic>;
+          } else if (result is Map) {
+            resultMap = result
+                .map<String, dynamic>((k, v) => MapEntry(k.toString(), v));
+          } else {
+            throw PurchaseError(
+              code: gentype.ErrorCode.PurchaseVerificationFailed,
+              message: 'Unexpected result type: ${result.runtimeType}',
+            );
+          }
+
+          return gentype.VerifyPurchaseResult.fromJson(resultMap);
+        } on PlatformException catch (error) {
+          throw PurchaseError(
+            code: gentype.ErrorCode.PurchaseVerificationFailed,
+            message:
+                'Failed to verify purchase [${error.code}]: ${error.message ?? error.details}',
+          );
+        } catch (error) {
+          if (error is PurchaseError) rethrow;
+          throw PurchaseError(
+            code: gentype.ErrorCode.PurchaseVerificationFailed,
+            message: 'Failed to verify purchase: ${error.toString()}',
+          );
+        }
+      };
+
   // flutter IAP compatible methods
 
   /// Internal implementation for fetching products

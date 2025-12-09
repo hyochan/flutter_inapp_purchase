@@ -259,6 +259,56 @@ iap.purchaseUpdatedListener.listen((purchase) async {
 
 ## Purchase Verification
 
+### verifyPurchase()
+
+Verifies a purchase using the native platform's local verification.
+
+```dart
+Future<VerifyPurchaseResult> verifyPurchase({
+  required String sku,
+  VerifyPurchaseAndroidOptions? androidOptions,
+}) async
+```
+
+**Parameters**:
+- `sku` - The product SKU to verify
+- `androidOptions` - Android-specific options for Google Play Developer API verification (required on Android)
+
+**Returns**: `VerifyPurchaseResult` - Either `VerifyPurchaseResultIOS` or `VerifyPurchaseResultAndroid`
+
+**Example (iOS)**:
+
+```dart
+final result = await iap.verifyPurchase(sku: 'premium_upgrade');
+
+if (result is VerifyPurchaseResultIOS && result.isValid) {
+  debugPrint('Purchase verified locally');
+  debugPrint('JWS: ${result.jwsRepresentation}');
+}
+```
+
+**Example (Android)**:
+
+```dart
+final result = await iap.verifyPurchase(
+  sku: 'premium_upgrade',
+  androidOptions: VerifyPurchaseAndroidOptions(
+    accessToken: 'your-google-access-token',
+    packageName: 'com.your.app',
+    productToken: purchase.purchaseToken,
+  ),
+);
+
+if (result is VerifyPurchaseResultAndroid) {
+  debugPrint('Product ID: ${result.productId}');
+  debugPrint('Purchase Date: ${result.purchaseDate}');
+}
+```
+
+**Platform Behavior**:
+- **iOS**: Uses StoreKit 2's built-in verification. Returns JWS representation and validity status.
+- **Android**: Requires Google Play Developer API credentials. Returns detailed purchase information.
+
 ### verifyPurchaseWithProvider()
 
 Verifies purchases using external verification services like IAPKit. This provides additional validation and security beyond local device verification.
