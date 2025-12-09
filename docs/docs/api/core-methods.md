@@ -351,52 +351,7 @@ Both platforms use the unified `purchaseToken` field from the Purchase object. S
 
 **Note**: You need an IAPKit API key to use this feature. Visit [iapkit.com](https://iapkit.com) to get started.
 
-**Error Handling Best Practice**:
-
-:::warning Important
-Verification error does NOT mean invalid purchase
-:::
-
-When `verifyPurchaseWithProvider` throws an error, it does NOT mean the purchase is invalid. Errors can occur due to:
-
-- Network connectivity issues
-- IAPKit server downtime
-- Misconfigured API keys
-- Temporary service errors
-
-Don't penalize customers for verification failures. Use a "fail-open" approach: grant access and finish the transaction when verification fails due to errors.
-
-```dart
-try {
-  final result = await iap.verifyPurchaseWithProvider(
-    VerifyPurchaseWithProviderProps(
-      provider: VerifyPurchaseProvider.iapkit,
-      iapkit: RequestVerifyPurchaseWithIapkitProps(
-        apiKey: 'your-api-key',
-        apple: RequestVerifyPurchaseWithIapkitAppleProps(jws: purchase.purchaseToken),
-        google: RequestVerifyPurchaseWithIapkitGoogleProps(
-            purchaseToken: purchase.purchaseToken),
-      ),
-    ),
-  );
-
-  if (result.iapkit case final iapkit? when iapkit.isValid) {
-    // Verification succeeded - grant access
-    await iap.finishTransaction(purchase);
-    grantAccess();
-  } else {
-    // Verification failed (isValid: false) - actually invalid purchase
-    // Don't call finishTransaction - allow retry
-    denyAccess();
-  }
-} catch (e) {
-  // Verification itself failed (network, server error, etc.)
-  // This doesn't mean the purchase is invalid - don't penalize the customer
-  debugPrint('Verification failed: $e');
-  await iap.finishTransaction(purchase);  // Complete the transaction
-  grantAccess();  // Grant access (fail-open approach)
-}
-```
+**Error Handling**: See [Verification Error Handling](https://www.openiap.dev/docs/apis#verification-error-handling) for best practices on handling verification errors.
 
 **Purchase Identifier Usage**:
 
