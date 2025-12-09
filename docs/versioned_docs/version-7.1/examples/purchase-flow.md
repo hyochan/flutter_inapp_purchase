@@ -74,15 +74,11 @@ Future<void> _initConnection() async {
 ### 3. Fetch Products
 
 ```dart
-final result = await iap.fetchProducts(
+final products = await iap.fetchProducts<Product>(
   skus: ['product_id_1', 'product_id_2'],
   type: ProductQueryType.InApp,
 );
-
-if (result is FetchProductsResultProducts) {
-  final products = result.value ?? [];
-  debugPrint('Loaded ${products.length} products');
-}
+debugPrint('Loaded ${products.length} products');
 ```
 
 ### 4. Request Purchase

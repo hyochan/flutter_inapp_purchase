@@ -9,7 +9,7 @@ import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
 
 <GreatFrontEnd link="https://www.greatfrontend.com/front-end-interview-playbook?fpr=hyo73" title="Front End Interview Guidebook" />
 
-Complete reference for flutter_inapp_purchase v6.8.0 - A unified API for implementing in-app purchases across iOS and Android platforms.
+Complete reference for flutter_inapp_purchase v7.1.0 - A unified API for implementing in-app purchases across iOS and Android platforms.
 
 ## Available APIs
 

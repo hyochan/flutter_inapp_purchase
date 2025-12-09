@@ -83,9 +83,7 @@ await FlutterInappPurchase.instance.requestPurchase(requestProps);
 
 // Restore active purchases (include expired iOS receipts if needed)
 final purchases = await FlutterInappPurchase.instance.getAvailablePurchases(
-  PurchaseOptions(
-    onlyIncludeActiveItemsIOS: true,
-  ),
+  onlyIncludeActiveItemsIOS: true,
 );
 ```
 

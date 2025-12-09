@@ -46,15 +46,12 @@ void _setupListeners() {
 ### 2. Fetch Subscription Products
 
 ```dart
-final result = await iap.fetchProducts(
-  ProductRequest(
-    skus: ['monthly_sub', 'yearly_sub'],
-    type: ProductQueryType.Subs,
-  ),
+final subscriptions = await iap.fetchProducts<ProductSubscription>(
+  skus: ['monthly_sub', 'yearly_sub'],
+  type: ProductQueryType.Subs,
 );
 
-if (result is FetchProductsResultSubscriptions) {
-  final subscriptions = result.value ?? [];
+if (subscriptions.isNotEmpty) {
   for (final product in subscriptions) {
     if (product is ProductSubscriptionIOS) {
       debugPrint('iOS Subscription: ${product.displayName}');

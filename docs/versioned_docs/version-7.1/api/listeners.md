@@ -339,12 +339,12 @@ void dispose() {
 }
 ```
 
-## userChoiceBillingListener
+## userChoiceBillingAndroid
 
 Android-only listener for User Choice Billing events. This fires when a user selects alternative billing instead of Google Play billing in the User Choice Billing dialog (only in `user-choice` mode).
 
 ```dart
-Stream<UserChoiceBillingResult> get userChoiceBillingListener
+Stream<UserChoiceBillingResult> get userChoiceBillingAndroid
 ```
 
 **Example:**
@@ -377,7 +377,7 @@ class _UserChoiceBillingExampleState extends State<UserChoiceBillingExample> {
     );
 
     _userChoiceSubscription = FlutterInappPurchase.instance
-        .userChoiceBillingListener.listen((details) {
+        .userChoiceBillingAndroid.listen((details) {
       debugPrint('User selected alternative billing');
       debugPrint('Token: ${details.externalTransactionToken}');
       debugPrint('Products: ${details.products}');
@@ -444,7 +444,7 @@ class UserChoiceBillingResult {
 
 1. User initiates purchase with `requestPurchase(useAlternativeBilling: true)`
 2. Google shows User Choice Billing dialog
-3. If user selects alternative billing → `userChoiceBillingListener` fires
+3. If user selects alternative billing → `userChoiceBillingAndroid` fires
 4. If user selects Google Play → `purchaseUpdatedListener` fires
 
 **See also:**
