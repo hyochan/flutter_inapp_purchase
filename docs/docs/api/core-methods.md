@@ -264,15 +264,15 @@ iap.purchaseUpdatedListener.listen((purchase) async {
 Verifies purchases using external verification services like IAPKit. This provides additional validation and security beyond local device verification.
 
 ```dart
-Future<VerifyPurchaseWithProviderResult> verifyPurchaseWithProvider({
-  required PurchaseVerificationProvider provider,
-  RequestVerifyPurchaseWithIapkitProps? iapkit,
-}) async
+Future<VerifyPurchaseWithProviderResult> verifyPurchaseWithProvider(
+  VerifyPurchaseWithProviderProps props,
+) async
 ```
 
 **Parameters**:
-- `provider` - The verification provider to use (currently `PurchaseVerificationProvider.Iapkit`)
-- `iapkit` - IAPKit-specific configuration including API key and platform tokens
+- `props` - Configuration object containing:
+  - `provider` - The verification provider to use (`VerifyPurchaseProvider.iapkit`)
+  - `iapkit` - IAPKit-specific configuration including API key and platform tokens
 
 **Returns**: `VerifyPurchaseWithProviderResult` containing verification results
 
@@ -282,29 +282,22 @@ Future<VerifyPurchaseWithProviderResult> verifyPurchaseWithProvider({
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 
 Future<void> verifyWithIAPKit(Purchase purchase) async {
-  try {
-    final result = await iap.verifyPurchaseWithProvider(
-      provider: PurchaseVerificationProvider.Iapkit,
+  final result = await iap.verifyPurchaseWithProvider(
+    VerifyPurchaseWithProviderProps(
+      provider: VerifyPurchaseProvider.iapkit,
       iapkit: RequestVerifyPurchaseWithIapkitProps(
         apiKey: 'your-iapkit-api-key',
-        // For iOS - use JWS token
-        apple: RequestVerifyPurchaseWithIapkitAppleProps(
-          jws: purchase.purchaseToken ?? '',
-        ),
-        // For Android - use purchase token
+        apple: RequestVerifyPurchaseWithIapkitAppleProps(jws: purchase.purchaseToken),
         google: RequestVerifyPurchaseWithIapkitGoogleProps(
-          purchaseToken: purchase.purchaseToken ?? '',
-        ),
+            purchaseToken: purchase.purchaseToken),
       ),
-    );
+    ),
+  );
 
-    for (final item in result.iapkit) {
-      debugPrint('Is Valid: ${item.isValid}');
-      debugPrint('State: ${item.state}'); // 'entitled', 'expired', etc.
-      debugPrint('Store: ${item.store}'); // 'apple' or 'google'
-    }
-  } catch (e) {
-    debugPrint('Verification failed: $e');
+  if (result.iapkit case final iapkit? when iapkit.isValid) {
+    debugPrint('Is Valid: ${iapkit.isValid}');
+    debugPrint('State: ${iapkit.state}'); // 'entitled', 'expired', etc.
+    debugPrint('Store: ${iapkit.store}'); // 'apple', 'google', or 'horizon'
   }
 }
 ```
@@ -313,14 +306,14 @@ Future<void> verifyWithIAPKit(Purchase purchase) async {
 
 ```dart
 class VerifyPurchaseWithProviderResult {
-  final PurchaseVerificationProvider provider;
-  final List<RequestVerifyPurchaseWithIapkitResult> iapkit;
+  final VerifyPurchaseProvider provider;
+  final VerifyPurchaseWithIapkitResult? iapkit;
 }
 
-class RequestVerifyPurchaseWithIapkitResult {
+class VerifyPurchaseWithIapkitResult {
   final bool isValid;
   final IapkitPurchaseState state;
-  final IapkitStore store;
+  final IapStore store;
 }
 
 enum IapkitPurchaseState {
@@ -335,15 +328,21 @@ enum IapkitPurchaseState {
   Inauthentic,
 }
 
-enum IapkitStore {
-  Apple,
-  Google,
+enum IapStore {
+  unknown,
+  apple,
+  google,
+  horizon,
 }
 ```
 
+See [IAPKit Purchase States](https://www.openiap.dev/docs/apis#iapkit-purchase-states) for detailed state descriptions.
+
 **Platform Behavior**:
-- **iOS**: Sends the JWS (JSON Web Signature) token to IAPKit for server-side verification
-- **Android**: Sends the purchase token for verification
+- **iOS**: Sends the JWS (JSON Web Signature) token to IAPKit for server-side verification. The `purchaseToken` field contains the JWS representation on iOS.
+- **Android**: Sends the purchase token for verification. The `purchaseToken` field contains the Google Play purchase token.
+
+Both platforms use the unified `purchaseToken` field from the Purchase object. See [OpenIAP Purchase Common Types](https://www.openiap.dev/docs/types#purchase-common) for details.
 
 **Use Cases**:
 - Server-side receipt validation without maintaining your own validation infrastructure
@@ -351,6 +350,33 @@ enum IapkitStore {
 - Enhanced security through external verification services
 
 **Note**: You need an IAPKit API key to use this feature. Visit [iapkit.com](https://iapkit.com) to get started.
+
+**Error Handling**: See [Verification Error Handling](https://www.openiap.dev/docs/apis#verification-error-handling) for best practices on handling verification errors.
+
+**Purchase Identifier Usage**:
+
+After verifying purchases, use the appropriate identifiers for content delivery and purchase tracking:
+
+**iOS Identifiers**:
+
+| Product Type | Primary Identifier | Usage |
+|:---|:---|:---|
+| Consumable | `transactionId` | Track each purchase individually for content delivery |
+| Non-consumable | `transactionId` | Single purchase tracking (equals `originalTransactionIdentifierIOS`) |
+| Subscription | `originalTransactionIdentifierIOS` | Track subscription ownership across renewals |
+
+**Android Identifiers**:
+
+| Product Type | Primary Identifier | Usage |
+|:---|:---|:---|
+| Consumable | `purchaseToken` | Track each purchase for content delivery |
+| Non-consumable | `purchaseToken` | Track ownership status |
+| Subscription | `purchaseToken` | Track current subscription status (each renewal has same token on Android) |
+
+**Key Points**:
+- **Idempotency**: Use `transactionId` (iOS) or `purchaseToken` (Android) to prevent duplicate content delivery
+- **iOS Subscriptions**: Each renewal creates a new `transactionId`, but `originalTransactionIdentifier` remains constant
+- **Android Subscriptions**: The `purchaseToken` remains the same across normal renewals
 
 ## Purchase History
 

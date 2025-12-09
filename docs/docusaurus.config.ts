@@ -49,13 +49,24 @@ const config: Config = {
             "https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/",
           versions: {
             current: {
-              label: "7.1 (Current)",
+              label: "7.2 (Current)",
               path: "",
             },
           },
           lastVersion: "current",
         },
-        blog: false,
+        blog: {
+          showReadingTime: true,
+          feedOptions: {
+            type: ["rss", "atom"],
+            xslt: true,
+          },
+          editUrl:
+            "https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/",
+          onInlineTags: "warn",
+          onInlineAuthors: "warn",
+          onUntruncatedBlogPosts: "warn",
+        },
         theme: {
           customCss: "./src/css/custom.css",
         },
@@ -99,6 +110,11 @@ const config: Config = {
           sidebarId: "docsSidebar",
           position: "left",
           label: "Docs",
+        },
+        {
+          to: "/blog",
+          label: "Blog",
+          position: "left",
         },
         {
           href: "https://github.com/hyochan/flutter_inapp_purchase",

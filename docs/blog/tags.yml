@@ -62,3 +62,23 @@ alternative-billing:
   label: Alternative Billing
   permalink: /alternative-billing
   description: Alternative billing and external payment features
+
+iapkit:
+  label: IAPKit
+  permalink: /iapkit
+  description: IAPKit integration for purchase verification
+
+verification:
+  label: Verification
+  permalink: /verification
+  description: Purchase verification and receipt validation
+
+backend:
+  label: Backend
+  permalink: /backend
+  description: Backend integration and server-side features
+
+security:
+  label: Security
+  permalink: /security
+  description: Security features and best practices

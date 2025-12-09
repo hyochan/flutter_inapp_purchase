@@ -17,6 +17,7 @@ void main() {
       <Map<String, dynamic>>[
         <String, dynamic>{
           'platform': 'android',
+          'store': 'google',
           'purchaseStateAndroid': 1,
         },
       ],

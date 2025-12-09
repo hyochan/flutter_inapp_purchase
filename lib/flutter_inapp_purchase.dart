@@ -1259,24 +1259,39 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
                 );
               }
 
-              // Parse iapkit results
-              final iapkitList =
-                  (resultMap['iapkit'] as List<dynamic>? ?? []).map((item) {
-                final itemMap = item is Map
-                    ? item.map<String, dynamic>(
+              // Parse iapkit result (single object, not array)
+              gentype.RequestVerifyPurchaseWithIapkitResult? iapkitResult;
+              final iapkitData = resultMap['iapkit'];
+              if (iapkitData != null) {
+                final itemMap = iapkitData is Map
+                    ? iapkitData.map<String, dynamic>(
                         (k, v) => MapEntry(k.toString(), v))
                     : <String, dynamic>{};
-                return gentype.RequestVerifyPurchaseWithIapkitResult(
+                iapkitResult = gentype.RequestVerifyPurchaseWithIapkitResult(
                   isValid: itemMap['isValid'] as bool? ?? false,
                   state: gentype.IapkitPurchaseState.fromJson(
                       itemMap['state']?.toString() ?? 'unknown'),
-                  store: gentype.IapkitStore.fromJson(
+                  store: gentype.IapStore.fromJson(
                       itemMap['store']?.toString() ?? 'apple'),
+                );
+              }
+
+              // Parse errors if present
+              final errorsData = resultMap['errors'] as List<dynamic>?;
+              final errors = errorsData?.map((e) {
+                final errorMap = e is Map
+                    ? e.map<String, dynamic>(
+                        (k, v) => MapEntry(k.toString(), v))
+                    : <String, dynamic>{};
+                return gentype.VerifyPurchaseWithProviderError(
+                  code: errorMap['code'] as String?,
+                  message: errorMap['message'] as String? ?? '',
                 );
               }).toList();
 
               return gentype.VerifyPurchaseWithProviderResult(
-                iapkit: iapkitList,
+                iapkit: iapkitResult,
+                errors: errors,
                 provider: gentype.PurchaseVerificationProvider.fromJson(
                     resultMap['provider']?.toString() ?? 'iapkit'),
               );

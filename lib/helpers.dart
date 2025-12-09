@@ -244,10 +244,14 @@ gentype.Purchase convertToPurchase(
     );
     final purchaseState = _mapAndroidPurchaseState(stateValue).toJson();
 
+    // Determine store from input or default based on platform
+    final storeValue = itemJson['store']?.toString() ?? 'google';
+
     final map = <String, dynamic>{
       'id': purchaseId,
       'productId': productId,
       'platform': gentype.IapPlatform.Android.toJson(),
+      'store': storeValue,
       'isAutoRenewing': itemJson['isAutoRenewing'] as bool? ??
           itemJson['autoRenewingAndroid'] as bool? ??
           false,
@@ -301,10 +305,14 @@ gentype.Purchase convertToPurchase(
       }
     }
 
+    // Determine store from input or default based on platform
+    final storeValueIOS = itemJson['store']?.toString() ?? 'apple';
+
     final map = <String, dynamic>{
       'id': purchaseId,
       'productId': productId,
       'platform': gentype.IapPlatform.IOS.toJson(),
+      'store': storeValueIOS,
       'isAutoRenewing': itemJson['isAutoRenewing'] as bool? ?? false,
       'purchaseState': stateIOS,
       'quantity': quantity,

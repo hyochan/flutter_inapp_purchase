@@ -464,6 +464,7 @@ void main() {
             return <Map<String, dynamic>>[
               <String, dynamic>{
                 'platform': 'ios',
+                'store': 'apple',
                 'productId': 'iap.premium',
                 'transactionId': 'txn-123',
                 'purchaseToken': 'receipt-data',
@@ -472,6 +473,7 @@ void main() {
               },
               <String, dynamic>{
                 'platform': 'ios',
+                'store': 'apple',
                 'productId': '',
                 'transactionId': null,
               },
@@ -528,6 +530,7 @@ void main() {
             return <Map<String, dynamic>>[
               <String, dynamic>{
                 'platform': 'android',
+                'store': 'google',
                 'productId': 'coins.100',
                 'transactionId': 'txn-android',
                 'purchaseToken': 'token-android',
@@ -535,6 +538,7 @@ void main() {
               },
               <String, dynamic>{
                 'platform': 'android',
+                'store': 'google',
                 'productId': '',
               },
             ];
@@ -605,6 +609,7 @@ void main() {
 
       final purchasePayload = <String, dynamic>{
         'platform': 'ios',
+        'store': 'apple',
         'productId': 'iap.premium',
         'transactionId': 'txn-456',
         'purchaseState': 'PURCHASED',
@@ -923,13 +928,11 @@ void main() {
           case 'verifyPurchaseWithProvider':
             return {
               'provider': 'iapkit',
-              'iapkit': [
-                {
-                  'isValid': true,
-                  'state': 'entitled',
-                  'store': 'apple',
-                }
-              ],
+              'iapkit': {
+                'isValid': true,
+                'state': 'entitled',
+                'store': 'apple',
+              },
             };
         }
         return null;
@@ -967,10 +970,10 @@ void main() {
       expect(applePayload['jws'], 'test-jws-token');
 
       expect(result.provider, types.PurchaseVerificationProvider.Iapkit);
-      expect(result.iapkit.length, 1);
-      expect(result.iapkit.first.isValid, true);
-      expect(result.iapkit.first.state, types.IapkitPurchaseState.Entitled);
-      expect(result.iapkit.first.store, types.IapkitStore.Apple);
+      expect(result.iapkit, isNotNull);
+      expect(result.iapkit!.isValid, true);
+      expect(result.iapkit!.state, types.IapkitPurchaseState.Entitled);
+      expect(result.iapkit!.store, types.IapStore.Apple);
     });
 
     test('sends correct payload for Android verification', () async {
@@ -984,13 +987,11 @@ void main() {
           case 'verifyPurchaseWithProvider':
             return jsonEncode({
               'provider': 'iapkit',
-              'iapkit': [
-                {
-                  'isValid': true,
-                  'state': 'pending-acknowledgment',
-                  'store': 'google',
-                }
-              ],
+              'iapkit': {
+                'isValid': true,
+                'state': 'pending-acknowledgment',
+                'store': 'google',
+              },
             });
         }
         return null;
@@ -1025,10 +1026,11 @@ void main() {
           iapkitPayload['google'] as Map<dynamic, dynamic>);
       expect(googlePayload['purchaseToken'], 'test-purchase-token');
 
-      expect(result.iapkit.first.isValid, true);
-      expect(result.iapkit.first.state,
+      expect(result.iapkit, isNotNull);
+      expect(result.iapkit!.isValid, true);
+      expect(result.iapkit!.state,
           types.IapkitPurchaseState.PendingAcknowledgment);
-      expect(result.iapkit.first.store, types.IapkitStore.Google);
+      expect(result.iapkit!.store, types.IapStore.Google);
     });
 
     test('throws PurchaseError on platform exception', () async {
@@ -1070,6 +1072,134 @@ void main() {
           ),
         ),
       );
+    });
+
+    test('handles null iapkit response', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall call) async {
+        switch (call.method) {
+          case 'initConnection':
+            return true;
+          case 'verifyPurchaseWithProvider':
+            return {
+              'provider': 'iapkit',
+              // iapkit is null/missing
+            };
+        }
+        return null;
+      });
+
+      final iap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'ios'),
+      );
+
+      await iap.initConnection();
+
+      final result = await iap.verifyPurchaseWithProvider(
+        provider: types.PurchaseVerificationProvider.Iapkit,
+        iapkit: const types.RequestVerifyPurchaseWithIapkitProps(
+          apiKey: 'test-api-key',
+          apple: types.RequestVerifyPurchaseWithIapkitAppleProps(
+            jws: 'test-jws-token',
+          ),
+        ),
+      );
+
+      expect(result.provider, types.PurchaseVerificationProvider.Iapkit);
+      expect(result.iapkit, isNull);
+    });
+
+    test('handles errors in response', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall call) async {
+        switch (call.method) {
+          case 'initConnection':
+            return true;
+          case 'verifyPurchaseWithProvider':
+            return {
+              'provider': 'iapkit',
+              'iapkit': {
+                'isValid': false,
+                'state': 'expired',
+                'store': 'apple',
+              },
+              'errors': [
+                {
+                  'code': 'INVALID_RECEIPT',
+                  'message': 'The receipt is invalid',
+                },
+                {
+                  'code': 'EXPIRED',
+                  'message': 'Subscription has expired',
+                },
+              ],
+            };
+        }
+        return null;
+      });
+
+      final iap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'ios'),
+      );
+
+      await iap.initConnection();
+
+      final result = await iap.verifyPurchaseWithProvider(
+        provider: types.PurchaseVerificationProvider.Iapkit,
+        iapkit: const types.RequestVerifyPurchaseWithIapkitProps(
+          apiKey: 'test-api-key',
+          apple: types.RequestVerifyPurchaseWithIapkitAppleProps(
+            jws: 'test-jws-token',
+          ),
+        ),
+      );
+
+      expect(result.provider, types.PurchaseVerificationProvider.Iapkit);
+      expect(result.iapkit, isNotNull);
+      expect(result.iapkit!.isValid, false);
+      expect(result.errors, isNotNull);
+      expect(result.errors!.length, 2);
+      expect(result.errors![0].code, 'INVALID_RECEIPT');
+      expect(result.errors![0].message, 'The receipt is invalid');
+      expect(result.errors![1].code, 'EXPIRED');
+      expect(result.errors![1].message, 'Subscription has expired');
+    });
+
+    test('handles iapkit as non-Map gracefully', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall call) async {
+        switch (call.method) {
+          case 'initConnection':
+            return true;
+          case 'verifyPurchaseWithProvider':
+            return {
+              'provider': 'iapkit',
+              'iapkit': 'invalid-data', // Not a Map
+            };
+        }
+        return null;
+      });
+
+      final iap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'ios'),
+      );
+
+      await iap.initConnection();
+
+      final result = await iap.verifyPurchaseWithProvider(
+        provider: types.PurchaseVerificationProvider.Iapkit,
+        iapkit: const types.RequestVerifyPurchaseWithIapkitProps(
+          apiKey: 'test-api-key',
+          apple: types.RequestVerifyPurchaseWithIapkitAppleProps(
+            jws: 'test-jws-token',
+          ),
+        ),
+      );
+
+      // Should handle gracefully with default values
+      expect(result.provider, types.PurchaseVerificationProvider.Iapkit);
+      expect(result.iapkit, isNotNull);
+      expect(result.iapkit!.isValid, false); // Default value
     });
   });
 }

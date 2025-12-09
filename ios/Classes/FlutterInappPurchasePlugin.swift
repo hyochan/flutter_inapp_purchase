@@ -686,17 +686,16 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 let res = try await OpenIapModule.shared.verifyPurchaseWithProvider(props)
 
                 // Convert result to dictionary
-                let iapkitResults = res.iapkit.map { item -> [String: Any] in
-                    return [
-                        "isValid": item.isValid,
-                        "state": item.state.rawValue,
-                        "store": item.store.rawValue
+                var payload: [String: Any] = [
+                    "provider": res.provider.rawValue
+                ]
+                if let iapkitItem = res.iapkit {
+                    payload["iapkit"] = [
+                        "isValid": iapkitItem.isValid,
+                        "state": iapkitItem.state.rawValue,
+                        "store": iapkitItem.store.rawValue
                     ]
                 }
-                let payload: [String: Any] = [
-                    "provider": res.provider.rawValue,
-                    "iapkit": iapkitResults
-                ]
                 FlutterIapLog.result("verifyPurchaseWithProvider", value: payload)
                 result(payload)
             } catch {
