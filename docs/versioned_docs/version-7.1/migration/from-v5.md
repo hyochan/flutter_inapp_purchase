@@ -194,8 +194,8 @@ FlutterInappPurchase.iapUpdated.listen(...);
 
 ```dart
 // Instance-based stream access
-FlutterInappPurchase.instance.purchaseUpdated.listen(...);
-FlutterInappPurchase.instance.purchaseError.listen(...);
+FlutterInappPurchase.instance.purchaseUpdatedListener.listen(...);
+FlutterInappPurchase.instance.purchaseErrorListener.listen(...);
 ```
 
 ### 7. Android Methods
@@ -280,7 +280,7 @@ _purchaseErrorSubscription = FlutterInappPurchase.iapUpdated.listen((data) {
 
 ```dart
 _purchaseUpdatedSubscription = FlutterInappPurchase.instance
-    .purchaseUpdated.listen((purchase) {
+    .purchaseUpdatedListener.listen((purchase) {
   if (purchase != null) {
     print('purchase-updated: ${purchase.productId}');
     _handlePurchaseUpdate(purchase);
@@ -288,7 +288,7 @@ _purchaseUpdatedSubscription = FlutterInappPurchase.instance
 });
 
 _purchaseErrorSubscription = FlutterInappPurchase.instance
-    .purchaseError.listen((error) {
+    .purchaseErrorListener.listen((error) {
   print('purchase-error: ${error?.message}');
   _handlePurchaseError(error);
 });
