@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 7.2.0
+
+- feat: Add `IapStore` enum for unified store identification (`apple`, `google`, `horizon`, `unknown`)
+- feat: Add `store` field to Purchase types (deprecates `platform`)
+- feat: Support `apple`/`google` keys in request parameters (alongside legacy `ios`/`android`)
+- chore(deps): Update OpenIAP versions (apple: 1.3.0, google: 1.3.10, gql: 1.3.0)
+
 ## 7.1.21
 
 - feat: Add `verifyPurchaseWithProvider` for IAPKit integration
