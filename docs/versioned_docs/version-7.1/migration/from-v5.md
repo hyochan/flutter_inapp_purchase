@@ -457,7 +457,7 @@ class _MyStoreState extends State<MyStore> {
     await FlutterInappPurchase.instance.initConnection();
 
     _purchaseSubscription = FlutterInappPurchase.instance
-        .purchaseUpdated.listen((purchase) {
+        .purchaseUpdatedListener.listen((purchase) {
       if (purchase != null) {
         print('purchase: ${purchase.productId}');
         _finishTransaction(purchase);

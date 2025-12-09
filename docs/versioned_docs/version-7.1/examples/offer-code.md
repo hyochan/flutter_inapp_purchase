@@ -62,7 +62,7 @@ Offer codes are useful for:
 ## Platform Support
 
 :::warning iOS Only
-Offer code redemption is only supported on iOS. Android uses promo codes through the Google Play Console instead.
+Offer code redemption is supported on iOS. Android uses promo codes through the Google Play Console instead.
 :::
 
 ## Best Practices
