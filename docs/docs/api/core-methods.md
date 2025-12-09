@@ -336,6 +336,8 @@ enum IapStore {
 }
 ```
 
+See [IAPKit Purchase States](https://www.openiap.dev/docs/apis#iapkit-purchase-states) for detailed state descriptions.
+
 **Platform Behavior**:
 - **iOS**: Sends the JWS (JSON Web Signature) token to IAPKit for server-side verification. The `purchaseToken` field contains the JWS representation on iOS.
 - **Android**: Sends the purchase token for verification. The `purchaseToken` field contains the Google Play purchase token.
