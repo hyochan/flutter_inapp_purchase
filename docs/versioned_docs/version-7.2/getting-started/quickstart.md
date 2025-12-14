@@ -15,9 +15,10 @@ Get up and running with Flutter In-App Purchase in minutes.
 Here's a complete example implementing a simple store with products and subscriptions:
 
 ```dart
+import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
-import 'dart:async';
 
 class SimpleStore extends StatefulWidget {
   @override

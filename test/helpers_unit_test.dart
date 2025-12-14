@@ -263,6 +263,72 @@ void main() {
           'token');
     });
 
+    test(
+        'parseProductFromNative builds Android in-app with one-time offer list',
+        () {
+      final product = parseProductFromNative(
+        <String, dynamic>{
+          'platform': 'android',
+          'id': 'coins_pack',
+          'title': 'Coins Pack',
+          'description': 'Pack of coins',
+          'currency': 'USD',
+          'displayPrice': '\$1.99',
+          'price': 1.99,
+          'oneTimePurchaseOfferDetailsAndroid': <Map<String, dynamic>>[
+            <String, dynamic>{
+              'formattedPrice': '\$1.99',
+              'priceAmountMicros': '1990000',
+              'priceCurrencyCode': 'USD',
+              'offerTags': <String>['launch'],
+              'offerToken': 'offer-token',
+              'offerId': 'offer-id',
+              'fullPriceMicros': '2990000',
+              'discountDisplayInfo': <String, dynamic>{
+                'discountAmount': <String, dynamic>{
+                  'discountAmountMicros': '100000',
+                  'formattedDiscountAmount': '\$0.10',
+                },
+                'percentageDiscount': 20,
+              },
+              'limitedQuantityInfo': <String, dynamic>{
+                'maximumQuantity': 10,
+                'remainingQuantity': 4,
+              },
+              'validTimeWindow': <String, dynamic>{
+                'startTimeMillis': '1000',
+                'endTimeMillis': '2000',
+              },
+              'preorderDetailsAndroid': <String, dynamic>{
+                'preorderPresaleEndTimeMillis': '3000',
+                'preorderReleaseTimeMillis': '4000',
+              },
+              'rentalDetailsAndroid': <String, dynamic>{
+                'rentalPeriod': 'P7D',
+                'rentalExpirationPeriod': 'P1D',
+              },
+            },
+          ],
+        },
+        'inapp',
+        fallbackIsIOS: false,
+      );
+
+      expect(product, isA<types.ProductAndroid>());
+      final android = product as types.ProductAndroid;
+      final offers = android.oneTimePurchaseOfferDetailsAndroid;
+      expect(offers, isNotNull);
+      expect(offers, hasLength(1));
+      final offer = offers!.first;
+      expect(offer.offerToken, 'offer-token');
+      expect(offer.offerTags, contains('launch'));
+      expect(offer.discountDisplayInfo?.percentageDiscount, 20);
+      expect(offer.limitedQuantityInfo?.maximumQuantity, 10);
+      expect(offer.validTimeWindow?.endTimeMillis, '2000');
+      expect(offer.preorderDetailsAndroid?.preorderReleaseTimeMillis, '4000');
+      expect(offer.rentalDetailsAndroid?.rentalPeriod, 'P7D');
+    });
+
     test('parseProductFromNative creates iOS in-app product', () {
       final product = parseProductFromNative(
         <String, dynamic>{

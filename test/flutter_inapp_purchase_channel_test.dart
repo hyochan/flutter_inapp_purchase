@@ -17,6 +17,86 @@ void main() {
         .setMockMethodCallHandler(channel, null);
   });
 
+  group('billing programs', () {
+    test('isBillingProgramAvailableAndroid returns parsed result', () async {
+      final calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall call) async {
+        calls.add(call);
+        if (call.method == 'isBillingProgramAvailableAndroid') {
+          return jsonEncode(
+            <String, dynamic>{
+              'billingProgram': 'external-offer',
+              'isAvailable': true,
+            },
+          );
+        }
+        return null;
+      });
+
+      final iap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'android'),
+      );
+
+      final result = await iap.isBillingProgramAvailableAndroid(
+        types.BillingProgramAndroid.ExternalOffer,
+      );
+
+      expect(result.billingProgram, types.BillingProgramAndroid.ExternalOffer);
+      expect(result.isAvailable, isTrue);
+
+      final call = calls.singleWhere(
+        (MethodCall call) => call.method == 'isBillingProgramAvailableAndroid',
+      );
+      expect(
+        call.arguments,
+        <String, dynamic>{'program': 'external-offer'},
+      );
+    });
+
+    test(
+        'createBillingProgramReportingDetailsAndroid returns external token on Android',
+        () async {
+      final calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall call) async {
+        calls.add(call);
+        if (call.method == 'createBillingProgramReportingDetailsAndroid') {
+          return jsonEncode(
+            <String, dynamic>{
+              'billingProgram': 'external-offer',
+              'externalTransactionToken': 'ext-token-123',
+            },
+          );
+        }
+        return null;
+      });
+
+      final iap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'android'),
+      );
+
+      final result = await iap.createBillingProgramReportingDetailsAndroid(
+        types.BillingProgramAndroid.ExternalOffer,
+      );
+
+      expect(
+        result.billingProgram,
+        types.BillingProgramAndroid.ExternalOffer,
+      );
+      expect(result.externalTransactionToken, 'ext-token-123');
+
+      final call = calls.singleWhere(
+        (MethodCall call) =>
+            call.method == 'createBillingProgramReportingDetailsAndroid',
+      );
+      expect(
+        call.arguments,
+        <String, dynamic>{'program': 'external-offer'},
+      );
+    });
+  });
+
   group('launchExternalLinkAndroid', () {
     test('sends correct payload to native channel', () async {
       final calls = <MethodCall>[];
