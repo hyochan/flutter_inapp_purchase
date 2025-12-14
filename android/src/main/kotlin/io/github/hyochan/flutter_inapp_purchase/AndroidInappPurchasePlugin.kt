@@ -686,11 +686,10 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                 }
             }
             "launchExternalLinkAndroid" -> {
-                val params = call.arguments as? Map<*, *>
-                val programStr = params?.get("billingProgram") as? String
-                val launchModeStr = params?.get("launchMode") as? String
-                val linkTypeStr = params?.get("linkType") as? String
-                val linkUri = params?.get("linkUri") as? String
+                val programStr = call.argument<String?>("billingProgram")
+                val launchModeStr = call.argument<String?>("launchMode")
+                val linkTypeStr = call.argument<String?>("linkType")
+                val linkUri = call.argument<String?>("linkUri")
 
                 scope.launch {
                     try {
@@ -704,11 +703,15 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                             safe.error(OpenIapError.BillingError.CODE, OpenIapError.BillingError.MESSAGE, "Activity not available")
                             return@launch
                         }
+                        if (linkUri.isNullOrBlank()) {
+                            safe.error(OpenIapError.DeveloperError.CODE, "linkUri is required for launchExternalLinkAndroid", null)
+                            return@launch
+                        }
                         val launchParams = LaunchExternalLinkParamsAndroid(
                             billingProgram = BillingProgramAndroid.fromJson(programStr ?: "unspecified"),
                             launchMode = ExternalLinkLaunchModeAndroid.fromJson(launchModeStr ?: "unspecified"),
                             linkType = ExternalLinkTypeAndroid.fromJson(linkTypeStr ?: "unspecified"),
-                            linkUri = linkUri ?: ""
+                            linkUri = linkUri
                         )
                         val success = iap.launchExternalLink(act, launchParams)
                         safe.success(success)
@@ -947,8 +950,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
 
             // Verify Purchase (Platform-specific, v8.0.0+)
             "verifyPurchase" -> {
-                val params = call.arguments as? Map<*, *>
-                val googleOptions = params?.get("google") as? Map<*, *>
+                val googleOptions = call.argument<Map<String, Any?>>("google")
 
                 // Android only supports google options
                 if (googleOptions == null) {

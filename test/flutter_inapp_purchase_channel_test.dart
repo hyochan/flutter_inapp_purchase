@@ -17,6 +17,41 @@ void main() {
         .setMockMethodCallHandler(channel, null);
   });
 
+  group('launchExternalLinkAndroid', () {
+    test('sends correct payload to native channel', () async {
+      final calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall call) async {
+        calls.add(call);
+        if (call.method == 'launchExternalLinkAndroid') {
+          return true;
+        }
+        return null;
+      });
+
+      final iap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'android'),
+      );
+
+      const params = types.LaunchExternalLinkParamsAndroid(
+        billingProgram: types.BillingProgramAndroid.ExternalOffer,
+        launchMode:
+            types.ExternalLinkLaunchModeAndroid.LaunchInExternalBrowserOrApp,
+        linkType: types.ExternalLinkTypeAndroid.LinkToDigitalContentOffer,
+        linkUri: 'https://example.com/offer',
+      );
+
+      final result = await iap.launchExternalLinkAndroid(params);
+      expect(result, isTrue);
+
+      final methodCall = calls.singleWhere(
+          (MethodCall call) => call.method == 'launchExternalLinkAndroid');
+      final payload = Map<String, dynamic>.from(
+          methodCall.arguments as Map<dynamic, dynamic>);
+      expect(payload, params.toJson());
+    });
+  });
+
   group('requestPurchase', () {
     test('throws when connection not initialized', () async {
       final iap = FlutterInappPurchase.private(
