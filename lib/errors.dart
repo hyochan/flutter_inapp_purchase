@@ -1,7 +1,8 @@
 /// Error types for flutter_inapp_purchase (OpenIAP compliant)
 library errors;
 
-import 'dart:io';
+import 'package:flutter/foundation.dart';
+
 import 'types.dart' as openiap_types;
 
 // Type aliases for convenience
@@ -10,9 +11,9 @@ typedef IapPlatform = openiap_types.IapPlatform;
 
 /// Get current platform
 IapPlatform getCurrentPlatform() {
-  if (Platform.isIOS) {
+  if (defaultTargetPlatform == TargetPlatform.iOS) {
     return IapPlatform.IOS;
-  } else if (Platform.isAndroid) {
+  } else if (defaultTargetPlatform == TargetPlatform.android) {
     return IapPlatform.Android;
   }
   throw UnsupportedError('Platform not supported');
@@ -69,8 +70,7 @@ class ErrorCodeMapping {
     ErrorCode.DeveloperError: 'E_DEVELOPER_ERROR',
     ErrorCode.ReceiptFinishedFailed: 'E_RECEIPT_FINISHED_FAILED',
     ErrorCode.NotPrepared: 'E_NOT_PREPARED',
-    ErrorCode.BillingResponseJsonParseError:
-        'E_BILLING_RESPONSE_JSON_PARSE_ERROR',
+    ErrorCode.BillingResponseJsonParseError: 'E_BILLING_RESPONSE_JSON_PARSE_ERROR',
     ErrorCode.DeferredPayment: 'E_DEFERRED_PAYMENT',
     ErrorCode.Interrupted: 'E_INTERRUPTED',
     ErrorCode.IapNotAvailable: 'E_IAP_NOT_AVAILABLE',
@@ -89,8 +89,7 @@ class ErrorCodeMapping {
     // Purchase verification codes
     ErrorCode.PurchaseVerificationFailed: 'E_PURCHASE_VERIFICATION_FAILED',
     ErrorCode.PurchaseVerificationFinished: 'E_PURCHASE_VERIFICATION_FINISHED',
-    ErrorCode.PurchaseVerificationFinishFailed:
-        'E_PURCHASE_VERIFICATION_FINISH_FAILED',
+    ErrorCode.PurchaseVerificationFinishFailed: 'E_PURCHASE_VERIFICATION_FINISH_FAILED',
   };
 }
 
@@ -109,11 +108,9 @@ String _toKebabCase(String str) {
 ErrorCode _normalizeToErrorCode(dynamic error) {
   if (error is PurchaseError && error.code != null) return error.code!;
   if (error is ErrorCode) return error;
-  final dynamic code =
-      error is String ? error : (error is Map ? error['code'] : null);
+  final dynamic code = error is String ? error : (error is Map ? error['code'] : null);
   final dynamic platformRaw = error is Map ? error['platform'] : null;
-  final IapPlatform platform =
-      platformRaw == 'ios' ? IapPlatform.IOS : IapPlatform.Android;
+  final IapPlatform platform = platformRaw == 'ios' ? IapPlatform.IOS : IapPlatform.Android;
   if (code is String) {
     // First try platform-specific codes (E_* for Android, numeric for iOS)
     final platformResult = ErrorCodeUtils.fromPlatformCode(code, platform);
@@ -197,10 +194,7 @@ class PurchaseError implements Exception {
   }) : name = name ?? '[flutter_inapp_purchase]: PurchaseError';
 
   /// Creates a PurchaseError from platform-specific error data
-  factory PurchaseError.fromPlatformError(
-    Map<String, dynamic> errorData,
-    IapPlatform platform,
-  ) {
+  factory PurchaseError.fromPlatformError(Map<String, dynamic> errorData, IapPlatform platform) {
     ErrorCode errorCode = errorData['code'] != null
         ? ErrorCodeUtils.fromPlatformCode(errorData['code'], platform)
         : ErrorCode.Unknown;
@@ -276,10 +270,7 @@ class PurchaseResult {
 /// Utility functions for error code mapping and validation
 class ErrorCodeUtils {
   /// Maps a platform-specific error code back to the standardized ErrorCode enum
-  static ErrorCode fromPlatformCode(
-    dynamic platformCode,
-    IapPlatform platform,
-  ) {
+  static ErrorCode fromPlatformCode(dynamic platformCode, IapPlatform platform) {
     // Handle string codes (Android E_* codes or OpenIAP kebab-case)
     if (platformCode is String) {
       // First try direct mapping from ErrorCodeMapping
@@ -352,8 +343,7 @@ class ConnectionResult {
 
   ConnectionResult({this.msg});
 
-  ConnectionResult.fromJSON(Map<String, dynamic> json)
-      : msg = json['msg'] as String?;
+  ConnectionResult.fromJSON(Map<String, dynamic> json) : msg = json['msg'] as String?;
 
   Map<String, dynamic> toJson() => {'msg': msg ?? ''};
 
