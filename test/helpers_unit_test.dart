@@ -329,6 +329,44 @@ void main() {
       expect(offer.rentalDetailsAndroid?.rentalPeriod, 'P7D');
     });
 
+    test(
+        'parseProductFromNative coerces numeric validTimeWindow millis to string',
+        () {
+      final product = parseProductFromNative(
+        <String, dynamic>{
+          'platform': 'android',
+          'id': 'coins_pack',
+          'title': 'Coins Pack',
+          'description': 'Pack of coins',
+          'currency': 'USD',
+          'displayPrice': '\$1.99',
+          'price': 1.99,
+          'oneTimePurchaseOfferDetailsAndroid': <Map<String, dynamic>>[
+            <String, dynamic>{
+              'formattedPrice': '\$1.99',
+              'priceAmountMicros': 1990000,
+              'priceCurrencyCode': 'USD',
+              'validTimeWindow': <String, dynamic>{
+                'startTimeMillis': 1000, // numeric
+                'endTimeMillis': 2000, // numeric
+              },
+            },
+          ],
+        },
+        'inapp',
+        fallbackIsIOS: false,
+      );
+
+      expect(product, isA<types.ProductAndroid>());
+      final android = product as types.ProductAndroid;
+      final offers = android.oneTimePurchaseOfferDetailsAndroid;
+      expect(offers, isNotNull);
+      final validWindow = offers!.first.validTimeWindow;
+      expect(validWindow, isNotNull);
+      expect(validWindow!.startTimeMillis, '1000');
+      expect(validWindow.endTimeMillis, '2000');
+    });
+
     test('parseProductFromNative creates iOS in-app product', () {
       final product = parseProductFromNative(
         <String, dynamic>{

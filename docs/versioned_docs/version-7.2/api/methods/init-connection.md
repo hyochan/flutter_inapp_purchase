@@ -18,17 +18,16 @@ The `initConnection()` method establishes a connection to the App Store (iOS) or
 ## Signature
 
 ```dart
-Future<void> initConnection()
+Future<bool> initConnection()
 ```
 
 ## Returns
 
-A `Future` that completes when the connection is established.
+A `Future<bool>` that completes with `true` when the connection is established (or already initialized).
 
 ## Throws
 
-- `PurchaseError` with code `E_ALREADY_INITIALIZED` if the connection is already initialized
-- `PurchaseError` with code `E_NOT_INITIALIZED` if the initialization fails
+- `PurchaseError` with code `ErrorCode.NotPrepared` if the initialization fails
 
 ## Platform Behavior
 
@@ -53,7 +52,11 @@ class IAPService {
   Future<void> initialize() async {
     try {
       // Initialize the connection
-      await _iap.initConnection();
+      final ok = await _iap.initConnection();
+      if (!ok) {
+        print('Failed to initialize IAP connection');
+        return;
+      }
       print('IAP connection initialized successfully');
       
       // Set up listeners after initialization
@@ -65,10 +68,7 @@ class IAPService {
     } catch (e) {
       if (e is PurchaseError) {
         switch (e.code) {
-          case ErrorCode.E_ALREADY_INITIALIZED:
-            print('IAP already initialized');
-            break;
-          case ErrorCode.E_NOT_INITIALIZED:
+          case ErrorCode.NotPrepared:
             print('Failed to initialize IAP: ${e.message}');
             break;
           default:

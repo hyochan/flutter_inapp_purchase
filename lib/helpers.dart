@@ -724,10 +724,7 @@ gentype.ProductAndroidOneTimePurchaseOfferDetail?
           ? gentype.LimitedQuantityInfoAndroid.fromJson(
               value['limitedQuantityInfo'] as Map<String, dynamic>)
           : null,
-      validTimeWindow: value['validTimeWindow'] != null
-          ? gentype.ValidTimeWindowAndroid.fromJson(
-              value['validTimeWindow'] as Map<String, dynamic>)
-          : null,
+      validTimeWindow: _parseValidTimeWindow(value['validTimeWindow']),
       preorderDetailsAndroid: value['preorderDetailsAndroid'] != null
           ? gentype.PreorderDetailsAndroid.fromJson(
               value['preorderDetailsAndroid'] as Map<String, dynamic>)
@@ -752,7 +749,44 @@ gentype.ProductAndroidOneTimePurchaseOfferDetail?
       offerToken: map['offerToken']?.toString() ?? '',
       offerId: map['offerId']?.toString(),
       fullPriceMicros: map['fullPriceMicros']?.toString(),
+      discountDisplayInfo: map['discountDisplayInfo'] != null
+          ? gentype.DiscountDisplayInfoAndroid.fromJson(
+              Map<String, dynamic>.from(
+                  map['discountDisplayInfo'] as Map<dynamic, dynamic>))
+          : null,
+      limitedQuantityInfo: map['limitedQuantityInfo'] != null
+          ? gentype.LimitedQuantityInfoAndroid.fromJson(
+              Map<String, dynamic>.from(
+                  map['limitedQuantityInfo'] as Map<dynamic, dynamic>))
+          : null,
+      validTimeWindow: _parseValidTimeWindow(map['validTimeWindow']),
+      preorderDetailsAndroid: map['preorderDetailsAndroid'] != null
+          ? gentype.PreorderDetailsAndroid.fromJson(Map<String, dynamic>.from(
+              map['preorderDetailsAndroid'] as Map<dynamic, dynamic>))
+          : null,
+      rentalDetailsAndroid: map['rentalDetailsAndroid'] != null
+          ? gentype.RentalDetailsAndroid.fromJson(Map<String, dynamic>.from(
+              map['rentalDetailsAndroid'] as Map<dynamic, dynamic>))
+          : null,
     );
+  }
+  return null;
+}
+
+gentype.ValidTimeWindowAndroid? _parseValidTimeWindow(dynamic value) {
+  if (value == null) return null;
+  if (value is Map<String, dynamic>) {
+    return gentype.ValidTimeWindowAndroid.fromJson({
+      'endTimeMillis': value['endTimeMillis']?.toString() ?? '',
+      'startTimeMillis': value['startTimeMillis']?.toString() ?? '',
+    });
+  }
+  if (value is Map) {
+    final map = value.cast<dynamic, dynamic>();
+    return gentype.ValidTimeWindowAndroid.fromJson({
+      'endTimeMillis': map['endTimeMillis']?.toString() ?? '',
+      'startTimeMillis': map['startTimeMillis']?.toString() ?? '',
+    });
   }
   return null;
 }
