@@ -6,11 +6,15 @@ import android.app.Application.ActivityLifecycleCallbacks
 import android.content.Context
 import android.os.Bundle
 import dev.hyo.openiap.AndroidSubscriptionOfferInput
+import dev.hyo.openiap.BillingProgramAndroid
 import dev.hyo.openiap.DeepLinkOptions
+import dev.hyo.openiap.ExternalLinkLaunchModeAndroid
+import dev.hyo.openiap.ExternalLinkTypeAndroid
 import dev.hyo.openiap.FetchProductsResult
 import dev.hyo.openiap.FetchProductsResultProducts
 import dev.hyo.openiap.FetchProductsResultSubscriptions
 import dev.hyo.openiap.InitConnectionConfig
+import dev.hyo.openiap.LaunchExternalLinkParamsAndroid
 import dev.hyo.openiap.OpenIapError
 import dev.hyo.openiap.OpenIapLog
 import dev.hyo.openiap.OpenIapModule
@@ -638,6 +642,81 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                 }
             }
 
+            // Billing Programs API (8.2.0+)
+            "isBillingProgramAvailableAndroid" -> {
+                val programStr = call.argument<String>("program")
+                scope.launch {
+                    try {
+                        val iap = openIap
+                        if (iap == null) {
+                            safe.error(OpenIapError.NotPrepared.CODE, OpenIapError.NotPrepared.MESSAGE, "IAP module not initialized.")
+                            return@launch
+                        }
+                        val program = BillingProgramAndroid.fromJson(programStr ?: "unspecified")
+                        val result = iap.isBillingProgramAvailable(program)
+                        val response = JSONObject().apply {
+                            put("billingProgram", result.billingProgram.toJson())
+                            put("isAvailable", result.isAvailable)
+                        }
+                        safe.success(response.toString())
+                    } catch (e: Exception) {
+                        safe.error(OpenIapError.BillingError.CODE, OpenIapError.BillingError.MESSAGE, e.message)
+                    }
+                }
+            }
+            "createBillingProgramReportingDetailsAndroid" -> {
+                val programStr = call.argument<String>("program")
+                scope.launch {
+                    try {
+                        val iap = openIap
+                        if (iap == null) {
+                            safe.error(OpenIapError.NotPrepared.CODE, OpenIapError.NotPrepared.MESSAGE, "IAP module not initialized.")
+                            return@launch
+                        }
+                        val program = BillingProgramAndroid.fromJson(programStr ?: "unspecified")
+                        val result = iap.createBillingProgramReportingDetails(program)
+                        val response = JSONObject().apply {
+                            put("billingProgram", result.billingProgram.toJson())
+                            put("externalTransactionToken", result.externalTransactionToken)
+                        }
+                        safe.success(response.toString())
+                    } catch (e: Exception) {
+                        safe.error(OpenIapError.BillingError.CODE, OpenIapError.BillingError.MESSAGE, e.message)
+                    }
+                }
+            }
+            "launchExternalLinkAndroid" -> {
+                val params = call.arguments as? Map<*, *>
+                val programStr = params?.get("billingProgram") as? String
+                val launchModeStr = params?.get("launchMode") as? String
+                val linkTypeStr = params?.get("linkType") as? String
+                val linkUri = params?.get("linkUri") as? String
+
+                scope.launch {
+                    try {
+                        val iap = openIap
+                        if (iap == null) {
+                            safe.error(OpenIapError.NotPrepared.CODE, OpenIapError.NotPrepared.MESSAGE, "IAP module not initialized.")
+                            return@launch
+                        }
+                        val act = activity
+                        if (act == null) {
+                            safe.error(OpenIapError.BillingError.CODE, OpenIapError.BillingError.MESSAGE, "Activity not available")
+                            return@launch
+                        }
+                        val launchParams = LaunchExternalLinkParamsAndroid(
+                            billingProgram = BillingProgramAndroid.fromJson(programStr ?: "unspecified"),
+                            launchMode = ExternalLinkLaunchModeAndroid.fromJson(launchModeStr ?: "unspecified"),
+                            linkType = ExternalLinkTypeAndroid.fromJson(linkTypeStr ?: "unspecified"),
+                            linkUri = linkUri ?: ""
+                        )
+                        val success = iap.launchExternalLink(act, launchParams)
+                        safe.success(success)
+                    } catch (e: Exception) {
+                        safe.error(OpenIapError.BillingError.CODE, OpenIapError.BillingError.MESSAGE, e.message)
+                    }
+                }
+            }
 
             // Legacy/compat purchases queries
             "getAvailableItemsByType" -> {
@@ -864,6 +943,102 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
             "showInAppMessages" -> {
                 logDeprecated("showInAppMessages", "No-op; removed in 7.0.0")
                 safe.success(true)
+            }
+
+            // Verify Purchase (Platform-specific, v8.0.0+)
+            "verifyPurchase" -> {
+                val params = call.arguments as? Map<*, *>
+                val googleOptions = params?.get("google") as? Map<*, *>
+
+                // Android only supports google options
+                if (googleOptions == null) {
+                    safe.error(OpenIapError.DeveloperError.CODE, "google options required for Android verification", null)
+                    return
+                }
+
+                val sku = googleOptions["sku"] as? String
+                val accessToken = googleOptions["accessToken"] as? String
+                val packageName = googleOptions["packageName"] as? String
+                val purchaseToken = googleOptions["purchaseToken"] as? String
+                val isSub = googleOptions["isSub"] as? Boolean
+
+                // Validate required fields (sensitive data check)
+                if (accessToken.isNullOrBlank()) {
+                    safe.error(OpenIapError.DeveloperError.CODE, "accessToken is required for Google verification", null)
+                    return
+                }
+                if (packageName.isNullOrBlank()) {
+                    safe.error(OpenIapError.DeveloperError.CODE, "packageName is required for Google verification", null)
+                    return
+                }
+                if (purchaseToken.isNullOrBlank()) {
+                    safe.error(OpenIapError.DeveloperError.CODE, "purchaseToken is required for Google verification", null)
+                    return
+                }
+                if (sku.isNullOrBlank()) {
+                    safe.error(OpenIapError.DeveloperError.CODE, "sku is required for Google verification", null)
+                    return
+                }
+
+                scope.launch {
+                    withBillingReady(safe, autoInit = true) {
+                        try {
+                            val iap = openIap
+                            if (iap == null) {
+                                safe.error(OpenIapError.NotPrepared.CODE, OpenIapError.NotPrepared.MESSAGE, "IAP module not initialized.")
+                                return@withBillingReady
+                            }
+
+                            // Build props for OpenIAP using new API structure
+                            val propsMap = mapOf(
+                                "google" to mapOf(
+                                    "sku" to sku,
+                                    "accessToken" to accessToken,
+                                    "packageName" to packageName,
+                                    "purchaseToken" to purchaseToken,
+                                    "isSub" to isSub
+                                )
+                            )
+                            val props = dev.hyo.openiap.VerifyPurchaseProps.fromJson(propsMap)
+                            val result = iap.verifyPurchase(props)
+
+                            // Convert result to JSON
+                            val payload = JSONObject().apply {
+                                put("__typename", "VerifyPurchaseResultAndroid")
+                                // Add Android-specific result fields from OpenIAP result
+                                when (result) {
+                                    is dev.hyo.openiap.VerifyPurchaseResultAndroid -> {
+                                        put("autoRenewing", result.autoRenewing)
+                                        put("betaProduct", result.betaProduct)
+                                        result.cancelDate?.let { put("cancelDate", it) }
+                                        result.cancelReason?.let { put("cancelReason", it) }
+                                        result.deferredDate?.let { put("deferredDate", it) }
+                                        result.deferredSku?.let { put("deferredSku", it) }
+                                        put("freeTrialEndDate", result.freeTrialEndDate)
+                                        put("gracePeriodEndDate", result.gracePeriodEndDate)
+                                        put("parentProductId", result.parentProductId)
+                                        put("productId", result.productId)
+                                        put("productType", result.productType)
+                                        put("purchaseDate", result.purchaseDate)
+                                        put("quantity", result.quantity)
+                                        put("receiptId", result.receiptId)
+                                        put("renewalDate", result.renewalDate)
+                                        put("term", result.term)
+                                        put("termSku", result.termSku)
+                                        put("testTransaction", result.testTransaction)
+                                    }
+                                    else -> {
+                                        OpenIapLog.w(TAG, "Unexpected verification result type: ${result::class.simpleName}")
+                                    }
+                                }
+                            }
+                            safe.success(payload.toString())
+                        } catch (e: Exception) {
+                            OpenIapLog.e("verifyPurchase error", e)
+                            safe.error(OpenIapError.VerificationFailed.CODE, "Verification failed: ${e.message}", null)
+                        }
+                    }
+                }
             }
 
             // Verify Purchase with Provider (IAPKit)

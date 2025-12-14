@@ -96,6 +96,192 @@ class ProductDetailModal extends StatelessWidget {
     );
   }
 
+  Widget _buildOneTimeOfferCard(
+    int index,
+    ProductAndroidOneTimePurchaseOfferDetail offer,
+  ) {
+    final hasDiscount = offer.discountDisplayInfo != null;
+    final hasTimeWindow = offer.validTimeWindow != null;
+    final hasQuantityLimit = offer.limitedQuantityInfo != null;
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      color: hasDiscount ? Colors.green[50] : null,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: hasDiscount ? Colors.green : Colors.blue,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    hasDiscount
+                        ? 'Offer #${index + 1} (Discount)'
+                        : 'Offer #${index + 1}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            _buildDetailRow('Price', offer.formattedPrice),
+            _buildDetailRow('Price (micros)', offer.priceAmountMicros),
+            _buildDetailRow('Currency', offer.priceCurrencyCode),
+            if (offer.offerId != null)
+              _buildDetailRow('Offer ID', offer.offerId),
+            if (offer.fullPriceMicros != null)
+              _buildDetailRow('Full Price (micros)', offer.fullPriceMicros),
+            if (offer.offerToken.isNotEmpty)
+              _buildDetailRow(
+                'Offer Token',
+                offer.offerToken.length > 30
+                    ? '${offer.offerToken.substring(0, 30)}...'
+                    : offer.offerToken,
+              ),
+            if (offer.offerTags.isNotEmpty)
+              _buildDetailRow('Tags', offer.offerTags.join(', ')),
+
+            // Discount Info
+            if (hasDiscount) ...[
+              const Divider(),
+              const Text(
+                'Discount Info',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green,
+                ),
+              ),
+              const SizedBox(height: 4),
+              _buildDetailRow(
+                'Discount %',
+                '${offer.discountDisplayInfo!.percentageDiscount}%',
+              ),
+              if (offer.discountDisplayInfo!.discountAmount != null)
+                _buildDetailRow(
+                  'Discount Amount',
+                  offer.discountDisplayInfo!.discountAmount!
+                      .formattedDiscountAmount,
+                ),
+            ],
+
+            // Time Window
+            if (hasTimeWindow) ...[
+              const Divider(),
+              const Text(
+                'Valid Time Window',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.orange,
+                ),
+              ),
+              const SizedBox(height: 4),
+              _buildDetailRow(
+                'Start',
+                _formatMillis(offer.validTimeWindow!.startTimeMillis),
+              ),
+              _buildDetailRow(
+                'End',
+                _formatMillis(offer.validTimeWindow!.endTimeMillis),
+              ),
+            ],
+
+            // Quantity Limit
+            if (hasQuantityLimit) ...[
+              const Divider(),
+              const Text(
+                'Quantity Limit',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.purple,
+                ),
+              ),
+              const SizedBox(height: 4),
+              _buildDetailRow(
+                'Max Quantity',
+                offer.limitedQuantityInfo!.maximumQuantity.toString(),
+              ),
+              _buildDetailRow(
+                'Remaining',
+                offer.limitedQuantityInfo!.remainingQuantity.toString(),
+              ),
+            ],
+
+            // Preorder Details (Android 8.0+)
+            if (offer.preorderDetailsAndroid != null) ...[
+              const Divider(),
+              const Text(
+                'Preorder Details',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.indigo,
+                ),
+              ),
+              const SizedBox(height: 4),
+              _buildDetailRow(
+                'Release Time',
+                _formatMillis(
+                  offer.preorderDetailsAndroid!.preorderReleaseTimeMillis,
+                ),
+              ),
+              _buildDetailRow(
+                'Presale End Time',
+                _formatMillis(
+                  offer.preorderDetailsAndroid!.preorderPresaleEndTimeMillis,
+                ),
+              ),
+            ],
+
+            // Rental Details (Android 8.0+)
+            if (offer.rentalDetailsAndroid != null) ...[
+              const Divider(),
+              const Text(
+                'Rental Details',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.teal,
+                ),
+              ),
+              const SizedBox(height: 4),
+              _buildDetailRow(
+                'Rental Period',
+                offer.rentalDetailsAndroid!.rentalPeriod,
+              ),
+              if (offer.rentalDetailsAndroid!.rentalExpirationPeriod != null)
+                _buildDetailRow(
+                  'Expiration Period',
+                  offer.rentalDetailsAndroid!.rentalExpirationPeriod!,
+                ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatMillis(String millis) {
+    try {
+      final ms = int.parse(millis);
+      final date = DateTime.fromMillisecondsSinceEpoch(ms);
+      return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')} '
+          '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+    } catch (e) {
+      return millis;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Use product.toJson() if available, otherwise fall back to _itemToMap
@@ -202,7 +388,33 @@ class ProductDetailModal extends StatelessWidget {
                     }(),
                   ],
 
-                  // Android Offers
+                  // Android One-Time Purchase Offers (v8.0.0+)
+                  if (item is ProductAndroid) ...[
+                    () {
+                      final android = item as ProductAndroid;
+                      final offers = android.oneTimePurchaseOfferDetailsAndroid;
+                      if (offers == null || offers.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
+                      return _buildSection(
+                        'Android One-Time Purchase Offers (${offers.length})',
+                        Column(
+                          children: offers
+                              .asMap()
+                              .entries
+                              .map<Widget>(
+                                (entry) => _buildOneTimeOfferCard(
+                                  entry.key,
+                                  entry.value,
+                                ),
+                              )
+                              .toList(),
+                        ),
+                      );
+                    }(),
+                  ],
+
+                  // Android Subscription Offers
                   if (item is ProductSubscriptionAndroid) ...[
                     () {
                       final android = item as ProductSubscriptionAndroid;

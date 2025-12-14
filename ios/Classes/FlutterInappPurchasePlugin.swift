@@ -171,10 +171,22 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
             }
 
         case "validateReceiptIOS":
-            guard let args = call.arguments as? [String: Any],
-                  let sku = args["sku"] as? String else {
+            guard let args = call.arguments as? [String: Any] else {
                 let code: ErrorCode = .developerError
-                result(FlutterError(code: code.rawValue, message: "sku required", details: nil))
+                result(FlutterError(code: code.rawValue, message: "arguments required", details: nil))
+                return
+            }
+            // Support new API: { apple: { sku: "..." } } or legacy { sku: "..." }
+            let sku: String
+            if let appleOptions = args["apple"] as? [String: Any],
+               let appleSku = appleOptions["sku"] as? String {
+                sku = appleSku
+            } else if let legacySku = args["sku"] as? String {
+                // Backwards compatibility with legacy API
+                sku = legacySku
+            } else {
+                let code: ErrorCode = .developerError
+                result(FlutterError(code: code.rawValue, message: "apple.sku required", details: nil))
                 return
             }
             validateReceiptIOS(productId: sku, result: result)

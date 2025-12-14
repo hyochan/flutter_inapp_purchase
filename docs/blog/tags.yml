@@ -82,3 +82,23 @@ security:
   label: Security
   permalink: /security
   description: Security features and best practices
+
+billing-programs:
+  label: Billing Programs
+  permalink: /billing-programs
+  description: Google Play Billing Programs API features
+
+type-inference:
+  label: Type Inference
+  permalink: /type-inference
+  description: Type inference and generic type improvements
+
+horizon-os:
+  label: Horizon OS
+  permalink: /horizon-os
+  description: Meta Horizon OS platform support
+
+meta-quest:
+  label: Meta Quest
+  permalink: /meta-quest
+  description: Meta Quest VR device support

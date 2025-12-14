@@ -177,7 +177,7 @@ void main() {
       await iap.initConnection();
 
       final result = await iap.validateReceiptIOS(
-        sku: 'com.example.prod1',
+        apple: const VerifyPurchaseAppleOptions(sku: 'com.example.prod1'),
       );
 
       expect(result.isValid, isTrue);
@@ -188,7 +188,7 @@ void main() {
     test('validateReceiptIOS throws when connection not initialized', () async {
       await expectLater(
         iap.validateReceiptIOS(
-          sku: 'com.example.prod1',
+          apple: const VerifyPurchaseAppleOptions(sku: 'com.example.prod1'),
         ),
         throwsA(
           isA<PurchaseError>().having(
@@ -204,7 +204,9 @@ void main() {
       await iap.initConnection();
 
       await expectLater(
-        iap.validateReceiptIOS(sku: '   '),
+        iap.validateReceiptIOS(
+          apple: const VerifyPurchaseAppleOptions(sku: '   '),
+        ),
         throwsA(
           isA<PurchaseError>().having(
             (error) => error.code,
@@ -231,7 +233,7 @@ void main() {
 
       await expectLater(
         iap.validateReceiptIOS(
-          sku: 'com.example.prod1',
+          apple: const VerifyPurchaseAppleOptions(sku: 'com.example.prod1'),
         ),
         throwsA(
           isA<PurchaseError>().having(
@@ -250,7 +252,7 @@ void main() {
 
       await expectLater(
         androidIap.validateReceipt(
-          sku: 'com.example.prod1',
+          apple: const VerifyPurchaseAppleOptions(sku: 'com.example.prod1'),
         ),
         throwsA(
           isA<PurchaseError>().having(
@@ -455,7 +457,7 @@ void main() {
       await iap.initConnection();
 
       final result = await iap.validateReceipt(
-        sku: 'com.example.prod1',
+        apple: const VerifyPurchaseAppleOptions(sku: 'com.example.prod1'),
       );
 
       expect(result, isA<VerifyPurchaseResultIOS>());

@@ -898,7 +898,9 @@ void main() {
       );
 
       await expectLater(
-        iap.verifyPurchase(sku: 'test.sku'),
+        iap.verifyPurchase(
+          apple: const types.VerifyPurchaseAppleOptions(sku: 'test.sku'),
+        ),
         throwsA(
           isA<PurchaseError>().having(
             (error) => error.code,
@@ -934,14 +936,19 @@ void main() {
 
       await iap.initConnection();
 
-      final result = await iap.verifyPurchase(sku: 'premium.upgrade');
+      final result = await iap.verifyPurchase(
+        apple: const types.VerifyPurchaseAppleOptions(sku: 'premium.upgrade'),
+      );
 
       final verifyCall =
           calls.singleWhere((MethodCall c) => c.method == 'verifyPurchase');
       final payload = Map<String, dynamic>.from(
           verifyCall.arguments as Map<dynamic, dynamic>);
 
-      expect(payload['sku'], 'premium.upgrade');
+      expect(payload['apple'], isNotNull);
+      final appleOptions =
+          Map<String, dynamic>.from(payload['apple'] as Map<dynamic, dynamic>);
+      expect(appleOptions['sku'], 'premium.upgrade');
 
       expect(result, isA<types.VerifyPurchaseResultIOS>());
       final iosResult = result as types.VerifyPurchaseResultIOS;
@@ -986,11 +993,11 @@ void main() {
       await iap.initConnection();
 
       final result = await iap.verifyPurchase(
-        sku: 'premium.upgrade',
-        androidOptions: const types.VerifyPurchaseAndroidOptions(
+        google: const types.VerifyPurchaseGoogleOptions(
+          sku: 'premium.upgrade',
           accessToken: 'test-access-token',
           packageName: 'com.example.app',
-          productToken: 'test-product-token',
+          purchaseToken: 'test-purchase-token',
         ),
       );
 
@@ -999,13 +1006,13 @@ void main() {
       final payload = Map<String, dynamic>.from(
           verifyCall.arguments as Map<dynamic, dynamic>);
 
-      expect(payload['sku'], 'premium.upgrade');
-      expect(payload['androidOptions'], isNotNull);
-      final androidOptions = Map<String, dynamic>.from(
-          payload['androidOptions'] as Map<dynamic, dynamic>);
-      expect(androidOptions['accessToken'], 'test-access-token');
-      expect(androidOptions['packageName'], 'com.example.app');
-      expect(androidOptions['productToken'], 'test-product-token');
+      expect(payload['google'], isNotNull);
+      final googleOptions =
+          Map<String, dynamic>.from(payload['google'] as Map<dynamic, dynamic>);
+      expect(googleOptions['sku'], 'premium.upgrade');
+      expect(googleOptions['accessToken'], 'test-access-token');
+      expect(googleOptions['packageName'], 'com.example.app');
+      expect(googleOptions['purchaseToken'], 'test-purchase-token');
 
       expect(result, isA<types.VerifyPurchaseResultAndroid>());
       final androidResult = result as types.VerifyPurchaseResultAndroid;
@@ -1036,7 +1043,9 @@ void main() {
       await iap.initConnection();
 
       await expectLater(
-        iap.verifyPurchase(sku: 'test.sku'),
+        iap.verifyPurchase(
+          apple: const types.VerifyPurchaseAppleOptions(sku: 'test.sku'),
+        ),
         throwsA(isA<PurchaseError>()),
       );
     });
@@ -1060,7 +1069,9 @@ void main() {
       await iap.initConnection();
 
       await expectLater(
-        iap.verifyPurchase(sku: 'test.sku'),
+        iap.verifyPurchase(
+          apple: const types.VerifyPurchaseAppleOptions(sku: 'test.sku'),
+        ),
         throwsA(
           isA<PurchaseError>().having(
             (error) => error.code,

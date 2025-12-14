@@ -1,6 +1,6 @@
 ---
 slug: horizon-os-support
-title: 7.1.13 - Horizon OS Support for Meta Quest Devices
+title: "7.1.13 - Horizon OS Support for Meta Quest Devices"
 authors: [hyochan]
 tags: [release, flutter, in-app-purchase, horizon-os, meta-quest, openiap]
 date: 2025-10-28

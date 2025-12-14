@@ -1081,11 +1081,11 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
   /// ```dart
   /// // Step 1: Local validation (testing only)
   /// final result = await FlutterInappPurchase.instance.validateReceiptIOS(
-  ///   sku: 'com.example.premium',
+  ///   apple: VerifyPurchaseAppleOptions(sku: 'com.example.premium'),
   /// );
   ///
   /// if (result.isValid) {
-  ///   print('✅ Local validation passed (TEST ONLY)');
+  ///   print('Local validation passed (TEST ONLY)');
   ///
   ///   // Step 2: Send to your server for PRODUCTION validation
   ///   final serverPayload = {
@@ -1094,18 +1094,20 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
   ///   };
   ///
   ///   // await yourApi.validateOnServer(serverPayload);
-  ///   print('📤 Send purchaseToken to your server for production validation');
+  ///   print('Send purchaseToken to your server for production validation');
   /// }
   /// ```
   ///
   /// Note: This method requires iOS 15.0+ for StoreKit 2 support.
-  gentype.QueryValidateReceiptIOSHandler get validateReceiptIOS => (
-          {required String sku,
-          gentype.VerifyPurchaseAndroidOptions? androidOptions}) async {
-        if (!_platform.isIOS || _platform.isMacOS) {
+  gentype.QueryValidateReceiptIOSHandler get validateReceiptIOS => ({
+        gentype.VerifyPurchaseAppleOptions? apple,
+        gentype.VerifyPurchaseGoogleOptions? google,
+        gentype.VerifyPurchaseHorizonOptions? horizon,
+      }) async {
+        if (!_platform.isIOS && !_platform.isMacOS) {
           throw errors.PurchaseError(
             code: errors.ErrorCode.IapNotAvailable,
-            message: 'Receipt validation is only available on iOS',
+            message: 'Receipt validation is only available on iOS/macOS',
           );
         }
 
@@ -1116,7 +1118,14 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           );
         }
 
-        final skuTrimmed = sku.trim();
+        if (apple == null) {
+          throw PurchaseError(
+            code: gentype.ErrorCode.DeveloperError,
+            message: 'Apple options required for iOS receipt validation',
+          );
+        }
+
+        final skuTrimmed = apple.sku.trim();
         if (skuTrimmed.isEmpty) {
           throw PurchaseError(
             code: gentype.ErrorCode.DeveloperError,
@@ -1127,7 +1136,9 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
         try {
           final result = await _channel.invokeMethod<Map<dynamic, dynamic>>(
             'validateReceiptIOS',
-            {'sku': skuTrimmed},
+            {
+              'apple': {'sku': skuTrimmed}
+            },
           );
 
           if (result == null) {
@@ -1167,12 +1178,20 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           );
         }
       };
-  gentype.MutationValidateReceiptHandler get validateReceipt => (
-          {required String sku,
-          gentype.VerifyPurchaseAndroidOptions? androidOptions}) async {
+  gentype.MutationValidateReceiptHandler get validateReceipt => ({
+        gentype.VerifyPurchaseAppleOptions? apple,
+        gentype.VerifyPurchaseGoogleOptions? google,
+        gentype.VerifyPurchaseHorizonOptions? horizon,
+      }) async {
         if (_platform.isIOS || _platform.isMacOS) {
-          return await validateReceiptIOS(
-              sku: sku, androidOptions: androidOptions);
+          if (apple == null) {
+            throw PurchaseError(
+              code: gentype.ErrorCode.DeveloperError,
+              message:
+                  'Apple options required for iOS/macOS receipt validation',
+            );
+          }
+          return await validateReceiptIOS(apple: apple);
         }
         if (_platform.isAndroid) {
           throw PurchaseError(
@@ -1314,11 +1333,13 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
   ///
   /// On iOS, this verifies the transaction using StoreKit 2's built-in
   /// verification. On Android, this requires providing Google Play Developer
-  /// API credentials via [androidOptions].
+  /// API credentials via [google].
   ///
   /// Example (iOS):
   /// ```dart
-  /// final result = await iap.verifyPurchase(sku: 'premium_upgrade');
+  /// final result = await iap.verifyPurchase(
+  ///   apple: VerifyPurchaseAppleOptions(sku: 'premium_upgrade'),
+  /// );
   /// if (result is VerifyPurchaseResultIOS && result.isValid) {
   ///   // Purchase verified locally
   /// }
@@ -1327,17 +1348,18 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
   /// Example (Android):
   /// ```dart
   /// final result = await iap.verifyPurchase(
-  ///   sku: 'premium_upgrade',
-  ///   androidOptions: VerifyPurchaseAndroidOptions(
-  ///     accessToken: 'your-google-access-token',
+  ///   google: VerifyPurchaseGoogleOptions(
+  ///     sku: 'premium_upgrade',
+  ///     accessToken: 'your-google-access-token', // From your backend
   ///     packageName: 'com.your.app',
-  ///     productToken: purchase.purchaseToken,
+  ///     purchaseToken: purchase.purchaseToken,
   ///   ),
   /// );
   /// ```
   gentype.MutationVerifyPurchaseHandler get verifyPurchase => ({
-        required String sku,
-        gentype.VerifyPurchaseAndroidOptions? androidOptions,
+        gentype.VerifyPurchaseAppleOptions? apple,
+        gentype.VerifyPurchaseGoogleOptions? google,
+        gentype.VerifyPurchaseHorizonOptions? horizon,
       }) async {
         if (!_isInitialized) {
           throw PurchaseError(
@@ -1347,12 +1369,16 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
         }
 
         try {
-          final Map<String, dynamic> args = {
-            'sku': sku,
-          };
+          final Map<String, dynamic> args = {};
 
-          if (androidOptions != null) {
-            args['androidOptions'] = androidOptions.toJson();
+          if (apple != null) {
+            args['apple'] = apple.toJson();
+          }
+          if (google != null) {
+            args['google'] = google.toJson();
+          }
+          if (horizon != null) {
+            args['horizon'] = horizon.toJson();
           }
 
           final result = await _channel.invokeMethod<dynamic>(
@@ -1743,6 +1769,96 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
               return null;
             }
           };
+
+  // MARK: - Billing Programs API (Android 8.2.0+)
+
+  /// Check if a billing program is available on Android (8.2.0+)
+  Future<gentype.BillingProgramAvailabilityResultAndroid>
+      isBillingProgramAvailableAndroid(
+          gentype.BillingProgramAndroid program) async {
+    if (!_platform.isAndroid) {
+      return gentype.BillingProgramAvailabilityResultAndroid(
+        billingProgram: program,
+        isAvailable: false,
+      );
+    }
+    try {
+      final result = await _channel.invokeMethod<String>(
+        'isBillingProgramAvailableAndroid',
+        {'program': program.toJson()},
+      );
+      if (result != null) {
+        final json = jsonDecode(result) as Map<String, dynamic>;
+        return gentype.BillingProgramAvailabilityResultAndroid.fromJson(json);
+      }
+      return gentype.BillingProgramAvailabilityResultAndroid(
+        billingProgram: program,
+        isAvailable: false,
+      );
+    } catch (error) {
+      debugPrint('isBillingProgramAvailableAndroid error: $error');
+      return gentype.BillingProgramAvailabilityResultAndroid(
+        billingProgram: program,
+        isAvailable: false,
+      );
+    }
+  }
+
+  /// Create billing program reporting details on Android (8.2.0+)
+  Future<gentype.BillingProgramReportingDetailsAndroid>
+      createBillingProgramReportingDetailsAndroid(
+          gentype.BillingProgramAndroid program) async {
+    if (!_platform.isAndroid) {
+      throw PurchaseError(
+        code: gentype.ErrorCode.IapNotAvailable,
+        message:
+            'createBillingProgramReportingDetailsAndroid only available on Android',
+      );
+    }
+    try {
+      final result = await _channel.invokeMethod<String>(
+        'createBillingProgramReportingDetailsAndroid',
+        {'program': program.toJson()},
+      );
+      if (result != null) {
+        final json = jsonDecode(result) as Map<String, dynamic>;
+        return gentype.BillingProgramReportingDetailsAndroid.fromJson(json);
+      }
+      throw PurchaseError(
+        code: gentype.ErrorCode.Unknown,
+        message: 'Failed to create billing program reporting details',
+      );
+    } catch (error) {
+      debugPrint('createBillingProgramReportingDetailsAndroid error: $error');
+      rethrow;
+    }
+  }
+
+  /// Launch external link on Android (8.2.0+)
+  Future<bool> launchExternalLinkAndroid(
+      gentype.LaunchExternalLinkParamsAndroid params) async {
+    if (!_platform.isAndroid) {
+      throw PurchaseError(
+        code: gentype.ErrorCode.IapNotAvailable,
+        message: 'launchExternalLinkAndroid only available on Android',
+      );
+    }
+    try {
+      final result = await _channel.invokeMethod<bool>(
+        'launchExternalLinkAndroid',
+        {
+          'billingProgram': params.billingProgram.toJson(),
+          'launchMode': params.launchMode.toJson(),
+          'linkType': params.linkType.toJson(),
+          'linkUri': params.linkUri,
+        },
+      );
+      return result ?? false;
+    } catch (error) {
+      debugPrint('launchExternalLinkAndroid error: $error');
+      rethrow;
+    }
+  }
 
   /// Present external purchase notice sheet on iOS (iOS 18.2+)
   gentype.MutationPresentExternalPurchaseNoticeSheetIOSHandler

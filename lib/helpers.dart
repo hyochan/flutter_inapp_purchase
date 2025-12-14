@@ -142,7 +142,7 @@ gentype.ProductCommon parseProductFromNative(
       type: productType,
       debugDescription: json['debugDescription']?.toString(),
       displayName: json['displayName']?.toString(),
-      oneTimePurchaseOfferDetailsAndroid: _parseOneTimePurchaseOfferDetail(
+      oneTimePurchaseOfferDetailsAndroid: _parseOneTimePurchaseOfferDetails(
         json['oneTimePurchaseOfferDetailsAndroid'],
       ),
       price: priceValue,
@@ -186,7 +186,7 @@ gentype.ProductCommon parseProductFromNative(
     type: productType,
     debugDescription: json['debugDescription']?.toString(),
     displayName: json['displayName']?.toString(),
-    oneTimePurchaseOfferDetailsAndroid: _parseOneTimePurchaseOfferDetail(
+    oneTimePurchaseOfferDetailsAndroid: _parseOneTimePurchaseOfferDetails(
       json['oneTimePurchaseOfferDetailsAndroid'],
     ),
     price: priceValue,
@@ -679,13 +679,63 @@ gentype.PaymentModeIOS _parsePaymentMode(dynamic value) {
   }
 }
 
+/// Parses oneTimePurchaseOfferDetailsAndroid - handles both array (new 7.0+)
+/// and single object (legacy) for backwards compatibility
+List<gentype.ProductAndroidOneTimePurchaseOfferDetail>?
+    _parseOneTimePurchaseOfferDetails(dynamic value) {
+  if (value == null) return null;
+
+  // New format: array of offers (Android 7.0+)
+  if (value is List) {
+    return value
+        .map((e) => _parseSingleOneTimePurchaseOfferDetail(e))
+        .whereType<gentype.ProductAndroidOneTimePurchaseOfferDetail>()
+        .toList();
+  }
+
+  // Legacy format: single object - wrap in list for compatibility
+  final single = _parseSingleOneTimePurchaseOfferDetail(value);
+  if (single != null) {
+    return [single];
+  }
+
+  return null;
+}
+
 gentype.ProductAndroidOneTimePurchaseOfferDetail?
-    _parseOneTimePurchaseOfferDetail(dynamic value) {
+    _parseSingleOneTimePurchaseOfferDetail(dynamic value) {
   if (value is Map<String, dynamic>) {
     return gentype.ProductAndroidOneTimePurchaseOfferDetail(
       formattedPrice: value['formattedPrice']?.toString() ?? '0',
       priceAmountMicros: value['priceAmountMicros']?.toString() ?? '0',
       priceCurrencyCode: value['priceCurrencyCode']?.toString() ?? 'USD',
+      offerTags: (value['offerTags'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
+      offerToken: value['offerToken']?.toString() ?? '',
+      offerId: value['offerId']?.toString(),
+      fullPriceMicros: value['fullPriceMicros']?.toString(),
+      discountDisplayInfo: value['discountDisplayInfo'] != null
+          ? gentype.DiscountDisplayInfoAndroid.fromJson(
+              value['discountDisplayInfo'] as Map<String, dynamic>)
+          : null,
+      limitedQuantityInfo: value['limitedQuantityInfo'] != null
+          ? gentype.LimitedQuantityInfoAndroid.fromJson(
+              value['limitedQuantityInfo'] as Map<String, dynamic>)
+          : null,
+      validTimeWindow: value['validTimeWindow'] != null
+          ? gentype.ValidTimeWindowAndroid.fromJson(
+              value['validTimeWindow'] as Map<String, dynamic>)
+          : null,
+      preorderDetailsAndroid: value['preorderDetailsAndroid'] != null
+          ? gentype.PreorderDetailsAndroid.fromJson(
+              value['preorderDetailsAndroid'] as Map<String, dynamic>)
+          : null,
+      rentalDetailsAndroid: value['rentalDetailsAndroid'] != null
+          ? gentype.RentalDetailsAndroid.fromJson(
+              value['rentalDetailsAndroid'] as Map<String, dynamic>)
+          : null,
     );
   }
   if (value is Map) {
@@ -695,6 +745,13 @@ gentype.ProductAndroidOneTimePurchaseOfferDetail?
       formattedPrice: map['formattedPrice']?.toString() ?? '0',
       priceAmountMicros: map['priceAmountMicros']?.toString() ?? '0',
       priceCurrencyCode: map['priceCurrencyCode']?.toString() ?? 'USD',
+      offerTags: (map['offerTags'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
+      offerToken: map['offerToken']?.toString() ?? '',
+      offerId: map['offerId']?.toString(),
+      fullPriceMicros: map['fullPriceMicros']?.toString(),
     );
   }
   return null;

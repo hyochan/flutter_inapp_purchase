@@ -1,5 +1,119 @@
 # CHANGELOG
 
+## 8.0.0
+
+### Breaking Changes
+
+- **`oneTimePurchaseOfferDetailsAndroid` is now an array**: Changed from `ProductAndroidOneTimePurchaseOfferDetail?` to `List<ProductAndroidOneTimePurchaseOfferDetail>?` to support multiple discount offers per product (Google Play Billing 7.0+)
+
+  ```dart
+  // Before (v7.x)
+  final price = product.oneTimePurchaseOfferDetailsAndroid?.formattedPrice;
+
+  // After (v8.x)
+  final offers = product.oneTimePurchaseOfferDetailsAndroid;
+  final price = offers?.isNotEmpty == true ? offers![0].formattedPrice : null;
+  ```
+
+- **`verifyPurchase` and `validateReceipt` API changed**: Now uses platform-specific options instead of deprecated `sku` and `androidOptions` parameters
+
+  ```dart
+  // Before (v7.x)
+  final result = await iap.verifyPurchase(sku: 'product_id');
+  final result = await iap.verifyPurchase(
+    sku: 'product_id',
+    androidOptions: VerifyPurchaseAndroidOptions(...),
+  );
+
+  // After (v8.x) - iOS
+  final result = await iap.verifyPurchase(
+    apple: VerifyPurchaseAppleOptions(sku: 'product_id'),
+  );
+
+  // After (v8.x) - Android
+  final result = await iap.verifyPurchase(
+    google: VerifyPurchaseGoogleOptions(
+      sku: 'product_id',
+      accessToken: 'your-oauth-token',  // From your backend
+      packageName: 'com.your.app',
+      purchaseToken: purchase.purchaseToken,
+    ),
+  );
+  ```
+
+### New Features
+
+- **Billing Programs API (Android 8.2.0+)**: Support for external billing programs
+  - `isBillingProgramAvailableAndroid()` - Check if a billing program is available
+  - `createBillingProgramReportingDetailsAndroid()` - Get external transaction token for reporting
+  - `launchExternalLinkAndroid()` - Launch external link for billing programs
+
+  ```dart
+  // Check availability
+  final result = await iap.isBillingProgramAvailableAndroid(
+    BillingProgramAndroid.ExternalOffer,
+  );
+
+  if (result.isAvailable) {
+    // Launch external link
+    await iap.launchExternalLinkAndroid(
+      LaunchExternalLinkParamsAndroid(
+        billingProgram: BillingProgramAndroid.ExternalOffer,
+        launchMode: ExternalLinkLaunchModeAndroid.LaunchInExternalBrowserOrApp,
+        linkType: ExternalLinkTypeAndroid.LinkToDigitalContentOffer,
+        linkUri: 'https://your-payment-site.com/purchase',
+      ),
+    );
+
+    // Get reporting token
+    final details = await iap.createBillingProgramReportingDetailsAndroid(
+      BillingProgramAndroid.ExternalOffer,
+    );
+    // Send details.externalTransactionToken to your server
+  }
+  ```
+
+- **One-Time Product Discounts (Android 7.0+)**: New fields in `ProductAndroidOneTimePurchaseOfferDetail`
+  - `offerId` - Unique offer identifier
+  - `fullPriceMicros` - Full (non-discounted) price
+  - `discountDisplayInfo` - Discount percentage and amount
+  - `limitedQuantityInfo` - Maximum and remaining quantity
+  - `validTimeWindow` - Offer validity period
+  - `offerTags` - List of offer tags
+  - `offerToken` - Token for purchase requests
+  - `preorderDetailsAndroid` - Pre-order release dates (Android 8.0+)
+  - `rentalDetailsAndroid` - Rental period information (Android 8.0+)
+
+- **Purchase Suspension Status (Android 8.1.0+)**: New `isSuspendedAndroid` field in `PurchaseAndroid`
+  - Check if a subscription is suspended due to payment issues
+  - Do NOT grant entitlements for suspended subscriptions
+
+  ```dart
+  for (final purchase in purchases) {
+    if (purchase is PurchaseAndroid && purchase.isSuspendedAndroid == true) {
+      // Subscription suspended - do not grant access
+      // Direct user to fix payment method
+    }
+  }
+  ```
+
+### Deprecated
+
+- `checkAlternativeBillingAvailabilityAndroid()` - Use `isBillingProgramAvailableAndroid(BillingProgramAndroid.ExternalOffer)` instead
+- `showAlternativeBillingDialogAndroid()` - Use `launchExternalLinkAndroid()` instead
+- `createAlternativeBillingTokenAndroid()` - Use `createBillingProgramReportingDetailsAndroid(BillingProgramAndroid.ExternalOffer)` instead
+
+### Dependencies
+
+- Updated OpenIAP versions:
+  - `openiap-apple`: 1.3.0 → 1.3.2
+  - `openiap-google`: 1.3.12 → 1.3.14
+  - `openiap-gql`: 1.3.2 → 1.3.4
+
+### Migration Guide
+
+See [Migration from v7](https://hyochan.github.io/flutter_inapp_purchase/docs/migration/from-v7) for detailed upgrade instructions.
+
 ## 7.2.0
 
 - feat: Add `IapStore` enum for unified store identification (`apple`, `google`, `horizon`, `unknown`)

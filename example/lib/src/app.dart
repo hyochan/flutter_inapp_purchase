@@ -7,6 +7,7 @@ import 'screens/available_purchases_screen.dart';
 import 'screens/offer_code_screen.dart';
 import 'screens/builder_demo_screen.dart';
 import 'screens/alternative_billing_screen.dart';
+import 'screens/billing_programs_screen.dart';
 
 class App extends StatelessWidget {
   const App({Key? key}) : super(key: key);
@@ -39,6 +40,7 @@ class App extends StatelessWidget {
         '/offer-code': (context) => const OfferCodeScreen(),
         '/builder-demo': (context) => const BuilderDemoScreen(),
         '/alternative-billing': (context) => const AlternativeBillingScreen(),
+        '/billing-programs': (context) => const BillingProgramsScreen(),
       },
     );
   }

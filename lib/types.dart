@@ -45,6 +45,39 @@ enum AlternativeBillingModeAndroid {
   String toJson() => value;
 }
 
+/// Billing program types for external content links and external offers (Android)
+/// Available in Google Play Billing Library 8.2.0+
+enum BillingProgramAndroid {
+  /// Unspecified billing program. Do not use.
+  Unspecified('unspecified'),
+  /// External Content Links program.
+  /// Allows linking to external content outside the app.
+  ExternalContentLink('external-content-link'),
+  /// External Offers program.
+  /// Allows offering digital content purchases outside the app.
+  ExternalOffer('external-offer');
+
+  const BillingProgramAndroid(this.value);
+  final String value;
+
+  factory BillingProgramAndroid.fromJson(String value) {
+    switch (value) {
+      case 'unspecified':
+      case 'UNSPECIFIED':
+        return BillingProgramAndroid.Unspecified;
+      case 'external-content-link':
+      case 'EXTERNAL_CONTENT_LINK':
+        return BillingProgramAndroid.ExternalContentLink;
+      case 'external-offer':
+      case 'EXTERNAL_OFFER':
+        return BillingProgramAndroid.ExternalOffer;
+    }
+    throw ArgumentError('Unknown BillingProgramAndroid value: $value');
+  }
+
+  String toJson() => value;
+}
+
 enum ErrorCode {
   Unknown('unknown'),
   UserCancelled('user-cancelled'),
@@ -239,6 +272,70 @@ enum ErrorCode {
         return ErrorCode.EmptySkuList;
     }
     throw ArgumentError('Unknown ErrorCode value: $value');
+  }
+
+  String toJson() => value;
+}
+
+/// Launch mode for external link flow (Android)
+/// Determines how the external URL is launched
+/// Available in Google Play Billing Library 8.2.0+
+enum ExternalLinkLaunchModeAndroid {
+  /// Unspecified launch mode. Do not use.
+  Unspecified('unspecified'),
+  /// Play will launch the URL in an external browser or eligible app
+  LaunchInExternalBrowserOrApp('launch-in-external-browser-or-app'),
+  /// Play will not launch the URL. The app handles launching the URL after Play returns control.
+  CallerWillLaunchLink('caller-will-launch-link');
+
+  const ExternalLinkLaunchModeAndroid(this.value);
+  final String value;
+
+  factory ExternalLinkLaunchModeAndroid.fromJson(String value) {
+    switch (value) {
+      case 'unspecified':
+      case 'UNSPECIFIED':
+        return ExternalLinkLaunchModeAndroid.Unspecified;
+      case 'launch-in-external-browser-or-app':
+      case 'LAUNCH_IN_EXTERNAL_BROWSER_OR_APP':
+        return ExternalLinkLaunchModeAndroid.LaunchInExternalBrowserOrApp;
+      case 'caller-will-launch-link':
+      case 'CALLER_WILL_LAUNCH_LINK':
+        return ExternalLinkLaunchModeAndroid.CallerWillLaunchLink;
+    }
+    throw ArgumentError('Unknown ExternalLinkLaunchModeAndroid value: $value');
+  }
+
+  String toJson() => value;
+}
+
+/// Link type for external link flow (Android)
+/// Specifies the type of external link destination
+/// Available in Google Play Billing Library 8.2.0+
+enum ExternalLinkTypeAndroid {
+  /// Unspecified link type. Do not use.
+  Unspecified('unspecified'),
+  /// The link will direct users to a digital content offer
+  LinkToDigitalContentOffer('link-to-digital-content-offer'),
+  /// The link will direct users to download an app
+  LinkToAppDownload('link-to-app-download');
+
+  const ExternalLinkTypeAndroid(this.value);
+  final String value;
+
+  factory ExternalLinkTypeAndroid.fromJson(String value) {
+    switch (value) {
+      case 'unspecified':
+      case 'UNSPECIFIED':
+        return ExternalLinkTypeAndroid.Unspecified;
+      case 'link-to-digital-content-offer':
+      case 'LINK_TO_DIGITAL_CONTENT_OFFER':
+        return ExternalLinkTypeAndroid.LinkToDigitalContentOffer;
+      case 'link-to-app-download':
+      case 'LINK_TO_APP_DOWNLOAD':
+        return ExternalLinkTypeAndroid.LinkToAppDownload;
+    }
+    throw ArgumentError('Unknown ExternalLinkTypeAndroid value: $value');
   }
 
   String toJson() => value;
@@ -669,6 +766,58 @@ enum SubscriptionPeriodIOS {
   String toJson() => value;
 }
 
+/// Replacement mode for subscription changes (Android)
+/// These modes determine how the subscription replacement affects billing.
+/// Available in Google Play Billing Library 8.1.0+
+enum SubscriptionReplacementModeAndroid {
+  /// Unknown replacement mode. Do not use.
+  UnknownReplacementMode('unknown-replacement-mode'),
+  /// Replacement takes effect immediately, and the new expiration time will be prorated.
+  WithTimeProration('with-time-proration'),
+  /// Replacement takes effect immediately, and the billing cycle remains the same.
+  ChargeProratedPrice('charge-prorated-price'),
+  /// Replacement takes effect immediately, and the user is charged full price immediately.
+  ChargeFullPrice('charge-full-price'),
+  /// Replacement takes effect when the old plan expires.
+  WithoutProration('without-proration'),
+  /// Replacement takes effect when the old plan expires, and the user is not charged.
+  Deferred('deferred'),
+  /// Keep the existing payment schedule unchanged for the item (8.1.0+)
+  KeepExisting('keep-existing');
+
+  const SubscriptionReplacementModeAndroid(this.value);
+  final String value;
+
+  factory SubscriptionReplacementModeAndroid.fromJson(String value) {
+    switch (value) {
+      case 'unknown-replacement-mode':
+      case 'UNKNOWN_REPLACEMENT_MODE':
+        return SubscriptionReplacementModeAndroid.UnknownReplacementMode;
+      case 'with-time-proration':
+      case 'WITH_TIME_PRORATION':
+        return SubscriptionReplacementModeAndroid.WithTimeProration;
+      case 'charge-prorated-price':
+      case 'CHARGE_PRORATED_PRICE':
+        return SubscriptionReplacementModeAndroid.ChargeProratedPrice;
+      case 'charge-full-price':
+      case 'CHARGE_FULL_PRICE':
+        return SubscriptionReplacementModeAndroid.ChargeFullPrice;
+      case 'without-proration':
+      case 'WITHOUT_PRORATION':
+        return SubscriptionReplacementModeAndroid.WithoutProration;
+      case 'deferred':
+      case 'DEFERRED':
+        return SubscriptionReplacementModeAndroid.Deferred;
+      case 'keep-existing':
+      case 'KEEP_EXISTING':
+        return SubscriptionReplacementModeAndroid.KeepExisting;
+    }
+    throw ArgumentError('Unknown SubscriptionReplacementModeAndroid value: $value');
+  }
+
+  String toJson() => value;
+}
+
 // MARK: - Interfaces
 
 abstract class ProductCommon {
@@ -693,7 +842,6 @@ abstract class PurchaseCommon {
   String get id;
   List<String>? get ids;
   bool get isAutoRenewing;
-  /// @deprecated Use store instead
   IapPlatform get platform;
   String get productId;
   PurchaseState get purchaseState;
@@ -869,6 +1017,137 @@ class AppTransaction {
   }
 }
 
+/// Result of checking billing program availability (Android)
+/// Available in Google Play Billing Library 8.2.0+
+class BillingProgramAvailabilityResultAndroid {
+  const BillingProgramAvailabilityResultAndroid({
+    /// The billing program that was checked
+    required this.billingProgram,
+    /// Whether the billing program is available for the user
+    required this.isAvailable,
+  });
+
+  /// The billing program that was checked
+  final BillingProgramAndroid billingProgram;
+  /// Whether the billing program is available for the user
+  final bool isAvailable;
+
+  factory BillingProgramAvailabilityResultAndroid.fromJson(Map<String, dynamic> json) {
+    return BillingProgramAvailabilityResultAndroid(
+      billingProgram: BillingProgramAndroid.fromJson(json['billingProgram'] as String),
+      isAvailable: json['isAvailable'] as bool,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '__typename': 'BillingProgramAvailabilityResultAndroid',
+      'billingProgram': billingProgram.toJson(),
+      'isAvailable': isAvailable,
+    };
+  }
+}
+
+/// Reporting details for transactions made outside of Google Play Billing (Android)
+/// Contains the external transaction token needed for reporting
+/// Available in Google Play Billing Library 8.2.0+
+class BillingProgramReportingDetailsAndroid {
+  const BillingProgramReportingDetailsAndroid({
+    /// The billing program that the reporting details are associated with
+    required this.billingProgram,
+    /// External transaction token used to report transactions made outside of Google Play Billing.
+    /// This token must be used when reporting the external transaction to Google.
+    required this.externalTransactionToken,
+  });
+
+  /// The billing program that the reporting details are associated with
+  final BillingProgramAndroid billingProgram;
+  /// External transaction token used to report transactions made outside of Google Play Billing.
+  /// This token must be used when reporting the external transaction to Google.
+  final String externalTransactionToken;
+
+  factory BillingProgramReportingDetailsAndroid.fromJson(Map<String, dynamic> json) {
+    return BillingProgramReportingDetailsAndroid(
+      billingProgram: BillingProgramAndroid.fromJson(json['billingProgram'] as String),
+      externalTransactionToken: json['externalTransactionToken'] as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '__typename': 'BillingProgramReportingDetailsAndroid',
+      'billingProgram': billingProgram.toJson(),
+      'externalTransactionToken': externalTransactionToken,
+    };
+  }
+}
+
+/// Discount amount details for one-time purchase offers (Android)
+/// Available in Google Play Billing Library 7.0+
+class DiscountAmountAndroid {
+  const DiscountAmountAndroid({
+    /// Discount amount in micro-units (1,000,000 = 1 unit of currency)
+    required this.discountAmountMicros,
+    /// Formatted discount amount with currency sign (e.g., "$4.99")
+    required this.formattedDiscountAmount,
+  });
+
+  /// Discount amount in micro-units (1,000,000 = 1 unit of currency)
+  final String discountAmountMicros;
+  /// Formatted discount amount with currency sign (e.g., "$4.99")
+  final String formattedDiscountAmount;
+
+  factory DiscountAmountAndroid.fromJson(Map<String, dynamic> json) {
+    return DiscountAmountAndroid(
+      discountAmountMicros: json['discountAmountMicros'] as String,
+      formattedDiscountAmount: json['formattedDiscountAmount'] as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '__typename': 'DiscountAmountAndroid',
+      'discountAmountMicros': discountAmountMicros,
+      'formattedDiscountAmount': formattedDiscountAmount,
+    };
+  }
+}
+
+/// Discount display information for one-time purchase offers (Android)
+/// Available in Google Play Billing Library 7.0+
+class DiscountDisplayInfoAndroid {
+  const DiscountDisplayInfoAndroid({
+    /// Absolute discount amount details
+    /// Only returned for fixed amount discounts
+    this.discountAmount,
+    /// Percentage discount (e.g., 33 for 33% off)
+    /// Only returned for percentage-based discounts
+    this.percentageDiscount,
+  });
+
+  /// Absolute discount amount details
+  /// Only returned for fixed amount discounts
+  final DiscountAmountAndroid? discountAmount;
+  /// Percentage discount (e.g., 33 for 33% off)
+  /// Only returned for percentage-based discounts
+  final int? percentageDiscount;
+
+  factory DiscountDisplayInfoAndroid.fromJson(Map<String, dynamic> json) {
+    return DiscountDisplayInfoAndroid(
+      discountAmount: json['discountAmount'] != null ? DiscountAmountAndroid.fromJson(json['discountAmount'] as Map<String, dynamic>) : null,
+      percentageDiscount: json['percentageDiscount'] as int?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '__typename': 'DiscountDisplayInfoAndroid',
+      'discountAmount': discountAmount?.toJson(),
+      'percentageDiscount': percentageDiscount,
+    };
+  }
+}
+
 class DiscountIOS {
   const DiscountIOS({
     required this.identifier,
@@ -994,6 +1273,58 @@ class EntitlementIOS {
   }
 }
 
+/// External offer availability result (Android)
+/// @deprecated Use BillingProgramAvailabilityResultAndroid with isBillingProgramAvailableAsync instead
+/// Available in Google Play Billing Library 6.2.0+, deprecated in 8.2.0
+class ExternalOfferAvailabilityResultAndroid {
+  const ExternalOfferAvailabilityResultAndroid({
+    /// Whether external offers are available for the user
+    required this.isAvailable,
+  });
+
+  /// Whether external offers are available for the user
+  final bool isAvailable;
+
+  factory ExternalOfferAvailabilityResultAndroid.fromJson(Map<String, dynamic> json) {
+    return ExternalOfferAvailabilityResultAndroid(
+      isAvailable: json['isAvailable'] as bool,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '__typename': 'ExternalOfferAvailabilityResultAndroid',
+      'isAvailable': isAvailable,
+    };
+  }
+}
+
+/// External offer reporting details (Android)
+/// @deprecated Use BillingProgramReportingDetailsAndroid with createBillingProgramReportingDetailsAsync instead
+/// Available in Google Play Billing Library 6.2.0+, deprecated in 8.2.0
+class ExternalOfferReportingDetailsAndroid {
+  const ExternalOfferReportingDetailsAndroid({
+    /// External transaction token for reporting external offer transactions
+    required this.externalTransactionToken,
+  });
+
+  /// External transaction token for reporting external offer transactions
+  final String externalTransactionToken;
+
+  factory ExternalOfferReportingDetailsAndroid.fromJson(Map<String, dynamic> json) {
+    return ExternalOfferReportingDetailsAndroid(
+      externalTransactionToken: json['externalTransactionToken'] as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '__typename': 'ExternalOfferReportingDetailsAndroid',
+      'externalTransactionToken': externalTransactionToken,
+    };
+  }
+}
+
 /// Result of presenting an external purchase link (iOS 18.2+)
 class ExternalPurchaseLinkResultIOS {
   const ExternalPurchaseLinkResultIOS({
@@ -1073,6 +1404,72 @@ class FetchProductsResultSubscriptions extends FetchProductsResult {
   final List<ProductSubscription>? value;
 }
 
+/// Limited quantity information for one-time purchase offers (Android)
+/// Available in Google Play Billing Library 7.0+
+class LimitedQuantityInfoAndroid {
+  const LimitedQuantityInfoAndroid({
+    /// Maximum quantity a user can purchase
+    required this.maximumQuantity,
+    /// Remaining quantity the user can still purchase
+    required this.remainingQuantity,
+  });
+
+  /// Maximum quantity a user can purchase
+  final int maximumQuantity;
+  /// Remaining quantity the user can still purchase
+  final int remainingQuantity;
+
+  factory LimitedQuantityInfoAndroid.fromJson(Map<String, dynamic> json) {
+    return LimitedQuantityInfoAndroid(
+      maximumQuantity: json['maximumQuantity'] as int,
+      remainingQuantity: json['remainingQuantity'] as int,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '__typename': 'LimitedQuantityInfoAndroid',
+      'maximumQuantity': maximumQuantity,
+      'remainingQuantity': remainingQuantity,
+    };
+  }
+}
+
+/// Pre-order details for one-time purchase products (Android)
+/// Available in Google Play Billing Library 8.1.0+
+class PreorderDetailsAndroid {
+  const PreorderDetailsAndroid({
+    /// Pre-order presale end time in milliseconds since epoch.
+    /// This is when the presale period ends and the product will be released.
+    required this.preorderPresaleEndTimeMillis,
+    /// Pre-order release time in milliseconds since epoch.
+    /// This is when the product will be available to users who pre-ordered.
+    required this.preorderReleaseTimeMillis,
+  });
+
+  /// Pre-order presale end time in milliseconds since epoch.
+  /// This is when the presale period ends and the product will be released.
+  final String preorderPresaleEndTimeMillis;
+  /// Pre-order release time in milliseconds since epoch.
+  /// This is when the product will be available to users who pre-ordered.
+  final String preorderReleaseTimeMillis;
+
+  factory PreorderDetailsAndroid.fromJson(Map<String, dynamic> json) {
+    return PreorderDetailsAndroid(
+      preorderPresaleEndTimeMillis: json['preorderPresaleEndTimeMillis'] as String,
+      preorderReleaseTimeMillis: json['preorderReleaseTimeMillis'] as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '__typename': 'PreorderDetailsAndroid',
+      'preorderPresaleEndTimeMillis': preorderPresaleEndTimeMillis,
+      'preorderReleaseTimeMillis': preorderReleaseTimeMillis,
+    };
+  }
+}
+
 class PricingPhaseAndroid {
   const PricingPhaseAndroid({
     required this.billingCycleCount,
@@ -1144,6 +1541,8 @@ class ProductAndroid extends Product implements ProductCommon {
     required this.displayPrice,
     required this.id,
     required this.nameAndroid,
+    /// One-time purchase offer details including discounts (Android)
+    /// Returns all eligible offers. Available in Google Play Billing Library 7.0+
     this.oneTimePurchaseOfferDetailsAndroid,
     this.platform = IapPlatform.Android,
     this.price,
@@ -1159,7 +1558,9 @@ class ProductAndroid extends Product implements ProductCommon {
   final String displayPrice;
   final String id;
   final String nameAndroid;
-  final ProductAndroidOneTimePurchaseOfferDetail? oneTimePurchaseOfferDetailsAndroid;
+  /// One-time purchase offer details including discounts (Android)
+  /// Returns all eligible offers. Available in Google Play Billing Library 7.0+
+  final List<ProductAndroidOneTimePurchaseOfferDetail>? oneTimePurchaseOfferDetailsAndroid;
   final IapPlatform platform;
   final double? price;
   final List<ProductSubscriptionAndroidOfferDetails>? subscriptionOfferDetailsAndroid;
@@ -1175,7 +1576,7 @@ class ProductAndroid extends Product implements ProductCommon {
       displayPrice: json['displayPrice'] as String,
       id: json['id'] as String,
       nameAndroid: json['nameAndroid'] as String,
-      oneTimePurchaseOfferDetailsAndroid: json['oneTimePurchaseOfferDetailsAndroid'] != null ? ProductAndroidOneTimePurchaseOfferDetail.fromJson(json['oneTimePurchaseOfferDetailsAndroid'] as Map<String, dynamic>) : null,
+      oneTimePurchaseOfferDetailsAndroid: (json['oneTimePurchaseOfferDetailsAndroid'] as List<dynamic>?) == null ? null : (json['oneTimePurchaseOfferDetailsAndroid'] as List<dynamic>?)!.map((e) => ProductAndroidOneTimePurchaseOfferDetail.fromJson(e as Map<String, dynamic>)).toList(),
       platform: IapPlatform.fromJson(json['platform'] as String),
       price: (json['price'] as num?)?.toDouble(),
       subscriptionOfferDetailsAndroid: (json['subscriptionOfferDetailsAndroid'] as List<dynamic>?) == null ? null : (json['subscriptionOfferDetailsAndroid'] as List<dynamic>?)!.map((e) => ProductSubscriptionAndroidOfferDetails.fromJson(e as Map<String, dynamic>)).toList(),
@@ -1195,7 +1596,7 @@ class ProductAndroid extends Product implements ProductCommon {
       'displayPrice': displayPrice,
       'id': id,
       'nameAndroid': nameAndroid,
-      'oneTimePurchaseOfferDetailsAndroid': oneTimePurchaseOfferDetailsAndroid?.toJson(),
+      'oneTimePurchaseOfferDetailsAndroid': oneTimePurchaseOfferDetailsAndroid == null ? null : oneTimePurchaseOfferDetailsAndroid!.map((e) => e.toJson()).toList(),
       'platform': platform.toJson(),
       'price': price,
       'subscriptionOfferDetailsAndroid': subscriptionOfferDetailsAndroid == null ? null : subscriptionOfferDetailsAndroid!.map((e) => e.toJson()).toList(),
@@ -1205,31 +1606,93 @@ class ProductAndroid extends Product implements ProductCommon {
   }
 }
 
+/// One-time purchase offer details (Android)
+/// Available in Google Play Billing Library 7.0+
 class ProductAndroidOneTimePurchaseOfferDetail {
   const ProductAndroidOneTimePurchaseOfferDetail({
+    /// Discount display information
+    /// Only available for discounted offers
+    this.discountDisplayInfo,
     required this.formattedPrice,
+    /// Full (non-discounted) price in micro-units
+    /// Only available for discounted offers
+    this.fullPriceMicros,
+    /// Limited quantity information
+    this.limitedQuantityInfo,
+    /// Offer ID
+    this.offerId,
+    /// List of offer tags
+    required this.offerTags,
+    /// Offer token for use in BillingFlowParams when purchasing
+    required this.offerToken,
+    /// Pre-order details for products available for pre-order
+    /// Available in Google Play Billing Library 8.1.0+
+    this.preorderDetailsAndroid,
     required this.priceAmountMicros,
     required this.priceCurrencyCode,
+    /// Rental details for rental offers
+    this.rentalDetailsAndroid,
+    /// Valid time window for the offer
+    this.validTimeWindow,
   });
 
+  /// Discount display information
+  /// Only available for discounted offers
+  final DiscountDisplayInfoAndroid? discountDisplayInfo;
   final String formattedPrice;
+  /// Full (non-discounted) price in micro-units
+  /// Only available for discounted offers
+  final String? fullPriceMicros;
+  /// Limited quantity information
+  final LimitedQuantityInfoAndroid? limitedQuantityInfo;
+  /// Offer ID
+  final String? offerId;
+  /// List of offer tags
+  final List<String> offerTags;
+  /// Offer token for use in BillingFlowParams when purchasing
+  final String offerToken;
+  /// Pre-order details for products available for pre-order
+  /// Available in Google Play Billing Library 8.1.0+
+  final PreorderDetailsAndroid? preorderDetailsAndroid;
   final String priceAmountMicros;
   final String priceCurrencyCode;
+  /// Rental details for rental offers
+  final RentalDetailsAndroid? rentalDetailsAndroid;
+  /// Valid time window for the offer
+  final ValidTimeWindowAndroid? validTimeWindow;
 
   factory ProductAndroidOneTimePurchaseOfferDetail.fromJson(Map<String, dynamic> json) {
     return ProductAndroidOneTimePurchaseOfferDetail(
+      discountDisplayInfo: json['discountDisplayInfo'] != null ? DiscountDisplayInfoAndroid.fromJson(json['discountDisplayInfo'] as Map<String, dynamic>) : null,
       formattedPrice: json['formattedPrice'] as String,
+      fullPriceMicros: json['fullPriceMicros'] as String?,
+      limitedQuantityInfo: json['limitedQuantityInfo'] != null ? LimitedQuantityInfoAndroid.fromJson(json['limitedQuantityInfo'] as Map<String, dynamic>) : null,
+      offerId: json['offerId'] as String?,
+      offerTags: (json['offerTags'] as List<dynamic>).map((e) => e as String).toList(),
+      offerToken: json['offerToken'] as String,
+      preorderDetailsAndroid: json['preorderDetailsAndroid'] != null ? PreorderDetailsAndroid.fromJson(json['preorderDetailsAndroid'] as Map<String, dynamic>) : null,
       priceAmountMicros: json['priceAmountMicros'] as String,
       priceCurrencyCode: json['priceCurrencyCode'] as String,
+      rentalDetailsAndroid: json['rentalDetailsAndroid'] != null ? RentalDetailsAndroid.fromJson(json['rentalDetailsAndroid'] as Map<String, dynamic>) : null,
+      validTimeWindow: json['validTimeWindow'] != null ? ValidTimeWindowAndroid.fromJson(json['validTimeWindow'] as Map<String, dynamic>) : null,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       '__typename': 'ProductAndroidOneTimePurchaseOfferDetail',
+      'discountDisplayInfo': discountDisplayInfo?.toJson(),
       'formattedPrice': formattedPrice,
+      'fullPriceMicros': fullPriceMicros,
+      'limitedQuantityInfo': limitedQuantityInfo?.toJson(),
+      'offerId': offerId,
+      'offerTags': offerTags.map((e) => e).toList(),
+      'offerToken': offerToken,
+      'preorderDetailsAndroid': preorderDetailsAndroid?.toJson(),
       'priceAmountMicros': priceAmountMicros,
       'priceCurrencyCode': priceCurrencyCode,
+      'rentalDetailsAndroid': rentalDetailsAndroid?.toJson(),
+      'validTimeWindow': validTimeWindow?.toJson(),
     };
   }
 }
@@ -1321,6 +1784,8 @@ class ProductSubscriptionAndroid extends ProductSubscription implements ProductC
     required this.displayPrice,
     required this.id,
     required this.nameAndroid,
+    /// One-time purchase offer details including discounts (Android)
+    /// Returns all eligible offers. Available in Google Play Billing Library 7.0+
     this.oneTimePurchaseOfferDetailsAndroid,
     this.platform = IapPlatform.Android,
     this.price,
@@ -1336,7 +1801,9 @@ class ProductSubscriptionAndroid extends ProductSubscription implements ProductC
   final String displayPrice;
   final String id;
   final String nameAndroid;
-  final ProductAndroidOneTimePurchaseOfferDetail? oneTimePurchaseOfferDetailsAndroid;
+  /// One-time purchase offer details including discounts (Android)
+  /// Returns all eligible offers. Available in Google Play Billing Library 7.0+
+  final List<ProductAndroidOneTimePurchaseOfferDetail>? oneTimePurchaseOfferDetailsAndroid;
   final IapPlatform platform;
   final double? price;
   final List<ProductSubscriptionAndroidOfferDetails> subscriptionOfferDetailsAndroid;
@@ -1352,7 +1819,7 @@ class ProductSubscriptionAndroid extends ProductSubscription implements ProductC
       displayPrice: json['displayPrice'] as String,
       id: json['id'] as String,
       nameAndroid: json['nameAndroid'] as String,
-      oneTimePurchaseOfferDetailsAndroid: json['oneTimePurchaseOfferDetailsAndroid'] != null ? ProductAndroidOneTimePurchaseOfferDetail.fromJson(json['oneTimePurchaseOfferDetailsAndroid'] as Map<String, dynamic>) : null,
+      oneTimePurchaseOfferDetailsAndroid: (json['oneTimePurchaseOfferDetailsAndroid'] as List<dynamic>?) == null ? null : (json['oneTimePurchaseOfferDetailsAndroid'] as List<dynamic>?)!.map((e) => ProductAndroidOneTimePurchaseOfferDetail.fromJson(e as Map<String, dynamic>)).toList(),
       platform: IapPlatform.fromJson(json['platform'] as String),
       price: (json['price'] as num?)?.toDouble(),
       subscriptionOfferDetailsAndroid: (json['subscriptionOfferDetailsAndroid'] as List<dynamic>).map((e) => ProductSubscriptionAndroidOfferDetails.fromJson(e as Map<String, dynamic>)).toList(),
@@ -1372,7 +1839,7 @@ class ProductSubscriptionAndroid extends ProductSubscription implements ProductC
       'displayPrice': displayPrice,
       'id': id,
       'nameAndroid': nameAndroid,
-      'oneTimePurchaseOfferDetailsAndroid': oneTimePurchaseOfferDetailsAndroid?.toJson(),
+      'oneTimePurchaseOfferDetailsAndroid': oneTimePurchaseOfferDetailsAndroid == null ? null : oneTimePurchaseOfferDetailsAndroid!.map((e) => e.toJson()).toList(),
       'platform': platform.toJson(),
       'price': price,
       'subscriptionOfferDetailsAndroid': subscriptionOfferDetailsAndroid.map((e) => e.toJson()).toList(),
@@ -1539,10 +2006,15 @@ class PurchaseAndroid extends Purchase implements PurchaseCommon {
     this.ids,
     this.isAcknowledgedAndroid,
     required this.isAutoRenewing,
+    /// Whether the subscription is suspended (Android)
+    /// A suspended subscription means the user's payment method failed and they need to fix it.
+    /// Users should be directed to the subscription center to resolve the issue.
+    /// Do NOT grant entitlements for suspended subscriptions.
+    /// Available in Google Play Billing Library 8.1.0+
+    this.isSuspendedAndroid,
     this.obfuscatedAccountIdAndroid,
     this.obfuscatedProfileIdAndroid,
     this.packageNameAndroid,
-    /// @deprecated Use store instead
     required this.platform,
     required this.productId,
     required this.purchaseState,
@@ -1564,10 +2036,15 @@ class PurchaseAndroid extends Purchase implements PurchaseCommon {
   final List<String>? ids;
   final bool? isAcknowledgedAndroid;
   final bool isAutoRenewing;
+  /// Whether the subscription is suspended (Android)
+  /// A suspended subscription means the user's payment method failed and they need to fix it.
+  /// Users should be directed to the subscription center to resolve the issue.
+  /// Do NOT grant entitlements for suspended subscriptions.
+  /// Available in Google Play Billing Library 8.1.0+
+  final bool? isSuspendedAndroid;
   final String? obfuscatedAccountIdAndroid;
   final String? obfuscatedProfileIdAndroid;
   final String? packageNameAndroid;
-  /// @deprecated Use store instead
   final IapPlatform platform;
   final String productId;
   final PurchaseState purchaseState;
@@ -1590,6 +2067,7 @@ class PurchaseAndroid extends Purchase implements PurchaseCommon {
       ids: (json['ids'] as List<dynamic>?) == null ? null : (json['ids'] as List<dynamic>?)!.map((e) => e as String).toList(),
       isAcknowledgedAndroid: json['isAcknowledgedAndroid'] as bool?,
       isAutoRenewing: json['isAutoRenewing'] as bool,
+      isSuspendedAndroid: json['isSuspendedAndroid'] as bool?,
       obfuscatedAccountIdAndroid: json['obfuscatedAccountIdAndroid'] as String?,
       obfuscatedProfileIdAndroid: json['obfuscatedProfileIdAndroid'] as String?,
       packageNameAndroid: json['packageNameAndroid'] as String?,
@@ -1618,6 +2096,7 @@ class PurchaseAndroid extends Purchase implements PurchaseCommon {
       'ids': ids == null ? null : ids!.map((e) => e).toList(),
       'isAcknowledgedAndroid': isAcknowledgedAndroid,
       'isAutoRenewing': isAutoRenewing,
+      'isSuspendedAndroid': isSuspendedAndroid,
       'obfuscatedAccountIdAndroid': obfuscatedAccountIdAndroid,
       'obfuscatedProfileIdAndroid': obfuscatedProfileIdAndroid,
       'packageNameAndroid': packageNameAndroid,
@@ -1682,7 +2161,6 @@ class PurchaseIOS extends Purchase implements PurchaseCommon {
     this.originalTransactionDateIOS,
     this.originalTransactionIdentifierIOS,
     this.ownershipTypeIOS,
-    /// @deprecated Use store instead
     required this.platform,
     required this.productId,
     required this.purchaseState,
@@ -1721,7 +2199,6 @@ class PurchaseIOS extends Purchase implements PurchaseCommon {
   final double? originalTransactionDateIOS;
   final String? originalTransactionIdentifierIOS;
   final String? ownershipTypeIOS;
-  /// @deprecated Use store instead
   final IapPlatform platform;
   final String productId;
   final PurchaseState purchaseState;
@@ -1973,6 +2450,39 @@ class RenewalInfoIOS {
   }
 }
 
+/// Rental details for one-time purchase products that can be rented (Android)
+/// Available in Google Play Billing Library 7.0+
+class RentalDetailsAndroid {
+  const RentalDetailsAndroid({
+    /// Rental expiration period in ISO 8601 format
+    /// Time after rental period ends when user can still extend
+    this.rentalExpirationPeriod,
+    /// Rental period in ISO 8601 format (e.g., P7D for 7 days)
+    required this.rentalPeriod,
+  });
+
+  /// Rental expiration period in ISO 8601 format
+  /// Time after rental period ends when user can still extend
+  final String? rentalExpirationPeriod;
+  /// Rental period in ISO 8601 format (e.g., P7D for 7 days)
+  final String rentalPeriod;
+
+  factory RentalDetailsAndroid.fromJson(Map<String, dynamic> json) {
+    return RentalDetailsAndroid(
+      rentalExpirationPeriod: json['rentalExpirationPeriod'] as String?,
+      rentalPeriod: json['rentalPeriod'] as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '__typename': 'RentalDetailsAndroid',
+      'rentalExpirationPeriod': rentalExpirationPeriod,
+      'rentalPeriod': rentalPeriod,
+    };
+  }
+}
+
 abstract class RequestPurchaseResult {
   const RequestPurchaseResult();
 }
@@ -2179,6 +2689,37 @@ class UserChoiceBillingDetails {
   }
 }
 
+/// Valid time window for when an offer is available (Android)
+/// Available in Google Play Billing Library 7.0+
+class ValidTimeWindowAndroid {
+  const ValidTimeWindowAndroid({
+    /// End time in milliseconds since epoch
+    required this.endTimeMillis,
+    /// Start time in milliseconds since epoch
+    required this.startTimeMillis,
+  });
+
+  /// End time in milliseconds since epoch
+  final String endTimeMillis;
+  /// Start time in milliseconds since epoch
+  final String startTimeMillis;
+
+  factory ValidTimeWindowAndroid.fromJson(Map<String, dynamic> json) {
+    return ValidTimeWindowAndroid(
+      endTimeMillis: json['endTimeMillis'] as String,
+      startTimeMillis: json['startTimeMillis'] as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '__typename': 'ValidTimeWindowAndroid',
+      'endTimeMillis': endTimeMillis,
+      'startTimeMillis': startTimeMillis,
+    };
+  }
+}
+
 class VerifyPurchaseResultAndroid extends VerifyPurchaseResult {
   const VerifyPurchaseResultAndroid({
     required this.autoRenewing,
@@ -2265,6 +2806,38 @@ class VerifyPurchaseResultAndroid extends VerifyPurchaseResult {
       'term': term,
       'termSku': termSku,
       'testTransaction': testTransaction,
+    };
+  }
+}
+
+/// Result from Meta Horizon verify_entitlement API.
+/// Returns verification status and grant time for the entitlement.
+class VerifyPurchaseResultHorizon extends VerifyPurchaseResult {
+  const VerifyPurchaseResultHorizon({
+    /// Unix timestamp (seconds) when the entitlement was granted.
+    this.grantTime,
+    /// Whether the entitlement verification succeeded.
+    required this.success,
+  });
+
+  /// Unix timestamp (seconds) when the entitlement was granted.
+  final double? grantTime;
+  /// Whether the entitlement verification succeeded.
+  final bool success;
+
+  factory VerifyPurchaseResultHorizon.fromJson(Map<String, dynamic> json) {
+    return VerifyPurchaseResultHorizon(
+      grantTime: (json['grantTime'] as num?)?.toDouble(),
+      success: json['success'] as bool,
+    );
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      '__typename': 'VerifyPurchaseResultHorizon',
+      'grantTime': grantTime,
+      'success': success,
     };
   }
 }
@@ -2500,6 +3073,49 @@ class InitConnectionConfig {
   }
 }
 
+/// Parameters for launching an external link (Android)
+/// Used with launchExternalLink to initiate external offer or app install flows
+/// Available in Google Play Billing Library 8.2.0+
+class LaunchExternalLinkParamsAndroid {
+  const LaunchExternalLinkParamsAndroid({
+    /// The billing program (EXTERNAL_CONTENT_LINK or EXTERNAL_OFFER)
+    required this.billingProgram,
+    /// The external link launch mode
+    required this.launchMode,
+    /// The type of the external link
+    required this.linkType,
+    /// The URI where the content will be accessed from
+    required this.linkUri,
+  });
+
+  /// The billing program (EXTERNAL_CONTENT_LINK or EXTERNAL_OFFER)
+  final BillingProgramAndroid billingProgram;
+  /// The external link launch mode
+  final ExternalLinkLaunchModeAndroid launchMode;
+  /// The type of the external link
+  final ExternalLinkTypeAndroid linkType;
+  /// The URI where the content will be accessed from
+  final String linkUri;
+
+  factory LaunchExternalLinkParamsAndroid.fromJson(Map<String, dynamic> json) {
+    return LaunchExternalLinkParamsAndroid(
+      billingProgram: BillingProgramAndroid.fromJson(json['billingProgram'] as String),
+      launchMode: ExternalLinkLaunchModeAndroid.fromJson(json['launchMode'] as String),
+      linkType: ExternalLinkTypeAndroid.fromJson(json['linkType'] as String),
+      linkUri: json['linkUri'] as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'billingProgram': billingProgram.toJson(),
+      'launchMode': launchMode.toJson(),
+      'linkType': linkType.toJson(),
+      'linkUri': linkUri,
+    };
+  }
+}
+
 class ProductRequest {
   const ProductRequest({
     required this.skus,
@@ -2700,6 +3316,12 @@ class _SubsPurchase extends RequestPurchaseProps {
   }
 }
 
+/// Platform-specific purchase request parameters.
+/// 
+/// Note: "Platforms" refers to the SDK/OS level (apple, google), not the store.
+/// - apple: Always targets App Store
+/// - google: Targets Play Store by default, or Horizon when built with horizon flavor
+///   (determined at build time, not runtime)
 class RequestPurchasePropsByPlatforms {
   const RequestPurchasePropsByPlatforms({
     /// @deprecated Use google instead
@@ -2751,11 +3373,15 @@ class RequestSubscriptionAndroidProps {
     /// Purchase token for upgrades/downgrades
     this.purchaseTokenAndroid,
     /// Replacement mode for subscription changes
+    /// @deprecated Use subscriptionProductReplacementParams instead for item-level replacement (8.1.0+)
     this.replacementModeAndroid,
     /// List of subscription SKUs
     required this.skus,
     /// Subscription offers
     this.subscriptionOffers,
+    /// Product-level replacement parameters (8.1.0+)
+    /// Use this instead of replacementModeAndroid for item-level replacement
+    this.subscriptionProductReplacementParams,
   });
 
   /// Personalized offer flag
@@ -2767,11 +3393,15 @@ class RequestSubscriptionAndroidProps {
   /// Purchase token for upgrades/downgrades
   final String? purchaseTokenAndroid;
   /// Replacement mode for subscription changes
+  /// @deprecated Use subscriptionProductReplacementParams instead for item-level replacement (8.1.0+)
   final int? replacementModeAndroid;
   /// List of subscription SKUs
   final List<String> skus;
   /// Subscription offers
   final List<AndroidSubscriptionOfferInput>? subscriptionOffers;
+  /// Product-level replacement parameters (8.1.0+)
+  /// Use this instead of replacementModeAndroid for item-level replacement
+  final SubscriptionProductReplacementParamsAndroid? subscriptionProductReplacementParams;
 
   factory RequestSubscriptionAndroidProps.fromJson(Map<String, dynamic> json) {
     return RequestSubscriptionAndroidProps(
@@ -2782,6 +3412,7 @@ class RequestSubscriptionAndroidProps {
       replacementModeAndroid: json['replacementModeAndroid'] as int?,
       skus: (json['skus'] as List<dynamic>).map((e) => e as String).toList(),
       subscriptionOffers: (json['subscriptionOffers'] as List<dynamic>?) == null ? null : (json['subscriptionOffers'] as List<dynamic>?)!.map((e) => AndroidSubscriptionOfferInput.fromJson(e as Map<String, dynamic>)).toList(),
+      subscriptionProductReplacementParams: json['subscriptionProductReplacementParams'] != null ? SubscriptionProductReplacementParamsAndroid.fromJson(json['subscriptionProductReplacementParams'] as Map<String, dynamic>) : null,
     );
   }
 
@@ -2794,6 +3425,7 @@ class RequestSubscriptionAndroidProps {
       'replacementModeAndroid': replacementModeAndroid,
       'skus': skus.map((e) => e).toList(),
       'subscriptionOffers': subscriptionOffers == null ? null : subscriptionOffers!.map((e) => e.toJson()).toList(),
+      'subscriptionProductReplacementParams': subscriptionProductReplacementParams?.toJson(),
     };
   }
 }
@@ -2834,6 +3466,12 @@ class RequestSubscriptionIosProps {
   }
 }
 
+/// Platform-specific subscription request parameters.
+/// 
+/// Note: "Platforms" refers to the SDK/OS level (apple, google), not the store.
+/// - apple: Always targets App Store
+/// - google: Targets Play Store by default, or Horizon when built with horizon flavor
+///   (determined at build time, not runtime)
 class RequestSubscriptionPropsByPlatforms {
   const RequestSubscriptionPropsByPlatforms({
     /// @deprecated Use google instead
@@ -2918,21 +3556,25 @@ class RequestVerifyPurchaseWithIapkitGoogleProps {
   }
 }
 
+/// Platform-specific verification parameters for IAPKit.
+/// 
+/// - apple: Verifies via App Store (JWS token)
+/// - google: Verifies via Play Store (purchase token)
 class RequestVerifyPurchaseWithIapkitProps {
   const RequestVerifyPurchaseWithIapkitProps({
     /// API key used for the Authorization header (Bearer {apiKey}).
     this.apiKey,
-    /// Apple verification parameters.
+    /// Apple App Store verification parameters.
     this.apple,
-    /// Google verification parameters.
+    /// Google Play Store verification parameters.
     this.google,
   });
 
   /// API key used for the Authorization header (Bearer {apiKey}).
   final String? apiKey;
-  /// Apple verification parameters.
+  /// Apple App Store verification parameters.
   final RequestVerifyPurchaseWithIapkitAppleProps? apple;
-  /// Google verification parameters.
+  /// Google Play Store verification parameters.
   final RequestVerifyPurchaseWithIapkitGoogleProps? google;
 
   factory RequestVerifyPurchaseWithIapkitProps.fromJson(Map<String, dynamic> json) {
@@ -2952,25 +3594,101 @@ class RequestVerifyPurchaseWithIapkitProps {
   }
 }
 
-class VerifyPurchaseAndroidOptions {
-  const VerifyPurchaseAndroidOptions({
-    required this.accessToken,
-    this.isSub,
-    required this.packageName,
-    required this.productToken,
+/// Product-level subscription replacement parameters (Android)
+/// Used with setSubscriptionProductReplacementParams in BillingFlowParams.ProductDetailsParams
+/// Available in Google Play Billing Library 8.1.0+
+class SubscriptionProductReplacementParamsAndroid {
+  const SubscriptionProductReplacementParamsAndroid({
+    /// The old product ID that needs to be replaced
+    required this.oldProductId,
+    /// The replacement mode for this product change
+    required this.replacementMode,
   });
 
-  final String accessToken;
-  final bool? isSub;
-  final String packageName;
-  final String productToken;
+  /// The old product ID that needs to be replaced
+  final String oldProductId;
+  /// The replacement mode for this product change
+  final SubscriptionReplacementModeAndroid replacementMode;
 
-  factory VerifyPurchaseAndroidOptions.fromJson(Map<String, dynamic> json) {
-    return VerifyPurchaseAndroidOptions(
+  factory SubscriptionProductReplacementParamsAndroid.fromJson(Map<String, dynamic> json) {
+    return SubscriptionProductReplacementParamsAndroid(
+      oldProductId: json['oldProductId'] as String,
+      replacementMode: SubscriptionReplacementModeAndroid.fromJson(json['replacementMode'] as String),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'oldProductId': oldProductId,
+      'replacementMode': replacementMode.toJson(),
+    };
+  }
+}
+
+/// Apple App Store verification parameters.
+/// Used for server-side receipt validation via App Store Server API.
+class VerifyPurchaseAppleOptions {
+  const VerifyPurchaseAppleOptions({
+    /// Product SKU to validate
+    required this.sku,
+  });
+
+  /// Product SKU to validate
+  final String sku;
+
+  factory VerifyPurchaseAppleOptions.fromJson(Map<String, dynamic> json) {
+    return VerifyPurchaseAppleOptions(
+      sku: json['sku'] as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'sku': sku,
+    };
+  }
+}
+
+/// Google Play Store verification parameters.
+/// Used for server-side receipt validation via Google Play Developer API.
+/// 
+/// ⚠️ SECURITY: Contains sensitive tokens (accessToken, purchaseToken). Do not log or persist this data.
+class VerifyPurchaseGoogleOptions {
+  const VerifyPurchaseGoogleOptions({
+    /// Google OAuth2 access token for API authentication.
+    /// ⚠️ Sensitive: Do not log this value.
+    required this.accessToken,
+    /// Whether this is a subscription purchase (affects API endpoint used)
+    this.isSub,
+    /// Android package name (e.g., com.example.app)
+    required this.packageName,
+    /// Purchase token from the purchase response.
+    /// ⚠️ Sensitive: Do not log this value.
+    required this.purchaseToken,
+    /// Product SKU to validate
+    required this.sku,
+  });
+
+  /// Google OAuth2 access token for API authentication.
+  /// ⚠️ Sensitive: Do not log this value.
+  final String accessToken;
+  /// Whether this is a subscription purchase (affects API endpoint used)
+  final bool? isSub;
+  /// Android package name (e.g., com.example.app)
+  final String packageName;
+  /// Purchase token from the purchase response.
+  /// ⚠️ Sensitive: Do not log this value.
+  final String purchaseToken;
+  /// Product SKU to validate
+  final String sku;
+
+  factory VerifyPurchaseGoogleOptions.fromJson(Map<String, dynamic> json) {
+    return VerifyPurchaseGoogleOptions(
       accessToken: json['accessToken'] as String,
       isSub: json['isSub'] as bool?,
       packageName: json['packageName'] as String,
-      productToken: json['productToken'] as String,
+      purchaseToken: json['purchaseToken'] as String,
+      sku: json['sku'] as String,
     );
   }
 
@@ -2979,35 +3697,88 @@ class VerifyPurchaseAndroidOptions {
       'accessToken': accessToken,
       'isSub': isSub,
       'packageName': packageName,
-      'productToken': productToken,
+      'purchaseToken': purchaseToken,
+      'sku': sku,
     };
   }
 }
 
-class VerifyPurchaseProps {
-  const VerifyPurchaseProps({
-    /// Android-specific validation options
-    this.androidOptions,
-    /// Product SKU to validate
+/// Meta Horizon (Quest) verification parameters.
+/// Used for server-side entitlement verification via Meta's S2S API.
+/// POST https://graph.oculus.com/$APP_ID/verify_entitlement
+/// 
+/// ⚠️ SECURITY: Contains sensitive token (accessToken). Do not log or persist this data.
+class VerifyPurchaseHorizonOptions {
+  const VerifyPurchaseHorizonOptions({
+    /// Access token for Meta API authentication (OC|$APP_ID|$APP_SECRET or User Access Token).
+    /// ⚠️ Sensitive: Do not log this value.
+    required this.accessToken,
+    /// The SKU for the add-on item, defined in Meta Developer Dashboard
     required this.sku,
+    /// The user ID of the user whose purchase you want to verify
+    required this.userId,
   });
 
-  /// Android-specific validation options
-  final VerifyPurchaseAndroidOptions? androidOptions;
-  /// Product SKU to validate
+  /// Access token for Meta API authentication (OC|$APP_ID|$APP_SECRET or User Access Token).
+  /// ⚠️ Sensitive: Do not log this value.
+  final String accessToken;
+  /// The SKU for the add-on item, defined in Meta Developer Dashboard
   final String sku;
+  /// The user ID of the user whose purchase you want to verify
+  final String userId;
 
-  factory VerifyPurchaseProps.fromJson(Map<String, dynamic> json) {
-    return VerifyPurchaseProps(
-      androidOptions: json['androidOptions'] != null ? VerifyPurchaseAndroidOptions.fromJson(json['androidOptions'] as Map<String, dynamic>) : null,
+  factory VerifyPurchaseHorizonOptions.fromJson(Map<String, dynamic> json) {
+    return VerifyPurchaseHorizonOptions(
+      accessToken: json['accessToken'] as String,
       sku: json['sku'] as String,
+      userId: json['userId'] as String,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'androidOptions': androidOptions?.toJson(),
+      'accessToken': accessToken,
       'sku': sku,
+      'userId': userId,
+    };
+  }
+}
+
+/// Platform-specific purchase verification parameters.
+/// 
+/// - apple: Verifies via App Store Server API
+/// - google: Verifies via Google Play Developer API
+/// - horizon: Verifies via Meta's S2S API (verify_entitlement endpoint)
+class VerifyPurchaseProps {
+  const VerifyPurchaseProps({
+    /// Apple App Store verification parameters.
+    this.apple,
+    /// Google Play Store verification parameters.
+    this.google,
+    /// Meta Horizon (Quest) verification parameters.
+    this.horizon,
+  });
+
+  /// Apple App Store verification parameters.
+  final VerifyPurchaseAppleOptions? apple;
+  /// Google Play Store verification parameters.
+  final VerifyPurchaseGoogleOptions? google;
+  /// Meta Horizon (Quest) verification parameters.
+  final VerifyPurchaseHorizonOptions? horizon;
+
+  factory VerifyPurchaseProps.fromJson(Map<String, dynamic> json) {
+    return VerifyPurchaseProps(
+      apple: json['apple'] != null ? VerifyPurchaseAppleOptions.fromJson(json['apple'] as Map<String, dynamic>) : null,
+      google: json['google'] != null ? VerifyPurchaseGoogleOptions.fromJson(json['google'] as Map<String, dynamic>) : null,
+      horizon: json['horizon'] != null ? VerifyPurchaseHorizonOptions.fromJson(json['horizon'] as Map<String, dynamic>) : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'apple': apple?.toJson(),
+      'google': google?.toJson(),
+      'horizon': horizon?.toJson(),
     };
   }
 }
@@ -3177,7 +3948,6 @@ sealed class Purchase implements PurchaseCommon {
   List<String>? get ids;
   @override
   bool get isAutoRenewing;
-  /// @deprecated Use store instead
   @override
   IapPlatform get platform;
   @override
@@ -3206,6 +3976,8 @@ sealed class VerifyPurchaseResult {
     switch (typeName) {
       case 'VerifyPurchaseResultAndroid':
         return VerifyPurchaseResultAndroid.fromJson(json);
+      case 'VerifyPurchaseResultHorizon':
+        return VerifyPurchaseResultHorizon.fromJson(json);
       case 'VerifyPurchaseResultIOS':
         return VerifyPurchaseResultIOS.fromJson(json);
     }
@@ -3282,13 +4054,15 @@ abstract class MutationResolver {
   Future<bool> syncIOS();
   /// Validate purchase receipts with the configured providers
   Future<VerifyPurchaseResult> validateReceipt({
-    VerifyPurchaseAndroidOptions? androidOptions,
-    required String sku,
+    VerifyPurchaseAppleOptions? apple,
+    VerifyPurchaseGoogleOptions? google,
+    VerifyPurchaseHorizonOptions? horizon,
   });
   /// Verify purchases with the configured providers
   Future<VerifyPurchaseResult> verifyPurchase({
-    VerifyPurchaseAndroidOptions? androidOptions,
-    required String sku,
+    VerifyPurchaseAppleOptions? apple,
+    VerifyPurchaseGoogleOptions? google,
+    VerifyPurchaseHorizonOptions? horizon,
   });
   /// Verify purchases with a specific provider (e.g., IAPKit)
   Future<VerifyPurchaseWithProviderResult> verifyPurchaseWithProvider({
@@ -3341,8 +4115,9 @@ abstract class QueryResolver {
   Future<List<SubscriptionStatusIOS>> subscriptionStatusIOS(String sku);
   /// Validate a receipt for a specific product
   Future<VerifyPurchaseResultIOS> validateReceiptIOS({
-    VerifyPurchaseAndroidOptions? androidOptions,
-    required String sku,
+    VerifyPurchaseAppleOptions? apple,
+    VerifyPurchaseGoogleOptions? google,
+    VerifyPurchaseHorizonOptions? horizon,
   });
 }
 
@@ -3391,12 +4166,14 @@ typedef MutationShowAlternativeBillingDialogAndroidHandler = Future<bool> Functi
 typedef MutationShowManageSubscriptionsIOSHandler = Future<List<PurchaseIOS>> Function();
 typedef MutationSyncIOSHandler = Future<bool> Function();
 typedef MutationValidateReceiptHandler = Future<VerifyPurchaseResult> Function({
-  VerifyPurchaseAndroidOptions? androidOptions,
-  required String sku,
+  VerifyPurchaseAppleOptions? apple,
+  VerifyPurchaseGoogleOptions? google,
+  VerifyPurchaseHorizonOptions? horizon,
 });
 typedef MutationVerifyPurchaseHandler = Future<VerifyPurchaseResult> Function({
-  VerifyPurchaseAndroidOptions? androidOptions,
-  required String sku,
+  VerifyPurchaseAppleOptions? apple,
+  VerifyPurchaseGoogleOptions? google,
+  VerifyPurchaseHorizonOptions? horizon,
 });
 typedef MutationVerifyPurchaseWithProviderHandler = Future<VerifyPurchaseWithProviderResult> Function({
   RequestVerifyPurchaseWithIapkitProps? iapkit,
@@ -3479,8 +4256,9 @@ typedef QueryIsTransactionVerifiedIOSHandler = Future<bool> Function(String sku)
 typedef QueryLatestTransactionIOSHandler = Future<PurchaseIOS?> Function(String sku);
 typedef QuerySubscriptionStatusIOSHandler = Future<List<SubscriptionStatusIOS>> Function(String sku);
 typedef QueryValidateReceiptIOSHandler = Future<VerifyPurchaseResultIOS> Function({
-  VerifyPurchaseAndroidOptions? androidOptions,
-  required String sku,
+  VerifyPurchaseAppleOptions? apple,
+  VerifyPurchaseGoogleOptions? google,
+  VerifyPurchaseHorizonOptions? horizon,
 });
 
 class QueryHandlers {
