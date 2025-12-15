@@ -40,7 +40,7 @@ target 'Runner' do
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 
   # Override openiap to use monorepo git source
-  pod 'openiap', :git => 'https://github.com/hyodotdev/openiap.git', :tag => "apple-v#{openiap_versions['apple']}"
+  pod 'openiap', :git => 'https://github.com/hyodotdev/openiap.git', :tag => openiap_versions['apple']
 end
 
 post_install do |installer|

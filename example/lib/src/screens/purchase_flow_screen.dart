@@ -340,7 +340,7 @@ Message: ${error.message}
       if (!mounted) return;
       setState(() {
         _purchaseResult =
-            '$_purchaseResult\n\n⚠️ Local verification: No product ID';
+            '$_purchaseResult\n\nLocal verification: No product ID';
       });
       return;
     }
@@ -348,34 +348,88 @@ Message: ${error.message}
     try {
       debugPrint('Verifying purchase locally for: $productId');
 
-      final result = await _iap.verifyPurchase(sku: productId);
+      // Use platform-specific verification options (v8.0.0+ API)
+      final VerifyPurchaseResult result;
+      if (Platform.isIOS) {
+        result = await _iap.verifyPurchase(
+          apple: VerifyPurchaseAppleOptions(sku: productId),
+        );
+      } else if (Platform.isAndroid) {
+        // Note: Android verification requires accessToken from your backend
+        // This is a demo - in production, get accessToken from your server
+        final purchaseToken = (purchase as PurchaseAndroid?)?.purchaseToken;
+        if (purchaseToken == null) {
+          if (!mounted) return;
+          setState(() {
+            _purchaseResult =
+                '$_purchaseResult\n\nAndroid verification: No purchase token';
+          });
+          return;
+        }
+
+        // In production, you would get the accessToken from your backend
+        // For demo purposes, we show an error since no real accessToken is configured
+        if (!mounted) return;
+        setState(() {
+          _purchaseResult = '''
+$_purchaseResult
+
+[Skipped] Local Verification (Android)
+Android verification requires a valid OAuth accessToken from your backend.
+In production, implement server-side verification using Google Play Developer API.
+          '''
+              .trim();
+        });
+        return;
+        // Example of how to call verifyPurchase with real credentials:
+        // result = await _iap.verifyPurchase(
+        //   google: VerifyPurchaseGoogleOptions(
+        //     sku: productId,
+        //     accessToken: 'YOUR_OAUTH_ACCESS_TOKEN', // From your backend
+        //     packageName: 'io.github.hyochan.flutter_inapp_purchase_example',
+        //     purchaseToken: purchaseToken,
+        //   ),
+        // );
+      } else {
+        if (!mounted) return;
+        setState(() {
+          _purchaseResult =
+              '$_purchaseResult\n\nLocal verification: Platform not supported';
+        });
+        return;
+      }
 
       debugPrint('Local verification result: $result');
 
       if (result is VerifyPurchaseResultIOS) {
-        final statusEmoji = result.isValid ? '✅' : '⚠️';
+        final iosResult = result;
+        final statusText = iosResult.isValid ? '[Valid]' : '[Invalid]';
+        final jwsPreview = iosResult.jwsRepresentation.length > 50
+            ? iosResult.jwsRepresentation.substring(0, 50)
+            : iosResult.jwsRepresentation;
         if (!mounted) return;
         setState(() {
           _purchaseResult = '''
 $_purchaseResult
 
-$statusEmoji Local Verification (iOS)
-Valid: ${result.isValid}
-JWS: ${result.jwsRepresentation.substring(0, result.jwsRepresentation.length > 50 ? 50 : result.jwsRepresentation.length)}...
+$statusText Local Verification (iOS)
+Valid: ${iosResult.isValid}
+JWS: $jwsPreview...
           '''
               .trim();
         });
       } else if (result is VerifyPurchaseResultAndroid) {
+        final androidResult = result;
         if (!mounted) return;
         setState(() {
           _purchaseResult = '''
 $_purchaseResult
 
-✅ Local Verification (Android)
-Product ID: ${result.productId}
-Product Type: ${result.productType}
-Purchase Date: ${result.purchaseDate}
-Auto Renewing: ${result.autoRenewing}
+[Verified] Local Verification (Android)
+Product ID: ${androidResult.productId}
+Product Type: ${androidResult.productType}
+Purchase Date: ${androidResult.purchaseDate}
+Auto Renewing: ${androidResult.autoRenewing}
           '''
               .trim();
         });
@@ -384,7 +438,8 @@ Auto Renewing: ${result.autoRenewing}
       debugPrint('Local verification failed: $e');
       if (!mounted) return;
       setState(() {
-        _purchaseResult = '$_purchaseResult\n\n❌ Local verification failed: $e';
+        _purchaseResult =
+            '$_purchaseResult\n\n[Failed] Local verification failed: $e';
       });
     }
   }

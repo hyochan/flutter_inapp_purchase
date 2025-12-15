@@ -42,6 +42,7 @@ const sidebars: SidebarsConfig = {
       type: "category",
       label: "Migration",
       items: [
+        "migration/from-v7",
         "migration/from-v6",
         "migration/from-v5",
       ],

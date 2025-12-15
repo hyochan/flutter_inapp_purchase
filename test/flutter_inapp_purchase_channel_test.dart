@@ -17,6 +17,121 @@ void main() {
         .setMockMethodCallHandler(channel, null);
   });
 
+  group('billing programs', () {
+    test('isBillingProgramAvailableAndroid returns parsed result', () async {
+      final calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall call) async {
+        calls.add(call);
+        if (call.method == 'isBillingProgramAvailableAndroid') {
+          return jsonEncode(
+            <String, dynamic>{
+              'billingProgram': 'external-offer',
+              'isAvailable': true,
+            },
+          );
+        }
+        return null;
+      });
+
+      final iap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'android'),
+      );
+
+      final result = await iap.isBillingProgramAvailableAndroid(
+        types.BillingProgramAndroid.ExternalOffer,
+      );
+
+      expect(result.billingProgram, types.BillingProgramAndroid.ExternalOffer);
+      expect(result.isAvailable, isTrue);
+
+      final call = calls.singleWhere(
+        (MethodCall call) => call.method == 'isBillingProgramAvailableAndroid',
+      );
+      expect(
+        call.arguments,
+        <String, dynamic>{'program': 'external-offer'},
+      );
+    });
+
+    test(
+        'createBillingProgramReportingDetailsAndroid returns external token on Android',
+        () async {
+      final calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall call) async {
+        calls.add(call);
+        if (call.method == 'createBillingProgramReportingDetailsAndroid') {
+          return jsonEncode(
+            <String, dynamic>{
+              'billingProgram': 'external-offer',
+              'externalTransactionToken': 'ext-token-123',
+            },
+          );
+        }
+        return null;
+      });
+
+      final iap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'android'),
+      );
+
+      final result = await iap.createBillingProgramReportingDetailsAndroid(
+        types.BillingProgramAndroid.ExternalOffer,
+      );
+
+      expect(
+        result.billingProgram,
+        types.BillingProgramAndroid.ExternalOffer,
+      );
+      expect(result.externalTransactionToken, 'ext-token-123');
+
+      final call = calls.singleWhere(
+        (MethodCall call) =>
+            call.method == 'createBillingProgramReportingDetailsAndroid',
+      );
+      expect(
+        call.arguments,
+        <String, dynamic>{'program': 'external-offer'},
+      );
+    });
+  });
+
+  group('launchExternalLinkAndroid', () {
+    test('sends correct payload to native channel', () async {
+      final calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall call) async {
+        calls.add(call);
+        if (call.method == 'launchExternalLinkAndroid') {
+          return true;
+        }
+        return null;
+      });
+
+      final iap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'android'),
+      );
+
+      const params = types.LaunchExternalLinkParamsAndroid(
+        billingProgram: types.BillingProgramAndroid.ExternalOffer,
+        launchMode:
+            types.ExternalLinkLaunchModeAndroid.LaunchInExternalBrowserOrApp,
+        linkType: types.ExternalLinkTypeAndroid.LinkToDigitalContentOffer,
+        linkUri: 'https://example.com/offer',
+      );
+
+      final result = await iap.launchExternalLinkAndroid(params);
+      expect(result, isTrue);
+
+      final methodCall = calls.singleWhere(
+          (MethodCall call) => call.method == 'launchExternalLinkAndroid');
+      final payload = Map<String, dynamic>.from(
+          methodCall.arguments as Map<dynamic, dynamic>);
+      expect(payload, params.toJson());
+    });
+  });
+
   group('requestPurchase', () {
     test('throws when connection not initialized', () async {
       final iap = FlutterInappPurchase.private(
@@ -898,7 +1013,9 @@ void main() {
       );
 
       await expectLater(
-        iap.verifyPurchase(sku: 'test.sku'),
+        iap.verifyPurchase(
+          apple: const types.VerifyPurchaseAppleOptions(sku: 'test.sku'),
+        ),
         throwsA(
           isA<PurchaseError>().having(
             (error) => error.code,
@@ -934,14 +1051,19 @@ void main() {
 
       await iap.initConnection();
 
-      final result = await iap.verifyPurchase(sku: 'premium.upgrade');
+      final result = await iap.verifyPurchase(
+        apple: const types.VerifyPurchaseAppleOptions(sku: 'premium.upgrade'),
+      );
 
       final verifyCall =
           calls.singleWhere((MethodCall c) => c.method == 'verifyPurchase');
       final payload = Map<String, dynamic>.from(
           verifyCall.arguments as Map<dynamic, dynamic>);
 
-      expect(payload['sku'], 'premium.upgrade');
+      expect(payload['apple'], isNotNull);
+      final appleOptions =
+          Map<String, dynamic>.from(payload['apple'] as Map<dynamic, dynamic>);
+      expect(appleOptions['sku'], 'premium.upgrade');
 
       expect(result, isA<types.VerifyPurchaseResultIOS>());
       final iosResult = result as types.VerifyPurchaseResultIOS;
@@ -986,11 +1108,11 @@ void main() {
       await iap.initConnection();
 
       final result = await iap.verifyPurchase(
-        sku: 'premium.upgrade',
-        androidOptions: const types.VerifyPurchaseAndroidOptions(
+        google: const types.VerifyPurchaseGoogleOptions(
+          sku: 'premium.upgrade',
           accessToken: 'test-access-token',
           packageName: 'com.example.app',
-          productToken: 'test-product-token',
+          purchaseToken: 'test-purchase-token',
         ),
       );
 
@@ -999,13 +1121,13 @@ void main() {
       final payload = Map<String, dynamic>.from(
           verifyCall.arguments as Map<dynamic, dynamic>);
 
-      expect(payload['sku'], 'premium.upgrade');
-      expect(payload['androidOptions'], isNotNull);
-      final androidOptions = Map<String, dynamic>.from(
-          payload['androidOptions'] as Map<dynamic, dynamic>);
-      expect(androidOptions['accessToken'], 'test-access-token');
-      expect(androidOptions['packageName'], 'com.example.app');
-      expect(androidOptions['productToken'], 'test-product-token');
+      expect(payload['google'], isNotNull);
+      final googleOptions =
+          Map<String, dynamic>.from(payload['google'] as Map<dynamic, dynamic>);
+      expect(googleOptions['sku'], 'premium.upgrade');
+      expect(googleOptions['accessToken'], 'test-access-token');
+      expect(googleOptions['packageName'], 'com.example.app');
+      expect(googleOptions['purchaseToken'], 'test-purchase-token');
 
       expect(result, isA<types.VerifyPurchaseResultAndroid>());
       final androidResult = result as types.VerifyPurchaseResultAndroid;
@@ -1036,7 +1158,9 @@ void main() {
       await iap.initConnection();
 
       await expectLater(
-        iap.verifyPurchase(sku: 'test.sku'),
+        iap.verifyPurchase(
+          apple: const types.VerifyPurchaseAppleOptions(sku: 'test.sku'),
+        ),
         throwsA(isA<PurchaseError>()),
       );
     });
@@ -1060,7 +1184,9 @@ void main() {
       await iap.initConnection();
 
       await expectLater(
-        iap.verifyPurchase(sku: 'test.sku'),
+        iap.verifyPurchase(
+          apple: const types.VerifyPurchaseAppleOptions(sku: 'test.sku'),
+        ),
         throwsA(
           isA<PurchaseError>().having(
             (error) => error.code,
