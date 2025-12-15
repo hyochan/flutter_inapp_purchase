@@ -32,11 +32,13 @@ A `Future<bool>` that completes with `true` when the connection is established (
 ## Platform Behavior
 
 ### iOS
+
 - Initializes StoreKit connection
 - Sets up transaction observers
 - Checks if the device can make payments
 
 ### Android
+
 - Initializes Google Play Billing client
 - Establishes connection to Google Play services
 - Sets up purchase update listeners
@@ -80,14 +82,14 @@ class IAPService {
   
   void _setupListeners() {
     // Listen to purchase updates
-    FlutterInappPurchase.purchaseUpdated.listen((purchase) {
+    FlutterInappPurchase.purchaseUpdatedListener.listen((purchase) {
       if (purchase != null) {
         _handlePurchase(purchase);
       }
     });
     
     // Listen to purchase errors
-    FlutterInappPurchase.purchaseError.listen((error) {
+    FlutterInappPurchase.purchaseErrorListener.listen((error) {
       if (error != null) {
         _handleError(error);
       }
@@ -145,13 +147,15 @@ class IAPProvider extends ChangeNotifier {
 
 ## Related Methods
 
-- [`fetchProducts()`](./get-products.md) - Fetches available products (requires initialized connection)
-- [`requestPurchase()`](./request-purchase.md) - Initiates a purchase (requires initialized connection)
+- [`fetchProducts()`](./get-products.md) - Fetches available products (requires an initialized connection)
+- [`requestPurchase()`](./request-purchase.md) - Initiates a purchase (requires an initialized connection)
 
 ## Migration Notes
 
 ### From flutter_inapp_purchase v5.x
+
 The method signature remains the same, but now includes expo-iap compatible error handling.
 
 ### From expo-iap
+
 This method replaces expo-iap's initialization pattern and provides the same functionality with enhanced error reporting.
