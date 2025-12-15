@@ -59,9 +59,9 @@ This configuration tells Gradle to use the Google Play flavor of the plugin. If 
 
 For implementation examples, see:
 
-- [Complete Implementation Example](../examples/complete-implementation)
-- [Basic Store Example](../examples/basic-store)
-- [Subscription Store Example](../examples/subscription-store)
+- [Purchase Flow](../examples/purchase-flow)
+- [Subscription Flow](../examples/subscription-flow)
+- [Available Purchases](../examples/available-purchases)
 
 ## Common Issues
 

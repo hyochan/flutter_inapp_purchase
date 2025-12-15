@@ -275,5 +275,5 @@ The new API structure aligns better with the OpenIAP specification.
 If you encounter issues during migration:
 
 1. Check the [API Reference](/docs/api/overview) for detailed method signatures
-2. Review the [Examples](/docs/examples/complete-implementation) for updated code patterns
+2. Review the [Examples](/docs/examples/purchase-flow) for updated code patterns
 3. Open an issue on [GitHub](https://github.com/dooboolab-community/flutter_inapp_purchase/issues)

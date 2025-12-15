@@ -21,9 +21,9 @@ The guide covers:
 
 For implementation examples, see:
 
-- [Complete Implementation Example](../examples/complete-implementation)
-- [Basic Store Example](../examples/basic-store)
-- [Subscription Store Example](../examples/subscription-store)
+- [Purchase Flow](../examples/purchase-flow)
+- [Subscription Flow](../examples/subscription-flow)
+- [Available Purchases](../examples/available-purchases)
 
 ## Common Issues
 
