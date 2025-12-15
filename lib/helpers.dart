@@ -775,20 +775,12 @@ gentype.ProductAndroidOneTimePurchaseOfferDetail?
 
 gentype.ValidTimeWindowAndroid? _parseValidTimeWindow(dynamic value) {
   if (value == null) return null;
-  if (value is Map<String, dynamic>) {
-    return gentype.ValidTimeWindowAndroid.fromJson({
-      'endTimeMillis': value['endTimeMillis']?.toString() ?? '',
-      'startTimeMillis': value['startTimeMillis']?.toString() ?? '',
-    });
-  }
-  if (value is Map) {
-    final map = value.cast<dynamic, dynamic>();
-    return gentype.ValidTimeWindowAndroid.fromJson({
-      'endTimeMillis': map['endTimeMillis']?.toString() ?? '',
-      'startTimeMillis': map['startTimeMillis']?.toString() ?? '',
-    });
-  }
-  return null;
+  final map = normalizeDynamicMap(value);
+  if (map == null) return null;
+  return gentype.ValidTimeWindowAndroid.fromJson({
+    'endTimeMillis': map['endTimeMillis']?.toString() ?? '',
+    'startTimeMillis': map['startTimeMillis']?.toString() ?? '',
+  });
 }
 
 gentype.PurchaseState _parsePurchaseStateIOS(dynamic value) {

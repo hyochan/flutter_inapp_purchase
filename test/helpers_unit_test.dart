@@ -323,6 +323,7 @@ void main() {
       expect(offer.offerToken, 'offer-token');
       expect(offer.offerTags, contains('launch'));
       expect(offer.discountDisplayInfo?.percentageDiscount, 20);
+      expect(offer.fullPriceMicros, '2990000');
       expect(offer.limitedQuantityInfo?.maximumQuantity, 10);
       expect(offer.validTimeWindow?.endTimeMillis, '2000');
       expect(offer.preorderDetailsAndroid?.preorderReleaseTimeMillis, '4000');
