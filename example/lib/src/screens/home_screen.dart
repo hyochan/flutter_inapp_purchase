@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'dart:io';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -92,7 +92,8 @@ class HomeScreen extends StatelessWidget {
                         context,
                         icon: CupertinoIcons.gift,
                         title: 'Redeem Offer Code',
-                        subtitle: Platform.isIOS
+                        subtitle: !kIsWeb &&
+                                defaultTargetPlatform == TargetPlatform.iOS
                             ? 'Redeem promotional codes'
                             : 'iOS only feature',
                         color: const Color(0xFFFF3B30),
@@ -114,7 +115,8 @@ class HomeScreen extends StatelessWidget {
                         context,
                         icon: CupertinoIcons.money_dollar_circle,
                         title: 'Alternative Billing',
-                        subtitle: Platform.isAndroid
+                        subtitle: !kIsWeb &&
+                                defaultTargetPlatform == TargetPlatform.android
                             ? 'Google Play alternative billing'
                             : 'External purchase links',
                         color: const Color(0xFFFF9800),
@@ -126,7 +128,8 @@ class HomeScreen extends StatelessWidget {
                         context,
                         icon: CupertinoIcons.layers,
                         title: 'Billing Programs (8.2+)',
-                        subtitle: Platform.isAndroid
+                        subtitle: !kIsWeb &&
+                                defaultTargetPlatform == TargetPlatform.android
                             ? 'New Billing Programs API'
                             : 'Android only feature',
                         color: const Color(0xFF9C27B0),
@@ -146,7 +149,7 @@ class HomeScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     Text(
-                      'Platform: ${Platform.operatingSystem}',
+                      'Platform: ${defaultTargetPlatform.name}',
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey[600],

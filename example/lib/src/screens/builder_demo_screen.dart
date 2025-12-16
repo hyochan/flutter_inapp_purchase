@@ -1,5 +1,6 @@
 import 'dart:async';
-import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 import '../constants.dart';
@@ -171,7 +172,9 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
       // Demo: use a default proration mode for upgrade
       final int prorationMode = AndroidReplacementMode.withTimeProration.value;
 
-      if (Platform.isAndroid && hasToken) {
+      if (!kIsWeb &&
+          defaultTargetPlatform == TargetPlatform.android &&
+          hasToken) {
         // Upgrade/downgrade with replacement mode
         final subBuilder = RequestSubscriptionBuilder()
           ..withAndroid((RequestSubscriptionAndroidBuilder a) => a
@@ -204,7 +207,7 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
     });
 
     try {
-      if (Platform.isIOS) {
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
         // iOS: Use external purchase link
         final result = await _iap.presentExternalPurchaseLinkIOS(
           'https://openiap.dev',
@@ -218,7 +221,7 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
         } else {
           setState(() => _status = 'User cancelled external purchase');
         }
-      } else {
+      } else if (!kIsWeb) {
         // Android: Check availability first
         final availability =
             await _iap.checkAlternativeBillingAvailabilityAndroid();
@@ -238,6 +241,8 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
                 a..skus = [IapConstants.inAppProductIds[0]]),
         );
         setState(() => _status = 'Alternative billing purchase initiated');
+      } else {
+        setState(() => _status = 'Alternative billing not supported on web');
       }
     } catch (e) {
       setState(() => _status = 'Error: $e');
@@ -253,7 +258,7 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
     });
 
     try {
-      if (Platform.isIOS) {
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
         // iOS: Use external purchase link
         final result = await _iap.presentExternalPurchaseLinkIOS(
           'https://openiap.dev',
@@ -267,7 +272,7 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
         } else {
           setState(() => _status = 'User cancelled external purchase');
         }
-      } else {
+      } else if (!kIsWeb) {
         // Android: Check availability first
         final availability =
             await _iap.checkAlternativeBillingAvailabilityAndroid();
@@ -287,6 +292,8 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
                 a..skus = [IapConstants.subscriptionProductIds[0]]),
         );
         setState(() => _status = 'Alternative billing subscription initiated');
+      } else {
+        setState(() => _status = 'Alternative billing not supported on web');
       }
     } catch (e) {
       setState(() => _status = 'Error: $e');
@@ -342,7 +349,9 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
             ),
             const SizedBox(height: 8),
             ElevatedButton.icon(
-              onPressed: _isProcessing || !Platform.isAndroid
+              onPressed: _isProcessing ||
+                      kIsWeb ||
+                      defaultTargetPlatform != TargetPlatform.android
                   ? null
                   : _subscriptionUpgrade,
               icon: const Icon(Icons.upgrade),

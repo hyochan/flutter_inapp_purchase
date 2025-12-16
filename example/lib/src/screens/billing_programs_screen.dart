@@ -1,5 +1,4 @@
-import 'dart:io';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 
@@ -62,7 +61,7 @@ class _BillingProgramsScreenState extends State<BillingProgramsScreen> {
   }
 
   Future<void> _initConnection() async {
-    if (!Platform.isAndroid) {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
       setState(() {
         _statusMessage = 'Billing Programs API is Android-only';
       });
@@ -87,7 +86,7 @@ class _BillingProgramsScreenState extends State<BillingProgramsScreen> {
   }
 
   Future<void> _checkAvailability() async {
-    if (!Platform.isAndroid) {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
       _showPlatformWarning();
       return;
     }
@@ -139,7 +138,7 @@ class _BillingProgramsScreenState extends State<BillingProgramsScreen> {
   }
 
   Future<void> _launchExternalLink() async {
-    if (!Platform.isAndroid) {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
       _showPlatformWarning();
       return;
     }
@@ -191,7 +190,7 @@ class _BillingProgramsScreenState extends State<BillingProgramsScreen> {
   }
 
   Future<void> _createReportingDetails() async {
-    if (!Platform.isAndroid) {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
       _showPlatformWarning();
       return;
     }
@@ -284,7 +283,7 @@ class _BillingProgramsScreenState extends State<BillingProgramsScreen> {
         title: const Text('Billing Programs API'),
         backgroundColor: Colors.deepPurple,
       ),
-      body: !Platform.isAndroid
+      body: kIsWeb || defaultTargetPlatform != TargetPlatform.android
           ? _buildPlatformNotSupported()
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),

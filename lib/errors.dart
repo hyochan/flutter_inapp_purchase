@@ -1,7 +1,8 @@
 /// Error types for flutter_inapp_purchase (OpenIAP compliant)
 library errors;
 
-import 'dart:io';
+import 'package:flutter/foundation.dart';
+
 import 'types.dart' as openiap_types;
 
 // Type aliases for convenience
@@ -10,9 +11,9 @@ typedef IapPlatform = openiap_types.IapPlatform;
 
 /// Get current platform
 IapPlatform getCurrentPlatform() {
-  if (Platform.isIOS) {
+  if (defaultTargetPlatform == TargetPlatform.iOS) {
     return IapPlatform.IOS;
-  } else if (Platform.isAndroid) {
+  } else if (defaultTargetPlatform == TargetPlatform.android) {
     return IapPlatform.Android;
   }
   throw UnsupportedError('Platform not supported');

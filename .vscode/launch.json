@@ -55,6 +55,14 @@
       "program": "lib/main.dart",
       "cwd": "${workspaceFolder}/example",
       "args": ["--flavor", "horizon"]
+    },
+    {
+      "name": "run web (chrome)",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main.dart",
+      "cwd": "${workspaceFolder}/example",
+      "args": ["-d", "chrome"]
     }
   ]
 }

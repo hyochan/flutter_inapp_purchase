@@ -1,5 +1,6 @@
 import 'dart:async';
-import 'dart:io' show Platform;
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
@@ -124,7 +125,9 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
         // purchaseState.purchased or purchaseStateAndroid == AndroidPurchaseState.Purchased or isAcknowledgedAndroid == false (new purchase)
         bool isPurchased = false;
 
-        if (Platform.isAndroid && purchase is PurchaseAndroid) {
+        if (!kIsWeb &&
+            defaultTargetPlatform == TargetPlatform.android &&
+            purchase is PurchaseAndroid) {
           // For Android, check multiple conditions since fields can be null
           final bool condition1 =
               purchase.purchaseState == PurchaseState.Purchased;
@@ -534,7 +537,7 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
       }
 
       // Request subscription using the new API
-      if (Platform.isAndroid) {
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
         // Check if this is an upgrade/downgrade
         if (isUpgrade &&
             _currentActiveSubscription != null &&
@@ -1039,7 +1042,8 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
               ],
 
               // Always show proration mode selector for testing
-              if (Platform.isAndroid) ...[
+              if (!kIsWeb &&
+                  defaultTargetPlatform == TargetPlatform.android) ...[
                 const Text(
                   'Proration Mode (Test):',
                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
@@ -1101,7 +1105,8 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
                       ),
                     ),
                   ),
-                  if (Platform.isAndroid) ...[
+                  if (!kIsWeb &&
+                      defaultTargetPlatform == TargetPlatform.android) ...[
                     const SizedBox(width: 4),
                     // Test wrong usage button
                     Expanded(
