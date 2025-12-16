@@ -194,7 +194,8 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
     // Determine if purchase is successful using same logic as subscription flow
     bool isPurchased = false;
 
-    if (defaultTargetPlatform == TargetPlatform.android &&
+    if (!kIsWeb &&
+        defaultTargetPlatform == TargetPlatform.android &&
         purchase is PurchaseAndroid) {
       // For Android, check multiple conditions since fields can be null
       final bool condition1 = purchase.purchaseState == PurchaseState.Purchased;
@@ -354,11 +355,11 @@ Message: ${error.message}
 
       // Use platform-specific verification options (v8.0.0+ API)
       final VerifyPurchaseResult result;
-      if (defaultTargetPlatform == TargetPlatform.iOS) {
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
         result = await _iap.verifyPurchase(
           apple: VerifyPurchaseAppleOptions(sku: productId),
         );
-      } else if (defaultTargetPlatform == TargetPlatform.android) {
+      } else if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
         // Note: Android verification requires accessToken from your backend
         // This is a demo - in production, get accessToken from your server
         final purchaseToken = (purchase as PurchaseAndroid?)?.purchaseToken;

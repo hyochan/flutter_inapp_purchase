@@ -91,7 +91,7 @@ class _OfferCodeScreenState extends State<OfferCodeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isIOS = defaultTargetPlatform == TargetPlatform.iOS;
+    final bool isIOS = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),

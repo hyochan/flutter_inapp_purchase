@@ -125,7 +125,8 @@ class _SubscriptionFlowScreenState extends State<SubscriptionFlowScreen> {
         // purchaseState.purchased or purchaseStateAndroid == AndroidPurchaseState.Purchased or isAcknowledgedAndroid == false (new purchase)
         bool isPurchased = false;
 
-        if (defaultTargetPlatform == TargetPlatform.android &&
+        if (!kIsWeb &&
+            defaultTargetPlatform == TargetPlatform.android &&
             purchase is PurchaseAndroid) {
           // For Android, check multiple conditions since fields can be null
           final bool condition1 =
@@ -536,7 +537,7 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
       }
 
       // Request subscription using the new API
-      if (defaultTargetPlatform == TargetPlatform.android) {
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
         // Check if this is an upgrade/downgrade
         if (isUpgrade &&
             _currentActiveSubscription != null &&
@@ -1041,7 +1042,8 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
               ],
 
               // Always show proration mode selector for testing
-              if (defaultTargetPlatform == TargetPlatform.android) ...[
+              if (!kIsWeb &&
+                  defaultTargetPlatform == TargetPlatform.android) ...[
                 const Text(
                   'Proration Mode (Test):',
                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
@@ -1103,7 +1105,8 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
                       ),
                     ),
                   ),
-                  if (defaultTargetPlatform == TargetPlatform.android) ...[
+                  if (!kIsWeb &&
+                      defaultTargetPlatform == TargetPlatform.android) ...[
                     const SizedBox(width: 4),
                     // Test wrong usage button
                     Expanded(
