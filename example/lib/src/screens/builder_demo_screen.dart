@@ -1,5 +1,6 @@
 import 'dart:async';
-import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 import '../constants.dart';
@@ -171,7 +172,7 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
       // Demo: use a default proration mode for upgrade
       final int prorationMode = AndroidReplacementMode.withTimeProration.value;
 
-      if (Platform.isAndroid && hasToken) {
+      if (defaultTargetPlatform == TargetPlatform.android && hasToken) {
         // Upgrade/downgrade with replacement mode
         final subBuilder = RequestSubscriptionBuilder()
           ..withAndroid((RequestSubscriptionAndroidBuilder a) => a
@@ -204,7 +205,7 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
     });
 
     try {
-      if (Platform.isIOS) {
+      if (defaultTargetPlatform == TargetPlatform.iOS) {
         // iOS: Use external purchase link
         final result = await _iap.presentExternalPurchaseLinkIOS(
           'https://openiap.dev',
@@ -253,7 +254,7 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
     });
 
     try {
-      if (Platform.isIOS) {
+      if (defaultTargetPlatform == TargetPlatform.iOS) {
         // iOS: Use external purchase link
         final result = await _iap.presentExternalPurchaseLinkIOS(
           'https://openiap.dev',
@@ -342,7 +343,8 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
             ),
             const SizedBox(height: 8),
             ElevatedButton.icon(
-              onPressed: _isProcessing || !Platform.isAndroid
+              onPressed: _isProcessing ||
+                      defaultTargetPlatform != TargetPlatform.android
                   ? null
                   : _subscriptionUpgrade,
               icon: const Icon(Icons.upgrade),

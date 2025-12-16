@@ -1,5 +1,6 @@
 import 'dart:async';
-import 'dart:io' show Platform;
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
@@ -59,7 +60,9 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
   PurchaseError? _convertPlatformExceptionToPurchaseError(dynamic error) {
     if (error is! PlatformException) return null;
 
-    final platform = Platform.isIOS ? IapPlatform.IOS : IapPlatform.Android;
+    final platform = defaultTargetPlatform == TargetPlatform.iOS
+        ? IapPlatform.IOS
+        : IapPlatform.Android;
 
     return PurchaseError.fromPlatformError({
       'code': error.code,
@@ -191,7 +194,8 @@ class _PurchaseFlowScreenState extends State<PurchaseFlowScreen> {
     // Determine if purchase is successful using same logic as subscription flow
     bool isPurchased = false;
 
-    if (Platform.isAndroid && purchase is PurchaseAndroid) {
+    if (defaultTargetPlatform == TargetPlatform.android &&
+        purchase is PurchaseAndroid) {
       // For Android, check multiple conditions since fields can be null
       final bool condition1 = purchase.purchaseState == PurchaseState.Purchased;
       final bool condition2 = acknowledgedAndroid == false &&
@@ -278,7 +282,7 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
 
       // Format purchase result like KMP-IAP
       _purchaseResult = '''
-✅ Purchase successful (${Platform.operatingSystem})
+✅ Purchase successful (${defaultTargetPlatform.name})
 Product: ${purchase.productId}
 ID: ${purchase.id.isNotEmpty ? purchase.id : "N/A"}
 Transaction ID: ${transactionId ?? "N/A"}
@@ -350,11 +354,11 @@ Message: ${error.message}
 
       // Use platform-specific verification options (v8.0.0+ API)
       final VerifyPurchaseResult result;
-      if (Platform.isIOS) {
+      if (defaultTargetPlatform == TargetPlatform.iOS) {
         result = await _iap.verifyPurchase(
           apple: VerifyPurchaseAppleOptions(sku: productId),
         );
-      } else if (Platform.isAndroid) {
+      } else if (defaultTargetPlatform == TargetPlatform.android) {
         // Note: Android verification requires accessToken from your backend
         // This is a demo - in production, get accessToken from your server
         final purchaseToken = (purchase as PurchaseAndroid?)?.purchaseToken;
@@ -605,7 +609,7 @@ Store: ${iapkitResult.store.value}
 
   Future<void> _handlePurchase(String productId, {int retryCount = 0}) async {
     debugPrint('🛒 Starting purchase for: $productId (retry: $retryCount)');
-    debugPrint('📱 Platform: ${Platform.operatingSystem}');
+    debugPrint('📱 Platform: ${defaultTargetPlatform.name}');
     debugPrint('🔗 Connection status: $_connected');
 
     if (!mounted) return;

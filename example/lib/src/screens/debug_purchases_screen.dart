@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
@@ -116,7 +116,7 @@ class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
     });
 
     try {
-      if (Platform.isAndroid) {
+      if (defaultTargetPlatform == TargetPlatform.android) {
         // For Android, directly show manual cancellation instructions
         // as the plugin's Android subscription management has issues
         setState(() {
@@ -137,7 +137,7 @@ class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
                 '⚙️ Method 3 - Phone Settings:\n'
                 '1. Settings → Google → Manage Google Account\n'
                 '2. Payments & subscriptions → Manage subscriptions');
-      } else if (Platform.isIOS) {
+      } else if (defaultTargetPlatform == TargetPlatform.iOS) {
         // For iOS, try App Store subscription management
         try {
           await _iap.showManageSubscriptionsIOS();
@@ -276,7 +276,9 @@ class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
                               ),
                               const SizedBox(height: 16),
                               if (purchase.purchaseToken != null) ...[
-                                if (isConsumable && Platform.isAndroid)
+                                if (isConsumable &&
+                                    defaultTargetPlatform ==
+                                        TargetPlatform.android)
                                   SizedBox(
                                     width: double.infinity,
                                     child: CupertinoButton(

@@ -1,5 +1,6 @@
 import 'dart:async';
-import 'dart:io' show Platform;
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
@@ -50,7 +51,9 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
   PurchaseError? _convertPlatformExceptionToPurchaseError(dynamic error) {
     if (error is! PlatformException) return null;
 
-    final platform = Platform.isIOS ? IapPlatform.IOS : IapPlatform.Android;
+    final platform = defaultTargetPlatform == TargetPlatform.iOS
+        ? IapPlatform.IOS
+        : IapPlatform.Android;
 
     return PurchaseError.fromPlatformError({
       'code': error.code,
@@ -232,7 +235,8 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
         // Subscription
         // For Android, convert subscription offer details to SubscriptionOfferAndroid
         List<SubscriptionOfferAndroid>? androidOffers;
-        if (Platform.isAndroid && product is ProductAndroid) {
+        if (defaultTargetPlatform == TargetPlatform.android &&
+            product is ProductAndroid) {
           final details = product.subscriptionOfferDetailsAndroid;
           if (details != null && details.isNotEmpty) {
             androidOffers = [
@@ -247,10 +251,10 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
         }
 
         params = RequestPurchaseProps.subs((
-          ios: Platform.isIOS
+          ios: defaultTargetPlatform == TargetPlatform.iOS
               ? RequestSubscriptionIosProps(sku: product.id, quantity: 1)
               : null,
-          android: Platform.isAndroid
+          android: defaultTargetPlatform == TargetPlatform.android
               ? RequestSubscriptionAndroidProps(
                   skus: [product.id],
                 )
@@ -260,10 +264,10 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
       } else {
         // In-app purchase
         params = RequestPurchaseProps.inApp((
-          ios: Platform.isIOS
+          ios: defaultTargetPlatform == TargetPlatform.iOS
               ? RequestPurchaseIosProps(sku: product.id, quantity: 1)
               : null,
-          android: Platform.isAndroid
+          android: defaultTargetPlatform == TargetPlatform.android
               ? RequestPurchaseAndroidProps(skus: [product.id])
               : null,
           useAlternativeBilling: null,
@@ -454,7 +458,7 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
                             ),
                           ),
                         ),
-                        if (Platform.isAndroid &&
+                        if (defaultTargetPlatform == TargetPlatform.android &&
                             product is ProductAndroid) ...[
                           const SizedBox(width: 8),
                           if (product.oneTimePurchaseOfferDetailsAndroid !=

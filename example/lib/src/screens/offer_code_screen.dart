@@ -1,4 +1,4 @@
-import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
@@ -56,7 +56,7 @@ class _OfferCodeScreenState extends State<OfferCodeScreen> {
   }
 
   Future<void> _presentCodeRedemptionSheet() async {
-    if (!Platform.isIOS) {
+    if (defaultTargetPlatform != TargetPlatform.iOS) {
       setState(() {
         _statusMessage = 'Offer codes are only available on iOS';
         _isSuccess = false;
@@ -91,7 +91,7 @@ class _OfferCodeScreenState extends State<OfferCodeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isIOS = Platform.isIOS;
+    final bool isIOS = defaultTargetPlatform == TargetPlatform.iOS;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
