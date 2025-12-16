@@ -51,16 +51,16 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
   PurchaseError? _convertPlatformExceptionToPurchaseError(dynamic error) {
     if (error is! PlatformException) return null;
 
+    // Web platform doesn't have IAP support, so this shouldn't be called
+    // Use Android as default for error reporting purposes
     final IapPlatform platform;
     if (kIsWeb) {
-      // Web platform - use a default platform for error reporting
-      platform = IapPlatform.Unknown;
+      // Web doesn't support IAP - return null or use Android as fallback
+      return null;
     } else if (defaultTargetPlatform == TargetPlatform.iOS) {
       platform = IapPlatform.IOS;
-    } else if (defaultTargetPlatform == TargetPlatform.android) {
-      platform = IapPlatform.Android;
     } else {
-      platform = IapPlatform.Unknown;
+      platform = IapPlatform.Android;
     }
 
     return PurchaseError.fromPlatformError({
