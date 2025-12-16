@@ -61,7 +61,7 @@ class _BillingProgramsScreenState extends State<BillingProgramsScreen> {
   }
 
   Future<void> _initConnection() async {
-    if (defaultTargetPlatform != TargetPlatform.android) {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
       setState(() {
         _statusMessage = 'Billing Programs API is Android-only';
       });
@@ -86,7 +86,7 @@ class _BillingProgramsScreenState extends State<BillingProgramsScreen> {
   }
 
   Future<void> _checkAvailability() async {
-    if (defaultTargetPlatform != TargetPlatform.android) {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
       _showPlatformWarning();
       return;
     }
@@ -138,7 +138,7 @@ class _BillingProgramsScreenState extends State<BillingProgramsScreen> {
   }
 
   Future<void> _launchExternalLink() async {
-    if (defaultTargetPlatform != TargetPlatform.android) {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
       _showPlatformWarning();
       return;
     }
@@ -190,7 +190,7 @@ class _BillingProgramsScreenState extends State<BillingProgramsScreen> {
   }
 
   Future<void> _createReportingDetails() async {
-    if (defaultTargetPlatform != TargetPlatform.android) {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
       _showPlatformWarning();
       return;
     }
@@ -283,7 +283,7 @@ class _BillingProgramsScreenState extends State<BillingProgramsScreen> {
         title: const Text('Billing Programs API'),
         backgroundColor: Colors.deepPurple,
       ),
-      body: defaultTargetPlatform != TargetPlatform.android
+      body: kIsWeb || defaultTargetPlatform != TargetPlatform.android
           ? _buildPlatformNotSupported()
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),

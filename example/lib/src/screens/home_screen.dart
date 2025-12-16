@@ -92,7 +92,8 @@ class HomeScreen extends StatelessWidget {
                         context,
                         icon: CupertinoIcons.gift,
                         title: 'Redeem Offer Code',
-                        subtitle: defaultTargetPlatform == TargetPlatform.iOS
+                        subtitle: !kIsWeb &&
+                                defaultTargetPlatform == TargetPlatform.iOS
                             ? 'Redeem promotional codes'
                             : 'iOS only feature',
                         color: const Color(0xFFFF3B30),
@@ -114,10 +115,10 @@ class HomeScreen extends StatelessWidget {
                         context,
                         icon: CupertinoIcons.money_dollar_circle,
                         title: 'Alternative Billing',
-                        subtitle:
-                            defaultTargetPlatform == TargetPlatform.android
-                                ? 'Google Play alternative billing'
-                                : 'External purchase links',
+                        subtitle: !kIsWeb &&
+                                defaultTargetPlatform == TargetPlatform.android
+                            ? 'Google Play alternative billing'
+                            : 'External purchase links',
                         color: const Color(0xFFFF9800),
                         onTap: () => Navigator.pushNamed(
                             context, '/alternative-billing'),
@@ -127,10 +128,10 @@ class HomeScreen extends StatelessWidget {
                         context,
                         icon: CupertinoIcons.layers,
                         title: 'Billing Programs (8.2+)',
-                        subtitle:
-                            defaultTargetPlatform == TargetPlatform.android
-                                ? 'New Billing Programs API'
-                                : 'Android only feature',
+                        subtitle: !kIsWeb &&
+                                defaultTargetPlatform == TargetPlatform.android
+                            ? 'New Billing Programs API'
+                            : 'Android only feature',
                         color: const Color(0xFF9C27B0),
                         onTap: () =>
                             Navigator.pushNamed(context, '/billing-programs'),

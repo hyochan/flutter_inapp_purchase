@@ -1,8 +1,40 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_inapp_purchase/errors.dart' as errors;
 import 'package:flutter_inapp_purchase/types.dart' as types;
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  group('getCurrentPlatform', () {
+    tearDown(() {
+      // Reset platform override after each test
+      debugDefaultTargetPlatformOverride = null;
+    });
+
+    test('returns IOS when running on iOS', () {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      expect(errors.getCurrentPlatform(), types.IapPlatform.IOS);
+    });
+
+    test('returns Android when running on Android', () {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      expect(errors.getCurrentPlatform(), types.IapPlatform.Android);
+    });
+
+    test('throws UnsupportedError for unsupported platforms', () {
+      debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+      expect(() => errors.getCurrentPlatform(), throwsUnsupportedError);
+
+      debugDefaultTargetPlatformOverride = TargetPlatform.windows;
+      expect(() => errors.getCurrentPlatform(), throwsUnsupportedError);
+
+      debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+      expect(() => errors.getCurrentPlatform(), throwsUnsupportedError);
+
+      debugDefaultTargetPlatformOverride = TargetPlatform.fuchsia;
+      expect(() => errors.getCurrentPlatform(), throwsUnsupportedError);
+    });
+  });
+
   group('ErrorCodeUtils', () {
     test('fromPlatformCode maps Android string codes', () {
       final code = errors.ErrorCodeUtils.fromPlatformCode(

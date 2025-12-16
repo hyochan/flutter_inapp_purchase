@@ -116,7 +116,7 @@ class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
     });
 
     try {
-      if (defaultTargetPlatform == TargetPlatform.android) {
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
         // For Android, directly show manual cancellation instructions
         // as the plugin's Android subscription management has issues
         setState(() {
@@ -137,7 +137,7 @@ class _DebugPurchasesScreenState extends State<DebugPurchasesScreen> {
                 '⚙️ Method 3 - Phone Settings:\n'
                 '1. Settings → Google → Manage Google Account\n'
                 '2. Payments & subscriptions → Manage subscriptions');
-      } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+      } else if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
         // For iOS, try App Store subscription management
         try {
           await _iap.showManageSubscriptionsIOS();

@@ -51,9 +51,17 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
   PurchaseError? _convertPlatformExceptionToPurchaseError(dynamic error) {
     if (error is! PlatformException) return null;
 
-    final platform = defaultTargetPlatform == TargetPlatform.iOS
-        ? IapPlatform.IOS
-        : IapPlatform.Android;
+    final IapPlatform platform;
+    if (kIsWeb) {
+      // Web platform - use a default platform for error reporting
+      platform = IapPlatform.Unknown;
+    } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+      platform = IapPlatform.IOS;
+    } else if (defaultTargetPlatform == TargetPlatform.android) {
+      platform = IapPlatform.Android;
+    } else {
+      platform = IapPlatform.Unknown;
+    }
 
     return PurchaseError.fromPlatformError({
       'code': error.code,
@@ -235,7 +243,8 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
         // Subscription
         // For Android, convert subscription offer details to SubscriptionOfferAndroid
         List<SubscriptionOfferAndroid>? androidOffers;
-        if (defaultTargetPlatform == TargetPlatform.android &&
+        if (!kIsWeb &&
+            defaultTargetPlatform == TargetPlatform.android &&
             product is ProductAndroid) {
           final details = product.subscriptionOfferDetailsAndroid;
           if (details != null && details.isNotEmpty) {
@@ -251,10 +260,10 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
         }
 
         params = RequestPurchaseProps.subs((
-          ios: defaultTargetPlatform == TargetPlatform.iOS
+          ios: !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
               ? RequestSubscriptionIosProps(sku: product.id, quantity: 1)
               : null,
-          android: defaultTargetPlatform == TargetPlatform.android
+          android: !kIsWeb && defaultTargetPlatform == TargetPlatform.android
               ? RequestSubscriptionAndroidProps(
                   skus: [product.id],
                 )
@@ -264,10 +273,10 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
       } else {
         // In-app purchase
         params = RequestPurchaseProps.inApp((
-          ios: defaultTargetPlatform == TargetPlatform.iOS
+          ios: !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
               ? RequestPurchaseIosProps(sku: product.id, quantity: 1)
               : null,
-          android: defaultTargetPlatform == TargetPlatform.android
+          android: !kIsWeb && defaultTargetPlatform == TargetPlatform.android
               ? RequestPurchaseAndroidProps(skus: [product.id])
               : null,
           useAlternativeBilling: null,
@@ -458,7 +467,8 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
                             ),
                           ),
                         ),
-                        if (defaultTargetPlatform == TargetPlatform.android &&
+                        if (!kIsWeb &&
+                            defaultTargetPlatform == TargetPlatform.android &&
                             product is ProductAndroid) ...[
                           const SizedBox(width: 8),
                           if (product.oneTimePurchaseOfferDetailsAndroid !=

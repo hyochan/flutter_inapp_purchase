@@ -56,7 +56,7 @@ class _OfferCodeScreenState extends State<OfferCodeScreen> {
   }
 
   Future<void> _presentCodeRedemptionSheet() async {
-    if (defaultTargetPlatform != TargetPlatform.iOS) {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.iOS) {
       setState(() {
         _statusMessage = 'Offer codes are only available on iOS';
         _isSuccess = false;

@@ -159,7 +159,7 @@ Date: $transactionDateString
     });
 
     // Android User Choice Billing listener
-    if (defaultTargetPlatform == TargetPlatform.android) {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
       _userChoiceBillingSubscription = FlutterInappPurchase
           .instance.userChoiceBillingAndroid
           .listen((details) {
@@ -225,7 +225,7 @@ Token: ${details.externalTransactionToken.length > 20 ? details.externalTransact
   }
 
   Future<void> _reconnectWithMode(AlternativeBillingModeAndroid newMode) async {
-    if (defaultTargetPlatform != TargetPlatform.android) return;
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
 
     try {
       setState(() {
@@ -509,9 +509,9 @@ If user selects:
   }
 
   Future<void> _handlePurchase(Product product) async {
-    if (defaultTargetPlatform == TargetPlatform.iOS) {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
       await _handleIOSAlternativeBilling(product);
-    } else if (defaultTargetPlatform == TargetPlatform.android) {
+    } else if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
       if (_billingMode == AlternativeBillingModeAndroid.AlternativeOnly) {
         await _handleAndroidAlternativeBillingOnly(product);
       } else {
@@ -611,11 +611,13 @@ If user selects:
                 children: [
                   _buildInfoCard(),
                   const SizedBox(height: 15),
-                  if (defaultTargetPlatform == TargetPlatform.android) ...[
+                  if (!kIsWeb &&
+                      defaultTargetPlatform == TargetPlatform.android) ...[
                     _buildModeSelectorSection(),
                     const SizedBox(height: 15),
                   ],
-                  if (defaultTargetPlatform == TargetPlatform.iOS) ...[
+                  if (!kIsWeb &&
+                      defaultTargetPlatform == TargetPlatform.iOS) ...[
                     _buildUrlInputSection(),
                     const SizedBox(height: 15),
                   ],
@@ -673,7 +675,7 @@ If user selects:
             ),
             const SizedBox(height: 10),
             Text(
-              defaultTargetPlatform == TargetPlatform.iOS
+              !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
                   ? '• Enter your external purchase URL\n'
                       '• Tap Purchase on any product\n'
                       '• User will be redirected to the external URL\n'
@@ -699,7 +701,7 @@ If user selects:
             ),
             const SizedBox(height: 8),
             Text(
-              defaultTargetPlatform == TargetPlatform.iOS
+              !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
                   ? '⚠️ iOS 16.0+ required\n'
                       '⚠️ Valid external URL needed\n'
                       '⚠️ useAlternativeBilling: true is set'
@@ -796,7 +798,7 @@ If user selects:
                 color: _connected ? Colors.green : Colors.red,
               ),
             ),
-            if (defaultTargetPlatform == TargetPlatform.android) ...[
+            if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) ...[
               const SizedBox(height: 4),
               Text(
                 'Current mode: ${_billingMode == AlternativeBillingModeAndroid.AlternativeOnly ? 'ALTERNATIVE_ONLY' : 'USER_CHOICE'}',
@@ -940,7 +942,7 @@ If user selects:
           child: Text(
             _isProcessing
                 ? 'Processing...'
-                : defaultTargetPlatform == TargetPlatform.iOS
+                : !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
                     ? '🛒 Buy (External URL)'
                     : _billingMode ==
                             AlternativeBillingModeAndroid.AlternativeOnly
