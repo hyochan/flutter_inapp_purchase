@@ -103,16 +103,23 @@
 - `showAlternativeBillingDialogAndroid()` - Use `launchExternalLinkAndroid()` instead
 - `createAlternativeBillingTokenAndroid()` - Use `createBillingProgramReportingDetailsAndroid(BillingProgramAndroid.ExternalOffer)` instead
 
+### Fixes
+
+- **Web Build Error**: Fixed `dart:io` import causing web build failures
+  - Replaced `dart:io Platform` with `defaultTargetPlatform` from Flutter foundation
+  - Added `kIsWeb` guards to prevent native API calls on web
+  - Note: IAP functionality is still iOS/Android only; this fix only enables web compilation
+
 ### Dependencies
 
 - Updated OpenIAP versions:
-  - `openiap-apple`: 1.3.0 → 1.3.2
+  - `openiap-apple`: 1.3.0 → 1.3.5
   - `openiap-google`: 1.3.12 → 1.3.14
-  - `openiap-gql`: 1.3.2 → 1.3.4
+  - `openiap-gql`: 1.3.2 → 1.3.5
 
 ### Migration Guide
 
-See [Migration from v7](https://hyochan.github.io/flutter_inapp_purchase/docs/migration/from-v7) for detailed upgrade instructions.
+See [Migration from v7](https://hyochan.github.io/flutter_inapp_purchase/migration/from-v7) for detailed upgrade instructions.
 
 ## 7.2.0
 
