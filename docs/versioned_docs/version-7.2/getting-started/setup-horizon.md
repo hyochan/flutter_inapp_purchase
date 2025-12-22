@@ -3,11 +3,11 @@ sidebar_position: 4
 title: Horizon OS
 ---
 
-import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+import IapKitBanner from "@site/src/uis/IapKitBanner";
 
 # Horizon OS Setup
 
-<GreatFrontEnd link="https://www.greatfrontend.com/questions/formats/quiz?fpr=hyo73" title="Quiz interview questions" />
+<IapKitBanner />
 
 Setup guide for Meta Quest devices running Horizon OS with Meta's Platform SDK for in-app purchases.
 

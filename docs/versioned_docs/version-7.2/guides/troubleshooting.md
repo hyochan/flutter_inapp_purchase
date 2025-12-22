@@ -3,11 +3,11 @@ sidebar_position: 7
 title: Troubleshooting
 ---
 
-import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+import IapKitBanner from "@site/src/uis/IapKitBanner";
 
 # Troubleshooting
 
-<GreatFrontEnd link="https://www.greatfrontend.com/questions/formats/system-design?fpr=hyo73" title="Front End System design questions" />
+<IapKitBanner />
 
 This guide covers common issues you might encounter when implementing in-app purchases with flutter_inapp_purchase and how to resolve them.
 

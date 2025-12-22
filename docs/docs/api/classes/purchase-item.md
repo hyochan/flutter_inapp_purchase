@@ -3,11 +3,11 @@ sidebar_position: 3
 title: Purchase
 ---
 
-import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+import IapKitBanner from "@site/src/uis/IapKitBanner";
 
 # Purchase Class
 
-<GreatFrontEnd link="https://www.greatfrontend.com/questions?fpr=hyo73" title="Framework-specific practice questions" />
+<IapKitBanner />
 
 Represents an item that was purchased from either the Google Play Store or iOS App Store.
 

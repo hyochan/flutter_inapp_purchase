@@ -3,11 +3,11 @@ sidebar_position: 9
 title: FAQ
 ---
 
-import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+import IapKitBanner from "@site/src/uis/IapKitBanner";
 
 # Frequently Asked Questions
 
-<GreatFrontEnd link="https://www.greatfrontend.com/interviews/study-plans?fpr=hyo73" title="Study Plan" />
+<IapKitBanner />
 
 Common questions and answers about flutter_inapp_purchase v7.0, covering implementation, platform differences, best practices, and troubleshooting.
 

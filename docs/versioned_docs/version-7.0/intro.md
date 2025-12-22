@@ -6,11 +6,11 @@ slug: /
 ---
 
 import Link from "@docusaurus/Link";
-import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+import IapKitBanner from "@site/src/uis/IapKitBanner";
 
 # flutter_inapp_purchase
 
-<GreatFrontEnd />
+<IapKitBanner />
 
 A comprehensive Flutter plugin for implementing in-app purchases that **conforms to the [Open IAP specification](https://openiap.dev)**.
 

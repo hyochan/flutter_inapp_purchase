@@ -2,11 +2,11 @@
 sidebar_position: 1
 ---
 
-import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+import IapKitBanner from "@site/src/uis/IapKitBanner";
 
 # Migrating from v6 to v7
 
-<GreatFrontEnd link="https://www.greatfrontend.com/front-end-interview-playbook?fpr=hyo73" title="Front End Interview Guidebook" />
+<IapKitBanner />
 
 Version 7.0.0 introduces breaking API changes to align with OpenIAP standards and improve developer experience with named parameters.
 

@@ -4,11 +4,7 @@ title: Sponsors
 description: Support flutter_inapp_purchase development through sponsorship
 ---
 
-import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
-
 # Sponsors
-
-<GreatFrontEnd link="https://www.greatfrontend.com/interviews/study-plans?fpr=hyo73" title="Study Plan" />
 
 For information about our sponsors and sponsorship opportunities, please visit:
 

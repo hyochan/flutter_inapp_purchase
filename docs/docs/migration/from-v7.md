@@ -2,7 +2,11 @@
 sidebar_position: 0
 ---
 
+import IapKitBanner from "@site/src/uis/IapKitBanner";
+
 # Migration from v7
+
+<IapKitBanner />
 
 This guide helps you migrate from flutter_inapp_purchase v7.x to v8.0.
 

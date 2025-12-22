@@ -3,11 +3,11 @@ title: Types
 sidebar_position: 2
 ---
 
-import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+import IapKitBanner from "@site/src/uis/IapKitBanner";
 
 # Types
 
-<GreatFrontEnd link="https://www.greatfrontend.com/front-end-system-design-playbook?fpr=hyo73" title="Front End System Design Guidebook" />
+<IapKitBanner />
 
 Comprehensive type definitions for flutter_inapp_purchase v7.0. All types follow the OpenIAP specification and are auto-generated from the schema.
 

@@ -3,11 +3,11 @@ sidebar_position: 2
 title: Purchase Lifecycle
 ---
 
-import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+import IapKitBanner from "@site/src/uis/IapKitBanner";
 
 # Purchase Lifecycle
 
-<GreatFrontEnd link="https://www.greatfrontend.com/questions?fpr=hyo73" title="Framework-specific practice questions" />
+<IapKitBanner />
 
 Understanding the complete purchase lifecycle is essential for proper implementation.
 

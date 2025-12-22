@@ -3,11 +3,11 @@ sidebar_position: 7
 title: getAvailablePurchases
 ---
 
-import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+import IapKitBanner from "@site/src/uis/IapKitBanner";
 
 # getAvailablePurchases()
 
-<GreatFrontEnd link="https://www.greatfrontend.com/front-end-interview-playbook?fpr=hyo73" title="Front End Interview Guidebook" />
+<IapKitBanner />
 
 Retrieves non-consumed purchases with optional filters for platform-specific behavior.
 

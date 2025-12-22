@@ -2,11 +2,11 @@
 sidebar_position: 1
 ---
 
-import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+import IapKitBanner from "@site/src/uis/IapKitBanner";
 
 # API Overview
 
-<GreatFrontEnd link="https://www.greatfrontend.com/questions/formats/system-design?fpr=hyo73" title="Front End System design questions" />
+<IapKitBanner />
 
 Flutter In-App Purchase provides a comprehensive API for managing in-app purchases across iOS and Android platforms.
 

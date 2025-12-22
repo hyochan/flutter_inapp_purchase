@@ -3,11 +3,11 @@ sidebar_position: 6
 title: finishTransaction
 ---
 
-import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+import IapKitBanner from "@site/src/uis/IapKitBanner";
 
 # finishTransaction()
 
-<GreatFrontEnd link="https://www.greatfrontend.com/behavioral-interview-playbook?fpr=hyo73" title="Behavioral interview questions" />
+<IapKitBanner />
 
 Completes a transaction and removes it from the queue.
 

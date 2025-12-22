@@ -3,11 +3,11 @@ sidebar_position: 1
 title: Purchases
 ---
 
-import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+import IapKitBanner from "@site/src/uis/IapKitBanner";
 
 # Purchases
 
-<GreatFrontEnd link="https://www.greatfrontend.com/questions/formats/quiz?fpr=hyo73" title="Quiz interview questions" />
+<IapKitBanner />
 
 Complete guide to implementing in-app purchases with flutter_inapp_purchase v7.0.
 

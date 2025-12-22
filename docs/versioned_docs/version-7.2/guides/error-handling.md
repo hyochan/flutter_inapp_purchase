@@ -3,11 +3,11 @@ sidebar_position: 6
 title: Error Handling
 ---
 
-import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+import IapKitBanner from "@site/src/uis/IapKitBanner";
 
 # Error Handling
 
-<GreatFrontEnd link="https://www.greatfrontend.com/front-end-system-design-playbook?fpr=hyo73" title="Front End System Design Guidebook" />
+<IapKitBanner />
 
 This guide covers best practices for handling errors in your flutter_inapp_purchase implementation.
 

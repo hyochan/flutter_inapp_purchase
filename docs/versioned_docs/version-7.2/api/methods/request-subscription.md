@@ -3,11 +3,11 @@ sidebar_position: 5
 title: requestSubscription
 ---
 
-import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+import IapKitBanner from "@site/src/uis/IapKitBanner";
 
 # requestSubscription() *(Deprecated)*
 
-<GreatFrontEnd link="https://www.greatfrontend.com/front-end-system-design-playbook?fpr=hyo73" title="Front End System Design Guidebook" />
+<IapKitBanner />
 
 > ⚠️ **Deprecated:** `requestSubscription()` remains for backwards compatibility with the v5 API. New code should call [`requestPurchase()`](./request-purchase.md) with either `PurchaseType.subs` (legacy API) or the unified [`RequestPurchaseProps`](../../api/classes/flutter-inapp-purchase.md#requestpurchase) flow.
 

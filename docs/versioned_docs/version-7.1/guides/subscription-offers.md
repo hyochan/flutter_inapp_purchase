@@ -3,11 +3,11 @@ sidebar_position: 3
 title: Subscription Offers
 ---
 
-import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+import IapKitBanner from "@site/src/uis/IapKitBanner";
 
 # Subscription Offers
 
-<GreatFrontEnd link="https://www.greatfrontend.com/questions/formats/system-design?fpr=hyo73" title="Front End System design questions" />
+<IapKitBanner />
 
 Handle subscription purchases, upgrades, downgrades, and promotional offers.
 

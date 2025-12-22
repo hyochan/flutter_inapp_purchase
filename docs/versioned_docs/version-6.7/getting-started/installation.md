@@ -4,11 +4,11 @@ sidebar_label: Installation
 sidebar_position: 1
 ---
 
-import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+import IapKitBanner from "@site/src/uis/IapKitBanner";
 
 # Installation & Setup
 
-<GreatFrontEnd link="https://www.greatfrontend.com/prepare/coding?fpr=hyo73" title="Coding interview questions" />
+<IapKitBanner />
 
 Learn how to install and configure flutter_inapp_purchase in your Flutter project.
 

@@ -3,11 +3,11 @@ title: API Reference
 sidebar_position: 1
 ---
 
-import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+import IapKitBanner from "@site/src/uis/IapKitBanner";
 
 # API Reference
 
-<GreatFrontEnd link="https://www.greatfrontend.com/front-end-interview-playbook?fpr=hyo73" title="Front End Interview Guidebook" />
+<IapKitBanner />
 
 Complete reference for flutter_inapp_purchase v6.7.0 - A unified API for implementing in-app purchases across iOS and Android platforms.
 

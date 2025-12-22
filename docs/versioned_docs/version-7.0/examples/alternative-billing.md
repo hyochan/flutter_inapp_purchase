@@ -4,11 +4,11 @@ sidebar_label: Alternative Billing
 sidebar_position: 5
 ---
 
-import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+import IapKitBanner from "@site/src/uis/IapKitBanner";
 
 # Alternative Billing
 
-<GreatFrontEnd link="https://www.greatfrontend.com/behavioral-interview-playbook?fpr=hyo73" title="Behavioral interview questions" />
+<IapKitBanner />
 
 Use alternative billing to redirect users to external payment systems or offer payment choices alongside platform billing.
 

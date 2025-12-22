@@ -2,11 +2,11 @@
 sidebar_position: 4
 ---
 
-import GreatFrontEnd from "@site/src/uis/GreatFrontEnd";
+import IapKitBanner from "@site/src/uis/IapKitBanner";
 
 # Quick Start
 
-<GreatFrontEnd link="https://www.greatfrontend.com/prepare/coding?fpr=hyo73" title="Coding interview questions" />
+<IapKitBanner />
 
 Get up and running with Flutter In-App Purchase in minutes.
 
