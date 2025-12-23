@@ -1979,6 +1979,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
         presentCodeRedemptionSheetIOS: presentCodeRedemptionSheetIOS,
         requestPurchase: requestPurchase,
         requestPurchaseOnPromotedProductIOS:
+            // ignore: deprecated_member_use_from_same_package
             requestPurchaseOnPromotedProductIOS,
         restorePurchases: restorePurchases,
         showManageSubscriptionsIOS: showManageSubscriptionsIOS,
