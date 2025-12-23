@@ -7,7 +7,6 @@
 - **Advanced Commerce Data (iOS 15+)**: Support for StoreKit 2's `Product.PurchaseOption.custom` API
   - New `advancedCommerceData` field in `RequestPurchaseIosProps` and `RequestSubscriptionIosProps`
   - Pass campaign tokens, affiliate IDs, or other attribution data during purchases
-  - Data is formatted as JSON: `{"signatureInfo": {"token": "<value>"}}`
 
   ```dart
   await iap.requestPurchaseWithBuilder(
@@ -47,7 +46,7 @@
 - Updated OpenIAP versions:
   - `openiap-apple`: 1.3.5 -> 1.3.7
   - `openiap-google`: 1.3.14 -> 1.3.15
-  - `openiap-gql`: 1.3.5 -> 1.3.7
+  - `openiap-gql`: 1.3.5 -> 1.3.8
 
 ## 8.0.0
 
