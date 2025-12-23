@@ -3870,6 +3870,13 @@ abstract class MutationResolver {
   /// Returns token string, or null if creation failed
   /// Throws OpenIapError.NotPrepared if billing client not ready
   Future<String?> createAlternativeBillingTokenAndroid();
+  /// Create reporting details for a billing program
+  /// Replaces the deprecated createExternalOfferReportingDetailsAsync API
+  /// 
+  /// Available in Google Play Billing Library 8.2.0+
+  /// Returns external transaction token needed for reporting external transactions
+  /// Throws OpenIapError.NotPrepared if billing client not ready
+  Future<BillingProgramReportingDetailsAndroid> createBillingProgramReportingDetailsAndroid(BillingProgramAndroid program);
   /// Open the native subscription management surface
   Future<void> deepLinkToSubscriptions({
     String? packageNameAndroid,
@@ -3885,6 +3892,25 @@ abstract class MutationResolver {
   /// Establish the platform billing connection
   Future<bool> initConnection({
     AlternativeBillingModeAndroid? alternativeBillingModeAndroid,
+  });
+  /// Check if a billing program is available for the current user
+  /// Replaces the deprecated isExternalOfferAvailableAsync API
+  /// 
+  /// Available in Google Play Billing Library 8.2.0+
+  /// Returns availability result with isAvailable flag
+  /// Throws OpenIapError.NotPrepared if billing client not ready
+  Future<BillingProgramAvailabilityResultAndroid> isBillingProgramAvailableAndroid(BillingProgramAndroid program);
+  /// Launch external link flow for external billing programs
+  /// Replaces the deprecated showExternalOfferInformationDialog API
+  /// 
+  /// Available in Google Play Billing Library 8.2.0+
+  /// Shows Play Store dialog and optionally launches external URL
+  /// Throws OpenIapError.NotPrepared if billing client not ready
+  Future<bool> launchExternalLinkAndroid({
+    required BillingProgramAndroid billingProgram,
+    required ExternalLinkLaunchModeAndroid launchMode,
+    required ExternalLinkTypeAndroid linkType,
+    required String linkUri,
   });
   /// Present the App Store code redemption sheet
   Future<bool> presentCodeRedemptionSheetIOS();
@@ -4005,6 +4031,7 @@ typedef MutationCheckAlternativeBillingAvailabilityAndroidHandler = Future<bool>
 typedef MutationClearTransactionIOSHandler = Future<bool> Function();
 typedef MutationConsumePurchaseAndroidHandler = Future<bool> Function(String purchaseToken);
 typedef MutationCreateAlternativeBillingTokenAndroidHandler = Future<String?> Function();
+typedef MutationCreateBillingProgramReportingDetailsAndroidHandler = Future<BillingProgramReportingDetailsAndroid> Function(BillingProgramAndroid program);
 typedef MutationDeepLinkToSubscriptionsHandler = Future<void> Function({
   String? packageNameAndroid,
   String? skuAndroid,
@@ -4016,6 +4043,13 @@ typedef MutationFinishTransactionHandler = Future<void> Function({
 });
 typedef MutationInitConnectionHandler = Future<bool> Function({
   AlternativeBillingModeAndroid? alternativeBillingModeAndroid,
+});
+typedef MutationIsBillingProgramAvailableAndroidHandler = Future<BillingProgramAvailabilityResultAndroid> Function(BillingProgramAndroid program);
+typedef MutationLaunchExternalLinkAndroidHandler = Future<bool> Function({
+  required BillingProgramAndroid billingProgram,
+  required ExternalLinkLaunchModeAndroid launchMode,
+  required ExternalLinkTypeAndroid linkType,
+  required String linkUri,
 });
 typedef MutationPresentCodeRedemptionSheetIOSHandler = Future<bool> Function();
 typedef MutationPresentExternalPurchaseLinkIOSHandler = Future<ExternalPurchaseLinkResultIOS> Function(String url);
@@ -4049,10 +4083,13 @@ class MutationHandlers {
     this.clearTransactionIOS,
     this.consumePurchaseAndroid,
     this.createAlternativeBillingTokenAndroid,
+    this.createBillingProgramReportingDetailsAndroid,
     this.deepLinkToSubscriptions,
     this.endConnection,
     this.finishTransaction,
     this.initConnection,
+    this.isBillingProgramAvailableAndroid,
+    this.launchExternalLinkAndroid,
     this.presentCodeRedemptionSheetIOS,
     this.presentExternalPurchaseLinkIOS,
     this.presentExternalPurchaseNoticeSheetIOS,
@@ -4073,10 +4110,13 @@ class MutationHandlers {
   final MutationClearTransactionIOSHandler? clearTransactionIOS;
   final MutationConsumePurchaseAndroidHandler? consumePurchaseAndroid;
   final MutationCreateAlternativeBillingTokenAndroidHandler? createAlternativeBillingTokenAndroid;
+  final MutationCreateBillingProgramReportingDetailsAndroidHandler? createBillingProgramReportingDetailsAndroid;
   final MutationDeepLinkToSubscriptionsHandler? deepLinkToSubscriptions;
   final MutationEndConnectionHandler? endConnection;
   final MutationFinishTransactionHandler? finishTransaction;
   final MutationInitConnectionHandler? initConnection;
+  final MutationIsBillingProgramAvailableAndroidHandler? isBillingProgramAvailableAndroid;
+  final MutationLaunchExternalLinkAndroidHandler? launchExternalLinkAndroid;
   final MutationPresentCodeRedemptionSheetIOSHandler? presentCodeRedemptionSheetIOS;
   final MutationPresentExternalPurchaseLinkIOSHandler? presentExternalPurchaseLinkIOS;
   final MutationPresentExternalPurchaseNoticeSheetIOSHandler? presentExternalPurchaseNoticeSheetIOS;

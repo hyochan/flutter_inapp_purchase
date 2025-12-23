@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 8.1.1
+
+### Dependencies
+
+- Updated OpenIAP versions:
+  - `openiap-google`: 1.3.15 -> 1.3.16
+
 ## 8.1.0
 
 ### New Features
@@ -45,7 +52,7 @@
 
 - Updated OpenIAP versions:
   - `openiap-apple`: 1.3.5 -> 1.3.7
-  - `openiap-google`: 1.3.14 -> 1.3.15
+  - `openiap-google`: 1.3.14 -> 1.3.16
   - `openiap-gql`: 1.3.5 -> 1.3.8
 
 ## 8.0.0

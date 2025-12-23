@@ -237,5 +237,5 @@ dependencies:
 
 The plugin automatically uses:
 - `openiap-apple`: 1.3.7
-- `openiap-google`: 1.3.15
+- `openiap-google`: 1.3.16
 - `openiap-gql`: 1.3.8
