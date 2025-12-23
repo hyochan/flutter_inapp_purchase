@@ -321,8 +321,9 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
             final requestKey =
                 type == 'in-app' ? 'requestPurchase' : 'requestSubscription';
             final requestData = json[requestKey] as Map<String, dynamic>?;
-            final androidData =
-                requestData?['android'] as Map<String, dynamic>?;
+            // Support both 'google' (new) and 'android' (deprecated) fields
+            final androidData = (requestData?['google'] ??
+                requestData?['android']) as Map<String, dynamic>?;
 
             if (androidData == null) {
               throw PurchaseError(
@@ -696,6 +697,30 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
         }
       };
 
+  /// Request purchase on promoted product (iOS only)
+  ///
+  /// @deprecated Use `purchasePromoted` stream to receive the product ID when a
+  /// user taps a promoted product in the App Store, then call `requestPurchase()`
+  /// with the received SKU directly. In StoreKit 2, promoted products can be
+  /// purchased via the standard `requestPurchase()` flow.
+  ///
+  /// Example:
+  /// ```dart
+  /// iap.purchasePromoted.listen((productId) async {
+  ///   if (productId != null) {
+  ///     await iap.requestPurchaseWithBuilder(
+  ///       build: (builder) {
+  ///         builder.ios.sku = productId;
+  ///         builder.type = ProductQueryType.InApp;
+  ///       },
+  ///     );
+  ///   }
+  /// });
+  /// ```
+  @Deprecated(
+    'Use purchasePromoted stream + requestPurchase() instead. '
+    'In StoreKit 2, promoted products are purchased via standard flow.',
+  )
   gentype.MutationRequestPurchaseOnPromotedProductIOSHandler
       get requestPurchaseOnPromotedProductIOS => () async {
             if (!_platform.isIOS || _platform.isMacOS) {
@@ -1943,6 +1968,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
         validateReceiptIOS: validateReceiptIOS,
       );
 
+  // ignore: deprecated_member_use_from_same_package
   gentype.MutationHandlers get mutationHandlers => gentype.MutationHandlers(
         acknowledgePurchaseAndroid: acknowledgePurchaseAndroid,
         consumePurchaseAndroid: consumePurchaseAndroid,
@@ -1953,6 +1979,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
         presentCodeRedemptionSheetIOS: presentCodeRedemptionSheetIOS,
         requestPurchase: requestPurchase,
         requestPurchaseOnPromotedProductIOS:
+            // ignore: deprecated_member_use_from_same_package
             requestPurchaseOnPromotedProductIOS,
         restorePurchases: restorePurchases,
         showManageSubscriptionsIOS: showManageSubscriptionsIOS,

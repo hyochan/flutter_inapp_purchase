@@ -172,16 +172,70 @@ for (final purchase in purchases) {
 }
 ```
 
+### Advanced Commerce Data (v8.1.0+)
+
+New support for StoreKit 2's attribution data API on iOS 15+:
+
+```dart
+await iap.requestPurchaseWithBuilder(
+  build: (builder) {
+    builder.ios.sku = 'com.example.premium';
+    builder.ios.advancedCommerceData = 'campaign_summer_2025';
+    builder.type = ProductQueryType.InApp;
+  },
+);
+```
+
+Use cases:
+- Campaign attribution tracking
+- Affiliate marketing integration
+- Promotional code tracking
+
+### Promoted Products (v8.1.0+)
+
+`requestPurchaseOnPromotedProductIOS()` is now deprecated. Use the `purchasePromoted` stream instead:
+
+**Before (deprecated):**
+```dart
+await iap.requestPurchaseOnPromotedProductIOS();
+```
+
+**After (recommended):**
+```dart
+iap.purchasePromoted.listen((productId) async {
+  if (productId != null) {
+    await iap.requestPurchaseWithBuilder(
+      build: (builder) {
+        builder.ios.sku = productId;
+        builder.type = ProductQueryType.InApp;
+      },
+    );
+  }
+});
+```
+
+### `google` Field Support (v8.1.0+)
+
+Android request parameters now support the `google` field (recommended) alongside the deprecated `android` field:
+
+```dart
+// types.dart - RequestPurchasePropsByPlatforms
+RequestPurchasePropsByPlatforms(
+  google: RequestPurchaseAndroidProps(skus: ['sku']),  // Recommended
+  // android: ...  // Deprecated
+);
+```
+
 ## Dependencies Update
 
 Update your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flutter_inapp_purchase: ^8.0.0
+  flutter_inapp_purchase: ^8.1.0
 ```
 
 The plugin automatically uses:
-- `openiap-apple`: 1.3.2
-- `openiap-google`: 1.3.14
-- `openiap-gql`: 1.3.4
+- `openiap-apple`: 1.3.7
+- `openiap-google`: 1.3.15
+- `openiap-gql`: 1.3.8

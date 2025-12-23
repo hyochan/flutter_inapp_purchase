@@ -388,6 +388,7 @@ void main() {
     });
 
     test('requestPurchaseOnPromotedProductIOS returns true on iOS', () async {
+      // ignore: deprecated_member_use_from_same_package
       expect(await iap.requestPurchaseOnPromotedProductIOS(), isTrue);
       expect(calls.last.method, 'requestPurchaseOnPromotedProductIOS');
     });
@@ -398,6 +399,7 @@ void main() {
         FakePlatform(operatingSystem: 'android'),
       );
 
+      // ignore: deprecated_member_use_from_same_package
       expect(await androidIap.requestPurchaseOnPromotedProductIOS(), isFalse);
     });
 
@@ -424,6 +426,7 @@ void main() {
         return null;
       });
 
+      // ignore: deprecated_member_use_from_same_package
       expect(await iap.requestPurchaseOnPromotedProductIOS(), isFalse);
     });
 

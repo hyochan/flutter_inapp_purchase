@@ -218,6 +218,46 @@ void main() {
       expect(offer['timestamp'], 123456.0);
     });
 
+    test('sends advancedCommerceData in iOS purchase payload', () async {
+      final calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall call) async {
+        calls.add(call);
+        switch (call.method) {
+          case 'initConnection':
+            return true;
+          case 'requestPurchase':
+            return null;
+        }
+        return null;
+      });
+
+      final iap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'ios'),
+      );
+
+      await iap.initConnection();
+
+      const props = types.RequestPurchaseProps.inApp((
+        ios: types.RequestPurchaseIosProps(
+          sku: 'ios.sku',
+          advancedCommerceData: 'campaign_summer_2025',
+        ),
+        android: null,
+        useAlternativeBilling: null,
+      ));
+
+      await iap.requestPurchase(props);
+
+      final requestCall =
+          calls.singleWhere((MethodCall c) => c.method == 'requestPurchase');
+      final payload = Map<String, dynamic>.from(
+          requestCall.arguments as Map<dynamic, dynamic>);
+
+      expect(payload['sku'], 'ios.sku');
+      expect(payload['advancedCommerceData'], 'campaign_summer_2025');
+    });
+
     test('initConnection memoizes after first call', () async {
       int initCount = 0;
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
