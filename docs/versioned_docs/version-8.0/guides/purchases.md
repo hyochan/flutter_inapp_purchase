@@ -9,7 +9,7 @@ import IapKitBanner from "@site/src/uis/IapKitBanner";
 
 <IapKitBanner />
 
-Complete guide to implementing in-app purchases with flutter_inapp_purchase v8.1+.
+Complete guide to implementing in-app purchases with flutter_inapp_purchase v7.0.
 
 ## Purchase Flow
 
@@ -72,47 +72,11 @@ for (final product in products) {
 
 ## Request Purchase
 
-Using the builder pattern (recommended):
-
-```dart
-await iap.requestPurchaseWithBuilder(
-  build: (builder) {
-    builder.ios.sku = 'product_id';
-    builder.ios.appAccountToken = userId;
-    builder.android.skus = ['product_id'];
-    builder.android.obfuscatedAccountIdAndroid = userId;
-    builder.type = ProductQueryType.InApp;
-  },
-);
-```
-
-Or using props directly:
-
 ```dart
 await iap.requestPurchase(
-  RequestPurchaseProps.inApp((
-    ios: RequestPurchaseIosProps(
-      sku: 'product_id',
-      appAccountToken: userId,
-    ),
-    android: RequestPurchaseAndroidProps(
-      skus: ['product_id'],
-      obfuscatedAccountIdAndroid: userId,
-    ),
-    useAlternativeBilling: null,
-  )),
-);
-```
-
-### With Attribution Data (iOS 15+)
-
-```dart
-await iap.requestPurchaseWithBuilder(
-  build: (builder) {
-    builder.ios.sku = 'product_id';
-    builder.ios.advancedCommerceData = 'campaign_token';
-    builder.type = ProductQueryType.InApp;
-  },
+  sku: 'product_id',
+  obfuscatedAccountIdAndroid: userId,
+  obfuscatedProfileIdAndroid: profileId,
 );
 ```
 
