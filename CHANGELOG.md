@@ -1,5 +1,54 @@
 # CHANGELOG
 
+## 8.1.0
+
+### New Features
+
+- **Advanced Commerce Data (iOS 15+)**: Support for StoreKit 2's `Product.PurchaseOption.custom` API
+  - New `advancedCommerceData` field in `RequestPurchaseIosProps` and `RequestSubscriptionIosProps`
+  - Pass campaign tokens, affiliate IDs, or other attribution data during purchases
+  - Data is formatted as JSON: `{"signatureInfo": {"token": "<value>"}}`
+
+  ```dart
+  await iap.requestPurchaseWithBuilder(
+    build: (builder) {
+      builder.ios.sku = 'com.example.premium';
+      builder.ios.advancedCommerceData = 'campaign_summer_2025';
+      builder.type = ProductQueryType.InApp;
+    },
+  );
+  ```
+
+- **`google` field support (Android)**: New `google` field in request parameters with `android` fallback
+  - Aligns with OpenIAP specification for consistent cross-platform naming
+  - `android` field is now deprecated; use `google` instead
+
+### Deprecated
+
+- **`requestPurchaseOnPromotedProductIOS()`**: Use `purchasePromoted` stream + `requestPurchase()` instead
+  - In StoreKit 2, promoted products can be purchased via the standard purchase flow
+
+  ```dart
+  // Recommended approach
+  iap.purchasePromoted.listen((productId) async {
+    if (productId != null) {
+      await iap.requestPurchaseWithBuilder(
+        build: (builder) {
+          builder.ios.sku = productId;
+          builder.type = ProductQueryType.InApp;
+        },
+      );
+    }
+  });
+  ```
+
+### Dependencies
+
+- Updated OpenIAP versions:
+  - `openiap-apple`: 1.3.5 -> 1.3.7
+  - `openiap-google`: 1.3.14 -> 1.3.15
+  - `openiap-gql`: 1.3.5 -> 1.3.7
+
 ## 8.0.0
 
 ### Breaking Changes

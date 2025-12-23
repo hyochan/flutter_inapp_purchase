@@ -46,6 +46,7 @@ class RequestPurchaseIOS {
   final int? quantity;                 // Quantity (for consumables)
   final String? appAccountToken;       // User identifier
   final Map<String, dynamic>? withOffer; // Promotional offer
+  final String? advancedCommerceData; // Attribution data (iOS 15+)
 }
 ```
 
@@ -131,6 +132,21 @@ await FlutterInappPurchase.instance.requestPurchase(
   type: PurchaseType.subs,
 );
 ```
+
+### Purchase with Attribution Data (iOS 15+)
+
+```dart
+// iOS purchase with advanced commerce data for attribution tracking
+await FlutterInappPurchase.instance.requestPurchaseWithBuilder(
+  build: (builder) {
+    builder.ios.sku = 'com.example.premium';
+    builder.ios.advancedCommerceData = 'campaign_summer_2025';
+    builder.type = ProductQueryType.InApp;
+  },
+);
+```
+
+The `advancedCommerceData` field uses StoreKit 2's `Product.PurchaseOption.custom` API to pass campaign tokens, affiliate IDs, or other attribution data during purchases.
 
 ## Complete Implementation
 
@@ -312,8 +328,10 @@ Use the builder when you:
 - Requires valid product IDs from App Store Connect
 - Promotional offers need server-side signature
 - Quantity only works for consumable products
+- `advancedCommerceData` requires iOS 15+ and StoreKit 2
 
 ### Android
 - Supports multiple SKUs but typically uses one
 - Proration modes only apply to subscriptions
 - Requires acknowledgment within 3 days
+- Use `google` field (recommended) or `android` field (deprecated) for request parameters

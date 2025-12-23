@@ -7,6 +7,7 @@ class RequestPurchaseIosBuilder {
   String? appAccountToken;
   int? quantity;
   DiscountOfferInputIOS? withOffer;
+  String? advancedCommerceData;
 
   RequestPurchaseIosBuilder();
 
@@ -18,6 +19,7 @@ class RequestPurchaseIosBuilder {
       appAccountToken: appAccountToken,
       quantity: quantity,
       withOffer: withOffer,
+      advancedCommerceData: advancedCommerceData,
     );
   }
 }
@@ -29,6 +31,7 @@ class RequestSubscriptionIosBuilder {
   String? appAccountToken;
   int? quantity;
   DiscountOfferInputIOS? withOffer;
+  String? advancedCommerceData;
 
   RequestSubscriptionIosBuilder();
 
@@ -40,6 +43,7 @@ class RequestSubscriptionIosBuilder {
       appAccountToken: appAccountToken,
       quantity: quantity,
       withOffer: withOffer,
+      advancedCommerceData: advancedCommerceData,
     );
   }
 }

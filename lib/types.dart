@@ -3212,6 +3212,11 @@ class RequestPurchaseAndroidProps {
 
 class RequestPurchaseIosProps {
   const RequestPurchaseIosProps({
+    /// Advanced commerce data token (iOS 15+).
+    /// Used with StoreKit 2's Product.PurchaseOption.custom API for passing
+    /// campaign tokens, affiliate IDs, or other attribution data.
+    /// The data is formatted as JSON: {"signatureInfo": {"token": "<value>"}}
+    this.advancedCommerceData,
     /// Auto-finish transaction (dangerous)
     this.andDangerouslyFinishTransactionAutomatically,
     /// App account token for user tracking
@@ -3224,6 +3229,11 @@ class RequestPurchaseIosProps {
     this.withOffer,
   });
 
+  /// Advanced commerce data token (iOS 15+).
+  /// Used with StoreKit 2's Product.PurchaseOption.custom API for passing
+  /// campaign tokens, affiliate IDs, or other attribution data.
+  /// The data is formatted as JSON: {"signatureInfo": {"token": "<value>"}}
+  final String? advancedCommerceData;
   /// Auto-finish transaction (dangerous)
   final bool? andDangerouslyFinishTransactionAutomatically;
   /// App account token for user tracking
@@ -3237,6 +3247,7 @@ class RequestPurchaseIosProps {
 
   factory RequestPurchaseIosProps.fromJson(Map<String, dynamic> json) {
     return RequestPurchaseIosProps(
+      advancedCommerceData: json['advancedCommerceData'] as String?,
       andDangerouslyFinishTransactionAutomatically: json['andDangerouslyFinishTransactionAutomatically'] as bool?,
       appAccountToken: json['appAccountToken'] as String?,
       quantity: json['quantity'] as int?,
@@ -3247,6 +3258,7 @@ class RequestPurchaseIosProps {
 
   Map<String, dynamic> toJson() {
     return {
+      'advancedCommerceData': advancedCommerceData,
       'andDangerouslyFinishTransactionAutomatically': andDangerouslyFinishTransactionAutomatically,
       'appAccountToken': appAccountToken,
       'quantity': quantity,
@@ -3432,6 +3444,11 @@ class RequestSubscriptionAndroidProps {
 
 class RequestSubscriptionIosProps {
   const RequestSubscriptionIosProps({
+    /// Advanced commerce data token (iOS 15+).
+    /// Used with StoreKit 2's Product.PurchaseOption.custom API for passing
+    /// campaign tokens, affiliate IDs, or other attribution data.
+    /// The data is formatted as JSON: {"signatureInfo": {"token": "<value>"}}
+    this.advancedCommerceData,
     this.andDangerouslyFinishTransactionAutomatically,
     this.appAccountToken,
     this.quantity,
@@ -3439,6 +3456,11 @@ class RequestSubscriptionIosProps {
     this.withOffer,
   });
 
+  /// Advanced commerce data token (iOS 15+).
+  /// Used with StoreKit 2's Product.PurchaseOption.custom API for passing
+  /// campaign tokens, affiliate IDs, or other attribution data.
+  /// The data is formatted as JSON: {"signatureInfo": {"token": "<value>"}}
+  final String? advancedCommerceData;
   final bool? andDangerouslyFinishTransactionAutomatically;
   final String? appAccountToken;
   final int? quantity;
@@ -3447,6 +3469,7 @@ class RequestSubscriptionIosProps {
 
   factory RequestSubscriptionIosProps.fromJson(Map<String, dynamic> json) {
     return RequestSubscriptionIosProps(
+      advancedCommerceData: json['advancedCommerceData'] as String?,
       andDangerouslyFinishTransactionAutomatically: json['andDangerouslyFinishTransactionAutomatically'] as bool?,
       appAccountToken: json['appAccountToken'] as String?,
       quantity: json['quantity'] as int?,
@@ -3457,6 +3480,7 @@ class RequestSubscriptionIosProps {
 
   Map<String, dynamic> toJson() {
     return {
+      'advancedCommerceData': advancedCommerceData,
       'andDangerouslyFinishTransactionAutomatically': andDangerouslyFinishTransactionAutomatically,
       'appAccountToken': appAccountToken,
       'quantity': quantity,
@@ -4037,7 +4061,11 @@ abstract class MutationResolver {
   Future<ExternalPurchaseNoticeResultIOS> presentExternalPurchaseNoticeSheetIOS();
   /// Initiate a purchase flow; rely on events for final state
   Future<RequestPurchaseResult?> requestPurchase(RequestPurchaseProps params);
-  /// Purchase the promoted product surfaced by the App Store
+  /// Purchase the promoted product surfaced by the App Store.
+  /// 
+  /// @deprecated Use promotedProductListenerIOS to receive the productId,
+  /// then call requestPurchase with that SKU instead. In StoreKit 2,
+  /// promoted products can be purchased directly via the standard purchase flow.
   Future<bool> requestPurchaseOnPromotedProductIOS();
   /// Restore completed purchases across platforms
   Future<void> restorePurchases();

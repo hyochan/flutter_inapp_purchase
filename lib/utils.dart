@@ -75,6 +75,12 @@ Map<String, dynamic>? buildIosPurchasePayload(
         .map<String, dynamic>((key, value) => MapEntry(key.toString(), value));
   }
 
+  final String? advancedCommerceData =
+      propsJson['advancedCommerceData'] as String?;
+  if (advancedCommerceData != null && advancedCommerceData.isNotEmpty) {
+    payload['advancedCommerceData'] = advancedCommerceData;
+  }
+
   payload.removeWhere((_, value) => value == null);
   return payload;
 }

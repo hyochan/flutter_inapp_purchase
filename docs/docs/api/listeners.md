@@ -9,7 +9,7 @@ import IapKitBanner from "@site/src/uis/IapKitBanner";
 
 <IapKitBanner />
 
-Real-time event streams for monitoring purchase transactions and errors in flutter_inapp_purchase v7.0.
+Real-time event streams for monitoring purchase transactions and errors in flutter_inapp_purchase v8.0+.
 
 All listeners are available through the singleton instance:
 
@@ -338,6 +338,46 @@ void dispose() {
   super.dispose();
 }
 ```
+
+## purchasePromoted (iOS)
+
+iOS-only stream for promoted product purchases. When a user taps a promoted product in the App Store, this stream emits the product ID.
+
+```dart
+Stream<String?> get purchasePromoted
+```
+
+**Example:**
+
+```dart
+StreamSubscription<String?>? _promotedSubscription;
+
+void setupPromotedListener() {
+  _promotedSubscription = iap.purchasePromoted.listen((productId) async {
+    if (productId != null) {
+      debugPrint('User tapped promoted product: $productId');
+
+      // Purchase the promoted product using standard flow
+      await iap.requestPurchaseWithBuilder(
+        build: (builder) {
+          builder.ios.sku = productId;
+          builder.type = ProductQueryType.InApp;
+        },
+      );
+    }
+  });
+}
+
+@override
+void dispose() {
+  _promotedSubscription?.cancel();
+  super.dispose();
+}
+```
+
+**Note:** In StoreKit 2, promoted products are purchased via the standard `requestPurchase()` flow. The deprecated `requestPurchaseOnPromotedProductIOS()` method is no longer recommended.
+
+---
 
 ## userChoiceBillingListener
 
