@@ -110,6 +110,28 @@ AndroidReplacementMode.deferred.value                  // 4: Apply at next renew
 AndroidReplacementMode.chargeFullPrice.value           // 5: Charge full price now
 ```
 
+## Android basePlanId Limitation
+
+> **Related Issues**: [react-native-iap#3096](https://github.com/hyochan/react-native-iap/issues/3096)
+
+The Google Play Billing Library does not directly expose the `basePlanId` in purchase objects. To retrieve `basePlanId` and other subscription details, use server-side verification with [IAPKit](https://www.iapkit.com).
+
+### Using IAPKit for basePlanId
+
+When you verify a purchase with `verifyPurchaseWithProvider`, you can access the full subscription details including `basePlanId`:
+
+```dart
+final result = await iap.verifyPurchaseWithProvider(
+  purchase: purchase,
+  providerUrl: 'https://www.iapkit.com/api/v1/verify',
+);
+
+// The result contains offerDetails with basePlanId
+// Response includes: offerDetails.basePlanId
+```
+
+See [SubscriptionOfferAndroid](https://www.openiap.dev/docs/types#subscriptionofferandroid) for available offer properties. Each offer contains: `basePlanId`, `offerId`, `offerTags`, `offerToken`, and `pricingPhases`.
+
 ## Check Active Subscriptions
 
 ### Quick Check (Lightweight)
