@@ -434,7 +434,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                 val useAlternativeBilling = params["useAlternativeBilling"] as? Boolean
 
                 // Parse developerBillingOption for External Payments (8.3.0+)
-                val developerBillingOptionMap = params["developerBillingOption"] as? Map<*, *>
+                val developerBillingOptionMap = params[KEY_DEVELOPER_BILLING_OPTION] as? Map<*, *>
                 val developerBillingOption = developerBillingOptionMap?.let { optionMap ->
                     try {
                         val billingProgram = BillingProgramAndroid.fromJson(
@@ -444,7 +444,7 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                             optionMap["launchMode"] as? String ?: "unspecified"
                         )
                         val linkUri = optionMap["linkUri"] as? String
-                        if (linkUri != null) {
+                        if (!linkUri.isNullOrBlank()) {
                             DeveloperBillingOptionParamsAndroid(
                                 billingProgram = billingProgram,
                                 launchMode = launchMode,

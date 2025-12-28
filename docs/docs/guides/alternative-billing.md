@@ -431,8 +431,8 @@ Future<void> handleExternalPaymentsPurchase(String productId) async {
     // Request purchase with external payment option
     await FlutterInappPurchase.instance.requestPurchaseWithBuilder(
       build: (builder) {
-        builder.google.skus = [productId];
-        builder.google.developerBillingOption = DeveloperBillingOptionParamsAndroid(
+        builder.android.skus = [productId];
+        builder.android.developerBillingOption = DeveloperBillingOptionParamsAndroid(
           billingProgram: BillingProgramAndroid.ExternalPayments,
           launchMode: DeveloperBillingLaunchModeAndroid.LaunchInExternalBrowserOrApp,
           linkUri: 'https://yoursite.com/checkout?product=$productId',
