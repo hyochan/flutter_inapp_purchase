@@ -54,6 +54,7 @@ class RequestPurchaseAndroidBuilder {
   String? obfuscatedAccountIdAndroid;
   String? obfuscatedProfileIdAndroid;
   bool? isOfferPersonalized;
+  DeveloperBillingOptionParamsAndroid? developerBillingOption;
 
   RequestPurchaseAndroidBuilder();
 
@@ -63,6 +64,7 @@ class RequestPurchaseAndroidBuilder {
       obfuscatedAccountIdAndroid: obfuscatedAccountIdAndroid,
       obfuscatedProfileIdAndroid: obfuscatedProfileIdAndroid,
       isOfferPersonalized: isOfferPersonalized,
+      developerBillingOption: developerBillingOption,
     );
   }
 }
@@ -76,6 +78,7 @@ class RequestSubscriptionAndroidBuilder {
   String? purchaseTokenAndroid;
   int? replacementModeAndroid;
   bool? isOfferPersonalized;
+  DeveloperBillingOptionParamsAndroid? developerBillingOption;
 
   RequestSubscriptionAndroidBuilder();
 
@@ -89,6 +92,7 @@ class RequestSubscriptionAndroidBuilder {
       purchaseTokenAndroid: purchaseTokenAndroid,
       replacementModeAndroid: replacementModeAndroid,
       isOfferPersonalized: isOfferPersonalized,
+      developerBillingOption: developerBillingOption,
     );
   }
 }
@@ -169,6 +173,7 @@ class RequestPurchaseBuilder {
               purchaseTokenAndroid: null,
               replacementModeAndroid: null,
               subscriptionOffers: null,
+              developerBillingOption: androidProps.developerBillingOption,
             );
 
       return RequestPurchaseProps.subs((
