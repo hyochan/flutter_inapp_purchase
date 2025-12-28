@@ -95,6 +95,106 @@ void main() {
         <String, dynamic>{'program': 'external-offer'},
       );
     });
+
+    test('initConnection passes enableBillingProgramAndroid to native channel',
+        () async {
+      final calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall call) async {
+        calls.add(call);
+        if (call.method == 'initConnection') {
+          return true;
+        }
+        return null;
+      });
+
+      final iap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'android'),
+      );
+
+      await iap.initConnection(
+        enableBillingProgramAndroid:
+            types.BillingProgramAndroid.ExternalPayments,
+      );
+
+      final call = calls.singleWhere(
+        (MethodCall call) => call.method == 'initConnection',
+      );
+      final args = call.arguments as Map<dynamic, dynamic>?;
+      expect(args, isNotNull);
+      expect(args!['enableBillingProgramAndroid'], 'external-payments');
+    });
+
+    test(
+        'initConnection passes both alternativeBillingMode and enableBillingProgram',
+        () async {
+      final calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall call) async {
+        calls.add(call);
+        if (call.method == 'initConnection') {
+          return true;
+        }
+        return null;
+      });
+
+      final iap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'android'),
+      );
+
+      await iap.initConnection(
+        alternativeBillingModeAndroid:
+            types.AlternativeBillingModeAndroid.UserChoice,
+        enableBillingProgramAndroid:
+            types.BillingProgramAndroid.ExternalPayments,
+      );
+
+      final call = calls.singleWhere(
+        (MethodCall call) => call.method == 'initConnection',
+      );
+      final args = call.arguments as Map<dynamic, dynamic>?;
+      expect(args, isNotNull);
+      expect(args!['alternativeBillingModeAndroid'], 'user-choice');
+      expect(args['enableBillingProgramAndroid'], 'external-payments');
+    });
+
+    test('isBillingProgramAvailableAndroid handles ExternalPayments program',
+        () async {
+      final calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall call) async {
+        calls.add(call);
+        if (call.method == 'isBillingProgramAvailableAndroid') {
+          return jsonEncode(
+            <String, dynamic>{
+              'billingProgram': 'external-payments',
+              'isAvailable': true,
+            },
+          );
+        }
+        return null;
+      });
+
+      final iap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'android'),
+      );
+
+      final result = await iap.isBillingProgramAvailableAndroid(
+        types.BillingProgramAndroid.ExternalPayments,
+      );
+
+      expect(
+          result.billingProgram, types.BillingProgramAndroid.ExternalPayments);
+      expect(result.isAvailable, isTrue);
+
+      final call = calls.singleWhere(
+        (MethodCall call) => call.method == 'isBillingProgramAvailableAndroid',
+      );
+      expect(
+        call.arguments,
+        <String, dynamic>{'program': 'external-payments'},
+      );
+    });
   });
 
   group('launchExternalLinkAndroid', () {
@@ -527,6 +627,120 @@ void main() {
       expect(developerBillingOption['launchMode'],
           'launch-in-external-browser-or-app');
       expect(developerBillingOption['linkUri'], 'https://example.com/checkout');
+    });
+
+    test(
+        'sends developerBillingOption for External Payments on subscription Android',
+        () async {
+      final calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall call) async {
+        calls.add(call);
+        switch (call.method) {
+          case 'initConnection':
+            return true;
+          case 'requestPurchase':
+            return null;
+        }
+        return null;
+      });
+
+      final iap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'android'),
+      );
+
+      await iap.initConnection();
+
+      const props = types.RequestPurchaseProps.subs((
+        ios: null,
+        android: types.RequestSubscriptionAndroidProps(
+          skus: <String>['sub.premium.monthly'],
+          developerBillingOption: types.DeveloperBillingOptionParamsAndroid(
+            billingProgram: types.BillingProgramAndroid.ExternalPayments,
+            launchMode:
+                types.DeveloperBillingLaunchModeAndroid.CallerWillLaunchLink,
+            linkUri: 'https://example.com/subscribe',
+          ),
+          subscriptionOffers: [
+            types.AndroidSubscriptionOfferInput(
+              sku: 'sub.premium.monthly',
+              offerToken: 'monthly-intro-offer-token',
+            ),
+          ],
+        ),
+        useAlternativeBilling: true,
+      ));
+
+      await iap.requestPurchase(props);
+
+      final requestCall =
+          calls.singleWhere((MethodCall c) => c.method == 'requestPurchase');
+      final payload = Map<String, dynamic>.from(
+          requestCall.arguments as Map<dynamic, dynamic>);
+
+      expect(payload['type'], 'subs');
+      expect(payload['skus'], <String>['sub.premium.monthly']);
+      expect(payload['useAlternativeBilling'], isTrue);
+      expect(payload.containsKey('developerBillingOption'), isTrue);
+
+      final developerBillingOption = Map<String, dynamic>.from(
+          payload['developerBillingOption'] as Map<dynamic, dynamic>);
+      expect(developerBillingOption['billingProgram'], 'external-payments');
+      expect(developerBillingOption['launchMode'], 'caller-will-launch-link');
+      expect(
+          developerBillingOption['linkUri'], 'https://example.com/subscribe');
+
+      // Verify subscription offers are included
+      expect(payload.containsKey('subscriptionOffers'), isTrue);
+      final offers = payload['subscriptionOffers'] as List;
+      expect(offers.length, 1);
+    });
+
+    test('sends developerBillingOption with CallerWillLaunchLink mode',
+        () async {
+      final calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall call) async {
+        calls.add(call);
+        switch (call.method) {
+          case 'initConnection':
+            return true;
+          case 'requestPurchase':
+            return null;
+        }
+        return null;
+      });
+
+      final iap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'android'),
+      );
+
+      await iap.initConnection();
+
+      const props = types.RequestPurchaseProps.inApp((
+        ios: null,
+        android: types.RequestPurchaseAndroidProps(
+          skus: <String>['product.coins'],
+          developerBillingOption: types.DeveloperBillingOptionParamsAndroid(
+            billingProgram: types.BillingProgramAndroid.ExternalPayments,
+            launchMode:
+                types.DeveloperBillingLaunchModeAndroid.CallerWillLaunchLink,
+            linkUri: 'https://example.com/buy-coins',
+          ),
+        ),
+        useAlternativeBilling: null,
+      ));
+
+      await iap.requestPurchase(props);
+
+      final requestCall =
+          calls.singleWhere((MethodCall c) => c.method == 'requestPurchase');
+      final payload = Map<String, dynamic>.from(
+          requestCall.arguments as Map<dynamic, dynamic>);
+
+      final developerBillingOption = Map<String, dynamic>.from(
+          payload['developerBillingOption'] as Map<dynamic, dynamic>);
+      expect(developerBillingOption['launchMode'], 'caller-will-launch-link');
     });
   });
 

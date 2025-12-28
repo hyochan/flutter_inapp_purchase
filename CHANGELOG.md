@@ -46,8 +46,6 @@
   ```
   This provides a cleaner alternative to calling `enableBillingProgram()` separately before `initConnection()`.
 
-- **Auto Connection Management (iOS)**: All API methods now automatically call `initConnection()` internally if the connection hasn't been established yet. This eliminates the need to manually call `initConnection()` before using any API on iOS.
-
 ### Dependencies
 
 - Updated OpenIAP versions:
