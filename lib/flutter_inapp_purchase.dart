@@ -94,6 +94,9 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
   final StreamController<gentype.UserChoiceBillingDetails>
       _userChoiceBillingAndroidListener =
       StreamController<gentype.UserChoiceBillingDetails>.broadcast();
+  final StreamController<gentype.DeveloperProvidedBillingDetailsAndroid>
+      _developerProvidedBillingAndroidListener = StreamController<
+          gentype.DeveloperProvidedBillingDetailsAndroid>.broadcast();
 
   /// Purchase updated event stream
   Stream<gentype.Purchase> get purchaseUpdatedListener =>
@@ -106,6 +109,12 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
   /// User choice billing Android event stream
   Stream<gentype.UserChoiceBillingDetails> get userChoiceBillingAndroid =>
       _userChoiceBillingAndroidListener.stream;
+
+  /// Developer provided billing Android event stream (8.3.0+)
+  /// Fires when user selects developer-provided billing option in external payments flow.
+  Stream<gentype.DeveloperProvidedBillingDetailsAndroid>
+      get developerProvidedBillingAndroid =>
+          _developerProvidedBillingAndroidListener.stream;
 
   bool _isInitialized = false;
 
@@ -185,6 +194,20 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
             debugPrint('[flutter_inapp_purchase] Stack trace: $stackTrace');
           }
           break;
+        case 'developer-provided-billing-android':
+          try {
+            Map<String, dynamic> result =
+                jsonDecode(call.arguments as String) as Map<String, dynamic>;
+            final details =
+                gentype.DeveloperProvidedBillingDetailsAndroid.fromJson(result);
+            _developerProvidedBillingAndroidListener.add(details);
+          } catch (e, stackTrace) {
+            debugPrint(
+              '[flutter_inapp_purchase] ERROR in developer-provided-billing-android: $e',
+            );
+            debugPrint('[flutter_inapp_purchase] Stack trace: $stackTrace');
+          }
+          break;
         default:
           throw ArgumentError('Unknown method ${call.method}');
       }
@@ -193,9 +216,10 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
   }
 
   /// Initialize connection (flutter IAP compatible)
-  gentype.MutationInitConnectionHandler get initConnection => (
-          {gentype.AlternativeBillingModeAndroid?
-              alternativeBillingModeAndroid}) async {
+  gentype.MutationInitConnectionHandler get initConnection => ({
+        gentype.AlternativeBillingModeAndroid? alternativeBillingModeAndroid,
+        gentype.BillingProgramAndroid? enableBillingProgramAndroid,
+      }) async {
         if (_isInitialized) {
           return true;
         }
@@ -203,14 +227,20 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
         try {
           await _setPurchaseListener();
 
-          // Build config map for alternative billing
-          final Map<String, dynamic>? config =
-              alternativeBillingModeAndroid != null
-                  ? {
-                      'alternativeBillingModeAndroid':
-                          alternativeBillingModeAndroid.toJson()
-                    }
-                  : null;
+          // Build config map for alternative billing and billing program
+          Map<String, dynamic>? config;
+          if (alternativeBillingModeAndroid != null ||
+              enableBillingProgramAndroid != null) {
+            config = {};
+            if (alternativeBillingModeAndroid != null) {
+              config['alternativeBillingModeAndroid'] =
+                  alternativeBillingModeAndroid.toJson();
+            }
+            if (enableBillingProgramAndroid != null) {
+              config['enableBillingProgramAndroid'] =
+                  enableBillingProgramAndroid.toJson();
+            }
+          }
 
           await _channel.invokeMethod('initConnection', config);
           _isInitialized = true;
@@ -346,6 +376,8 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
             final int? replacementMode;
             final List<gentype.AndroidSubscriptionOfferInput>?
                 subscriptionOffers;
+            final gentype.DeveloperBillingOptionParamsAndroid?
+                developerBillingOption;
 
             if (androidProps is gentype.RequestPurchaseAndroidProps) {
               skus = androidProps.skus;
@@ -355,6 +387,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
               purchaseToken = null;
               replacementMode = null;
               subscriptionOffers = null;
+              developerBillingOption = androidProps.developerBillingOption;
             } else if (androidProps
                 is gentype.RequestSubscriptionAndroidProps) {
               skus = androidProps.skus;
@@ -364,6 +397,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
               purchaseToken = androidProps.purchaseTokenAndroid;
               replacementMode = androidProps.replacementModeAndroid;
               subscriptionOffers = androidProps.subscriptionOffers;
+              developerBillingOption = androidProps.developerBillingOption;
             } else {
               throw PurchaseError(
                 code: gentype.ErrorCode.DeveloperError,
@@ -413,6 +447,12 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
             final useAlternativeBilling =
                 json['useAlternativeBilling'] as bool?;
             payload['useAlternativeBilling'] = useAlternativeBilling;
+
+            // Add developerBillingOption for External Payments (8.3.0+)
+            if (developerBillingOption != null) {
+              payload['developerBillingOption'] =
+                  developerBillingOption.toJson();
+            }
 
             await _channel.invokeMethod('requestPurchase', payload);
             return null;
@@ -2012,5 +2052,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
         purchaseUpdated: () async => await purchaseUpdatedListener.first,
         userChoiceBillingAndroid: () async =>
             await _userChoiceBillingAndroidListener.stream.first,
+        developerProvidedBillingAndroid: () async =>
+            await _developerProvidedBillingAndroidListener.stream.first,
       );
 }

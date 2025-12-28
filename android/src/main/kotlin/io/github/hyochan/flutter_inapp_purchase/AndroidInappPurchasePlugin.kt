@@ -8,6 +8,8 @@ import android.os.Bundle
 import dev.hyo.openiap.AndroidSubscriptionOfferInput
 import dev.hyo.openiap.BillingProgramAndroid
 import dev.hyo.openiap.DeepLinkOptions
+import dev.hyo.openiap.DeveloperBillingLaunchModeAndroid
+import dev.hyo.openiap.DeveloperBillingOptionParamsAndroid
 import dev.hyo.openiap.ExternalLinkLaunchModeAndroid
 import dev.hyo.openiap.ExternalLinkTypeAndroid
 import dev.hyo.openiap.FetchProductsResult
@@ -22,6 +24,7 @@ import dev.hyo.openiap.ProductQueryType
 import dev.hyo.openiap.ProductRequest
 import dev.hyo.openiap.Purchase
 import dev.hyo.openiap.RequestPurchaseProps
+import dev.hyo.openiap.listener.OpenIapDeveloperProvidedBillingListener
 import dev.hyo.openiap.listener.OpenIapPurchaseErrorListener
 import dev.hyo.openiap.listener.OpenIapPurchaseUpdateListener
 import io.flutter.plugin.common.MethodCall
@@ -131,13 +134,15 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
         isOfferPersonalized: Boolean,
         subscriptionOffers: List<AndroidSubscriptionOfferInput>,
         purchaseTokenAndroid: String?,
-        replacementModeAndroid: Int?
+        replacementModeAndroid: Int?,
+        developerBillingOption: DeveloperBillingOptionParamsAndroid? = null
     ): RequestPurchaseProps {
         val androidPayload = mutableMapOf<String, Any?>().apply {
             put(KEY_SKUS, skus)
             put(KEY_IS_OFFER_PERSONALIZED, isOfferPersonalized)
             obfuscatedAccountId?.let { put(KEY_OBFUSCATED_ACCOUNT, it) }
             obfuscatedProfileId?.let { put(KEY_OBFUSCATED_PROFILE, it) }
+            developerBillingOption?.let { put(KEY_DEVELOPER_BILLING_OPTION, it.toJson()) }
         }
 
         val root = mutableMapOf<String, Any?>(
@@ -256,11 +261,14 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
         // Initialization / teardown
         when (call.method) {
             "initConnection" -> {
-                // Parse alternativeBillingModeAndroid from arguments
+                // Parse alternativeBillingModeAndroid and enableBillingProgramAndroid from arguments
                 val params = call.arguments as? Map<*, *>
                 val configMap = mutableMapOf<String, Any?>()
                 params?.get("alternativeBillingModeAndroid")?.let {
                     configMap["alternativeBillingModeAndroid"] = it
+                }
+                params?.get("enableBillingProgramAndroid")?.let {
+                    configMap["enableBillingProgramAndroid"] = it
                 }
                 val newConfig = if (configMap.isEmpty()) {
                     InitConnectionConfig()
@@ -425,6 +433,32 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                 val replacementModeAndroid = (params["replacementModeAndroid"] as? Number)?.toInt()
                 val useAlternativeBilling = params["useAlternativeBilling"] as? Boolean
 
+                // Parse developerBillingOption for External Payments (8.3.0+)
+                val developerBillingOptionMap = params[KEY_DEVELOPER_BILLING_OPTION] as? Map<*, *>
+                val developerBillingOption = developerBillingOptionMap?.let { optionMap ->
+                    try {
+                        val billingProgram = BillingProgramAndroid.fromJson(
+                            optionMap["billingProgram"] as? String ?: "unspecified"
+                        )
+                        val launchMode = DeveloperBillingLaunchModeAndroid.fromJson(
+                            optionMap["launchMode"] as? String ?: "unspecified"
+                        )
+                        val linkUri = optionMap["linkUri"] as? String
+                        if (!linkUri.isNullOrBlank()) {
+                            DeveloperBillingOptionParamsAndroid(
+                                billingProgram = billingProgram,
+                                launchMode = launchMode,
+                                linkUri = linkUri
+                            )
+                        } else {
+                            null
+                        }
+                    } catch (e: Exception) {
+                        OpenIapLog.w(TAG, "Failed to parse developerBillingOption: ${e.message}")
+                        null
+                    }
+                }
+
                 // Validate SKUs
                 if (skusNormalized.isEmpty()) {
                     safe.error(OpenIapError.EmptySkuList.CODE, OpenIapError.EmptySkuList.MESSAGE, "Empty SKUs provided")
@@ -480,7 +514,8 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                         isOfferPersonalized = isOfferPersonalized,
                         subscriptionOffers = offers,
                         purchaseTokenAndroid = purchaseTokenAndroid,
-                        replacementModeAndroid = replacementModeAndroid
+                        replacementModeAndroid = replacementModeAndroid,
+                        developerBillingOption = developerBillingOption
                     )
 
                     iap.requestPurchase(requestProps)
@@ -1191,6 +1226,16 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                 }
             }
         }
+        openIap?.addDeveloperProvidedBillingListener(OpenIapDeveloperProvidedBillingListener { details ->
+            scope.launch {
+                try {
+                    val payload = JSONObject(details.toJson())
+                    channel?.invokeMethod("developer-provided-billing-android", payload.toString())
+                } catch (e: Exception) {
+                    OpenIapLog.e("Failed to send developer-provided-billing-android", e)
+                }
+            }
+        })
     }
 
     companion object {
@@ -1208,5 +1253,6 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
         private const val KEY_PURCHASE_TOKEN = "purchaseTokenAndroid"
         private const val KEY_REPLACEMENT_MODE = "replacementModeAndroid"
         private const val KEY_SUBSCRIPTION_OFFERS = "subscriptionOffers"
+        private const val KEY_DEVELOPER_BILLING_OPTION = "developerBillingOption"
     }
 }

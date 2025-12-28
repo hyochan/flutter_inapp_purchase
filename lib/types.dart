@@ -45,8 +45,8 @@ enum AlternativeBillingModeAndroid {
   String toJson() => value;
 }
 
-/// Billing program types for external content links and external offers (Android)
-/// Available in Google Play Billing Library 8.2.0+
+/// Billing program types for external content links, external offers, and external payments (Android)
+/// Available in Google Play Billing Library 8.2.0+, EXTERNAL_PAYMENTS added in 8.3.0
 enum BillingProgramAndroid {
   /// Unspecified billing program. Do not use.
   Unspecified('unspecified'),
@@ -55,7 +55,12 @@ enum BillingProgramAndroid {
   ExternalContentLink('external-content-link'),
   /// External Offers program.
   /// Allows offering digital content purchases outside the app.
-  ExternalOffer('external-offer');
+  ExternalOffer('external-offer'),
+  /// External Payments program (Japan only).
+  /// Allows presenting a side-by-side choice between Google Play Billing and developer's external payment option.
+  /// Users can choose to complete the purchase on the developer's website.
+  /// Available in Google Play Billing Library 8.3.0+
+  ExternalPayments('external-payments');
 
   const BillingProgramAndroid(this.value);
   final String value;
@@ -71,8 +76,45 @@ enum BillingProgramAndroid {
       case 'external-offer':
       case 'EXTERNAL_OFFER':
         return BillingProgramAndroid.ExternalOffer;
+      case 'external-payments':
+      case 'EXTERNAL_PAYMENTS':
+        return BillingProgramAndroid.ExternalPayments;
     }
     throw ArgumentError('Unknown BillingProgramAndroid value: $value');
+  }
+
+  String toJson() => value;
+}
+
+/// Launch mode for developer billing option (Android)
+/// Determines how the external payment URL is launched
+/// Available in Google Play Billing Library 8.3.0+
+enum DeveloperBillingLaunchModeAndroid {
+  /// Unspecified launch mode. Do not use.
+  Unspecified('unspecified'),
+  /// Google Play will launch the link in an external browser or eligible app.
+  /// Use this when you want Play to handle launching the external payment URL.
+  LaunchInExternalBrowserOrApp('launch-in-external-browser-or-app'),
+  /// The caller app will launch the link after Play returns control.
+  /// Use this when you want to handle launching the external payment URL yourself.
+  CallerWillLaunchLink('caller-will-launch-link');
+
+  const DeveloperBillingLaunchModeAndroid(this.value);
+  final String value;
+
+  factory DeveloperBillingLaunchModeAndroid.fromJson(String value) {
+    switch (value) {
+      case 'unspecified':
+      case 'UNSPECIFIED':
+        return DeveloperBillingLaunchModeAndroid.Unspecified;
+      case 'launch-in-external-browser-or-app':
+      case 'LAUNCH_IN_EXTERNAL_BROWSER_OR_APP':
+        return DeveloperBillingLaunchModeAndroid.LaunchInExternalBrowserOrApp;
+      case 'caller-will-launch-link':
+      case 'CALLER_WILL_LAUNCH_LINK':
+        return DeveloperBillingLaunchModeAndroid.CallerWillLaunchLink;
+    }
+    throw ArgumentError('Unknown DeveloperBillingLaunchModeAndroid value: $value');
   }
 
   String toJson() => value;
@@ -372,7 +414,10 @@ enum IapEvent {
   PurchaseUpdated('purchase-updated'),
   PurchaseError('purchase-error'),
   PromotedProductIOS('promoted-product-ios'),
-  UserChoiceBillingAndroid('user-choice-billing-android');
+  UserChoiceBillingAndroid('user-choice-billing-android'),
+  /// Fired when user selects developer-provided billing option in external payments flow.
+  /// Available on Android with Google Play Billing Library 8.3.0+
+  DeveloperProvidedBillingAndroid('developer-provided-billing-android');
 
   const IapEvent(this.value);
   final String value;
@@ -395,6 +440,10 @@ enum IapEvent {
       case 'USER_CHOICE_BILLING_ANDROID':
       case 'UserChoiceBillingAndroid':
         return IapEvent.UserChoiceBillingAndroid;
+      case 'developer-provided-billing-android':
+      case 'DEVELOPER_PROVIDED_BILLING_ANDROID':
+      case 'DeveloperProvidedBillingAndroid':
+        return IapEvent.DeveloperProvidedBillingAndroid;
     }
     throw ArgumentError('Unknown IapEvent value: $value');
   }
@@ -1062,6 +1111,33 @@ class BillingProgramReportingDetailsAndroid {
     return {
       '__typename': 'BillingProgramReportingDetailsAndroid',
       'billingProgram': billingProgram.toJson(),
+      'externalTransactionToken': externalTransactionToken,
+    };
+  }
+}
+
+/// Details provided when user selects developer billing option (Android)
+/// Received via DeveloperProvidedBillingListener callback
+/// Available in Google Play Billing Library 8.3.0+
+class DeveloperProvidedBillingDetailsAndroid {
+  const DeveloperProvidedBillingDetailsAndroid({
+    required this.externalTransactionToken,
+  });
+
+  /// External transaction token used to report transactions made through developer billing.
+  /// This token must be used when reporting the external transaction to Google Play.
+  /// Must be reported within 24 hours of the transaction.
+  final String externalTransactionToken;
+
+  factory DeveloperProvidedBillingDetailsAndroid.fromJson(Map<String, dynamic> json) {
+    return DeveloperProvidedBillingDetailsAndroid(
+      externalTransactionToken: json['externalTransactionToken'] as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '__typename': 'DeveloperProvidedBillingDetailsAndroid',
       'externalTransactionToken': externalTransactionToken,
     };
   }
@@ -2879,6 +2955,30 @@ class AndroidSubscriptionOfferInput {
   }
 }
 
+/// Parameters for creating billing program reporting details (Android)
+/// Used with createBillingProgramReportingDetailsAsync
+/// Available in Google Play Billing Library 8.3.0+
+class BillingProgramReportingDetailsParamsAndroid {
+  const BillingProgramReportingDetailsParamsAndroid({
+    required this.billingProgram,
+  });
+
+  /// The billing program to create reporting details for
+  final BillingProgramAndroid billingProgram;
+
+  factory BillingProgramReportingDetailsParamsAndroid.fromJson(Map<String, dynamic> json) {
+    return BillingProgramReportingDetailsParamsAndroid(
+      billingProgram: BillingProgramAndroid.fromJson(json['billingProgram'] as String),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'billingProgram': billingProgram.toJson(),
+    };
+  }
+}
+
 class DeepLinkOptions {
   const DeepLinkOptions({
     this.packageNameAndroid,
@@ -2901,6 +3001,40 @@ class DeepLinkOptions {
     return {
       'packageNameAndroid': packageNameAndroid,
       'skuAndroid': skuAndroid,
+    };
+  }
+}
+
+/// Parameters for developer billing option in purchase flow (Android)
+/// Used with BillingFlowParams to enable external payments flow
+/// Available in Google Play Billing Library 8.3.0+
+class DeveloperBillingOptionParamsAndroid {
+  const DeveloperBillingOptionParamsAndroid({
+    required this.billingProgram,
+    required this.launchMode,
+    required this.linkUri,
+  });
+
+  /// The billing program (should be EXTERNAL_PAYMENTS for external payments flow)
+  final BillingProgramAndroid billingProgram;
+  /// The launch mode for the external payment link
+  final DeveloperBillingLaunchModeAndroid launchMode;
+  /// The URI where the external payment will be processed
+  final String linkUri;
+
+  factory DeveloperBillingOptionParamsAndroid.fromJson(Map<String, dynamic> json) {
+    return DeveloperBillingOptionParamsAndroid(
+      billingProgram: BillingProgramAndroid.fromJson(json['billingProgram'] as String),
+      launchMode: DeveloperBillingLaunchModeAndroid.fromJson(json['launchMode'] as String),
+      linkUri: json['linkUri'] as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'billingProgram': billingProgram.toJson(),
+      'launchMode': launchMode.toJson(),
+      'linkUri': linkUri,
     };
   }
 }
@@ -2950,21 +3084,28 @@ class DiscountOfferInputIOS {
 class InitConnectionConfig {
   const InitConnectionConfig({
     this.alternativeBillingModeAndroid,
+    this.enableBillingProgramAndroid,
   });
 
   /// Alternative billing mode for Android
   /// If not specified, defaults to NONE (standard Google Play billing)
   final AlternativeBillingModeAndroid? alternativeBillingModeAndroid;
+  /// Enable a specific billing program for Android (8.2.0+)
+  /// When set, enables the specified billing program for external transactions.
+  /// Use 'external-payments' for Developer Provided Billing (Japan only, 8.3.0+).
+  final BillingProgramAndroid? enableBillingProgramAndroid;
 
   factory InitConnectionConfig.fromJson(Map<String, dynamic> json) {
     return InitConnectionConfig(
       alternativeBillingModeAndroid: json['alternativeBillingModeAndroid'] != null ? AlternativeBillingModeAndroid.fromJson(json['alternativeBillingModeAndroid'] as String) : null,
+      enableBillingProgramAndroid: json['enableBillingProgramAndroid'] != null ? BillingProgramAndroid.fromJson(json['enableBillingProgramAndroid'] as String) : null,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'alternativeBillingModeAndroid': alternativeBillingModeAndroid?.toJson(),
+      'enableBillingProgramAndroid': enableBillingProgramAndroid?.toJson(),
     };
   }
 }
@@ -3062,12 +3203,17 @@ class PurchaseOptions {
 
 class RequestPurchaseAndroidProps {
   const RequestPurchaseAndroidProps({
+    this.developerBillingOption,
     this.isOfferPersonalized,
     this.obfuscatedAccountIdAndroid,
     this.obfuscatedProfileIdAndroid,
     required this.skus,
   });
 
+  /// Developer billing option parameters for external payments flow (8.3.0+).
+  /// When provided, the purchase flow will show a side-by-side choice between
+  /// Google Play Billing and the developer's external payment option.
+  final DeveloperBillingOptionParamsAndroid? developerBillingOption;
   /// Personalized offer flag
   final bool? isOfferPersonalized;
   /// Obfuscated account ID
@@ -3079,6 +3225,7 @@ class RequestPurchaseAndroidProps {
 
   factory RequestPurchaseAndroidProps.fromJson(Map<String, dynamic> json) {
     return RequestPurchaseAndroidProps(
+      developerBillingOption: json['developerBillingOption'] != null ? DeveloperBillingOptionParamsAndroid.fromJson(json['developerBillingOption'] as Map<String, dynamic>) : null,
       isOfferPersonalized: json['isOfferPersonalized'] as bool?,
       obfuscatedAccountIdAndroid: json['obfuscatedAccountIdAndroid'] as String?,
       obfuscatedProfileIdAndroid: json['obfuscatedProfileIdAndroid'] as String?,
@@ -3088,6 +3235,7 @@ class RequestPurchaseAndroidProps {
 
   Map<String, dynamic> toJson() {
     return {
+      'developerBillingOption': developerBillingOption?.toJson(),
       'isOfferPersonalized': isOfferPersonalized,
       'obfuscatedAccountIdAndroid': obfuscatedAccountIdAndroid,
       'obfuscatedProfileIdAndroid': obfuscatedProfileIdAndroid,
@@ -3249,6 +3397,7 @@ class RequestPurchasePropsByPlatforms {
 
 class RequestSubscriptionAndroidProps {
   const RequestSubscriptionAndroidProps({
+    this.developerBillingOption,
     this.isOfferPersonalized,
     this.obfuscatedAccountIdAndroid,
     this.obfuscatedProfileIdAndroid,
@@ -3259,6 +3408,10 @@ class RequestSubscriptionAndroidProps {
     this.subscriptionProductReplacementParams,
   });
 
+  /// Developer billing option parameters for external payments flow (8.3.0+).
+  /// When provided, the purchase flow will show a side-by-side choice between
+  /// Google Play Billing and the developer's external payment option.
+  final DeveloperBillingOptionParamsAndroid? developerBillingOption;
   /// Personalized offer flag
   final bool? isOfferPersonalized;
   /// Obfuscated account ID
@@ -3280,6 +3433,7 @@ class RequestSubscriptionAndroidProps {
 
   factory RequestSubscriptionAndroidProps.fromJson(Map<String, dynamic> json) {
     return RequestSubscriptionAndroidProps(
+      developerBillingOption: json['developerBillingOption'] != null ? DeveloperBillingOptionParamsAndroid.fromJson(json['developerBillingOption'] as Map<String, dynamic>) : null,
       isOfferPersonalized: json['isOfferPersonalized'] as bool?,
       obfuscatedAccountIdAndroid: json['obfuscatedAccountIdAndroid'] as String?,
       obfuscatedProfileIdAndroid: json['obfuscatedProfileIdAndroid'] as String?,
@@ -3293,6 +3447,7 @@ class RequestSubscriptionAndroidProps {
 
   Map<String, dynamic> toJson() {
     return {
+      'developerBillingOption': developerBillingOption?.toJson(),
       'isOfferPersonalized': isOfferPersonalized,
       'obfuscatedAccountIdAndroid': obfuscatedAccountIdAndroid,
       'obfuscatedProfileIdAndroid': obfuscatedProfileIdAndroid,
@@ -3892,6 +4047,7 @@ abstract class MutationResolver {
   /// Establish the platform billing connection
   Future<bool> initConnection({
     AlternativeBillingModeAndroid? alternativeBillingModeAndroid,
+    BillingProgramAndroid? enableBillingProgramAndroid,
   });
   /// Check if a billing program is available for the current user
   /// Replaces the deprecated isExternalOfferAvailableAsync API
@@ -4010,6 +4166,12 @@ abstract class QueryResolver {
 
 /// GraphQL root subscription operations.
 abstract class SubscriptionResolver {
+  /// Fires when a user selects developer billing in the External Payments flow (Android only)
+  /// Triggered when the user chooses to pay via the developer's external payment option
+  /// instead of Google Play Billing in the side-by-side choice dialog.
+  /// Contains the externalTransactionToken needed to report the transaction.
+  /// Available in Google Play Billing Library 8.3.0+
+  Future<DeveloperProvidedBillingDetailsAndroid> developerProvidedBillingAndroid();
   /// Fires when the App Store surfaces a promoted product (iOS only)
   Future<String> promotedProductIOS();
   /// Fires when a purchase fails or is cancelled
@@ -4043,6 +4205,7 @@ typedef MutationFinishTransactionHandler = Future<void> Function({
 });
 typedef MutationInitConnectionHandler = Future<bool> Function({
   AlternativeBillingModeAndroid? alternativeBillingModeAndroid,
+  BillingProgramAndroid? enableBillingProgramAndroid,
 });
 typedef MutationIsBillingProgramAvailableAndroidHandler = Future<BillingProgramAvailabilityResultAndroid> Function(BillingProgramAndroid program);
 typedef MutationLaunchExternalLinkAndroidHandler = Future<bool> Function({
@@ -4206,6 +4369,7 @@ class QueryHandlers {
 
 // MARK: - Subscription Helpers
 
+typedef SubscriptionDeveloperProvidedBillingAndroidHandler = Future<DeveloperProvidedBillingDetailsAndroid> Function();
 typedef SubscriptionPromotedProductIOSHandler = Future<String> Function();
 typedef SubscriptionPurchaseErrorHandler = Future<PurchaseError> Function();
 typedef SubscriptionPurchaseUpdatedHandler = Future<Purchase> Function();
@@ -4213,12 +4377,14 @@ typedef SubscriptionUserChoiceBillingAndroidHandler = Future<UserChoiceBillingDe
 
 class SubscriptionHandlers {
   const SubscriptionHandlers({
+    this.developerProvidedBillingAndroid,
     this.promotedProductIOS,
     this.purchaseError,
     this.purchaseUpdated,
     this.userChoiceBillingAndroid,
   });
 
+  final SubscriptionDeveloperProvidedBillingAndroidHandler? developerProvidedBillingAndroid;
   final SubscriptionPromotedProductIOSHandler? promotedProductIOS;
   final SubscriptionPurchaseErrorHandler? purchaseError;
   final SubscriptionPurchaseUpdatedHandler? purchaseUpdated;
