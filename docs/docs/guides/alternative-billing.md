@@ -376,6 +376,84 @@ Future<void> handleUserChoicePurchase(String productId) async {
 }
 ```
 
+### Mode 3: External Payments (Japan Only)
+
+:::info New in v8.1.2+
+External Payments is available starting from Google Play Billing Library 8.3.0 and is currently only supported in Japan.
+:::
+
+External Payments presents a side-by-side choice between Google Play Billing and the developer's external payment option directly in the purchase dialog.
+
+**Key differences from User Choice Billing:**
+
+| Feature | User Choice Billing | External Payments |
+|---------|---------------------|-------------------|
+| Billing Library | 7.0+ | 8.3.0+ |
+| Availability | Eligible regions | Japan only |
+| UI | Separate dialog | Side-by-side in purchase dialog |
+
+```dart
+import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
+import 'dart:io';
+
+Future<void> initializeWithExternalPayments() async {
+  if (!Platform.isAndroid) return;
+
+  // Option 1: Enable during initConnection
+  await FlutterInappPurchase.instance.initialize();
+  await FlutterInappPurchase.instance.initConnection(
+    enableBillingProgramAndroid: BillingProgramAndroid.ExternalPayments,
+  );
+
+  // Listen for developer billing selection
+  FlutterInappPurchase.instance.developerProvidedBillingAndroid.listen((details) {
+    // User selected developer billing
+    // IMPORTANT: Report token to Google within 24 hours
+    print('External transaction token: ${details.externalTransactionToken}');
+    reportToGoogleBackend(details.externalTransactionToken);
+  });
+}
+
+Future<void> handleExternalPaymentsPurchase(String productId) async {
+  if (!Platform.isAndroid) return;
+
+  try {
+    // Check if External Payments is available
+    final availability = await FlutterInappPurchase.instance
+        .isBillingProgramAvailableAndroid(BillingProgramAndroid.ExternalPayments);
+
+    if (!availability.isAvailable) {
+      print('External Payments not available');
+      // Fall back to standard purchase
+      return;
+    }
+
+    // Request purchase with external payment option
+    await FlutterInappPurchase.instance.requestPurchaseWithBuilder(
+      build: (builder) {
+        builder.google.skus = [productId];
+        builder.google.developerBillingOption = DeveloperBillingOptionParamsAndroid(
+          billingProgram: BillingProgramAndroid.ExternalPayments,
+          launchMode: DeveloperBillingLaunchModeAndroid.LaunchInExternalBrowserOrApp,
+          linkUri: 'https://yoursite.com/checkout?product=$productId',
+        );
+        builder.type = ProductQueryType.InApp;
+      },
+    );
+
+    // If user selects Google Play: purchaseUpdated stream
+    // If user selects developer billing: developerProvidedBillingAndroid stream
+  } catch (e) {
+    print('Purchase error: $e');
+  }
+}
+```
+
+**Launch Mode Options:**
+
+- `LaunchInExternalBrowserOrApp`: Google Play launches the URL in external browser
+- `CallerWillLaunchLink`: Your app handles launching the URL
+
 ### Configuring Alternative Billing Mode
 
 Set the billing mode when initializing the connection:
@@ -397,7 +475,12 @@ Future<void> initWithAlternativeBilling() async {
     alternativeBillingModeAndroid: AlternativeBillingModeAndroid.UserChoice,
   );
 
-  // Option 3: None (default Google Play only)
+  // Option 3: External Payments (Japan Only, 8.3.0+)
+  await FlutterInappPurchase.instance.initConnection(
+    enableBillingProgramAndroid: BillingProgramAndroid.ExternalPayments,
+  );
+
+  // Option 4: None (default Google Play only)
   await FlutterInappPurchase.instance.initConnection(
     alternativeBillingModeAndroid: AlternativeBillingModeAndroid.None,
   );

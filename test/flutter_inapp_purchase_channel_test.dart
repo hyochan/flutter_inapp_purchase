@@ -474,6 +474,60 @@ void main() {
       expect(payload.containsKey('replacementMode'), isFalse);
       expect(payload.containsKey('subscriptionOffers'), isFalse);
     });
+
+    test('sends developerBillingOption for External Payments on Android',
+        () async {
+      final calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall call) async {
+        calls.add(call);
+        switch (call.method) {
+          case 'initConnection':
+            return true;
+          case 'requestPurchase':
+            return null;
+        }
+        return null;
+      });
+
+      final iap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'android'),
+      );
+
+      await iap.initConnection();
+
+      const props = types.RequestPurchaseProps.inApp((
+        ios: null,
+        android: types.RequestPurchaseAndroidProps(
+          skus: <String>['product.premium'],
+          developerBillingOption: types.DeveloperBillingOptionParamsAndroid(
+            billingProgram: types.BillingProgramAndroid.ExternalPayments,
+            launchMode: types
+                .DeveloperBillingLaunchModeAndroid.LaunchInExternalBrowserOrApp,
+            linkUri: 'https://example.com/checkout',
+          ),
+        ),
+        useAlternativeBilling: null,
+      ));
+
+      await iap.requestPurchase(props);
+
+      final requestCall =
+          calls.singleWhere((MethodCall c) => c.method == 'requestPurchase');
+      final payload = Map<String, dynamic>.from(
+          requestCall.arguments as Map<dynamic, dynamic>);
+
+      expect(payload['type'], 'inapp');
+      expect(payload['skus'], <String>['product.premium']);
+      expect(payload.containsKey('developerBillingOption'), isTrue);
+
+      final developerBillingOption = Map<String, dynamic>.from(
+          payload['developerBillingOption'] as Map<dynamic, dynamic>);
+      expect(developerBillingOption['billingProgram'], 'external-payments');
+      expect(developerBillingOption['launchMode'],
+          'launch-in-external-browser-or-app');
+      expect(developerBillingOption['linkUri'], 'https://example.com/checkout');
+    });
   });
 
   group('requestPurchase validation', () {
@@ -893,6 +947,41 @@ void main() {
 
       final productId = await promotedFuture;
       expect(productId, 'promo.product');
+    });
+
+    test('developer-provided-billing-android emits details to stream',
+        () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall call) async {
+        if (call.method == 'initConnection') {
+          return true;
+        }
+        return null;
+      });
+
+      final iap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'android'),
+      );
+
+      final developerBillingFuture = iap.developerProvidedBillingAndroid.first;
+
+      await iap.initConnection();
+
+      final payload = <String, dynamic>{
+        'externalTransactionToken': 'ext-token-abc123',
+      };
+
+      await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .handlePlatformMessage(
+        channel.name,
+        codec.encodeMethodCall(
+          MethodCall('developer-provided-billing-android', jsonEncode(payload)),
+        ),
+        (_) {},
+      );
+
+      final details = await developerBillingFuture;
+      expect(details.externalTransactionToken, 'ext-token-abc123');
     });
   });
 

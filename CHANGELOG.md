@@ -1,5 +1,60 @@
 # CHANGELOG
 
+## 8.1.2
+
+### New Features
+
+- **External Payments Program (Android 8.3.0+, Japan Only)**: Support for Google Play Billing Library 8.3.0's External Payments program
+  - Presents a side-by-side choice between Google Play Billing and the developer's external payment option directly in the purchase flow
+  - New `BillingProgramAndroid.ExternalPayments` billing program type
+  - New `DeveloperBillingOptionParamsAndroid` to configure external payment option in purchase flow
+  - New `DeveloperBillingLaunchModeAndroid` enum for how to launch the external payment link
+  - New `DeveloperProvidedBillingDetailsAndroid` type containing `externalTransactionToken` when user selects developer billing
+  - New `developerProvidedBillingAndroid` stream for listening to developer billing selection events
+  - New `developerBillingOption` field in `RequestPurchaseAndroidProps` and `RequestSubscriptionAndroidProps`
+
+  ```dart
+  // Listen for developer billing selection
+  iap.developerProvidedBillingAndroid.listen((details) {
+    // User selected developer billing
+    // Report transaction to Google within 24 hours using details.externalTransactionToken
+    print('External transaction token: ${details.externalTransactionToken}');
+  });
+
+  // Request purchase with external payments option
+  await iap.requestPurchaseWithBuilder(
+    build: (builder) {
+      builder.google.skus = ['product_id'];
+      builder.google.developerBillingOption = DeveloperBillingOptionParamsAndroid(
+        billingProgram: BillingProgramAndroid.ExternalPayments,
+        launchMode: DeveloperBillingLaunchModeAndroid.LaunchInExternalBrowserOrApp,
+        linkUri: 'https://example.com/checkout',
+      );
+      builder.type = ProductQueryType.InApp;
+    },
+  );
+  ```
+
+- **New Event**: `IapEvent.DeveloperProvidedBillingAndroid` - Fired when user selects developer billing in External Payments flow
+
+- **enableBillingProgramAndroid in InitConnectionConfig**: Enable a specific billing program during connection initialization
+  ```dart
+  // Enable External Payments during connection
+  await iap.initConnection(
+    enableBillingProgramAndroid: BillingProgramAndroid.ExternalPayments,
+  );
+  ```
+  This provides a cleaner alternative to calling `enableBillingProgram()` separately before `initConnection()`.
+
+- **Auto Connection Management (iOS)**: All API methods now automatically call `initConnection()` internally if the connection hasn't been established yet. This eliminates the need to manually call `initConnection()` before using any API on iOS.
+
+### Dependencies
+
+- Updated OpenIAP versions:
+  - `openiap-gql`: 1.3.8 -> 1.3.10
+  - `openiap-google`: 1.3.16 -> 1.3.19
+  - `openiap-apple`: 1.3.7 -> 1.3.8
+
 ## 8.1.1
 
 ### Dependencies
