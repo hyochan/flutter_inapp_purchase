@@ -51,17 +51,15 @@ Future<void> finishTransaction({
 
 ```dart
 // Listen for purchases and finish them
-FlutterInappPurchase.purchaseUpdated.listen((Purchase? purchase) async {
-  if (purchase != null) {
-    // Verify and deliver content
-    await _verifyAndDeliver(purchase);
+FlutterInappPurchase.instance.purchaseUpdatedListener.listen((Purchase purchase) async {
+  // Verify and deliver content
+  await _verifyAndDeliver(purchase);
 
-    // Finish the transaction
-    await FlutterInappPurchase.instance.finishTransaction(
-      purchase: purchase,
-      isConsumable: _isConsumable(purchase.productId),
-    );
-  }
+  // Finish the transaction
+  await FlutterInappPurchase.instance.finishTransaction(
+    purchase: purchase,
+    isConsumable: _isConsumable(purchase.productId),
+  );
 });
 ```
 
