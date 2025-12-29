@@ -412,6 +412,7 @@ class _UserChoiceBillingExampleState extends State<UserChoiceBillingExample> {
     if (!Platform.isAndroid) return;
 
     // Initialize with user-choice mode
+    // Note: In v8.2.0+, use enableBillingProgramAndroid: BillingProgramAndroid.UserChoiceBilling
     await FlutterInappPurchase.instance.initConnection(
       alternativeBillingModeAndroid: AlternativeBillingModeAndroid.UserChoice,
     );
