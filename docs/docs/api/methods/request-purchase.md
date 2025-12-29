@@ -367,4 +367,4 @@ Use the builder when you:
 - Supports multiple SKUs but typically uses one
 - Proration modes only apply to subscriptions
 - Requires acknowledgment within 3 days
-- Use `android` field for request parameters
+- Use `google` field for request parameters (v8.2.0+)

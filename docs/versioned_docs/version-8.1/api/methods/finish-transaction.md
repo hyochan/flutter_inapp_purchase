@@ -89,7 +89,7 @@ class PurchaseHandler {
   final _consumableIds = ['coins_100', 'coins_500', 'powerup_pack'];
 
   void initialize() {
-    FlutterInappPurchase.purchaseUpdated.listen(_handlePurchase);
+    FlutterInappPurchase.instance.purchaseUpdatedListener.listen(_handlePurchase);
   }
 
   Future<void> _handlePurchase(Purchase? purchase) async {

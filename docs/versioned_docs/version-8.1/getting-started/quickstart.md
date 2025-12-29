@@ -67,13 +67,13 @@ class _SimpleStoreState extends State<SimpleStore> {
 
     // Set up purchase listeners
     _purchaseUpdatedSubscription =
-        iap.purchaseUpdated.listen((productItem) {
-      print('Purchase updated: ${productItem?.productId}');
-      _handlePurchaseUpdate(productItem!);
+        iap.purchaseUpdatedListener.listen((productItem) {
+      print('Purchase updated: ${productItem.productId}');
+      _handlePurchaseUpdate(productItem);
     });
 
     _purchaseErrorSubscription =
-        iap.purchaseError.listen((purchaseError) {
+        iap.purchaseErrorListener.listen((purchaseError) {
       print('Purchase error: $purchaseError');
       _showError('Purchase failed: ${purchaseError.message}');
     });

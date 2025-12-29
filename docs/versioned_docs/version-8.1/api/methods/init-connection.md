@@ -80,17 +80,13 @@ class IAPService {
   
   void _setupListeners() {
     // Listen to purchase updates
-    FlutterInappPurchase.purchaseUpdated.listen((purchase) {
-      if (purchase != null) {
-        _handlePurchase(purchase);
-      }
+    FlutterInappPurchase.instance.purchaseUpdatedListener.listen((purchase) {
+      _handlePurchase(purchase);
     });
-    
+
     // Listen to purchase errors
-    FlutterInappPurchase.purchaseError.listen((error) {
-      if (error != null) {
-        _handleError(error);
-      }
+    FlutterInappPurchase.instance.purchaseErrorListener.listen((error) {
+      _handleError(error);
     });
   }
 }

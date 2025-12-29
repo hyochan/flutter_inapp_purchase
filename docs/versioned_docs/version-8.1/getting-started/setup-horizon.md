@@ -13,7 +13,7 @@ Setup guide for Meta Quest devices running Horizon OS with Meta's Platform SDK f
 
 For complete Horizon OS setup instructions including Meta Quest Developer Dashboard configuration, app setup, and testing guidelines, please visit:
 
-👉 **[Horizon OS Setup Guide - openiap.dev](https://openiap.dev/docs/horizon-setup)**
+**[Horizon OS Setup Guide - openiap.dev](https://openiap.dev/docs/horizon-setup)**
 
 The guide covers:
 
