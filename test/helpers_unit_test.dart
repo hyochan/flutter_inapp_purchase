@@ -391,5 +391,114 @@ void main() {
       expect(iosProduct.id, 'coins_small');
       expect(iosProduct.type, types.ProductType.InApp);
     });
+
+    test('convertToPurchase handles iOS restored state as Purchased', () {
+      final purchase = convertToPurchase(
+        <String, dynamic>{
+          'platform': 'ios',
+          'store': 'apple',
+          'productId': 'premium_yearly',
+          'transactionId': 'txn-restored',
+          'purchaseState': 'restored',
+          'transactionReceipt': 'receipt-restored',
+          'transactionDate': 1700000000000,
+        },
+        platformIsAndroid: false,
+        platformIsIOS: true,
+        acknowledgedAndroidPurchaseTokens: <String, bool>{},
+      );
+
+      expect(purchase, isA<types.PurchaseIOS>());
+      final iosPurchase = purchase as types.PurchaseIOS;
+      expect(iosPurchase.purchaseState, types.PurchaseState.Purchased);
+    });
+
+    test(
+        'convertToPurchase handles iOS numeric state 3 as Purchased (restored)',
+        () {
+      final purchase = convertToPurchase(
+        <String, dynamic>{
+          'platform': 'ios',
+          'store': 'apple',
+          'productId': 'premium_yearly',
+          'transactionId': 'txn-restored-num',
+          'purchaseState': 3,
+          'transactionReceipt': 'receipt-restored',
+          'transactionDate': 1700000000000,
+        },
+        platformIsAndroid: false,
+        platformIsIOS: true,
+        acknowledgedAndroidPurchaseTokens: <String, bool>{},
+      );
+
+      expect(purchase, isA<types.PurchaseIOS>());
+      final iosPurchase = purchase as types.PurchaseIOS;
+      expect(iosPurchase.purchaseState, types.PurchaseState.Purchased);
+    });
+
+    test('convertToPurchase handles iOS unknown numeric states as Unknown', () {
+      final purchase = convertToPurchase(
+        <String, dynamic>{
+          'platform': 'ios',
+          'store': 'apple',
+          'productId': 'premium_yearly',
+          'transactionId': 'txn-unknown',
+          'purchaseState': 99,
+          'transactionReceipt': 'receipt-unknown',
+          'transactionDate': 1700000000000,
+        },
+        platformIsAndroid: false,
+        platformIsIOS: true,
+        acknowledgedAndroidPurchaseTokens: <String, bool>{},
+      );
+
+      expect(purchase, isA<types.PurchaseIOS>());
+      final iosPurchase = purchase as types.PurchaseIOS;
+      expect(iosPurchase.purchaseState, types.PurchaseState.Unknown);
+    });
+
+    test(
+        'convertToPurchase handles iOS failed/deferred string states as Unknown',
+        () {
+      // Test 'failed' state
+      final failedPurchase = convertToPurchase(
+        <String, dynamic>{
+          'platform': 'ios',
+          'store': 'apple',
+          'productId': 'premium',
+          'transactionId': 'txn-failed',
+          'purchaseState': 'failed',
+          'transactionReceipt': 'receipt',
+          'transactionDate': 1700000000000,
+        },
+        platformIsAndroid: false,
+        platformIsIOS: true,
+        acknowledgedAndroidPurchaseTokens: <String, bool>{},
+      );
+
+      expect(failedPurchase, isA<types.PurchaseIOS>());
+      expect((failedPurchase as types.PurchaseIOS).purchaseState,
+          types.PurchaseState.Unknown);
+
+      // Test 'deferred' state
+      final deferredPurchase = convertToPurchase(
+        <String, dynamic>{
+          'platform': 'ios',
+          'store': 'apple',
+          'productId': 'premium',
+          'transactionId': 'txn-deferred',
+          'purchaseState': 'deferred',
+          'transactionReceipt': 'receipt',
+          'transactionDate': 1700000000000,
+        },
+        platformIsAndroid: false,
+        platformIsIOS: true,
+        acknowledgedAndroidPurchaseTokens: <String, bool>{},
+      );
+
+      expect(deferredPurchase, isA<types.PurchaseIOS>());
+      expect((deferredPurchase as types.PurchaseIOS).purchaseState,
+          types.PurchaseState.Unknown);
+    });
   });
 }
