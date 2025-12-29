@@ -20,44 +20,46 @@ View the full example source:
 
 Redirect users to an external website for payment (iOS 16.0+):
 
+:::warning Deprecation Notice (v8.2.0+)
+`useAlternativeBilling` field in `RequestPurchaseProps` is deprecated. Use `presentExternalPurchaseLinkIOS` for iOS external purchases instead.
+:::
+
 ```dart
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 
 class IOSAlternativeBilling extends StatelessWidget {
-  final Product product;
+  final String externalUrl;
 
-  const IOSAlternativeBilling({required this.product});
+  const IOSAlternativeBilling({required this.externalUrl});
 
   Future<void> _handlePurchase(BuildContext context) async {
     if (!Platform.isIOS) return;
 
     try {
-      await FlutterInappPurchase.instance.requestPurchase(
-        RequestPurchaseProps.inApp((
-          ios: RequestPurchaseIosProps(
-            sku: product.id,
-            quantity: 1,
-          ),
-          useAlternativeBilling: true,
-        )),
-      );
+      // Use presentExternalPurchaseLinkIOS for iOS external purchases
+      final result = await FlutterInappPurchase.instance
+          .presentExternalPurchaseLinkIOS(externalUrl);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Complete purchase on the external website. '
-            'You will be redirected back to the app.',
-          ),
-        ),
-      );
-    } catch (e) {
-      if (e is PurchaseError && e.code != ErrorCode.UserCancelled) {
+      if (result.error != null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.message}')),
+          SnackBar(content: Text('Error: ${result.error}')),
+        );
+      } else if (result.success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Complete purchase on the external website. '
+              'You will be redirected back to the app.',
+            ),
+          ),
         );
       }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
     }
   }
 
@@ -253,9 +255,9 @@ class _AndroidUserChoiceBillingState extends State<AndroidUserChoiceBilling> {
     await FlutterInappPurchase.instance.initialize();
 
     if (Platform.isAndroid) {
+      // v8.2.0+: Use enableBillingProgramAndroid instead of alternativeBillingModeAndroid
       await FlutterInappPurchase.instance.initConnection(
-        alternativeBillingModeAndroid:
-            AlternativeBillingModeAndroid.UserChoice,
+        enableBillingProgramAndroid: BillingProgramAndroid.UserChoiceBilling,
       );
     }
 
@@ -291,10 +293,11 @@ class _AndroidUserChoiceBillingState extends State<AndroidUserChoiceBilling> {
 
     try {
       // Google will show selection dialog automatically
+      // when enableBillingProgramAndroid is set during initConnection
       await FlutterInappPurchase.instance.requestPurchase(
         RequestPurchaseProps.inApp((
-          android: RequestPurchaseAndroidProps(skus: [product.id]),
-          useAlternativeBilling: true,
+          apple: RequestPurchaseIosProps(sku: product.id),
+          google: RequestPurchaseAndroidProps(skus: [product.id]),
         )),
       );
 
@@ -326,6 +329,10 @@ class _AndroidUserChoiceBillingState extends State<AndroidUserChoiceBilling> {
 
 ### Initialize with Alternative Billing Mode
 
+:::warning Deprecation Notice (v8.2.0+)
+`AlternativeBillingModeAndroid` is deprecated in favor of `BillingProgramAndroid`. Use `enableBillingProgramAndroid` instead of `alternativeBillingModeAndroid`.
+:::
+
 ```dart
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 import 'dart:io';
@@ -334,9 +341,12 @@ Future<void> initializeWithAlternativeBilling() async {
   await FlutterInappPurchase.instance.initialize();
 
   if (Platform.isAndroid) {
+    // v8.2.0+: Use enableBillingProgramAndroid
     await FlutterInappPurchase.instance.initConnection(
-      alternativeBillingModeAndroid:
-          AlternativeBillingModeAndroid.AlternativeOnly, // or UserChoice
+      enableBillingProgramAndroid: BillingProgramAndroid.UserChoiceBilling,
+      // Other options:
+      // BillingProgramAndroid.ExternalOffer - Alternative billing only
+      // BillingProgramAndroid.ExternalPayments - Japan only (8.3.0+)
     );
   } else {
     await FlutterInappPurchase.instance.initConnection();

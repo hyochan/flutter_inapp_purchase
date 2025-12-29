@@ -163,21 +163,27 @@ Future<void> restorePurchases() async {
 - **Non-consumable:** No, will get "already owned" error
 - **Subscription:** Can upgrade/downgrade, but not duplicate
 
-### Q: How do I handle pending purchases on Android?
+### Q: How do I handle pending purchases?
 
-**A:** Android purchases can be pending for various payment methods:
+**A:** Purchases can be pending for various payment methods (v8.2.0+ uses unified `purchaseState`):
 
 ```dart
 void _handlePurchaseUpdate(Purchase? item) {
   if (item == null) return;
 
-  // Check Android purchase state
-  if (item.purchaseStateAndroid == PurchaseState.purchased) {
-    // Purchase completed
-    _deliverProduct(item);
-  } else if (item.purchaseStateAndroid == PurchaseState.pending) {
-    // Purchase pending - show pending UI
-    _showPendingMessage();
+  // Check unified purchase state (v8.2.0+)
+  switch (item.purchaseState) {
+    case PurchaseState.Purchased:
+      // Purchase completed
+      _deliverProduct(item);
+      break;
+    case PurchaseState.Pending:
+      // Purchase pending - show pending UI
+      _showPendingMessage();
+      break;
+    case PurchaseState.Unknown:
+      // Handle unknown state
+      break;
   }
 }
 ```

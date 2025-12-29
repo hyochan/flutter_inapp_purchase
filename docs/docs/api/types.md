@@ -9,7 +9,7 @@ import IapKitBanner from "@site/src/uis/IapKitBanner";
 
 <IapKitBanner />
 
-Comprehensive type definitions for flutter_inapp_purchase v7.0. All types follow the OpenIAP specification and are auto-generated from the schema.
+Comprehensive type definitions for flutter_inapp_purchase v8.2. All types follow the OpenIAP specification and are auto-generated from the schema.
 
 ## Core Types
 
@@ -143,7 +143,7 @@ class ProductSubscriptionAndroid extends ProductSubscription {
   final String title;
   final String name;
   final String description;
-  final List<ProductSubscriptionAndroidOfferDetails>? subscriptionOfferDetails;
+  final List<ProductSubscriptionAndroidOfferDetails>? subscriptionOfferDetailsAndroid;
   // ... additional Android subscription properties
 }
 ```
@@ -240,12 +240,16 @@ Purchase states (unified across platforms).
 enum PurchaseState {
   Pending,      // Purchase pending
   Purchased,    // Purchase completed
-  Failed,       // Purchase failed
-  Restored,     // Purchase restored
-  Deferred,     // Purchase deferred (awaiting approval)
   Unknown,      // Unknown state
 }
 ```
+
+:::info Breaking Change in v8.2.0
+`Failed`, `Restored`, and `Deferred` states have been removed:
+- **Failed**: Both platforms return errors instead of Purchase objects on failure
+- **Restored**: Restored purchases now return as `Purchased` state
+- **Deferred**: iOS StoreKit 2 has no transaction state; Android uses `Pending`
+:::
 
 ### ErrorCode
 

@@ -14,14 +14,18 @@ import 'dart:async';
 
 /// Alternative billing mode for Android
 /// Controls which billing system is used
+/// @deprecated Use enableBillingProgramAndroid with BillingProgramAndroid instead.
+/// Use USER_CHOICE_BILLING for user choice billing, EXTERNAL_OFFER for alternative only.
 enum AlternativeBillingModeAndroid {
   /// Standard Google Play billing (default)
   None('none'),
   /// User choice billing - user can select between Google Play or alternative
   /// Requires Google Play Billing Library 7.0+
+  /// @deprecated Use BillingProgramAndroid.USER_CHOICE_BILLING instead
   UserChoice('user-choice'),
   /// Alternative billing only - no Google Play billing option
   /// Requires Google Play Billing Library 6.2+
+  /// @deprecated Use BillingProgramAndroid.EXTERNAL_OFFER instead
   AlternativeOnly('alternative-only');
 
   const AlternativeBillingModeAndroid(this.value);
@@ -50,11 +54,17 @@ enum AlternativeBillingModeAndroid {
 enum BillingProgramAndroid {
   /// Unspecified billing program. Do not use.
   Unspecified('unspecified'),
+  /// User Choice Billing program.
+  /// User can select between Google Play Billing or alternative billing.
+  /// Available in Google Play Billing Library 7.0+
+  UserChoiceBilling('user-choice-billing'),
   /// External Content Links program.
   /// Allows linking to external content outside the app.
+  /// Available in Google Play Billing Library 8.2.0+
   ExternalContentLink('external-content-link'),
   /// External Offers program.
   /// Allows offering digital content purchases outside the app.
+  /// Available in Google Play Billing Library 8.2.0+
   ExternalOffer('external-offer'),
   /// External Payments program (Japan only).
   /// Allows presenting a side-by-side choice between Google Play Billing and developer's external payment option.
@@ -70,6 +80,9 @@ enum BillingProgramAndroid {
       case 'unspecified':
       case 'UNSPECIFIED':
         return BillingProgramAndroid.Unspecified;
+      case 'user-choice-billing':
+      case 'USER_CHOICE_BILLING':
+        return BillingProgramAndroid.UserChoiceBilling;
       case 'external-content-link':
       case 'EXTERNAL_CONTENT_LINK':
         return BillingProgramAndroid.ExternalContentLink;
@@ -692,9 +705,6 @@ enum ProductTypeIOS {
 enum PurchaseState {
   Pending('pending'),
   Purchased('purchased'),
-  Failed('failed'),
-  Restored('restored'),
-  Deferred('deferred'),
   Unknown('unknown');
 
   const PurchaseState(this.value);
@@ -710,18 +720,6 @@ enum PurchaseState {
       case 'PURCHASED':
       case 'Purchased':
         return PurchaseState.Purchased;
-      case 'failed':
-      case 'FAILED':
-      case 'Failed':
-        return PurchaseState.Failed;
-      case 'restored':
-      case 'RESTORED':
-      case 'Restored':
-        return PurchaseState.Restored;
-      case 'deferred':
-      case 'DEFERRED':
-      case 'Deferred':
-        return PurchaseState.Deferred;
       case 'unknown':
       case 'UNKNOWN':
       case 'Unknown':
@@ -2955,30 +2953,6 @@ class AndroidSubscriptionOfferInput {
   }
 }
 
-/// Parameters for creating billing program reporting details (Android)
-/// Used with createBillingProgramReportingDetailsAsync
-/// Available in Google Play Billing Library 8.3.0+
-class BillingProgramReportingDetailsParamsAndroid {
-  const BillingProgramReportingDetailsParamsAndroid({
-    required this.billingProgram,
-  });
-
-  /// The billing program to create reporting details for
-  final BillingProgramAndroid billingProgram;
-
-  factory BillingProgramReportingDetailsParamsAndroid.fromJson(Map<String, dynamic> json) {
-    return BillingProgramReportingDetailsParamsAndroid(
-      billingProgram: BillingProgramAndroid.fromJson(json['billingProgram'] as String),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'billingProgram': billingProgram.toJson(),
-    };
-  }
-}
-
 class DeepLinkOptions {
   const DeepLinkOptions({
     this.packageNameAndroid,
@@ -3089,10 +3063,15 @@ class InitConnectionConfig {
 
   /// Alternative billing mode for Android
   /// If not specified, defaults to NONE (standard Google Play billing)
+  /// @deprecated Use enableBillingProgramAndroid instead.
+  /// Use USER_CHOICE_BILLING for user choice billing, EXTERNAL_OFFER for alternative only.
   final AlternativeBillingModeAndroid? alternativeBillingModeAndroid;
-  /// Enable a specific billing program for Android (8.2.0+)
+  /// Enable a specific billing program for Android (7.0+)
   /// When set, enables the specified billing program for external transactions.
-  /// Use 'external-payments' for Developer Provided Billing (Japan only, 8.3.0+).
+  /// - USER_CHOICE_BILLING: User can select between Google Play or alternative (7.0+)
+  /// - EXTERNAL_CONTENT_LINK: Link to external content (8.2.0+)
+  /// - EXTERNAL_OFFER: External offers for digital content (8.2.0+)
+  /// - EXTERNAL_PAYMENTS: Developer provided billing, Japan only (8.3.0+)
   final BillingProgramAndroid? enableBillingProgramAndroid;
 
   factory InitConnectionConfig.fromJson(Map<String, dynamic> json) {

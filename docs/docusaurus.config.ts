@@ -49,7 +49,7 @@ const config: Config = {
             "https://github.com/hyochan/flutter_inapp_purchase/tree/main/docs/",
           versions: {
             current: {
-              label: "8.1 (Current)",
+              label: "8.2 (Current)",
               path: "",
             },
           },

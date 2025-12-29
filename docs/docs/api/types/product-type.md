@@ -113,7 +113,7 @@ class ProductSubscriptionAndroid extends ProductSubscription {
   final String title;
   final String name;
   final String description;
-  final List<ProductSubscriptionAndroidOfferDetails>? subscriptionOfferDetails;
+  final List<ProductSubscriptionAndroidOfferDetails>? subscriptionOfferDetailsAndroid;
   // ... additional Android subscription properties
 }
 ```

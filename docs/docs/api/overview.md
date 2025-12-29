@@ -89,16 +89,15 @@ class Purchase {
   final int? transactionDate; // timestamp (ms)
   final String? transactionReceipt;
   final String? purchaseToken;
+  final PurchaseState? purchaseState; // Unified purchase state (v8.2.0+)
 
   // iOS specific
   final String? originalTransactionDateIOS; // string
   final String? originalTransactionIdentifierIOS;
 
   // Android specific
-  final String? purchaseTokenAndroid;  // [DEPRECATED] Use purchaseToken instead
   final String? developerPayloadAndroid;
   final bool? isAcknowledgedAndroid;
-  final int? purchaseStateAndroid;
   final String? packageNameAndroid;
 }
 ```

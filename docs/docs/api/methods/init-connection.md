@@ -18,8 +18,21 @@ The `initConnection()` method establishes a connection to the App Store (iOS) or
 ## Signature
 
 ```dart
-Future<void> initConnection()
+Future<void> initConnection({
+  BillingProgramAndroid? enableBillingProgramAndroid,
+})
 ```
+
+### Parameters
+
+- `enableBillingProgramAndroid` *(v8.2.0+, Android only)* - Enable alternative billing programs:
+  - `BillingProgramAndroid.UserChoiceBilling` - User choice between Google Play and alternative billing
+  - `BillingProgramAndroid.ExternalOffer` - Alternative billing only
+  - `BillingProgramAndroid.ExternalPayments` - External payments (Japan only, requires Billing Library 8.3.0+)
+
+:::warning Deprecation Notice (v8.2.0+)
+`alternativeBillingModeAndroid` parameter is deprecated. Use `enableBillingProgramAndroid` instead.
+:::
 
 ## Returns
 
@@ -49,19 +62,19 @@ import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 
 class IAPService {
   final _iap = FlutterInappPurchase.instance;
-  
+
   Future<void> initialize() async {
     try {
-      // Initialize the connection
+      // Basic initialization
       await _iap.initConnection();
       print('IAP connection initialized successfully');
-      
+
       // Set up listeners after initialization
       _setupListeners();
-      
+
       // Now you can fetch products, make purchases, etc.
       await _fetchProducts();
-      
+
     } catch (e) {
       if (e is PurchaseError) {
         switch (e.code) {
@@ -77,21 +90,43 @@ class IAPService {
       }
     }
   }
-  
+
   void _setupListeners() {
     // Listen to purchase updates
-    FlutterInappPurchase.purchaseUpdated.listen((purchase) {
-      if (purchase != null) {
-        _handlePurchase(purchase);
-      }
+    _iap.purchaseUpdatedListener.listen((purchase) {
+      _handlePurchase(purchase);
     });
-    
+
     // Listen to purchase errors
-    FlutterInappPurchase.purchaseError.listen((error) {
-      if (error != null) {
-        _handleError(error);
-      }
+    _iap.purchaseErrorListener.listen((error) {
+      _handleError(error);
     });
+  }
+}
+```
+
+### With Alternative Billing (Android)
+
+```dart
+import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
+import 'dart:io';
+
+Future<void> initializeWithBillingProgram() async {
+  await FlutterInappPurchase.instance.initialize();
+
+  if (Platform.isAndroid) {
+    // Enable user choice billing (v8.2.0+)
+    await FlutterInappPurchase.instance.initConnection(
+      enableBillingProgramAndroid: BillingProgramAndroid.UserChoiceBilling,
+    );
+
+    // Listen for alternative billing selection
+    FlutterInappPurchase.instance.userChoiceBillingAndroid.listen((details) {
+      print('User selected alternative billing');
+      print('Token: ${details.externalTransactionToken}');
+    });
+  } else {
+    await FlutterInappPurchase.instance.initConnection();
   }
 }
 ```

@@ -25,7 +25,8 @@ class _BillingProgramsScreenState extends State<BillingProgramsScreen> {
   final TextEditingController _urlController =
       TextEditingController(text: 'https://openiap.dev');
 
-  BillingProgramAndroid _selectedProgram = BillingProgramAndroid.ExternalOffer;
+  BillingProgramAndroid _selectedProgram =
+      BillingProgramAndroid.UserChoiceBilling;
   ExternalLinkLaunchModeAndroid _launchMode =
       ExternalLinkLaunchModeAndroid.LaunchInExternalBrowserOrApp;
   ExternalLinkTypeAndroid _linkType =
@@ -35,6 +36,7 @@ class _BillingProgramsScreenState extends State<BillingProgramsScreen> {
   bool _isProcessing = false;
   String _statusMessage = '';
   List<String> _logs = [];
+  Map<BillingProgramAndroid, bool> _programAvailability = {};
 
   @override
   void initState() {
@@ -103,6 +105,7 @@ class _BillingProgramsScreenState extends State<BillingProgramsScreen> {
 
       if (!mounted) return;
       setState(() {
+        _programAvailability[_selectedProgram] = result.isAvailable;
         _statusMessage = result.isAvailable
             ? '${_selectedProgram.toJson()} is AVAILABLE'
             : '${_selectedProgram.toJson()} is NOT available';
@@ -129,6 +132,77 @@ class _BillingProgramsScreenState extends State<BillingProgramsScreen> {
         _statusMessage = 'Error: $e';
       });
       _addLog('Error checking availability: $e');
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        _isProcessing = false;
+      });
+    }
+  }
+
+  Future<void> _checkAllProgramsAvailability() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
+      _showPlatformWarning();
+      return;
+    }
+
+    setState(() {
+      _isProcessing = true;
+      _statusMessage = 'Checking all programs...';
+      _programAvailability.clear();
+    });
+    _addLog('Checking all billing programs availability');
+
+    final programs = [
+      BillingProgramAndroid.UserChoiceBilling,
+      BillingProgramAndroid.ExternalOffer,
+      BillingProgramAndroid.ExternalContentLink,
+      BillingProgramAndroid.ExternalPayments,
+    ];
+
+    try {
+      for (final program in programs) {
+        try {
+          final result = await FlutterInappPurchase.instance
+              .isBillingProgramAvailableAndroid(program);
+          if (!mounted) return;
+          setState(() {
+            _programAvailability[program] = result.isAvailable;
+          });
+          _addLog('${program.toJson()}: ${result.isAvailable}');
+        } catch (e) {
+          if (!mounted) return;
+          setState(() {
+            _programAvailability[program] = false;
+          });
+          _addLog('${program.toJson()}: Error - $e');
+        }
+      }
+
+      if (!mounted) return;
+      final availableCount = _programAvailability.values.where((v) => v).length;
+      setState(() {
+        _statusMessage =
+            '$availableCount/${programs.length} programs available';
+      });
+
+      // Auto-select first available program
+      final firstAvailable = _programAvailability.entries
+          .where((e) => e.value)
+          .map((e) => e.key)
+          .firstOrNull;
+      if (firstAvailable != null && mounted) {
+        setState(() {
+          _selectedProgram = firstAvailable;
+        });
+        _addLog('Auto-selected: ${firstAvailable.toJson()}');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _statusMessage = 'Error: $e';
+      });
+      _addLog('Error checking all programs: $e');
     } finally {
       if (!mounted) return;
       setState(() {
@@ -426,9 +500,21 @@ class _BillingProgramsScreenState extends State<BillingProgramsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Billing Program',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Billing Program',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                TextButton.icon(
+                  onPressed: _isProcessing || !_isConnected
+                      ? null
+                      : _checkAllProgramsAvailability,
+                  icon: const Icon(Icons.refresh, size: 16),
+                  label: const Text('Check All'),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<BillingProgramAndroid>(
@@ -439,33 +525,25 @@ class _BillingProgramsScreenState extends State<BillingProgramsScreen> {
                     EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               ),
               items: [
-                DropdownMenuItem(
-                  value: BillingProgramAndroid.ExternalOffer,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text('ExternalOffer'),
-                      Text(
-                        'External offers in approved regions',
-                        style: TextStyle(fontSize: 11, color: Colors.grey[600]),
-                      ),
-                    ],
-                  ),
+                _buildProgramDropdownItem(
+                  BillingProgramAndroid.UserChoiceBilling,
+                  'UserChoiceBilling',
+                  'User choice between Play and alternative (7.0+)',
                 ),
-                DropdownMenuItem(
-                  value: BillingProgramAndroid.ExternalContentLink,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text('ExternalContentLink'),
-                      Text(
-                        'External content linking',
-                        style: TextStyle(fontSize: 11, color: Colors.grey[600]),
-                      ),
-                    ],
-                  ),
+                _buildProgramDropdownItem(
+                  BillingProgramAndroid.ExternalOffer,
+                  'ExternalOffer',
+                  'External offers in approved regions (8.2.0+)',
+                ),
+                _buildProgramDropdownItem(
+                  BillingProgramAndroid.ExternalContentLink,
+                  'ExternalContentLink',
+                  'External content linking (8.2.0+)',
+                ),
+                _buildProgramDropdownItem(
+                  BillingProgramAndroid.ExternalPayments,
+                  'ExternalPayments',
+                  'Japan only - side-by-side choice (8.3.0+)',
                 ),
               ],
               onChanged: (value) {
@@ -476,9 +554,77 @@ class _BillingProgramsScreenState extends State<BillingProgramsScreen> {
                 }
               },
             ),
+            if (_programAvailability.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              _buildAvailabilityChips(),
+            ],
           ],
         ),
       ),
+    );
+  }
+
+  DropdownMenuItem<BillingProgramAndroid> _buildProgramDropdownItem(
+    BillingProgramAndroid program,
+    String title,
+    String description,
+  ) {
+    final availability = _programAvailability[program];
+    return DropdownMenuItem(
+      value: program,
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(title),
+                Text(
+                  description,
+                  style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                ),
+              ],
+            ),
+          ),
+          if (availability != null)
+            Icon(
+              availability ? Icons.check_circle : Icons.cancel,
+              size: 16,
+              color: availability ? Colors.green : Colors.red,
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAvailabilityChips() {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 4,
+      children: _programAvailability.entries.map((entry) {
+        final isSelected = entry.key == _selectedProgram;
+        return ActionChip(
+          avatar: Icon(
+            entry.value ? Icons.check_circle : Icons.cancel,
+            size: 16,
+            color: entry.value ? Colors.green : Colors.red,
+          ),
+          label: Text(
+            entry.key.toJson().replaceAll('-', ' ').split(' ').first,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+          backgroundColor:
+              isSelected ? Colors.deepPurple.withValues(alpha: 0.1) : null,
+          side: isSelected ? const BorderSide(color: Colors.deepPurple) : null,
+          onPressed: entry.value
+              ? () => setState(() => _selectedProgram = entry.key)
+              : null,
+        );
+      }).toList(),
     );
   }
 

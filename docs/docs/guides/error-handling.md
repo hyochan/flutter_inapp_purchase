@@ -202,12 +202,22 @@ _iap.purchaseErrorListener.listen((error) {
 Never leave IAP operations without error handling:
 
 ```dart
-// ❌ Bad
-iap.requestPurchase(sku: productId);
+// ❌ Bad - no error handling
+iap.requestPurchase(
+  RequestPurchaseProps.inApp((
+    apple: RequestPurchaseIosProps(sku: productId),
+    google: RequestPurchaseAndroidProps(skus: [productId]),
+  )),
+);
 
-// ✅ Good
+// ✅ Good - with error handling
 try {
-  await iap.requestPurchase(sku: productId);
+  await iap.requestPurchase(
+    RequestPurchaseProps.inApp((
+      apple: RequestPurchaseIosProps(sku: productId),
+      google: RequestPurchaseAndroidProps(skus: [productId]),
+    )),
+  );
 } catch (error) {
   handlePurchaseError(error);
 }

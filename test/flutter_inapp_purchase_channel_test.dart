@@ -195,6 +195,73 @@ void main() {
         <String, dynamic>{'program': 'external-payments'},
       );
     });
+
+    test('isBillingProgramAvailableAndroid handles UserChoiceBilling program',
+        () async {
+      final calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall call) async {
+        calls.add(call);
+        if (call.method == 'isBillingProgramAvailableAndroid') {
+          return jsonEncode(
+            <String, dynamic>{
+              'billingProgram': 'user-choice-billing',
+              'isAvailable': true,
+            },
+          );
+        }
+        return null;
+      });
+
+      final iap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'android'),
+      );
+
+      final result = await iap.isBillingProgramAvailableAndroid(
+        types.BillingProgramAndroid.UserChoiceBilling,
+      );
+
+      expect(
+          result.billingProgram, types.BillingProgramAndroid.UserChoiceBilling);
+      expect(result.isAvailable, isTrue);
+
+      final call = calls.singleWhere(
+        (MethodCall call) => call.method == 'isBillingProgramAvailableAndroid',
+      );
+      expect(
+        call.arguments,
+        <String, dynamic>{'program': 'user-choice-billing'},
+      );
+    });
+
+    test('initConnection passes enableBillingProgramAndroid UserChoiceBilling',
+        () async {
+      final calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall call) async {
+        calls.add(call);
+        if (call.method == 'initConnection') {
+          return true;
+        }
+        return null;
+      });
+
+      final iap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'android'),
+      );
+
+      await iap.initConnection(
+        enableBillingProgramAndroid:
+            types.BillingProgramAndroid.UserChoiceBilling,
+      );
+
+      final call = calls.singleWhere(
+        (MethodCall call) => call.method == 'initConnection',
+      );
+      final args = call.arguments as Map<dynamic, dynamic>?;
+      expect(args, isNotNull);
+      expect(args!['enableBillingProgramAndroid'], 'user-choice-billing');
+    });
   });
 
   group('launchExternalLinkAndroid', () {

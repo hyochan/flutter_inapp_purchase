@@ -15,27 +15,29 @@ import '../constants.dart';
 /// - User completes purchase on external website
 /// - Must implement deep link to return to app
 ///
-/// Android (Alternative Billing Only):
-/// - Step 1: Check availability with checkAlternativeBillingAvailabilityAndroid()
-/// - Step 2: Show information dialog with showAlternativeBillingDialogAndroid()
-/// - Step 3: Process payment in your payment system
-/// - Step 4: Create token with createAlternativeBillingTokenAndroid()
-/// - Must report token to Google Play backend within 24 hours
-/// - No purchase callback
+/// Android (BillingProgramAndroid):
+/// v8.2.0+ uses BillingProgramAndroid enum with three options:
 ///
-/// Android (User Choice Billing):
-/// - Call requestPurchase() normally
-/// - Google shows selection dialog automatically
-/// - If user selects Google Play: purchaseUpdated callback
-/// - If user selects alternative: userChoiceBillingAndroid callback
+/// 1. UserChoiceBilling:
+///    - Users choose between Google Play and your payment system
+///    - Google shows selection dialog automatically
+///    - If user selects Google Play: purchaseUpdatedListener callback
+///    - If user selects alternative: userChoiceBillingAndroid callback
 ///
-/// Android (External Payments - Japan Only, 8.3.0+):
-/// - Enable with enableBillingProgramAndroid: BillingProgramAndroid.ExternalPayments
-/// - Use requestPurchaseWithBuilder with developerBillingOption
-/// - Side-by-side choice between Google Play and developer billing in purchase dialog
-/// - If user selects Google Play: purchaseUpdated callback
-/// - If user selects developer billing: developerProvidedBillingAndroid callback
-/// - Must report externalTransactionToken to Google within 24 hours
+/// 2. ExternalOffer:
+///    - Only your payment system is available (Alternative Billing Only)
+///    - Step 1: Check availability with checkAlternativeBillingAvailabilityAndroid()
+///    - Step 2: Show information dialog with showAlternativeBillingDialogAndroid()
+///    - Step 3: Process payment in your payment system
+///    - Step 4: Create token with createAlternativeBillingTokenAndroid()
+///    - Must report token to Google Play backend within 24 hours
+///
+/// 3. ExternalPayments (Japan Only, 8.3.0+):
+///    - Side-by-side choice between Google Play and developer billing in purchase dialog
+///    - Use requestPurchaseWithBuilder with developerBillingOption
+///    - If user selects Google Play: purchaseUpdatedListener callback
+///    - If user selects developer billing: developerProvidedBillingAndroid callback
+///    - Must report externalTransactionToken to Google within 24 hours
 class AlternativeBillingScreen extends StatefulWidget {
   const AlternativeBillingScreen({super.key});
 
@@ -47,8 +49,8 @@ class AlternativeBillingScreen extends StatefulWidget {
 class _AlternativeBillingScreenState extends State<AlternativeBillingScreen> {
   final TextEditingController _urlController =
       TextEditingController(text: 'https://openiap.dev');
-  AlternativeBillingModeAndroid _billingMode =
-      AlternativeBillingModeAndroid.AlternativeOnly;
+  BillingProgramAndroid _billingProgram =
+      BillingProgramAndroid.UserChoiceBilling;
   List<Product> _products = [];
   Product? _selectedProduct;
   String _purchaseResult = '';
@@ -59,7 +61,6 @@ class _AlternativeBillingScreenState extends State<AlternativeBillingScreen> {
   StreamSubscription? _purchaseErrorSubscription;
   StreamSubscription? _userChoiceBillingSubscription;
   StreamSubscription? _developerProvidedBillingSubscription;
-  bool _useExternalPayments = false;
 
   @override
   void initState() {
@@ -88,14 +89,9 @@ class _AlternativeBillingScreenState extends State<AlternativeBillingScreen> {
 
   Future<void> _initConnection() async {
     try {
-      if (_useExternalPayments) {
-        await FlutterInappPurchase.instance.initConnection(
-          enableBillingProgramAndroid: BillingProgramAndroid.ExternalPayments,
-        );
-      } else {
-        await FlutterInappPurchase.instance
-            .initConnection(alternativeBillingModeAndroid: _billingMode);
-      }
+      await FlutterInappPurchase.instance.initConnection(
+        enableBillingProgramAndroid: _billingProgram,
+      );
 
       if (!mounted) return;
       setState(() {
@@ -282,13 +278,15 @@ Token: ${details.externalTransactionToken.length > 20 ? details.externalTransact
     }
   }
 
-  Future<void> _reconnectWithMode(AlternativeBillingModeAndroid newMode) async {
+  Future<void> _reconnectWithBillingProgram(
+    BillingProgramAndroid newProgram,
+  ) async {
     if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
 
     try {
       setState(() {
         _isReconnecting = true;
-        _purchaseResult = 'Reconnecting with new billing mode...';
+        _purchaseResult = 'Reconnecting with new billing program...';
       });
 
       await FlutterInappPurchase.instance.endConnection();
@@ -297,16 +295,16 @@ Token: ${details.externalTransactionToken.length > 20 ? details.externalTransact
       // This prevents race conditions when switching billing modes
       await Future.delayed(const Duration(milliseconds: 300));
 
-      await FlutterInappPurchase.instance
-          .initConnection(alternativeBillingModeAndroid: newMode);
+      await FlutterInappPurchase.instance.initConnection(
+        enableBillingProgramAndroid: newProgram,
+      );
 
       if (!mounted) return;
       setState(() {
-        _billingMode = newMode;
-        _useExternalPayments = false;
+        _billingProgram = newProgram;
         _connected = true;
         _purchaseResult = '''
-✅ Reconnected with ${newMode == AlternativeBillingModeAndroid.AlternativeOnly ? 'Alternative Only' : 'User Choice'} mode
+✅ Reconnected with ${_getBillingProgramName(newProgram)} mode
 ''';
       });
 
@@ -321,6 +319,19 @@ Token: ${details.externalTransactionToken.length > 20 ? details.externalTransact
       setState(() {
         _isReconnecting = false;
       });
+    }
+  }
+
+  String _getBillingProgramName(BillingProgramAndroid program) {
+    switch (program) {
+      case BillingProgramAndroid.UserChoiceBilling:
+        return 'User Choice Billing';
+      case BillingProgramAndroid.ExternalOffer:
+        return 'External Offer';
+      case BillingProgramAndroid.ExternalPayments:
+        return 'External Payments';
+      default:
+        return program.name;
     }
   }
 
@@ -401,9 +412,9 @@ Note: Complete purchase on your website and implement server-side validation.
     }
   }
 
-  Future<void> _handleAndroidAlternativeBillingOnly(Product product) async {
+  Future<void> _handleAndroidExternalOffer(Product product) async {
     debugPrint(
-      '[Android] Starting alternative billing only flow: ${product.id}',
+      '[Android] Starting external offer (alternative billing only) flow: ${product.id}',
     );
 
     setState(() {
@@ -472,7 +483,7 @@ Note: Complete purchase on your website and implement server-side validation.
       setState(() {
         if (token != null) {
           _purchaseResult = '''
-✅ Alternative billing completed (DEMO)
+✅ External Offer flow completed (DEMO)
 
 Product: ${product.id}
 Token: ${token.length > 20 ? token.substring(0, 20) : token}...
@@ -491,7 +502,7 @@ Token: ${token.length > 20 ? token.substring(0, 20) : token}...
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
-              'Alternative billing flow completed.\n'
+              'External Offer flow completed.\n'
               'In production: Process payment, report token to Google, validate on server',
             ),
             duration: Duration(seconds: 4),
@@ -503,7 +514,7 @@ Token: ${token.length > 20 ? token.substring(0, 20) : token}...
         );
       }
     } catch (e) {
-      debugPrint('[Android] Alternative billing error: $e');
+      debugPrint('[Android] External offer error: $e');
       if (!mounted) return;
       setState(() {
         _purchaseResult = '❌ Error: $e';
@@ -532,9 +543,8 @@ Token: ${token.length > 20 ? token.substring(0, 20) : token}...
     try {
       await FlutterInappPurchase.instance.requestPurchase(
         RequestPurchaseProps.inApp((
-          android: RequestPurchaseAndroidProps(skus: [product.id]),
-          ios: null,
-          useAlternativeBilling: true,
+          apple: RequestPurchaseIosProps(sku: product.id),
+          google: RequestPurchaseAndroidProps(skus: [product.id]),
         )),
       );
 
@@ -664,18 +674,23 @@ If user selects:
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
       await _handleIOSAlternativeBilling(product);
     } else if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-      if (_useExternalPayments) {
-        await _handleAndroidExternalPayments(product);
-      } else if (_billingMode ==
-          AlternativeBillingModeAndroid.AlternativeOnly) {
-        await _handleAndroidAlternativeBillingOnly(product);
-      } else {
-        await _handleAndroidUserChoiceBilling(product);
+      switch (_billingProgram) {
+        case BillingProgramAndroid.UserChoiceBilling:
+          await _handleAndroidUserChoiceBilling(product);
+          break;
+        case BillingProgramAndroid.ExternalOffer:
+          await _handleAndroidExternalOffer(product);
+          break;
+        case BillingProgramAndroid.ExternalPayments:
+          await _handleAndroidExternalPayments(product);
+          break;
+        default:
+          await _handleAndroidUserChoiceBilling(product);
       }
     }
   }
 
-  void _showModeSelector() {
+  void _showBillingProgramSelector() {
     showModalBottomSheet<void>(
       context: context,
       builder: (context) => Container(
@@ -685,23 +700,28 @@ If user selects:
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Text(
-              'Select Billing Mode',
+              'Select Billing Program',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 15),
-            _buildModeOption(
-              AlternativeBillingModeAndroid.AlternativeOnly,
-              'Alternative Billing Only',
+            _buildBillingProgramOption(
+              BillingProgramAndroid.UserChoiceBilling,
+              'User Choice Billing',
+              'Users choose between Google Play and your payment system.',
+            ),
+            const SizedBox(height: 10),
+            _buildBillingProgramOption(
+              BillingProgramAndroid.ExternalOffer,
+              'External Offer',
               'Only your payment system is available. Users cannot use Google Play.',
             ),
             const SizedBox(height: 10),
-            _buildModeOption(
-              AlternativeBillingModeAndroid.UserChoice,
-              'User Choice Billing',
-              'Users can choose between Google Play and your payment system.',
+            _buildBillingProgramOption(
+              BillingProgramAndroid.ExternalPayments,
+              'External Payments',
+              'Side-by-side choice in purchase dialog (Japan only, 8.3.0+)',
+              badge: 'Japan Only',
             ),
-            const SizedBox(height: 10),
-            _buildExternalPaymentsOption(),
             const SizedBox(height: 10),
             OutlinedButton(
               onPressed: () => Navigator.pop(context),
@@ -713,108 +733,17 @@ If user selects:
     );
   }
 
-  Widget _buildExternalPaymentsOption() {
-    return InkWell(
-      onTap: () {
-        Navigator.pop(context);
-        _reconnectWithExternalPayments();
-      },
-      child: Container(
-        padding: const EdgeInsets.all(15),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: _useExternalPayments ? Colors.orange : Colors.grey[300]!,
-            width: 2,
-          ),
-          borderRadius: BorderRadius.circular(8),
-          color: _useExternalPayments ? Colors.orange[50] : null,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Text(
-                  'External Payments',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.blue[100],
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: const Text(
-                    'Japan Only',
-                    style: TextStyle(fontSize: 10, color: Colors.blue),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 5),
-            Text(
-              'Side-by-side choice in purchase dialog (8.3.0+)',
-              style: TextStyle(fontSize: 13, color: Colors.grey[700]),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _reconnectWithExternalPayments() async {
-    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
-
-    try {
-      setState(() {
-        _isReconnecting = true;
-        _purchaseResult = 'Reconnecting with External Payments...';
-      });
-
-      await FlutterInappPurchase.instance.endConnection();
-      await Future.delayed(const Duration(milliseconds: 300));
-
-      await FlutterInappPurchase.instance.initConnection(
-        enableBillingProgramAndroid: BillingProgramAndroid.ExternalPayments,
-      );
-
-      if (!mounted) return;
-      setState(() {
-        _useExternalPayments = true;
-        _connected = true;
-        _purchaseResult = '''
-✅ Reconnected with External Payments mode
-
-Note: This feature is only available in Japan with Billing Library 8.3.0+
-''';
-      });
-
-      await _loadProducts();
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _purchaseResult = '❌ Reconnection failed: $e';
-      });
-    } finally {
-      if (!mounted) return;
-      setState(() {
-        _isReconnecting = false;
-      });
-    }
-  }
-
-  Widget _buildModeOption(
-    AlternativeBillingModeAndroid mode,
+  Widget _buildBillingProgramOption(
+    BillingProgramAndroid program,
     String title,
-    String description,
-  ) {
-    final isSelected = _billingMode == mode;
+    String description, {
+    String? badge,
+  }) {
+    final isSelected = _billingProgram == program;
     return InkWell(
       onTap: () {
         Navigator.pop(context);
-        _reconnectWithMode(mode);
+        _reconnectWithBillingProgram(program);
       },
       child: Container(
         padding: const EdgeInsets.all(15),
@@ -829,9 +758,31 @@ Note: This feature is only available in Japan with Billing Library 8.3.0+
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            Row(
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                if (badge != null) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.blue[100],
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      badge,
+                      style: const TextStyle(fontSize: 10, color: Colors.blue),
+                    ),
+                  ),
+                ],
+              ],
             ),
             const SizedBox(height: 5),
             Text(
@@ -862,9 +813,10 @@ Note: This feature is only available in Japan with Billing Library 8.3.0+
                   const SizedBox(height: 15),
                   if (!kIsWeb &&
                       defaultTargetPlatform == TargetPlatform.android) ...[
-                    _buildModeSelectorSection(),
+                    _buildBillingProgramSelectorSection(),
                     const SizedBox(height: 15),
-                    if (_useExternalPayments) ...[
+                    if (_billingProgram ==
+                        BillingProgramAndroid.ExternalPayments) ...[
                       _buildUrlInputSection(),
                       const SizedBox(height: 15),
                     ],
@@ -880,7 +832,7 @@ Note: This feature is only available in Japan with Billing Library 8.3.0+
                       child: Padding(
                         padding: EdgeInsets.all(15),
                         child: Text(
-                          '🔄 Reconnecting with new billing mode...',
+                          '🔄 Reconnecting with new billing program...',
                           style: TextStyle(
                             fontSize: 14,
                             color: Color(0xFF856404),
@@ -919,7 +871,7 @@ Note: This feature is only available in Japan with Billing Library 8.3.0+
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'ℹ️ How It Works',
+              'How It Works',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -929,43 +881,20 @@ Note: This feature is only available in Japan with Billing Library 8.3.0+
             const SizedBox(height: 10),
             Text(
               !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
-                  ? '• Enter your external purchase URL\n'
-                      '• Tap Purchase on any product\n'
-                      '• User will be redirected to the external URL\n'
-                      '• Complete purchase on your website\n'
-                      '• No purchase callback\n'
-                      '• Implement deep link to return to app'
-                  : _useExternalPayments
-                      ? '• External Payments Mode (8.3.0+)\n'
-                          '• Side-by-side choice in purchase dialog\n'
-                          '• Users choose between:\n'
-                          '  - Google Play billing\n'
-                          '  - Developer billing (your URL)\n'
-                          '• Japan only availability\n'
-                          '• Must report token within 24h'
-                      : _billingMode ==
-                              AlternativeBillingModeAndroid.AlternativeOnly
-                          ? '• Alternative Billing Only Mode\n'
-                              '• Users CANNOT use Google Play billing\n'
-                              '• Only your payment system available\n'
-                              '• 3-step manual flow required\n'
-                              '• No purchase callback\n'
-                              '• Must report to Google within 24h'
-                          : '• User Choice Billing Mode\n'
-                              '• Users choose between:\n'
-                              '  - Google Play (30% fee)\n'
-                              '  - Your payment system (lower fee)\n'
-                              '• Google shows selection dialog\n'
-                              '• If Google Play: purchaseUpdated\n'
-                              '• If alternative: Manual flow',
+                  ? '- Enter your external purchase URL\n'
+                      '- Tap Purchase on any product\n'
+                      '- User will be redirected to the external URL\n'
+                      '- Complete purchase on your website\n'
+                      '- No purchase callback\n'
+                      '- Implement deep link to return to app'
+                  : _getBillingProgramDescription(_billingProgram),
               style: const TextStyle(fontSize: 13, color: Color(0xFF5D4037)),
             ),
             const SizedBox(height: 8),
             Text(
               !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
                   ? '⚠️ iOS 16.0+ required\n'
-                      '⚠️ Valid external URL needed\n'
-                      '⚠️ useAlternativeBilling: true is set'
+                      '⚠️ Valid external URL needed'
                   : '⚠️ Requires approval from Google\n'
                       '⚠️ Must report tokens within 24 hours\n'
                       '⚠️ Backend integration required',
@@ -977,17 +906,47 @@ Note: This feature is only available in Japan with Billing Library 8.3.0+
     );
   }
 
-  Widget _buildModeSelectorSection() {
+  String _getBillingProgramDescription(BillingProgramAndroid program) {
+    switch (program) {
+      case BillingProgramAndroid.UserChoiceBilling:
+        return '- User Choice Billing Mode\n'
+            '- Users choose between:\n'
+            '  - Google Play (30% fee)\n'
+            '  - Your payment system (lower fee)\n'
+            '- Google shows selection dialog\n'
+            '- If Google Play: purchaseUpdatedListener\n'
+            '- If alternative: userChoiceBillingAndroid';
+      case BillingProgramAndroid.ExternalOffer:
+        return '- External Offer Mode\n'
+            '- Users CANNOT use Google Play billing\n'
+            '- Only your payment system available\n'
+            '- 3-step manual flow required\n'
+            '- No purchase callback\n'
+            '- Must report to Google within 24h';
+      case BillingProgramAndroid.ExternalPayments:
+        return '- External Payments Mode (8.3.0+)\n'
+            '- Side-by-side choice in purchase dialog\n'
+            '- Users choose between:\n'
+            '  - Google Play billing\n'
+            '  - Developer billing (your URL)\n'
+            '- Japan only availability\n'
+            '- Must report token within 24h';
+      default:
+        return '- Select a billing program';
+    }
+  }
+
+  Widget _buildBillingProgramSelectorSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Billing Mode',
+          'Billing Program',
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 10),
         InkWell(
-          onTap: _showModeSelector,
+          onTap: _showBillingProgramSelector,
           child: Container(
             padding: const EdgeInsets.all(15),
             decoration: BoxDecoration(
@@ -999,12 +958,7 @@ Note: This feature is only available in Japan with Billing Library 8.3.0+
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  _useExternalPayments
-                      ? 'External Payments (Japan)'
-                      : _billingMode ==
-                              AlternativeBillingModeAndroid.AlternativeOnly
-                          ? 'Alternative Billing Only'
-                          : 'User Choice Billing',
+                  _getBillingProgramName(_billingProgram),
                   style: const TextStyle(fontSize: 14),
                 ),
                 const Icon(Icons.arrow_drop_down, color: Colors.grey),
@@ -1065,7 +1019,7 @@ Note: This feature is only available in Japan with Billing Library 8.3.0+
             if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) ...[
               const SizedBox(height: 4),
               Text(
-                'Current mode: ${_useExternalPayments ? 'EXTERNAL_PAYMENTS' : _billingMode == AlternativeBillingModeAndroid.AlternativeOnly ? 'ALTERNATIVE_ONLY' : 'USER_CHOICE'}',
+                'Current program: ${_billingProgram.name}',
                 style: const TextStyle(fontSize: 12, color: Colors.grey),
               ),
             ],
@@ -1208,12 +1162,7 @@ Note: This feature is only available in Japan with Billing Library 8.3.0+
                 ? 'Processing...'
                 : !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
                     ? '🛒 Buy (External URL)'
-                    : _useExternalPayments
-                        ? '🛒 Buy (External Payments)'
-                        : _billingMode ==
-                                AlternativeBillingModeAndroid.AlternativeOnly
-                            ? '🛒 Buy (Alternative Only)'
-                            : '🛒 Buy (User Choice)',
+                    : '🛒 Buy (${_getBillingProgramName(_billingProgram)})',
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
         ),
@@ -1297,11 +1246,11 @@ Note: This feature is only available in Japan with Billing Library 8.3.0+
             ),
             const SizedBox(height: 10),
             const Text(
-              '1. Select a product from the list\n'
-              '2. Tap the purchase button\n'
-              '3. Follow the platform-specific flow\n'
-              '4. Check the purchase result\n'
-              '5. Verify token/URL behavior',
+              '1. Select a billing program from dropdown\n'
+              '2. Select a product from the list\n'
+              '3. Tap the purchase button\n'
+              '4. Follow the platform-specific flow\n'
+              '5. Check the purchase result',
               style: TextStyle(fontSize: 12),
             ),
           ],
