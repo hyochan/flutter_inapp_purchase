@@ -165,26 +165,24 @@ See [External Purchase Link Entitlement](https://developer.apple.com/documentati
 
 ### iOS Basic Usage (Info.plist URLs)
 
-When URLs are configured in Info.plist, use `requestPurchase`:
+When URLs are configured in Info.plist, use `presentExternalPurchaseLinkIOS`:
+
+:::warning Deprecation Notice (v8.2.0+)
+`useAlternativeBilling` field in `RequestPurchaseProps` is deprecated. It only logged debug info and had no effect on purchase flow. Use `presentExternalPurchaseLinkIOS` for iOS external purchases instead.
+:::
 
 ```dart
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 
 Future<void> purchaseWithExternalUrl() async {
   try {
-    await FlutterInappPurchase.instance.requestPurchase(
-      RequestPurchaseProps.inApp((
-        ios: RequestPurchaseIosProps(
-          sku: 'com.example.product',
-          quantity: 1,
-        ),
-        useAlternativeBilling: true,
-      )),
-    );
+    // Use presentExternalPurchaseLinkIOS for iOS external purchases
+    final result = await FlutterInappPurchase.instance
+        .presentExternalPurchaseLinkIOS('https://your-site.com/checkout');
 
-    // User will be redirected to the external URL configured in Info.plist
-    // No purchase callback will fire
-    print('User redirected to external payment site');
+    if (result.success) {
+      print('User redirected to external payment site');
+    }
   } catch (e) {
     print('Alternative billing error: $e');
   }
@@ -336,10 +334,10 @@ import 'dart:io';
 Future<void> initializeWithUserChoice() async {
   if (!Platform.isAndroid) return;
 
-  // Initialize with user choice mode
+  // Initialize with user choice mode (v8.2.0+ recommended)
   await FlutterInappPurchase.instance.initialize();
   await FlutterInappPurchase.instance.initConnection(
-    alternativeBillingModeAndroid: AlternativeBillingModeAndroid.UserChoice,
+    enableBillingProgramAndroid: BillingProgramAndroid.UserChoiceBilling,
   );
 
   // Set up listeners
@@ -361,10 +359,11 @@ Future<void> handleUserChoicePurchase(String productId) async {
 
   try {
     // Google will show selection dialog automatically
+    // when enableBillingProgramAndroid is set during initConnection
     await FlutterInappPurchase.instance.requestPurchase(
       RequestPurchaseProps.inApp((
-        android: RequestPurchaseAndroidProps(skus: [productId]),
-        useAlternativeBilling: true,
+        apple: RequestPurchaseIosProps(sku: productId),
+        google: RequestPurchaseAndroidProps(skus: [productId]),
       )),
     );
 
@@ -458,21 +457,29 @@ Future<void> handleExternalPaymentsPurchase(String productId) async {
 
 Set the billing mode when initializing the connection:
 
+:::warning Deprecation Notice (v8.2.0+)
+`AlternativeBillingModeAndroid` is deprecated in favor of `BillingProgramAndroid`. Use `enableBillingProgramAndroid` instead of `alternativeBillingModeAndroid`:
+
+| Before (Deprecated) | After (Recommended) |
+|---------------------|---------------------|
+| `alternativeBillingModeAndroid: UserChoice` | `enableBillingProgramAndroid: UserChoiceBilling` |
+| `alternativeBillingModeAndroid: AlternativeOnly` | `enableBillingProgramAndroid: ExternalOffer` |
+:::
+
 ```dart
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 
 Future<void> initWithAlternativeBilling() async {
   await FlutterInappPurchase.instance.initialize();
 
-  // Option 1: Alternative Billing Only
+  // Option 1: User Choice Billing (Recommended)
   await FlutterInappPurchase.instance.initConnection(
-    alternativeBillingModeAndroid:
-        AlternativeBillingModeAndroid.AlternativeOnly,
+    enableBillingProgramAndroid: BillingProgramAndroid.UserChoiceBilling,
   );
 
-  // Option 2: User Choice Billing
+  // Option 2: External Offer (formerly Alternative Billing Only)
   await FlutterInappPurchase.instance.initConnection(
-    alternativeBillingModeAndroid: AlternativeBillingModeAndroid.UserChoice,
+    enableBillingProgramAndroid: BillingProgramAndroid.ExternalOffer,
   );
 
   // Option 3: External Payments (Japan Only, 8.3.0+)
@@ -480,10 +487,10 @@ Future<void> initWithAlternativeBilling() async {
     enableBillingProgramAndroid: BillingProgramAndroid.ExternalPayments,
   );
 
-  // Option 4: None (default Google Play only)
-  await FlutterInappPurchase.instance.initConnection(
-    alternativeBillingModeAndroid: AlternativeBillingModeAndroid.None,
-  );
+  // Legacy options (deprecated, still work but not recommended)
+  // await FlutterInappPurchase.instance.initConnection(
+  //   alternativeBillingModeAndroid: AlternativeBillingModeAndroid.UserChoice,
+  // );
 }
 ```
 
@@ -539,8 +546,8 @@ Future<void> initWithAlternativeBilling() async {
 #### "External URL not opening"
 
 - Check URL format (must be valid HTTPS)
-- Verify `useAlternativeBilling` flag is set
-- Ensure SKExternalPurchase countries are configured
+- Use `presentExternalPurchaseLinkIOS` for iOS external purchases
+- Ensure SKExternalPurchase countries are configured in Info.plist
 
 #### "User stuck on external site"
 
@@ -563,9 +570,9 @@ Future<void> initWithAlternativeBilling() async {
 
 #### "User choice dialog not showing"
 
-- Verify `alternativeBillingModeAndroid: UserChoice`
-- Ensure `useAlternativeBilling: true` in request
-- Check Google Play configuration
+- Verify `enableBillingProgramAndroid: BillingProgramAndroid.UserChoiceBilling` is set in `initConnection`
+- Check Google Play Console configuration for alternative billing approval
+- Ensure device meets minimum Play Store version requirements
 
 ## Platform Requirements
 

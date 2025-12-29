@@ -149,11 +149,11 @@ String msg = await FlutterInappPurchase.instance
 // Structured request with platform-specific options
 final requestProps = RequestPurchaseProps.inApp(
   request: RequestPurchasePropsByPlatforms(
-    ios: RequestPurchaseIosProps(
+    apple: RequestPurchaseIosProps(
       sku: productId,
       quantity: 1,
     ),
-    android: RequestPurchaseAndroidProps(
+    google: RequestPurchaseAndroidProps(
       skus: [productId],
     ),
   ),
@@ -340,11 +340,11 @@ void _requestPurchase(IAPItem item) {
 Future<void> _requestPurchase(ProductCommon item) async {
   final requestProps = RequestPurchaseProps.inApp(
     request: RequestPurchasePropsByPlatforms(
-      ios: RequestPurchaseIosProps(
+      apple: RequestPurchaseIosProps(
         sku: item.id,
         quantity: 1,
       ),
-      android: RequestPurchaseAndroidProps(
+      google: RequestPurchaseAndroidProps(
         skus: [item.id],
       ),
     ),
@@ -479,11 +479,11 @@ class _MyStoreState extends State<MyStore> {
   Future<void> _buy(ProductCommon item) async {
     final requestProps = RequestPurchaseProps.inApp(
       request: RequestPurchasePropsByPlatforms(
-        ios: RequestPurchaseIosProps(
+        apple: RequestPurchaseIosProps(
           sku: item.id,
           quantity: 1,
         ),
-        android: RequestPurchaseAndroidProps(
+        google: RequestPurchaseAndroidProps(
           skus: [item.id],
         ),
       ),

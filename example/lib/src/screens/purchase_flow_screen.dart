@@ -627,11 +627,11 @@ Store: ${iapkitResult.store.value}
 
       // Build platform-specific request and call unified requestPurchase
       final requestProps = RequestPurchaseProps.inApp((
-        ios: RequestPurchaseIosProps(
+        apple: RequestPurchaseIosProps(
           sku: productId,
           quantity: 1,
         ),
-        android: RequestPurchaseAndroidProps(
+        google: RequestPurchaseAndroidProps(
           skus: [productId],
         ),
         useAlternativeBilling: null,

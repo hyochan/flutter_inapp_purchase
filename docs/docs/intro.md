@@ -69,11 +69,11 @@ final products = await FlutterInappPurchase.instance.fetchProducts<Product>(
 // Request purchase
 final requestProps = RequestPurchaseProps.inApp(
   request: RequestPurchasePropsByPlatforms(
-    ios: RequestPurchaseIosProps(
+    apple: RequestPurchaseIosProps(
       sku: 'product_id',
       quantity: 1,
     ),
-    android: RequestPurchaseAndroidProps(
+    google: RequestPurchaseAndroidProps(
       skus: ['product_id'],
     ),
   ),

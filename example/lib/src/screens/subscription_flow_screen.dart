@@ -549,8 +549,8 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
               'Using purchase token: ${_currentActiveSubscription!.purchaseToken}');
 
           final requestProps = RequestPurchaseProps.subs((
-            ios: null,
-            android: RequestSubscriptionAndroidProps(
+            apple: null,
+            google: RequestSubscriptionAndroidProps(
               skus: [item.id],
             ),
             useAlternativeBilling: null,
@@ -562,8 +562,8 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
           debugPrint('Purchasing new subscription');
 
           final requestProps = RequestPurchaseProps.subs((
-            ios: null,
-            android: RequestSubscriptionAndroidProps(
+            apple: null,
+            google: RequestSubscriptionAndroidProps(
               skus: [item.id],
             ),
             useAlternativeBilling: null,
@@ -574,10 +574,10 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
       } else {
         // iOS
         final requestProps = RequestPurchaseProps.subs((
-          ios: RequestSubscriptionIosProps(
+          apple: RequestSubscriptionIosProps(
             sku: item.id,
           ),
-          android: null,
+          google: null,
           useAlternativeBilling: null,
         ));
 
@@ -615,8 +615,8 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
       debugPrint('Using fake token: $fakeToken');
 
       final requestProps = RequestPurchaseProps.subs((
-        ios: null,
-        android: RequestSubscriptionAndroidProps(
+        apple: null,
+        google: RequestSubscriptionAndroidProps(
           skus: [item.id],
         ),
         useAlternativeBilling: null,
@@ -657,8 +657,8 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
 
       // Test with empty string - but pass validation by using a non-empty token
       final requestProps = RequestPurchaseProps.subs((
-        ios: null,
-        android: RequestSubscriptionAndroidProps(
+        apple: null,
+        google: RequestSubscriptionAndroidProps(
           skus: [item.id],
         ),
         useAlternativeBilling: null,

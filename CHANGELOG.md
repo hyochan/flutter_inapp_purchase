@@ -1,5 +1,41 @@
 # CHANGELOG
 
+## 8.2.0
+
+### Breaking Changes
+
+- **Parameter naming**: `RequestPurchaseProps.inApp()` and `RequestPurchaseProps.subs()` now use `apple`/`google` fields instead of `ios`/`android`
+  - This aligns with the OpenIAP GQL schema
+  - The type generation script now dynamically reads field names from the schema
+
+  ```dart
+  // Before (8.1.x)
+  RequestPurchaseProps.inApp((
+    ios: RequestPurchaseIosProps(sku: 'product_id'),
+    android: RequestPurchaseAndroidProps(skus: ['product_id']),
+  ))
+
+  // After (8.2.0)
+  RequestPurchaseProps.inApp((
+    apple: RequestPurchaseIosProps(sku: 'product_id'),
+    google: RequestPurchaseAndroidProps(skus: ['product_id']),
+    useAlternativeBilling: null,
+  ))
+  ```
+
+### Deprecated
+
+- **`AlternativeBillingModeAndroid`**: Use `BillingProgramAndroid` instead
+  - `AlternativeBillingModeAndroid.alternativeOnly` -> `BillingProgramAndroid.ExternalOffer`
+  - `AlternativeBillingModeAndroid.userChoice` -> `BillingProgramAndroid.UserChoiceBilling`
+
+- **`alternativeBillingModeAndroid` parameter**: Use `enableBillingProgramAndroid` in `initConnection()` instead
+
+### Dependencies
+
+- Updated OpenIAP versions:
+  - `openiap-gql`: 1.3.10 -> 1.3.11
+
 ## 8.1.2
 
 ### New Features

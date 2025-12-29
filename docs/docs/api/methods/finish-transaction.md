@@ -258,34 +258,20 @@ Monitor transaction states for proper handling:
 
 ```dart
 void handleTransactionState(Purchase item) {
-  if (Platform.isIOS) {
-    switch (item.transactionStateIOS) {
-      case TransactionState.purchased:
-      case TransactionState.restored:
-        // Safe to finish
-        _finishTransaction(item);
-        break;
-      case TransactionState.failed:
-        // Don't finish failed transactions
-        print('Transaction failed');
-        break;
-      case TransactionState.purchasing:
-      case TransactionState.deferred:
-        // Wait for final state
-        print('Transaction pending');
-        break;
-    }
-  } else if (Platform.isAndroid) {
-    switch (item.purchaseStateAndroid) {
-      case PurchaseState.purchased:
-        // Safe to finish
-        _finishTransaction(item);
-        break;
-      case PurchaseState.pending:
-        // Don't finish pending transactions
-        print('Purchase pending');
-        break;
-    }
+  // v8.2.0+: Use unified purchaseState across platforms
+  switch (item.purchaseState) {
+    case PurchaseState.Purchased:
+      // Safe to finish
+      _finishTransaction(item);
+      break;
+    case PurchaseState.Pending:
+      // Don't finish pending transactions
+      print('Purchase pending');
+      break;
+    case PurchaseState.Unknown:
+      // Handle unknown state
+      print('Unknown purchase state');
+      break;
   }
 }
 ```

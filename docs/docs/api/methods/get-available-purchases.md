@@ -198,14 +198,8 @@ class PendingTransactionHandler {
   }
   
   bool _isPending(Purchase purchase) {
-    // Check platform-specific pending states
-    if (Platform.isAndroid) {
-      return purchase.purchaseStateAndroid == 'pending';
-    } else if (Platform.isIOS) {
-      // iOS transactions in queue are pending
-      return true;
-    }
-    return false;
+    // v8.2.0+: Use unified purchaseState across platforms
+    return purchase.purchaseState == PurchaseState.Pending;
   }
   
   Future<void> _completePendingTransaction(Purchase purchase) async {

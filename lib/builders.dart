@@ -143,8 +143,8 @@ class RequestPurchaseBuilder {
 
     if (_type == ProductQueryType.InApp) {
       return RequestPurchaseProps.inApp((
-        ios: iosProps,
-        android: androidProps,
+        apple: iosProps,
+        google: androidProps,
         useAlternativeBilling: useAlternativeBilling,
       ));
     }
@@ -177,8 +177,8 @@ class RequestPurchaseBuilder {
             );
 
       return RequestPurchaseProps.subs((
-        ios: iosSub,
-        android: androidSub,
+        apple: iosSub,
+        google: androidSub,
         useAlternativeBilling: useAlternativeBilling,
       ));
     }
@@ -249,8 +249,8 @@ class RequestSubscriptionBuilder {
     final androidProps = android.skus.isNotEmpty ? android.build() : null;
 
     return RequestPurchaseProps.subs((
-      ios: iosProps,
-      android: androidProps,
+      apple: iosProps,
+      google: androidProps,
       useAlternativeBilling: useAlternativeBilling,
     ));
   }

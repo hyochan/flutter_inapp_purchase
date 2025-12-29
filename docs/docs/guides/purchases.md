@@ -91,11 +91,11 @@ Or using props directly:
 ```dart
 await iap.requestPurchase(
   RequestPurchaseProps.inApp((
-    ios: RequestPurchaseIosProps(
+    apple: RequestPurchaseIosProps(
       sku: 'product_id',
       appAccountToken: userId,
     ),
-    android: RequestPurchaseAndroidProps(
+    google: RequestPurchaseAndroidProps(
       skus: ['product_id'],
       obfuscatedAccountIdAndroid: userId,
     ),

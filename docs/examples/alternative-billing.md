@@ -221,7 +221,7 @@ class _AndroidUserChoiceBillingState extends State<AndroidUserChoiceBilling> {
       // Google will show selection dialog automatically
       await _iap.requestPurchase(
         RequestPurchaseProps.inApp((
-          android: RequestPurchaseAndroidProps(skus: [widget.product.id]),
+          google: RequestPurchaseAndroidProps(skus: [widget.product.id]),
           useAlternativeBilling: true,
         )),
       );

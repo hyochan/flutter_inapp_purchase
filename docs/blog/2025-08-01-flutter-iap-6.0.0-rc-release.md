@@ -29,8 +29,8 @@ flutter_inapp_purchase now fully supports **StoreKit 2** for iOS 15.0+, providin
 // StoreKit 2 automatically used on iOS 15.0+
 await FlutterInappPurchase.instance.requestPurchase(
   request: RequestPurchase(
-    ios: RequestPurchaseIosProps(sku: 'premium_upgrade'),
-    android: RequestPurchaseAndroidProps(skus: ['premium_upgrade']),
+    apple: RequestPurchaseIosProps(sku: 'premium_upgrade'),
+    google: RequestPurchaseAndroidProps(skus: ['premium_upgrade']),
   ),
   type: PurchaseType.inapp,
 );

@@ -111,7 +111,12 @@ final products = await FlutterInappPurchase.instance.fetchProducts<Product>(
 );
 
 // Request purchase
-await FlutterInappPurchase.instance.requestPurchase(sku: 'consumable_item');
+await FlutterInappPurchase.instance.requestPurchase(
+  RequestPurchaseProps.inApp((
+    apple: RequestPurchaseIosProps(sku: 'consumable_item'),
+    google: RequestPurchaseAndroidProps(skus: ['consumable_item']),
+  )),
+);
 ```
 
 ## Testing on Meta Quest

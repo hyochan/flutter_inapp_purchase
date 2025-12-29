@@ -793,10 +793,9 @@ gentype.PurchaseState _parsePurchaseStateIOS(dynamic value) {
       case 'purchased':
       case 'restored':
         return gentype.PurchaseState.Purchased;
-      case 'failed':
-        return gentype.PurchaseState.Failed;
-      case 'deferred':
-        return gentype.PurchaseState.Deferred;
+      // Failed, deferred are no longer valid states in OpenIAP v1.3.11+
+      // Both platforms return errors instead of Purchase objects on failure
+      // Deferred: iOS StoreKit 2 has no transaction state; Android uses Pending
       default:
         return gentype.PurchaseState.Unknown;
     }
@@ -806,13 +805,12 @@ gentype.PurchaseState _parsePurchaseStateIOS(dynamic value) {
       case 0:
         return gentype.PurchaseState.Pending;
       case 1:
+      case 3: // Restored returns as Purchased
         return gentype.PurchaseState.Purchased;
-      case 2:
-        return gentype.PurchaseState.Failed;
-      case 3:
-        return gentype.PurchaseState.Purchased;
-      case 4:
-        return gentype.PurchaseState.Deferred;
+      // case 2 (Failed) and case 4 (Deferred) now return Unknown
+      // as these states are no longer part of PurchaseState enum
+      default:
+        return gentype.PurchaseState.Unknown;
     }
   }
   return gentype.PurchaseState.Unknown;

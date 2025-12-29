@@ -97,7 +97,12 @@ final products = await iap.fetchProducts(
 );
 
 // 5. Request purchase
-await iap.requestPurchase(sku: 'product_id');
+await iap.requestPurchase(
+  RequestPurchaseProps.inApp((
+    apple: RequestPurchaseIosProps(sku: 'product_id'),
+    google: RequestPurchaseAndroidProps(skus: ['product_id']),
+  )),
+);
 ```
 
 ### How do I handle different product types?
@@ -106,7 +111,12 @@ await iap.requestPurchase(sku: 'product_id');
 final iap = FlutterInappPurchase.instance;
 
 // Consumable products (coins, gems)
-await iap.requestPurchase(sku: 'consumable_product');
+await iap.requestPurchase(
+  RequestPurchaseProps.inApp((
+    apple: RequestPurchaseIosProps(sku: 'consumable_product'),
+    google: RequestPurchaseAndroidProps(skus: ['consumable_product']),
+  )),
+);
 
 // In purchase handler:
 await iap.finishTransaction(
@@ -120,7 +130,12 @@ final purchases = await iap.getAvailablePurchases();
 final alreadyOwned = purchases.any((p) => p.productId == 'non_consumable');
 
 if (!alreadyOwned) {
-  await iap.requestPurchase(sku: 'non_consumable');
+  await iap.requestPurchase(
+    RequestPurchaseProps.inApp((
+      apple: RequestPurchaseIosProps(sku: 'non_consumable'),
+      google: RequestPurchaseAndroidProps(skus: ['non_consumable']),
+    )),
+  );
 
   // In purchase handler:
   await iap.finishTransaction(
@@ -131,12 +146,10 @@ if (!alreadyOwned) {
 
 // Subscriptions
 await iap.requestPurchase(
-  RequestPurchaseProps.subs(
-    request: RequestPurchasePropsByPlatforms(
-      ios: RequestPurchaseIosProps(sku: 'subscription_id'),
-      android: RequestPurchaseAndroidProps(skus: ['subscription_id']),
-    ),
-  ),
+  RequestPurchaseProps.subs((
+    apple: RequestSubscriptionIosProps(sku: 'subscription_id'),
+    google: RequestSubscriptionAndroidProps(skus: ['subscription_id']),
+  )),
 );
 ```
 
@@ -215,7 +228,7 @@ Future<bool> verifyPurchaseOnServer(Purchase purchase) async {
 | Feature               | iOS                               | Android                           |
 | --------------------- | --------------------------------- | --------------------------------- |
 | Receipt Format        | Base64 encoded receipt            | Purchase token                    |
-| Pending Purchases     | Not supported                     | Supported (purchaseStateAndroid = 2) |
+| Pending Purchases     | Not supported                     | Supported (purchaseState == PurchaseState.Pending) |
 | Offer Codes           | `presentCodeRedemptionSheetIOS()` | Not supported                     |
 | Subscription Upgrades | Automatic handling                | Use `replacementModeAndroid`      |
 | Transaction Finishing | `finishTransaction()` finishes    | Consumes or acknowledges based on `isConsumable` |
@@ -235,12 +248,12 @@ if (Platform.isIOS) {
   debugPrint('Eligible for intro offer: $eligible');
 }
 
-// Android-specific: Handle pending purchases
+// Handle pending purchases (unified across platforms in v8.2.0+)
 iap.purchaseUpdatedListener.listen((purchase) {
-  if (Platform.isAndroid && purchase.purchaseStateAndroid == 2) {
+  if (purchase.purchaseState == PurchaseState.Pending) {
     debugPrint('Purchase pending: ${purchase.productId}');
     // Show pending UI
-  } else {
+  } else if (purchase.purchaseState == PurchaseState.Purchased) {
     _handlePurchase(purchase);
   }
 });
@@ -250,7 +263,7 @@ if (Platform.isAndroid) {
   await iap.requestPurchase(
     RequestPurchaseProps.subs(
       request: RequestPurchasePropsByPlatforms(
-        android: RequestPurchaseAndroidProps(
+        google: RequestPurchaseAndroidProps(
           skus: ['new_subscription'],
           oldSkuAndroid: 'old_subscription',
           purchaseTokenAndroid: oldPurchaseToken,

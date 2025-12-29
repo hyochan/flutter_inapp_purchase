@@ -31,7 +31,25 @@ Future<void> requestPurchase({
 
 ## Request Structure
 
-### RequestPurchase
+### RequestPurchaseProps (v8.2.0+ Recommended)
+
+Use the factory constructors for type-safe purchase requests:
+
+```dart
+// For in-app products
+RequestPurchaseProps.inApp((
+  apple: RequestPurchaseIosProps(sku: 'product_id'),
+  google: RequestPurchaseAndroidProps(skus: ['product_id']),
+))
+
+// For subscriptions
+RequestPurchaseProps.subs((
+  apple: RequestPurchaseIosProps(sku: 'subscription_id'),
+  google: RequestPurchaseAndroidProps(skus: ['subscription_id']),
+))
+```
+
+### RequestPurchase (Legacy)
 ```dart
 class RequestPurchase {
   final RequestPurchaseIOS? ios;
@@ -64,16 +82,15 @@ class RequestPurchaseAndroid {
 
 ## Usage Examples
 
-### Basic Purchase
+### Basic Purchase (Recommended v8.2.0+)
 
 ```dart
-// Simple product purchase
+// Simple product purchase using RequestPurchaseProps
 await FlutterInappPurchase.instance.requestPurchase(
-  request: RequestPurchase(
-    ios: RequestPurchaseIOS(sku: 'com.example.premium'),
-    android: RequestPurchaseAndroid(skus: ['com.example.premium']),
-  ),
-  type: PurchaseType.inapp,
+  RequestPurchaseProps.inApp((
+    apple: RequestPurchaseIosProps(sku: 'com.example.premium'),
+    google: RequestPurchaseAndroidProps(skus: ['com.example.premium']),
+  )),
 );
 ```
 
@@ -82,17 +99,16 @@ await FlutterInappPurchase.instance.requestPurchase(
 ```dart
 // Purchase with user account token for restoration
 await FlutterInappPurchase.instance.requestPurchase(
-  request: RequestPurchase(
-    ios: RequestPurchaseIOS(
+  RequestPurchaseProps.inApp((
+    apple: RequestPurchaseIosProps(
       sku: 'com.example.premium',
       appAccountToken: userId, // Your user ID
     ),
-    android: RequestPurchaseAndroid(
+    google: RequestPurchaseAndroidProps(
       skus: ['com.example.premium'],
       obfuscatedAccountIdAndroid: userId,
     ),
-  ),
-  type: PurchaseType.inapp,
+  )),
 );
 ```
 
@@ -101,19 +117,19 @@ await FlutterInappPurchase.instance.requestPurchase(
 ```dart
 // iOS subscription with promotional offer
 await FlutterInappPurchase.instance.requestPurchase(
-  request: RequestPurchase(
-    ios: RequestPurchaseIOS(
+  RequestPurchaseProps.subs((
+    apple: RequestPurchaseIosProps(
       sku: 'com.example.monthly',
-      withOffer: {
-        'identifier': 'promo_50_off',
-        'keyIdentifier': 'ABCDEF123456',
-        'nonce': generateNonce(),
-        'signature': generateSignature(), // Server-generated
-        'timestamp': DateTime.now().millisecondsSinceEpoch,
-      },
+      withOffer: PaymentDiscount(
+        identifier: 'promo_50_off',
+        keyIdentifier: 'ABCDEF123456',
+        nonce: generateNonce(),
+        signature: generateSignature(), // Server-generated
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+      ),
     ),
-  ),
-  type: PurchaseType.subs,
+    google: RequestPurchaseAndroidProps(skus: ['com.example.monthly']),
+  )),
 );
 ```
 
@@ -122,14 +138,14 @@ await FlutterInappPurchase.instance.requestPurchase(
 ```dart
 // Android subscription change with proration
 await FlutterInappPurchase.instance.requestPurchase(
-  request: RequestPurchase(
-    android: RequestPurchaseAndroid(
+  RequestPurchaseProps.subs((
+    apple: RequestPurchaseIosProps(sku: 'com.example.yearly'),
+    google: RequestPurchaseAndroidProps(
       skus: ['com.example.yearly'],
       purchaseToken: currentSubscriptionToken,
       prorationMode: AndroidProrationMode.IMMEDIATE_AND_CHARGE_PRORATED_PRICE,
     ),
-  ),
-  type: PurchaseType.subs,
+  )),
 );
 ```
 
@@ -153,52 +169,65 @@ The `advancedCommerceData` field uses StoreKit 2's `Product.PurchaseOption.custo
 ```dart
 class PurchaseService {
   final _iap = FlutterInappPurchase.instance;
-  
+
   Future<void> purchaseProduct(String productId, {bool isSubscription = false}) async {
     try {
-      // Create platform-specific request
-      final request = RequestPurchase(
-        ios: RequestPurchaseIOS(
-          sku: productId,
-          appAccountToken: await _getUserId(),
-        ),
-        android: RequestPurchaseAndroid(
-          skus: [productId],
-          obfuscatedAccountIdAndroid: await _getUserId(),
-        ),
-      );
-      
-      // Initiate purchase
-      await _iap.requestPurchase(
-        request: request,
-        type: isSubscription ? PurchaseType.subs : PurchaseType.inapp,
-      );
-      
-      // Purchase result will be received via purchaseUpdated stream
-      
+      final userId = await _getUserId();
+
+      // Initiate purchase using RequestPurchaseProps (v8.2.0+)
+      if (isSubscription) {
+        await _iap.requestPurchase(
+          RequestPurchaseProps.subs((
+            apple: RequestPurchaseIosProps(
+              sku: productId,
+              appAccountToken: userId,
+            ),
+            google: RequestPurchaseAndroidProps(
+              skus: [productId],
+              obfuscatedAccountIdAndroid: userId,
+            ),
+          )),
+        );
+      } else {
+        await _iap.requestPurchase(
+          RequestPurchaseProps.inApp((
+            apple: RequestPurchaseIosProps(
+              sku: productId,
+              appAccountToken: userId,
+            ),
+            google: RequestPurchaseAndroidProps(
+              skus: [productId],
+              obfuscatedAccountIdAndroid: userId,
+            ),
+          )),
+        );
+      }
+
+      // Purchase result will be received via purchaseUpdatedListener stream
+
     } on PurchaseError catch (e) {
       _handlePurchaseError(e);
     } catch (e) {
       print('Unexpected error: $e');
     }
   }
-  
+
   void _handlePurchaseError(PurchaseError error) {
     switch (error.code) {
-      case ErrorCode.E_USER_CANCELLED:
+      case ErrorCode.UserCancelled:
         print('User cancelled the purchase');
         break;
-      case ErrorCode.E_PRODUCT_ALREADY_OWNED:
+      case ErrorCode.AlreadyOwned:
         print('Product already owned');
         break;
-      case ErrorCode.E_BILLING_UNAVAILABLE:
+      case ErrorCode.ServiceError:
         print('Billing service unavailable');
         break;
       default:
         print('Purchase error: ${error.message}');
     }
   }
-  
+
   Future<String?> _getUserId() async {
     // Return your user identifier
     return 'user123';
@@ -212,26 +241,31 @@ Purchase results are delivered through streams:
 
 ```dart
 // Listen to successful purchases
-FlutterInappPurchase.purchaseUpdated.listen((Purchase? purchase) {
-  if (purchase != null) {
-    print('Purchase successful: ${purchase.productId}');
-    
-    // Verify the purchase
-    _verifyPurchase(purchase);
-    
-    // Deliver the content
-    _deliverContent(purchase.productId);
-    
-    // Finish the transaction
-    _finishTransaction(purchase);
+FlutterInappPurchase.instance.purchaseUpdatedListener.listen((purchase) {
+  print('Purchase successful: ${purchase.productId}');
+
+  // Handle purchase state (v8.2.0+: unified across platforms)
+  switch (purchase.purchaseState) {
+    case PurchaseState.Purchased:
+      // Verify the purchase
+      _verifyPurchase(purchase);
+      // Deliver the content
+      _deliverContent(purchase.productId);
+      // Finish the transaction
+      _finishTransaction(purchase);
+      break;
+    case PurchaseState.Pending:
+      print('Purchase pending');
+      break;
+    case PurchaseState.Unknown:
+      print('Unknown purchase state');
+      break;
   }
 });
 
 // Listen to purchase errors
-FlutterInappPurchase.purchaseError.listen((PurchaseResult? error) {
-  if (error != null) {
-    print('Purchase failed: ${error.message}');
-  }
+FlutterInappPurchase.instance.purchaseErrorListener.listen((error) {
+  print('Purchase failed: ${error.message}');
 });
 ```
 
@@ -262,24 +296,23 @@ Future<void> safePurchase(String productId) async {
   // Prevent double purchases
   if (_isPurchasing) return;
   _isPurchasing = true;
-  
+
   try {
     await _iap.requestPurchase(
-      request: RequestPurchase(
-        ios: RequestPurchaseIOS(sku: productId),
-        android: RequestPurchaseAndroid(skus: [productId]),
-      ),
-      type: PurchaseType.inapp,
+      RequestPurchaseProps.inApp((
+        apple: RequestPurchaseIosProps(sku: productId),
+        google: RequestPurchaseAndroidProps(skus: [productId]),
+      )),
     );
   } catch (e) {
     // Handle errors
     if (e is PurchaseError) {
       switch (e.code) {
-        case ErrorCode.E_NOT_INITIALIZED:
+        case ErrorCode.NotInitialized:
           // Reinitialize connection
           await _iap.initConnection();
           break;
-        case ErrorCode.E_ITEM_UNAVAILABLE:
+        case ErrorCode.ItemUnavailable:
           // Product not available
           showError('Product not available');
           break;
@@ -334,4 +367,4 @@ Use the builder when you:
 - Supports multiple SKUs but typically uses one
 - Proration modes only apply to subscriptions
 - Requires acknowledgment within 3 days
-- Use `google` field (recommended) or `android` field (deprecated) for request parameters
+- Use `google` field for request parameters (v8.2.0+)

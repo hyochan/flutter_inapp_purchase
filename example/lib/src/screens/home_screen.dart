@@ -123,19 +123,6 @@ class HomeScreen extends StatelessWidget {
                         onTap: () => Navigator.pushNamed(
                             context, '/alternative-billing'),
                       ),
-                      const Divider(height: 1),
-                      _buildMenuItem(
-                        context,
-                        icon: CupertinoIcons.layers,
-                        title: 'Billing Programs (8.2+)',
-                        subtitle: !kIsWeb &&
-                                defaultTargetPlatform == TargetPlatform.android
-                            ? 'New Billing Programs API'
-                            : 'Android only feature',
-                        color: const Color(0xFF9C27B0),
-                        onTap: () =>
-                            Navigator.pushNamed(context, '/billing-programs'),
-                      ),
                     ],
                   ),
                 ),

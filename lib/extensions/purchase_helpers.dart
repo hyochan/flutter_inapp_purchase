@@ -26,9 +26,6 @@ extension PurchaseHelpers on Purchase {
         return AndroidPurchaseState.Purchased.value;
       case PurchaseState.Pending:
         return AndroidPurchaseState.Pending.value;
-      case PurchaseState.Failed:
-      case PurchaseState.Deferred:
-      case PurchaseState.Restored:
       case PurchaseState.Unknown:
         return AndroidPurchaseState.Unknown.value;
     }
@@ -43,12 +40,6 @@ extension PurchaseHelpers on Purchase {
         return TransactionState.purchased;
       case PurchaseState.Pending:
         return TransactionState.purchasing;
-      case PurchaseState.Failed:
-        return TransactionState.failed;
-      case PurchaseState.Deferred:
-        return TransactionState.deferred;
-      case PurchaseState.Restored:
-        return TransactionState.restored;
       case PurchaseState.Unknown:
         return TransactionState.purchasing;
     }

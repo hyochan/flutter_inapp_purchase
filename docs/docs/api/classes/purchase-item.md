@@ -75,11 +75,19 @@ final bool? isAcknowledgedAndroid
 
 Whether the purchase has been acknowledged (Android requires acknowledgment within 3 days).
 
+### Common Properties (v8.2.0+)
+
 ```dart
-final PurchaseState? purchaseStateAndroid
+final PurchaseState? purchaseState
 ```
 
-The current state of the purchase on Android.
+The unified purchase state across platforms. Replaces platform-specific `purchaseStateAndroid`.
+
+| State | Description |
+|-------|-------------|
+| `PurchaseState.Pending` | Purchase is pending |
+| `PurchaseState.Purchased` | Purchase completed (includes restored) |
+| `PurchaseState.Unknown` | Unknown state |
 
 ### iOS-Specific Properties
 
@@ -121,27 +129,22 @@ Returns a string representation with all properties. Transaction dates are forma
 
 ## Enums
 
-### PurchaseState (Android)
+### PurchaseState (Unified, v8.2.0+)
 
 ```dart
 enum PurchaseState {
-  pending,    // Purchase is pending
-  purchased,  // Purchase is completed
-  unspecified // Unknown state
+  Pending,    // Purchase is pending
+  Purchased,  // Purchase is completed (includes restored)
+  Unknown,    // Unknown state
 }
 ```
 
-### TransactionState (iOS)
-
-```dart
-enum TransactionState {
-  purchasing, // Transaction is being processed
-  purchased,  // Transaction is completed
-  failed,     // Transaction failed
-  restored,   // Transaction was restored
-  deferred    // Transaction is pending external action
-}
-```
+:::info Breaking Change in v8.2.0
+`Failed`, `Restored`, and `Deferred` states have been removed:
+- **Failed**: Both platforms return errors via `purchaseErrorListener` instead
+- **Restored**: Restored purchases now return as `Purchased` state
+- **Deferred**: iOS StoreKit 2 has no transaction state; Android uses `Pending`
+:::
 
 ## Usage Example
 
@@ -226,7 +229,7 @@ if (Platform.isAndroid && purchase.purchaseToken != null) {
 
 - Uses `purchaseToken` for validation
 - Requires acknowledgment within 3 days via `acknowledgePurchaseAndroid()`
-- Has `purchaseStateAndroid` to track purchase state
+- Uses unified `purchaseState` to track purchase state (v8.2.0+)
 - Consumable items must be consumed via `consumePurchaseAndroid()`
 
 ## Important Notes

@@ -181,11 +181,11 @@ void initState() {
 Future<void> _requestPurchase(String productId) async {
   final requestProps = RequestPurchaseProps.inApp(
     request: RequestPurchasePropsByPlatforms(
-      ios: RequestPurchaseIosProps(
+      apple: RequestPurchaseIosProps(
         sku: productId,
         quantity: 1,
       ),
-      android: RequestPurchaseAndroidProps(
+      google: RequestPurchaseAndroidProps(
         skus: [productId],
       ),
     ),
@@ -442,11 +442,11 @@ class _StoreState extends State<Store> {
     try {
       final requestProps = RequestPurchaseProps.inApp(
         request: RequestPurchasePropsByPlatforms(
-          ios: RequestPurchaseIosProps(
+          apple: RequestPurchaseIosProps(
             sku: productId,
             quantity: 1,
           ),
-          android: RequestPurchaseAndroidProps(
+          google: RequestPurchaseAndroidProps(
             skus: [productId],
           ),
         ),

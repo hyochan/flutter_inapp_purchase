@@ -195,6 +195,73 @@ void main() {
         <String, dynamic>{'program': 'external-payments'},
       );
     });
+
+    test('isBillingProgramAvailableAndroid handles UserChoiceBilling program',
+        () async {
+      final calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall call) async {
+        calls.add(call);
+        if (call.method == 'isBillingProgramAvailableAndroid') {
+          return jsonEncode(
+            <String, dynamic>{
+              'billingProgram': 'user-choice-billing',
+              'isAvailable': true,
+            },
+          );
+        }
+        return null;
+      });
+
+      final iap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'android'),
+      );
+
+      final result = await iap.isBillingProgramAvailableAndroid(
+        types.BillingProgramAndroid.UserChoiceBilling,
+      );
+
+      expect(
+          result.billingProgram, types.BillingProgramAndroid.UserChoiceBilling);
+      expect(result.isAvailable, isTrue);
+
+      final call = calls.singleWhere(
+        (MethodCall call) => call.method == 'isBillingProgramAvailableAndroid',
+      );
+      expect(
+        call.arguments,
+        <String, dynamic>{'program': 'user-choice-billing'},
+      );
+    });
+
+    test('initConnection passes enableBillingProgramAndroid UserChoiceBilling',
+        () async {
+      final calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall call) async {
+        calls.add(call);
+        if (call.method == 'initConnection') {
+          return true;
+        }
+        return null;
+      });
+
+      final iap = FlutterInappPurchase.private(
+        FakePlatform(operatingSystem: 'android'),
+      );
+
+      await iap.initConnection(
+        enableBillingProgramAndroid:
+            types.BillingProgramAndroid.UserChoiceBilling,
+      );
+
+      final call = calls.singleWhere(
+        (MethodCall call) => call.method == 'initConnection',
+      );
+      final args = call.arguments as Map<dynamic, dynamic>?;
+      expect(args, isNotNull);
+      expect(args!['enableBillingProgramAndroid'], 'user-choice-billing');
+    });
   });
 
   group('launchExternalLinkAndroid', () {
@@ -241,8 +308,8 @@ void main() {
       await expectLater(
         iap.requestPurchase(
           const types.RequestPurchaseProps.inApp((
-            ios: types.RequestPurchaseIosProps(sku: 'demo.sku'),
-            android: null,
+            apple: types.RequestPurchaseIosProps(sku: 'demo.sku'),
+            google: null,
             useAlternativeBilling: null,
           )),
         ),
@@ -277,7 +344,7 @@ void main() {
       await iap.initConnection();
 
       const props = types.RequestPurchaseProps.inApp((
-        ios: types.RequestPurchaseIosProps(
+        apple: types.RequestPurchaseIosProps(
           sku: 'ios.sku',
           appAccountToken: 'app-token',
           quantity: 3,
@@ -290,7 +357,7 @@ void main() {
             timestamp: 123456.0,
           ),
         ),
-        android: null,
+        google: null,
         useAlternativeBilling: null,
       ));
 
@@ -339,11 +406,11 @@ void main() {
       await iap.initConnection();
 
       const props = types.RequestPurchaseProps.inApp((
-        ios: types.RequestPurchaseIosProps(
+        apple: types.RequestPurchaseIosProps(
           sku: 'ios.sku',
           advancedCommerceData: 'campaign_summer_2025',
         ),
-        android: null,
+        google: null,
         useAlternativeBilling: null,
       ));
 
@@ -499,8 +566,8 @@ void main() {
       await iap.initConnection();
 
       const props = types.RequestPurchaseProps.subs((
-        ios: null,
-        android: types.RequestSubscriptionAndroidProps(
+        apple: null,
+        google: types.RequestSubscriptionAndroidProps(
           skus: <String>['sub.premium'],
         ),
         useAlternativeBilling: null,
@@ -542,8 +609,8 @@ void main() {
       await iap.initConnection();
 
       const props = types.RequestPurchaseProps.subs((
-        ios: null,
-        android: types.RequestSubscriptionAndroidProps(
+        apple: null,
+        google: types.RequestSubscriptionAndroidProps(
           skus: <String>['sub.premium'],
           isOfferPersonalized: true,
           obfuscatedAccountIdAndroid: 'acc-id',
@@ -597,8 +664,8 @@ void main() {
       await iap.initConnection();
 
       const props = types.RequestPurchaseProps.inApp((
-        ios: null,
-        android: types.RequestPurchaseAndroidProps(
+        apple: null,
+        google: types.RequestPurchaseAndroidProps(
           skus: <String>['product.premium'],
           developerBillingOption: types.DeveloperBillingOptionParamsAndroid(
             billingProgram: types.BillingProgramAndroid.ExternalPayments,
@@ -652,8 +719,8 @@ void main() {
       await iap.initConnection();
 
       const props = types.RequestPurchaseProps.subs((
-        ios: null,
-        android: types.RequestSubscriptionAndroidProps(
+        apple: null,
+        google: types.RequestSubscriptionAndroidProps(
           skus: <String>['sub.premium.monthly'],
           developerBillingOption: types.DeveloperBillingOptionParamsAndroid(
             billingProgram: types.BillingProgramAndroid.ExternalPayments,
@@ -718,8 +785,8 @@ void main() {
       await iap.initConnection();
 
       const props = types.RequestPurchaseProps.inApp((
-        ios: null,
-        android: types.RequestPurchaseAndroidProps(
+        apple: null,
+        google: types.RequestPurchaseAndroidProps(
           skus: <String>['product.coins'],
           developerBillingOption: types.DeveloperBillingOptionParamsAndroid(
             billingProgram: types.BillingProgramAndroid.ExternalPayments,
@@ -766,8 +833,8 @@ void main() {
       await expectLater(
         () => iap.requestPurchase(
           const types.RequestPurchaseProps.inApp((
-            ios: null,
-            android: types.RequestPurchaseAndroidProps(
+            apple: null,
+            google: types.RequestPurchaseAndroidProps(
               skus: <String>['android-only'],
             ),
             useAlternativeBilling: null,
@@ -805,8 +872,8 @@ void main() {
       await expectLater(
         () => iap.requestPurchase(
           const types.RequestPurchaseProps.inApp((
-            ios: types.RequestPurchaseIosProps(sku: 'ignored'),
-            android: null,
+            apple: types.RequestPurchaseIosProps(sku: 'ignored'),
+            google: null,
             useAlternativeBilling: null,
           )),
         ),
@@ -844,8 +911,8 @@ void main() {
 
       await iap.requestPurchase(
         const types.RequestPurchaseProps.inApp((
-          ios: null,
-          android: types.RequestPurchaseAndroidProps(
+          apple: null,
+          google: types.RequestPurchaseAndroidProps(
             skus: <String>['coin.pack'],
             isOfferPersonalized: true,
             obfuscatedAccountIdAndroid: 'account-1',

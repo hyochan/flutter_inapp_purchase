@@ -86,11 +86,11 @@ final purchases = await iap.getAvailablePurchases(
 ```dart
 await iap.requestPurchase(
   RequestPurchaseProps.subs((
-    ios: RequestPurchaseIosProps(
+    apple: RequestPurchaseIosProps(
       sku: 'monthly_sub',
       quantity: 1,
     ),
-    android: RequestPurchaseAndroidProps(
+    google: RequestPurchaseAndroidProps(
       skus: ['monthly_sub'],
     ),
     useAlternativeBilling: null,
@@ -103,11 +103,11 @@ await iap.requestPurchase(
 ```dart
 await iap.requestPurchase(
   RequestPurchaseProps.subs((
-    ios: RequestPurchaseIosProps(
+    apple: RequestPurchaseIosProps(
       sku: 'yearly_sub',
       quantity: 1,
     ),
-    android: RequestPurchaseAndroidProps(
+    google: RequestPurchaseAndroidProps(
       skus: ['yearly_sub'],
       replacementModeAndroid: AndroidReplacementMode.withTimeProration,
     ),

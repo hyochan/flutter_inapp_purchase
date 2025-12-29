@@ -174,8 +174,8 @@ Future<RequestPurchaseResult> requestPurchase(
 ```dart
 await iap.requestPurchase(
   RequestPurchaseProps.inApp((
-    ios: RequestPurchaseIosProps(sku: 'product_id'),
-    android: RequestPurchaseAndroidProps(skus: ['product_id']),
+    apple: RequestPurchaseIosProps(sku: 'product_id'),
+    google: RequestPurchaseAndroidProps(skus: ['product_id']),
   )),
 );
 ```
@@ -186,8 +186,8 @@ await iap.requestPurchase(
 await iap.requestPurchase(
   RequestPurchaseProps.subs(
     request: RequestPurchasePropsByPlatforms(
-      ios: RequestPurchaseIosProps(sku: 'subscription_id'),
-      android: RequestPurchaseAndroidProps(skus: ['subscription_id']),
+      apple: RequestPurchaseIosProps(sku: 'subscription_id'),
+      google: RequestPurchaseAndroidProps(skus: ['subscription_id']),
     ),
   ),
 );
