@@ -1,6 +1,3 @@
-// ignore_for_file: type=lint
-// coverage:ignore-file
-
 // ============================================================================
 // AUTO-GENERATED TYPES — DO NOT EDIT DIRECTLY
 // Run `npm run generate` after updating any *.graphql schema file.
@@ -3276,14 +3273,14 @@ sealed class RequestPurchaseProps {
   const RequestPurchaseProps._();
 
   const factory RequestPurchaseProps.inApp(({
-    RequestPurchaseIosProps? ios,
-    RequestPurchaseAndroidProps? android,
+    RequestPurchaseIosProps? apple,
+    RequestPurchaseAndroidProps? google,
     bool? useAlternativeBilling,
   }) props) = _InAppPurchase;
 
   const factory RequestPurchaseProps.subs(({
-    RequestSubscriptionIosProps? ios,
-    RequestSubscriptionAndroidProps? android,
+    RequestSubscriptionIosProps? apple,
+    RequestSubscriptionAndroidProps? google,
     bool? useAlternativeBilling,
   }) props) = _SubsPurchase;
 
@@ -3293,8 +3290,8 @@ sealed class RequestPurchaseProps {
 class _InAppPurchase extends RequestPurchaseProps {
   const _InAppPurchase(this.props) : super._();
   final ({
-    RequestPurchaseIosProps? ios,
-    RequestPurchaseAndroidProps? android,
+    RequestPurchaseIosProps? apple,
+    RequestPurchaseAndroidProps? google,
     bool? useAlternativeBilling,
   }) props;
 
@@ -3302,8 +3299,8 @@ class _InAppPurchase extends RequestPurchaseProps {
   Map<String, dynamic> toJson() {
     return {
       'requestPurchase': {
-        if (props.ios != null) 'ios': props.ios!.toJson(),
-        if (props.android != null) 'android': props.android!.toJson(),
+        if (props.apple != null) 'ios': props.apple!.toJson(),
+        if (props.google != null) 'android': props.google!.toJson(),
       },
       'type': ProductQueryType.InApp.toJson(),
       if (props.useAlternativeBilling != null) 'useAlternativeBilling': props.useAlternativeBilling,
@@ -3314,8 +3311,8 @@ class _InAppPurchase extends RequestPurchaseProps {
 class _SubsPurchase extends RequestPurchaseProps {
   const _SubsPurchase(this.props) : super._();
   final ({
-    RequestSubscriptionIosProps? ios,
-    RequestSubscriptionAndroidProps? android,
+    RequestSubscriptionIosProps? apple,
+    RequestSubscriptionAndroidProps? google,
     bool? useAlternativeBilling,
   }) props;
 
@@ -3323,8 +3320,8 @@ class _SubsPurchase extends RequestPurchaseProps {
   Map<String, dynamic> toJson() {
     return {
       'requestSubscription': {
-        if (props.ios != null) 'ios': props.ios!.toJson(),
-        if (props.android != null) 'android': props.android!.toJson(),
+        if (props.apple != null) 'ios': props.apple!.toJson(),
+        if (props.google != null) 'android': props.google!.toJson(),
       },
       'type': ProductQueryType.Subs.toJson(),
       if (props.useAlternativeBilling != null) 'useAlternativeBilling': props.useAlternativeBilling,

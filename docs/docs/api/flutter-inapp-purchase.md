@@ -127,8 +127,8 @@ Future<void> requestPurchase({
 ```dart
 await FlutterInappPurchase.instance.requestPurchase(
   request: RequestPurchase(
-    ios: RequestPurchaseIosProps(sku: 'premium_upgrade'),
-    android: RequestPurchaseAndroidProps(skus: ['premium_upgrade']),
+    apple: RequestPurchaseIosProps(sku: 'premium_upgrade'),
+    google: RequestPurchaseAndroidProps(skus: ['premium_upgrade']),
   ),
   type: PurchaseType.inapp,
 );

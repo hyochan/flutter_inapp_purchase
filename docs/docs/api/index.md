@@ -90,11 +90,11 @@ class PurchaseManager {
 
   Future<void> makePurchase(String productId) async {
     await iap.requestPurchase(
-      request: RequestPurchase(
-        ios: RequestPurchaseIOS(sku: productId, quantity: 1),
-        android: RequestPurchaseAndroid(skus: [productId]),
-      ),
-      type: PurchaseType.inapp,
+      RequestPurchaseProps.inApp((
+        apple: RequestPurchaseIosProps(sku: productId, quantity: 1),
+        google: RequestPurchaseAndroidProps(skus: [productId]),
+        useAlternativeBilling: null,
+      )),
     );
   }
 }

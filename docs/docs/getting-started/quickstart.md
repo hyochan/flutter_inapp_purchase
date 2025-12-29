@@ -159,11 +159,11 @@ class _SimpleStoreState extends State<SimpleStore> {
     try {
       final requestProps = RequestPurchaseProps.inApp(
         request: RequestPurchasePropsByPlatforms(
-          ios: RequestPurchaseIosProps(
+          apple: RequestPurchaseIosProps(
             sku: productId,
             quantity: 1,
           ),
-          android: RequestPurchaseAndroidProps(
+          google: RequestPurchaseAndroidProps(
             skus: [productId],
           ),
         ),
@@ -180,10 +180,10 @@ class _SimpleStoreState extends State<SimpleStore> {
     try {
       final requestProps = RequestPurchaseProps.subs(
         request: RequestSubscriptionPropsByPlatforms(
-          ios: RequestSubscriptionIosProps(
+          apple: RequestSubscriptionIosProps(
             sku: productId,
           ),
-          android: RequestSubscriptionAndroidProps(
+          google: RequestSubscriptionAndroidProps(
             skus: [productId],
           ),
         ),
@@ -353,11 +353,11 @@ FlutterInappPurchase.purchaseError.listen((error) {
 
 // Request a purchase
 await FlutterInappPurchase.instance.requestPurchase(
-  request: RequestPurchase(
-    ios: RequestPurchaseIOS(sku: 'product_id'),
-    android: RequestPurchaseAndroid(skus: ['product_id']),
-  ),
-  type: PurchaseType.inapp, // or PurchaseType.subs for subscriptions
+  RequestPurchaseProps.inApp((
+    apple: RequestPurchaseIosProps(sku: 'product_id'),
+    google: RequestPurchaseAndroidProps(skus: ['product_id']),
+    useAlternativeBilling: null,
+  )),
 );
 ```
 

@@ -51,23 +51,23 @@ await FlutterInappPurchase.instance.requestSubscription('com.example.monthly');
 
 ```dart
 await FlutterInappPurchase.instance.requestPurchase(
-  request: RequestPurchase(
-    ios: RequestPurchaseIOS(sku: 'com.example.monthly'),
-    android: RequestPurchaseAndroid(skus: ['com.example.monthly']),
-  ),
-  type: PurchaseType.subs,
+  RequestPurchaseProps.subs((
+    apple: RequestSubscriptionIosProps(sku: 'com.example.monthly'),
+    google: RequestSubscriptionAndroidProps(skus: ['com.example.monthly']),
+    useAlternativeBilling: null,
+  )),
 );
 ```
 
-Or, when using the new OpenIAP helpers:
+Or, when using the builder pattern:
 
 ```dart
 await FlutterInappPurchase.instance.requestPurchaseWithBuilder(
   build: (builder) {
     builder
       ..type = ProductQueryType.Subs
-      ..ios.sku = 'com.example.monthly'
-      ..android.skus = ['com.example.monthly'];
+      ..apple.sku = 'com.example.monthly'
+      ..google.skus = ['com.example.monthly'];
   },
 );
 ```

@@ -49,15 +49,11 @@ RequestPurchaseProps.subs((
 ))
 ```
 
-:::info Field Naming Convention
-Use `apple`/`google` fields (recommended) instead of `ios`/`android` fields. The latter are deprecated but still work for backwards compatibility.
-:::
-
 ### RequestPurchase (Legacy)
 ```dart
 class RequestPurchase {
-  final RequestPurchaseIOS? ios;      // Deprecated, use apple
-  final RequestPurchaseAndroid? android; // Deprecated, use google
+  final RequestPurchaseIOS? ios;
+  final RequestPurchaseAndroid? android;
 }
 ```
 
@@ -371,4 +367,4 @@ Use the builder when you:
 - Supports multiple SKUs but typically uses one
 - Proration modes only apply to subscriptions
 - Requires acknowledgment within 3 days
-- Use `google` field (recommended) or `android` field (deprecated) for request parameters
+- Use `android` field for request parameters

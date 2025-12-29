@@ -135,7 +135,7 @@ await iap.initConnection(
 ```dart
 await iap.requestPurchase(
   RequestPurchaseProps.inApp((
-    ios: RequestPurchaseIosProps(sku: 'product_id'),
+    apple: RequestPurchaseIosProps(sku: 'product_id'),
     useAlternativeBilling: true,  // DEPRECATED - no effect
   )),
 );

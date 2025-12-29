@@ -157,13 +157,14 @@ Initiates a purchase flow for the specified product.
 
 ```dart
 await FlutterInappPurchase.instance.requestPurchase(
-  request: RequestPurchase(
-    ios: RequestPurchaseIOS(
+  RequestPurchaseProps.inApp((
+    apple: RequestPurchaseIosProps(
       sku: 'com.example.premium',
       appAccountToken: 'user123',
     ),
-  ),
-  type: PurchaseType.inapp,
+    google: null,
+    useAlternativeBilling: null,
+  )),
 );
 ```
 
@@ -304,11 +305,11 @@ class StoreService {
 
   Future<void> buyProduct(String productId) async {
     await _iap.requestPurchase(
-      request: RequestPurchase(
-        ios: RequestPurchaseIOS(sku: productId),
-        android: RequestPurchaseAndroid(skus: [productId]),
-      ),
-      type: PurchaseType.inapp,
+      RequestPurchaseProps.inApp((
+        apple: RequestPurchaseIosProps(sku: productId),
+        google: RequestPurchaseAndroidProps(skus: [productId]),
+        useAlternativeBilling: null,
+      )),
     );
   }
 

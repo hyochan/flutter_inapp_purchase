@@ -149,8 +149,8 @@ Future<void> handlePurchase(String productId) async {
   try {
     await _iap.requestPurchase(
       RequestPurchaseProps.inApp((
-        ios: RequestPurchaseIosProps(sku: productId),
-        android: RequestPurchaseAndroidProps(skus: [productId]),
+        apple: RequestPurchaseIosProps(sku: productId),
+        google: RequestPurchaseAndroidProps(skus: [productId]),
         useAlternativeBilling: null,
       )),
     );

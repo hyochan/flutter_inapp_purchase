@@ -48,7 +48,7 @@ Future<void> purchaseSubscription(ProductCommon product) async {
     final offers = getAndroidOffers(product);
     final requestProps = RequestPurchaseProps.subs((
       ios: null,
-      android: RequestSubscriptionAndroidProps(
+      google: RequestSubscriptionAndroidProps(
         skus: [product.id],
         subscriptionOffers: offers.isNotEmpty ? offers : null,
       ),
@@ -65,7 +65,7 @@ Future<void> purchaseSubscription(ProductCommon product) async {
 ```dart
 Future<void> purchaseSubscriptionIOS(ProductCommon product) async {
   final requestProps = RequestPurchaseProps.subs((
-    ios: RequestSubscriptionIosProps(
+    apple: RequestSubscriptionIosProps(
       sku: product.id,
     ),
     android: null,
@@ -86,7 +86,7 @@ Future<void> upgradeSubscription(
 ) async {
   final requestProps = RequestPurchaseProps.subs((
     ios: null,
-    android: RequestSubscriptionAndroidProps(
+    google: RequestSubscriptionAndroidProps(
       skus: [newProduct.id],
       oldSkus: [currentSubscription.productId],
       purchaseTokenAndroid: currentSubscription.purchaseToken,
@@ -243,7 +243,7 @@ if (isEligible) {
 
 ```dart
 final requestProps = RequestPurchaseProps.subs((
-  ios: RequestSubscriptionIosProps(
+  apple: RequestSubscriptionIosProps(
     sku: 'monthly_sub',
     withOffer: DiscountOfferInputIOS(
       identifier: 'promo_offer_id',
@@ -342,7 +342,7 @@ Future<void> purchasePromotionalOffer({
     await iap.requestPurchase(
       RequestPurchaseProps.subs((
         android: null,
-        ios: RequestSubscriptionIosProps(
+        apple: RequestSubscriptionIosProps(
           sku: productId,
           appAccountToken: '',
           withOffer: DiscountOfferInputIOS(
@@ -390,7 +390,7 @@ Future<void> purchasePromotionalOfferWithReload({
     await iap.requestPurchase(
       RequestPurchaseProps.subs((
         android: null,
-        ios: RequestSubscriptionIosProps(
+        apple: RequestSubscriptionIosProps(
           sku: productId,
           appAccountToken: '',
           withOffer: DiscountOfferInputIOS(

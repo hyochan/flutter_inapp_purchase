@@ -90,11 +90,11 @@ if (result is FetchProductsResultProducts) {
 ```dart
 await iap.requestPurchase(
   RequestPurchaseProps.inApp((
-    ios: RequestPurchaseIosProps(
+    apple: RequestPurchaseIosProps(
       sku: 'product_id',
       quantity: 1,
     ),
-    android: RequestPurchaseAndroidProps(
+    google: RequestPurchaseAndroidProps(
       skus: ['product_id'],
     ),
     useAlternativeBilling: null,

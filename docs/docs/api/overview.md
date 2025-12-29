@@ -178,15 +178,13 @@ Initiates a purchase using platform-specific request payloads.
 **Example**:
 
 ```dart
-final request = RequestPurchase(
-  ios: RequestPurchaseIOS(sku: 'remove_ads', quantity: 1),
-  android: RequestPurchaseAndroid(skus: ['remove_ads']),
-);
-
 try {
   await FlutterInappPurchase.instance.requestPurchase(
-    request: request,
-    type: PurchaseType.inapp,
+    RequestPurchaseProps.inApp((
+      apple: RequestPurchaseIosProps(sku: 'remove_ads', quantity: 1),
+      google: RequestPurchaseAndroidProps(skus: ['remove_ads']),
+      useAlternativeBilling: null,
+    )),
   );
   // Purchase result delivered via purchaseUpdated stream
 } catch (e) {
@@ -353,11 +351,11 @@ var products = await FlutterInappPurchase.instance.fetchProducts(
 
 // 4. Request purchase
 await FlutterInappPurchase.instance.requestPurchase(
-  request: RequestPurchase(
-    ios: RequestPurchaseIOS(sku: productId, quantity: 1),
-    android: RequestPurchaseAndroid(skus: [productId]),
-  ),
-  type: PurchaseType.inapp,
+  RequestPurchaseProps.inApp((
+    apple: RequestPurchaseIosProps(sku: productId, quantity: 1),
+    google: RequestPurchaseAndroidProps(skus: [productId]),
+    useAlternativeBilling: null,
+  )),
 );
 
 // 5. Handle in listener
@@ -377,11 +375,11 @@ var subs = await FlutterInappPurchase.instance.fetchProducts(
 
 // 2. Request subscription
 await FlutterInappPurchase.instance.requestPurchase(
-  request: RequestPurchase(
-    ios: RequestPurchaseIOS(sku: subId, quantity: 1),
-    android: RequestPurchaseAndroid(skus: [subId]),
-  ),
-  type: PurchaseType.subs,
+  RequestPurchaseProps.subs((
+    apple: RequestSubscriptionIosProps(sku: subId),
+    google: RequestSubscriptionAndroidProps(skus: [subId]),
+    useAlternativeBilling: null,
+  )),
 );
 
 // 3. Check active subscriptions

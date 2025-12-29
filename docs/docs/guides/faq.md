@@ -263,7 +263,7 @@ if (Platform.isAndroid) {
   await iap.requestPurchase(
     RequestPurchaseProps.subs(
       request: RequestPurchasePropsByPlatforms(
-        android: RequestPurchaseAndroidProps(
+        google: RequestPurchaseAndroidProps(
           skus: ['new_subscription'],
           oldSkuAndroid: 'old_subscription',
           purchaseTokenAndroid: oldPurchaseToken,

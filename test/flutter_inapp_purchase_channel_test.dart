@@ -308,8 +308,8 @@ void main() {
       await expectLater(
         iap.requestPurchase(
           const types.RequestPurchaseProps.inApp((
-            ios: types.RequestPurchaseIosProps(sku: 'demo.sku'),
-            android: null,
+            apple: types.RequestPurchaseIosProps(sku: 'demo.sku'),
+            google: null,
             useAlternativeBilling: null,
           )),
         ),
@@ -344,7 +344,7 @@ void main() {
       await iap.initConnection();
 
       const props = types.RequestPurchaseProps.inApp((
-        ios: types.RequestPurchaseIosProps(
+        apple: types.RequestPurchaseIosProps(
           sku: 'ios.sku',
           appAccountToken: 'app-token',
           quantity: 3,
@@ -357,7 +357,7 @@ void main() {
             timestamp: 123456.0,
           ),
         ),
-        android: null,
+        google: null,
         useAlternativeBilling: null,
       ));
 
@@ -406,11 +406,11 @@ void main() {
       await iap.initConnection();
 
       const props = types.RequestPurchaseProps.inApp((
-        ios: types.RequestPurchaseIosProps(
+        apple: types.RequestPurchaseIosProps(
           sku: 'ios.sku',
           advancedCommerceData: 'campaign_summer_2025',
         ),
-        android: null,
+        google: null,
         useAlternativeBilling: null,
       ));
 
@@ -566,8 +566,8 @@ void main() {
       await iap.initConnection();
 
       const props = types.RequestPurchaseProps.subs((
-        ios: null,
-        android: types.RequestSubscriptionAndroidProps(
+        apple: null,
+        google: types.RequestSubscriptionAndroidProps(
           skus: <String>['sub.premium'],
         ),
         useAlternativeBilling: null,
@@ -609,8 +609,8 @@ void main() {
       await iap.initConnection();
 
       const props = types.RequestPurchaseProps.subs((
-        ios: null,
-        android: types.RequestSubscriptionAndroidProps(
+        apple: null,
+        google: types.RequestSubscriptionAndroidProps(
           skus: <String>['sub.premium'],
           isOfferPersonalized: true,
           obfuscatedAccountIdAndroid: 'acc-id',
@@ -664,8 +664,8 @@ void main() {
       await iap.initConnection();
 
       const props = types.RequestPurchaseProps.inApp((
-        ios: null,
-        android: types.RequestPurchaseAndroidProps(
+        apple: null,
+        google: types.RequestPurchaseAndroidProps(
           skus: <String>['product.premium'],
           developerBillingOption: types.DeveloperBillingOptionParamsAndroid(
             billingProgram: types.BillingProgramAndroid.ExternalPayments,
@@ -719,8 +719,8 @@ void main() {
       await iap.initConnection();
 
       const props = types.RequestPurchaseProps.subs((
-        ios: null,
-        android: types.RequestSubscriptionAndroidProps(
+        apple: null,
+        google: types.RequestSubscriptionAndroidProps(
           skus: <String>['sub.premium.monthly'],
           developerBillingOption: types.DeveloperBillingOptionParamsAndroid(
             billingProgram: types.BillingProgramAndroid.ExternalPayments,
@@ -785,8 +785,8 @@ void main() {
       await iap.initConnection();
 
       const props = types.RequestPurchaseProps.inApp((
-        ios: null,
-        android: types.RequestPurchaseAndroidProps(
+        apple: null,
+        google: types.RequestPurchaseAndroidProps(
           skus: <String>['product.coins'],
           developerBillingOption: types.DeveloperBillingOptionParamsAndroid(
             billingProgram: types.BillingProgramAndroid.ExternalPayments,
@@ -833,8 +833,8 @@ void main() {
       await expectLater(
         () => iap.requestPurchase(
           const types.RequestPurchaseProps.inApp((
-            ios: null,
-            android: types.RequestPurchaseAndroidProps(
+            apple: null,
+            google: types.RequestPurchaseAndroidProps(
               skus: <String>['android-only'],
             ),
             useAlternativeBilling: null,
@@ -872,8 +872,8 @@ void main() {
       await expectLater(
         () => iap.requestPurchase(
           const types.RequestPurchaseProps.inApp((
-            ios: types.RequestPurchaseIosProps(sku: 'ignored'),
-            android: null,
+            apple: types.RequestPurchaseIosProps(sku: 'ignored'),
+            google: null,
             useAlternativeBilling: null,
           )),
         ),
@@ -911,8 +911,8 @@ void main() {
 
       await iap.requestPurchase(
         const types.RequestPurchaseProps.inApp((
-          ios: null,
-          android: types.RequestPurchaseAndroidProps(
+          apple: null,
+          google: types.RequestPurchaseAndroidProps(
             skus: <String>['coin.pack'],
             isOfferPersonalized: true,
             obfuscatedAccountIdAndroid: 'account-1',

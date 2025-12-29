@@ -196,15 +196,15 @@ final histories = await FlutterInappPurchase.instance.getAvailablePurchases(
 // Using factory methods
 final props = RequestPurchaseProps.inApp(
   request: RequestPurchasePropsByPlatforms(
-    ios: RequestPurchaseIosProps(sku: 'product_id'),
-    android: RequestPurchaseAndroidProps(skus: ['product_id']),
+    apple: RequestPurchaseIosProps(sku: 'product_id'),
+    google: RequestPurchaseAndroidProps(skus: ['product_id']),
   ),
 );
 
 final subsProps = RequestPurchaseProps.subs(
   request: RequestSubscriptionPropsByPlatforms(
-    ios: RequestSubscriptionIosProps(sku: 'sub_id'),
-    android: RequestSubscriptionAndroidProps(skus: ['sub_id']),
+    apple: RequestSubscriptionIosProps(sku: 'sub_id'),
+    google: RequestSubscriptionAndroidProps(skus: ['sub_id']),
   ),
 );
 ```
@@ -214,16 +214,16 @@ final subsProps = RequestPurchaseProps.subs(
 // Direct constructor with type parameter
 final props = RequestPurchaseProps(
   request: RequestPurchasePropsByPlatforms(
-    ios: RequestPurchaseIosProps(sku: 'product_id'),
-    android: RequestPurchaseAndroidProps(skus: ['product_id']),
+    apple: RequestPurchaseIosProps(sku: 'product_id'),
+    google: RequestPurchaseAndroidProps(skus: ['product_id']),
   ),
   type: ProductQueryType.InApp,
 );
 
 final subsProps = RequestPurchaseProps(
   request: RequestPurchasePropsByPlatforms(
-    ios: RequestPurchaseIosProps(sku: 'sub_id'),
-    android: RequestPurchaseAndroidProps(skus: ['sub_id']),
+    apple: RequestPurchaseIosProps(sku: 'sub_id'),
+    google: RequestPurchaseAndroidProps(skus: ['sub_id']),
   ),
   type: ProductQueryType.Subs,
 );

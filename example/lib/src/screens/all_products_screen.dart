@@ -260,10 +260,10 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
         }
 
         params = RequestPurchaseProps.subs((
-          ios: !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
+          apple: !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
               ? RequestSubscriptionIosProps(sku: product.id, quantity: 1)
               : null,
-          android: !kIsWeb && defaultTargetPlatform == TargetPlatform.android
+          google: !kIsWeb && defaultTargetPlatform == TargetPlatform.android
               ? RequestSubscriptionAndroidProps(
                   skus: [product.id],
                 )
@@ -273,10 +273,10 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
       } else {
         // In-app purchase
         params = RequestPurchaseProps.inApp((
-          ios: !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
+          apple: !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS
               ? RequestPurchaseIosProps(sku: product.id, quantity: 1)
               : null,
-          android: !kIsWeb && defaultTargetPlatform == TargetPlatform.android
+          google: !kIsWeb && defaultTargetPlatform == TargetPlatform.android
               ? RequestPurchaseAndroidProps(skus: [product.id])
               : null,
           useAlternativeBilling: null,
