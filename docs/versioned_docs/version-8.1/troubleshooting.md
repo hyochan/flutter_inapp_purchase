@@ -18,6 +18,7 @@ Common issues and solutions when implementing in-app purchases with flutter_inap
 **Problem:** `flutter pub get` fails with dependency conflicts
 
 **Solution:**
+
 ```bash
 # Clear pub cache
 flutter pub cache repair
@@ -37,12 +38,14 @@ flutter pub upgrade
 
 **Solution:**
 1. Ensure iOS deployment target is 11.0+:
+
    ```xml
    <!-- ios/Podfile -->
    platform :ios, '11.0'
    ```
 
 2. Clean and rebuild:
+
    ```bash
    cd ios
    rm -rf Pods Podfile.lock
@@ -58,6 +61,7 @@ flutter pub upgrade
 
 **Solution:**
 1. Check `android/app/build.gradle` minSdkVersion:
+
    ```gradle
    defaultConfig {
        minSdkVersion 21  // Required minimum
@@ -65,6 +69,7 @@ flutter pub upgrade
    ```
 
 2. Add billing permission to `AndroidManifest.xml`:
+
    ```xml
    <uses-permission android:name="com.android.vending.BILLING" />
    ```

@@ -138,6 +138,7 @@ await FlutterInappPurchase.instance.requestPurchase(sku: 'consumable_item');
 **Problem**: Build fails with flavor errors
 
 **Solutions**:
+
 ```bash
 # Clean and rebuild
 flutter clean

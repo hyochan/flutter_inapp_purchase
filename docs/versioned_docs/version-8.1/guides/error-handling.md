@@ -145,6 +145,7 @@ try {
 Provide fallback experiences:
 
 ```dart
+// Note: In v8.2.0+, use `apple`/`google` instead of `ios`/`android`
 Future<void> handlePurchase(String productId) async {
   try {
     await _iap.requestPurchase(
