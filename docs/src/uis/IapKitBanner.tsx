@@ -1,4 +1,5 @@
 import React from "react";
+import { IAPKIT_URL, TRACKING_URL } from "../constants";
 
 interface IapKitBannerProps {
   style?: React.CSSProperties;
@@ -7,13 +8,10 @@ interface IapKitBannerProps {
 export default function IapKitBanner({ style }: IapKitBannerProps) {
   const handleClick = async () => {
     try {
-      await fetch(
-        "https://www.hyo.dev/api/ad-banner/cmjf0l1x30001249hbi91aop6",
-        {
-          method: "POST",
-          mode: "no-cors",
-        }
-      );
+      await fetch(TRACKING_URL, {
+        method: "POST",
+        mode: "no-cors",
+      });
     } catch (error) {
       // Silently ignore errors
     }
@@ -29,7 +27,7 @@ export default function IapKitBanner({ style }: IapKitBannerProps) {
       }}
     >
       <a
-        href="https://iapkit.com"
+        href={IAPKIT_URL}
         target="_blank"
         rel="noopener noreferrer"
         onClick={handleClick}

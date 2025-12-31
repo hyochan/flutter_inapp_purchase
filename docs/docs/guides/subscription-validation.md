@@ -4,6 +4,7 @@ title: Subscription Validation
 ---
 
 import IapKitBanner from "@site/src/uis/IapKitBanner";
+import IapKitLink from "@site/src/uis/IapKitLink";
 
 # Subscription Validation
 
@@ -321,6 +322,195 @@ class SubscriptionManager {
       final receiptData = await _iap.getReceiptDataIOS();
       await validateOnServer(receiptData);
     }
+  }
+}
+```
+
+## Subscription Renewal Detection
+
+iOS and Android handle subscription renewals differently, which affects how your app detects renewed subscriptions when the user opens the app.
+
+### Platform Differences
+
+| Platform | Behavior | Renewal Detection |
+|----------|----------|-------------------|
+| **iOS (StoreKit 2)** | Renewed subscriptions are automatically detected when the app launches | `purchaseUpdatedListener` fires for renewals; `getAvailablePurchases()` returns current entitlements |
+| **Android (Google Play Billing)** | `purchaseUpdatedListener` does NOT fire for renewals that occurred while the app was closed | Must call `getAvailablePurchases()` and verify with server to detect renewals |
+
+### Why This Matters
+
+On Android, if a subscription renews while your app is closed (or the device is off), the `purchaseUpdatedListener` will not emit an event for that renewal when the app reopens. This means relying solely on the listener can result in users losing access to premium features until they make a new purchase.
+
+### Recommended Solution: IAPKit Verification
+
+Use <IapKitLink>IAPKit</IapKitLink> to get authoritative subscription status on app launch:
+
+```dart
+Future<void> checkSubscriptionStatusOnLaunch() async {
+  final iap = FlutterInappPurchase.instance;
+
+  // Get available purchases from the device
+  final purchases = await iap.getAvailablePurchases();
+
+  for (final purchase in purchases) {
+    // Verify each purchase with IAPKit for authoritative status
+    final result = await iap.verifyPurchaseWithProvider(
+      VerifyPurchaseWithProviderProps(
+        provider: VerifyPurchaseProvider.iapkit,
+        iapkit: RequestVerifyPurchaseWithIapkitProps(
+          apiKey: 'your-iapkit-api-key',
+          apple: RequestVerifyPurchaseWithIapkitAppleProps(
+            jws: purchase.purchaseToken,
+          ),
+          google: RequestVerifyPurchaseWithIapkitGoogleProps(
+            purchaseToken: purchase.purchaseToken,
+          ),
+        ),
+      ),
+    );
+
+    if (result.iapkit case final iapkit?) {
+      switch (iapkit.state) {
+        case IapkitPurchaseState.Entitled:
+          // User has active subscription - grant access
+          await grantPremiumAccess(purchase.productId);
+        case IapkitPurchaseState.Expired:
+          // Subscription expired - revoke access
+          await revokePremiumAccess(purchase.productId);
+        case IapkitPurchaseState.Canceled:
+          // User canceled but may still have time remaining
+          // Check expirationDate if available
+        default:
+          debugPrint('Purchase state: ${iapkit.state}');
+      }
+    }
+  }
+}
+```
+
+### IAPKit Purchase States
+
+| State | Description | Action |
+|-------|-------------|--------|
+| `entitled` | User has active entitlement | Grant premium access |
+| `expired` | Subscription has expired | Revoke premium access |
+| `canceled` | User canceled, may have time remaining | Check expiration, show renewal prompt |
+| `pending` | Purchase pending (e.g., parental approval) | Show pending state UI |
+| `pending-acknowledgment` | Purchase needs acknowledgment (Android) | Call `finishTransaction()` |
+| `inauthentic` | Purchase failed validation | Do not grant access, investigate |
+
+### Custom Hook Example
+
+Create a reusable hook to manage subscription status:
+
+```dart
+class SubscriptionStatusManager {
+  final _iap = FlutterInappPurchase.instance;
+  final String _apiKey;
+
+  bool _isSubscribed = false;
+  IapkitPurchaseState? _subscriptionState;
+
+  SubscriptionStatusManager({required String apiKey}) : _apiKey = apiKey;
+
+  bool get isSubscribed => _isSubscribed;
+  IapkitPurchaseState? get subscriptionState => _subscriptionState;
+
+  Future<void> refreshSubscriptionStatus(List<String> subscriptionIds) async {
+    try {
+      final purchases = await _iap.getAvailablePurchases();
+
+      // Filter to subscription products only
+      final subscriptionPurchases = purchases.where(
+        (p) => subscriptionIds.contains(p.productId),
+      );
+
+      if (subscriptionPurchases.isEmpty) {
+        _isSubscribed = false;
+        _subscriptionState = null;
+        return;
+      }
+
+      // Verify the most recent subscription purchase
+      final purchase = subscriptionPurchases.first;
+      final result = await _iap.verifyPurchaseWithProvider(
+        VerifyPurchaseWithProviderProps(
+          provider: VerifyPurchaseProvider.iapkit,
+          iapkit: RequestVerifyPurchaseWithIapkitProps(
+            apiKey: _apiKey,
+            apple: RequestVerifyPurchaseWithIapkitAppleProps(
+              jws: purchase.purchaseToken,
+            ),
+            google: RequestVerifyPurchaseWithIapkitGoogleProps(
+              purchaseToken: purchase.purchaseToken,
+            ),
+          ),
+        ),
+      );
+
+      if (result.iapkit case final iapkit?) {
+        _subscriptionState = iapkit.state;
+        _isSubscribed = iapkit.isValid;
+      }
+    } catch (e) {
+      debugPrint('Failed to refresh subscription status: $e');
+    }
+  }
+}
+```
+
+### When to Check Subscription Status
+
+1. **App Launch** - Always check on `initState` or app resume
+2. **After Purchase** - Verify immediately after `purchaseUpdatedListener` fires
+3. **Periodically** - For long-running sessions, check every few hours
+4. **On Demand** - When user accesses premium features
+
+```dart
+class PremiumScreen extends StatefulWidget {
+  @override
+  State<PremiumScreen> createState() => _PremiumScreenState();
+}
+
+class _PremiumScreenState extends State<PremiumScreen> with WidgetsBindingObserver {
+  final _subscriptionManager = SubscriptionStatusManager(
+    apiKey: 'your-iapkit-api-key',
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _checkSubscription();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Check subscription when app comes to foreground
+      _checkSubscription();
+    }
+  }
+
+  Future<void> _checkSubscription() async {
+    await _subscriptionManager.refreshSubscriptionStatus([
+      'monthly_subscription',
+      'yearly_subscription',
+    ]);
+    setState(() {});
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _subscriptionManager.isSubscribed
+        ? PremiumContent()
+        : SubscriptionPaywall();
   }
 }
 ```

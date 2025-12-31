@@ -152,7 +152,7 @@ dependencies:
 Or use the command:
 
 ```bash
-flutter pub add flutter_inapp_purchase:^6.0-rc.1
+flutter pub add flutter_inapp_purchase
 ```
 
 ## 🔍 What We Need From You

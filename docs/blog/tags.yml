@@ -102,3 +102,23 @@ meta-quest:
   label: Meta Quest
   permalink: /meta-quest
   description: Meta Quest VR device support
+
+android:
+  label: Android
+  permalink: /android
+  description: Android platform updates
+
+billing:
+  label: Billing
+  permalink: /billing
+  description: Google Play Billing Library updates
+
+attribution:
+  label: Attribution
+  permalink: /attribution
+  description: App attribution and commerce data tracking
+
+external-payments:
+  label: External Payments
+  permalink: /external-payments
+  description: External payments program support

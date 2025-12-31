@@ -19,7 +19,6 @@ const sidebars: SidebarsConfig = {
           link: { type: "doc", id: "getting-started/android-setup" },
           items: ["getting-started/setup-horizon"],
         },
-        "getting-started/quickstart",
       ],
     },
     {

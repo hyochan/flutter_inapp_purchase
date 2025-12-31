@@ -3,6 +3,7 @@ sidebar_position: 2
 ---
 
 import IapKitBanner from "@site/src/uis/IapKitBanner";
+import IapKitLink from "@site/src/uis/IapKitLink";
 
 # Subscription Flow
 
@@ -128,10 +129,122 @@ enum AndroidReplacementMode {
 }
 ```
 
+## IAPKit Server Verification
+
+Use <IapKitLink>IAPKit</IapKitLink> for enterprise-grade purchase verification without maintaining your own validation infrastructure.
+
+### Complete Verification Flow
+
+```dart
+Future<void> _handlePurchaseWithVerification(Purchase purchase) async {
+  // 1. Verify purchase with IAPKit
+  final result = await iap.verifyPurchaseWithProvider(
+    VerifyPurchaseWithProviderProps(
+      provider: VerifyPurchaseProvider.iapkit,
+      iapkit: RequestVerifyPurchaseWithIapkitProps(
+        apiKey: 'your-iapkit-api-key',
+        apple: RequestVerifyPurchaseWithIapkitAppleProps(
+          jws: purchase.purchaseToken,
+        ),
+        google: RequestVerifyPurchaseWithIapkitGoogleProps(
+          purchaseToken: purchase.purchaseToken,
+        ),
+      ),
+    ),
+  );
+
+  // 2. Handle verification result
+  if (result.iapkit case final iapkit?) {
+    switch (iapkit.state) {
+      case IapkitPurchaseState.Entitled:
+        // Purchase is valid - grant access
+        await grantPremiumAccess(purchase.productId);
+        await iap.finishTransaction(purchase: purchase, isConsumable: false);
+      case IapkitPurchaseState.Expired:
+        // Subscription expired
+        await revokePremiumAccess(purchase.productId);
+      case IapkitPurchaseState.Inauthentic:
+        // Fraudulent purchase detected
+        debugPrint('Inauthentic purchase detected');
+      default:
+        debugPrint('Purchase state: ${iapkit.state}');
+    }
+  }
+}
+```
+
+### IAPKit Purchase States
+
+| State | Description | Recommended Action |
+|-------|-------------|-------------------|
+| `entitled` | User has active subscription | Grant premium access |
+| `expired` | Subscription has expired | Revoke access, show renewal prompt |
+| `canceled` | User canceled, may have time remaining | Check expiration date |
+| `pending` | Purchase pending (parental approval, etc.) | Show pending UI |
+| `pending-acknowledgment` | Needs acknowledgment (Android) | Call `finishTransaction()` |
+| `inauthentic` | Failed validation | Do not grant access |
+
+### Checking Subscription Status on App Launch
+
+```dart
+class SubscriptionManager {
+  final _iap = FlutterInappPurchase.instance;
+  final String _apiKey;
+
+  SubscriptionManager({required String apiKey}) : _apiKey = apiKey;
+
+  Future<bool> checkSubscriptionOnLaunch(List<String> subscriptionIds) async {
+    try {
+      // Get all available purchases
+      final purchases = await _iap.getAvailablePurchases();
+
+      // Filter to subscriptions only
+      final subscriptionPurchases = purchases.where(
+        (p) => subscriptionIds.contains(p.productId),
+      );
+
+      for (final purchase in subscriptionPurchases) {
+        final result = await _iap.verifyPurchaseWithProvider(
+          VerifyPurchaseWithProviderProps(
+            provider: VerifyPurchaseProvider.iapkit,
+            iapkit: RequestVerifyPurchaseWithIapkitProps(
+              apiKey: _apiKey,
+              apple: RequestVerifyPurchaseWithIapkitAppleProps(
+                jws: purchase.purchaseToken,
+              ),
+              google: RequestVerifyPurchaseWithIapkitGoogleProps(
+                purchaseToken: purchase.purchaseToken,
+              ),
+            ),
+          ),
+        );
+
+        if (result.iapkit case final iapkit? when iapkit.isValid) {
+          return true; // Active subscription found
+        }
+      }
+
+      return false; // No active subscription
+    } catch (e) {
+      debugPrint('Failed to check subscription: $e');
+      return false;
+    }
+  }
+}
+
+// Usage
+final manager = SubscriptionManager(apiKey: 'your-iapkit-api-key');
+final isSubscribed = await manager.checkSubscriptionOnLaunch([
+  'monthly_subscription',
+  'yearly_subscription',
+]);
+```
+
 ## Best Practices
 
 1. **Use lightweight checks** - Use `getActiveSubscriptions()` for quick status checks
-2. **Verify server-side** - Always validate subscription status on your backend
+2. **Verify server-side** - Always validate subscription status with <IapKitLink>IAPKit</IapKitLink>
 3. **Handle upgrades properly** - Choose appropriate replacement mode for Android
-4. **Check subscription status** - Regularly verify subscription validity
+4. **Check subscription status** - Verify on app launch and app resume
 5. **Handle expiration** - Monitor subscription expiry dates and renewal status
+6. **Check renewals on Android** - `purchaseUpdatedListener` doesn't fire for renewals while app is closed

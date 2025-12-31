@@ -4,6 +4,7 @@ title: FAQ
 ---
 
 import IapKitBanner from "@site/src/uis/IapKitBanner";
+import IapKitLink from "@site/src/uis/IapKitLink";
 
 # Frequently Asked Questions
 
@@ -303,6 +304,65 @@ class ProductConfig {
   }
 }
 ```
+
+## Subscription Renewals
+
+### Are subscription renewals automatically detected when the app launches?
+
+The behavior differs by platform:
+
+| Platform | Auto-Detection | Recommendation |
+|----------|----------------|----------------|
+| **iOS** | Yes | `purchaseUpdatedListener` fires for renewals that occurred while the app was closed |
+| **Android** | No | `purchaseUpdatedListener` does NOT fire for renewals that occurred while the app was closed |
+
+**Recommended approach**: Always call `getAvailablePurchases()` on app launch and verify with <IapKitLink>IAPKit</IapKitLink>'s `verifyPurchaseWithProvider()` to get authoritative subscription status:
+
+```dart
+@override
+void initState() {
+  super.initState();
+  _checkSubscriptionOnLaunch();
+}
+
+Future<void> _checkSubscriptionOnLaunch() async {
+  final purchases = await iap.getAvailablePurchases();
+
+  for (final purchase in purchases) {
+    final result = await iap.verifyPurchaseWithProvider(
+      VerifyPurchaseWithProviderProps(
+        provider: VerifyPurchaseProvider.iapkit,
+        iapkit: RequestVerifyPurchaseWithIapkitProps(
+          apiKey: 'your-iapkit-api-key',
+          apple: RequestVerifyPurchaseWithIapkitAppleProps(
+            jws: purchase.purchaseToken,
+          ),
+          google: RequestVerifyPurchaseWithIapkitGoogleProps(
+            purchaseToken: purchase.purchaseToken,
+          ),
+        ),
+      ),
+    );
+
+    if (result.iapkit case final iapkit? when iapkit.isValid) {
+      // User has active subscription
+      grantPremiumAccess();
+    }
+  }
+}
+```
+
+See [Subscription Renewal Detection](./subscription-validation#subscription-renewal-detection) for detailed guidance.
+
+### Why doesn't my subscription status update on Android?
+
+On Android, `purchaseUpdatedListener` only fires for purchases made while the app is running. If a subscription renews while your app is closed:
+
+1. The listener will NOT fire when the app reopens
+2. You must explicitly call `getAvailablePurchases()` to get current purchases
+3. Use server-side verification (like <IapKitLink>IAPKit</IapKitLink>) to confirm subscription validity
+
+This is a Google Play Billing Library limitation, not a flutter_inapp_purchase issue.
 
 ## Troubleshooting
 

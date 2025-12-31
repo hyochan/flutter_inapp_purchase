@@ -66,7 +66,7 @@ We will keep working on it as time goes by just like we did in **react-native-ia
 Get started with flutter_inapp_purchase in minutes:
 
 ```bash
-flutter pub add flutter_inapp_purchase:^6.7.0
+flutter pub add flutter_inapp_purchase
 ```
 
 ```dart

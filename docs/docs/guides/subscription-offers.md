@@ -4,6 +4,7 @@ title: Subscription Offers
 ---
 
 import IapKitBanner from "@site/src/uis/IapKitBanner";
+import IapKitLink from "@site/src/uis/IapKitLink";
 
 # Subscription Offers
 
@@ -114,7 +115,7 @@ AndroidReplacementMode.chargeFullPrice.value           // 5: Charge full price n
 
 > **Related Issues**: [react-native-iap#3096](https://github.com/hyochan/react-native-iap/issues/3096)
 
-The Google Play Billing Library does not directly expose the `basePlanId` in purchase objects. To retrieve `basePlanId` and other subscription details, use server-side verification with [IAPKit](https://www.iapkit.com).
+The Google Play Billing Library does not directly expose the `basePlanId` in purchase objects. To retrieve `basePlanId` and other subscription details, use server-side verification with <IapKitLink>IAPKit</IapKitLink>.
 
 ### Using IAPKit for basePlanId
 
