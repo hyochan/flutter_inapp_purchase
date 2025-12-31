@@ -536,7 +536,7 @@ class AndroidTroubleshooting {
 
     // Check Play Store availability
     try {
-      final store = await FlutterInappPurchase.instance.getStore();
+      final store = await FlutterInappPurchase.instance.getStorefront();
       debugPrint('Current store: $store');
 
       if (store != 'play') {
