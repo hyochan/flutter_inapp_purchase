@@ -52,7 +52,17 @@ await iap.requestPurchaseWithBuilder(
 );
 ```
 
-## 🛠️ Development
+## Using with AI Assistants
+
+flutter_inapp_purchase provides AI-friendly documentation for Cursor, GitHub Copilot, Claude, and ChatGPT.
+
+**[AI Assistants Guide](https://hyochan.github.io/flutter_inapp_purchase/docs/guides/ai-assistants)**
+
+Quick links:
+- [llms.txt](https://hyochan.github.io/flutter_inapp_purchase/llms.txt) - Quick reference
+- [llms-full.txt](https://hyochan.github.io/flutter_inapp_purchase/llms-full.txt) - Full API reference
+
+## Development
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines.
 

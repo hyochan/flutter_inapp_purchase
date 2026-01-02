@@ -1,0 +1,329 @@
+# flutter_inapp_purchase
+
+> A comprehensive Flutter plugin for implementing in-app purchases that conforms to the OpenIAP specification.
+
+- Pub.dev: https://pub.dev/packages/flutter_inapp_purchase
+- GitHub: https://github.com/hyochan/flutter_inapp_purchase
+- Documentation: https://hyochan.github.io/flutter_inapp_purchase
+- OpenIAP Specification: https://openiap.dev
+
+## Installation
+
+```yaml
+dependencies:
+  flutter_inapp_purchase: ^8.0.0
+```
+
+## Quick Start
+
+```dart
+import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
+
+// Get instance
+final iap = FlutterInappPurchase.instance;
+
+// Initialize connection
+await iap.initConnection();
+
+// Set up listeners BEFORE making purchases
+iap.purchaseUpdatedListener.listen((purchase) {
+  // Handle successful purchase
+  await iap.finishTransaction(purchase: purchase, isConsumable: false);
+});
+
+iap.purchaseErrorListener.listen((error) {
+  // Handle purchase error
+  print('Error: ${error.code} - ${error.message}');
+});
+
+// Fetch products with explicit type parameter
+final products = await iap.fetchProducts<Product>(
+  skus: ['product_id_1', 'product_id_2'],
+  type: ProductQueryType.InApp,
+);
+
+// Request purchase using builder pattern
+await iap.requestPurchaseWithBuilder(
+  build: (builder) {
+    builder
+      ..type = ProductQueryType.InApp
+      ..ios.sku = 'product_id'
+      ..android.skus = ['product_id'];
+  },
+);
+
+// End connection when done
+await iap.endConnection();
+```
+
+## Core API Reference
+
+### Connection Management
+
+```dart
+// Initialize IAP connection
+Future<bool> initConnection({
+  AlternativeBillingModeAndroid? alternativeBillingModeAndroid,
+  BillingProgramAndroid? enableBillingProgramAndroid,
+});
+
+// End IAP connection
+Future<bool> endConnection();
+```
+
+### Product Fetching
+
+```dart
+// Fetch products with type safety
+Future<List<T>> fetchProducts<T extends ProductCommon>({
+  required List<String> skus,
+  ProductQueryType type = ProductQueryType.InApp,
+});
+
+// For in-app products
+final products = await iap.fetchProducts<Product>(skus: [...], type: ProductQueryType.InApp);
+
+// For subscriptions
+final subs = await iap.fetchProducts<ProductSubscription>(skus: [...], type: ProductQueryType.Subs);
+
+// For all products
+final all = await iap.fetchProducts<ProductCommon>(skus: [...], type: ProductQueryType.All);
+```
+
+### Purchase Operations
+
+```dart
+// Request purchase with props
+Future<void> requestPurchase(RequestPurchaseProps params);
+
+// Request purchase with builder (recommended)
+Future<void> requestPurchaseWithBuilder({
+  required void Function(RequestPurchaseBuilder) build,
+});
+
+// Finish transaction (required after purchase)
+Future<void> finishTransaction({
+  required Purchase purchase,
+  bool? isConsumable,
+});
+
+// Get available purchases
+Future<List<Purchase>> getAvailablePurchases({
+  bool? onlyIncludeActiveItemsIOS,
+  bool? alsoPublishToEventListenerIOS,
+});
+
+// Restore purchases
+Future<void> restorePurchases();
+```
+
+### Subscription Management
+
+```dart
+// Get active subscriptions with detailed info
+Future<List<ActiveSubscription>> getActiveSubscriptions([List<String>? subscriptionIds]);
+
+// Check if user has active subscriptions
+Future<bool> hasActiveSubscriptions([List<String>? subscriptionIds]);
+```
+
+### Event Streams
+
+```dart
+// Purchase success stream
+Stream<Purchase> get purchaseUpdatedListener;
+
+// Purchase error stream
+Stream<PurchaseError> get purchaseErrorListener;
+
+// iOS promoted product stream
+Stream<String?> get purchasePromoted;
+
+// Android user choice billing stream
+Stream<UserChoiceBillingDetails> get userChoiceBillingAndroid;
+```
+
+## Key Types
+
+### ProductQueryType
+
+```dart
+enum ProductQueryType {
+  InApp,  // One-time purchases
+  Subs,   // Subscriptions
+  All,    // Both types
+}
+```
+
+### Product Types
+
+```dart
+// Base product types
+abstract class ProductCommon { ... }
+class Product extends ProductCommon { ... }
+class ProductSubscription extends ProductCommon { ... }
+
+// Platform-specific
+class ProductIOS extends Product { ... }
+class ProductAndroid extends Product { ... }
+class ProductSubscriptionIOS extends ProductSubscription { ... }
+class ProductSubscriptionAndroid extends ProductSubscription { ... }
+```
+
+### Purchase Types
+
+```dart
+abstract class Purchase {
+  String get id;
+  String get productId;
+  String? get purchaseToken;
+  PurchaseState get transactionState;
+}
+
+class PurchaseIOS extends Purchase { ... }
+class PurchaseAndroid extends Purchase { ... }
+```
+
+### PurchaseState
+
+```dart
+enum PurchaseState {
+  Pending,    // Purchase pending
+  Purchased,  // Purchase completed
+  Unknown,    // Unknown state
+}
+```
+
+### ErrorCode
+
+```dart
+enum ErrorCode {
+  Unknown,
+  UserCancelled,
+  ItemUnavailable,
+  NetworkError,
+  ServiceError,
+  AlreadyOwned,
+  NotPrepared,
+  DeveloperError,
+  // ... more codes
+}
+```
+
+## Common Patterns
+
+### Complete Purchase Flow
+
+```dart
+class IAPService {
+  final iap = FlutterInappPurchase.instance;
+  StreamSubscription? _purchaseSubscription;
+  StreamSubscription? _errorSubscription;
+
+  Future<void> initialize() async {
+    // Set up listeners first
+    _purchaseSubscription = iap.purchaseUpdatedListener.listen(_handlePurchase);
+    _errorSubscription = iap.purchaseErrorListener.listen(_handleError);
+
+    // Then initialize
+    await iap.initConnection();
+  }
+
+  Future<void> _handlePurchase(Purchase purchase) async {
+    // 1. Verify on server
+    final isValid = await verifyOnServer(purchase);
+    if (!isValid) return;
+
+    // 2. Deliver content
+    await deliverContent(purchase.productId);
+
+    // 3. Finish transaction
+    await iap.finishTransaction(
+      purchase: purchase,
+      isConsumable: isConsumableProduct(purchase.productId),
+    );
+  }
+
+  void _handleError(PurchaseError error) {
+    if (error.code == ErrorCode.UserCancelled) {
+      // User cancelled, no action needed
+      return;
+    }
+    // Show error to user
+    showError(getUserFriendlyErrorMessage(error));
+  }
+
+  void dispose() {
+    _purchaseSubscription?.cancel();
+    _errorSubscription?.cancel();
+    iap.endConnection();
+  }
+}
+```
+
+### Subscription with Offers (Android)
+
+```dart
+await iap.requestPurchaseWithBuilder(
+  build: (builder) {
+    builder
+      ..type = ProductQueryType.Subs
+      ..ios.sku = 'monthly_sub'
+      ..android.skus = ['monthly_sub']
+      ..android.subscriptionOffers = [
+        AndroidSubscriptionOfferInput(
+          offerId: 'offer_id',
+          productId: 'monthly_sub',
+          basePlanId: 'base_plan',
+        ),
+      ];
+  },
+);
+```
+
+## Error Handling
+
+```dart
+try {
+  await iap.requestPurchaseWithBuilder(build: (b) => ...);
+} on PurchaseError catch (e) {
+  switch (e.code) {
+    case ErrorCode.UserCancelled:
+      // User cancelled - no action needed
+      break;
+    case ErrorCode.NetworkError:
+      showRetryDialog();
+      break;
+    case ErrorCode.AlreadyOwned:
+      await restorePurchases();
+      break;
+    default:
+      showGenericError(e.message);
+  }
+}
+
+// Get user-friendly message
+final message = getUserFriendlyErrorMessage(error);
+```
+
+## Platform Requirements
+
+### iOS
+- iOS 15.0+ (StoreKit 2)
+- Xcode 15.0+
+- Configure In-App Purchases in App Store Connect
+- Add StoreKit capability
+
+### Android
+- Android API 21+
+- Google Play Billing Library 6.0+
+- Configure products in Google Play Console
+- Add billing permission: `<uses-permission android:name="com.android.vending.BILLING"/>`
+
+## Links
+
+- Documentation: https://hyochan.github.io/flutter_inapp_purchase
+- GitHub: https://github.com/hyochan/flutter_inapp_purchase
+- Pub.dev: https://pub.dev/packages/flutter_inapp_purchase
+- OpenIAP Spec: https://openiap.dev
+- Issues: https://github.com/hyochan/flutter_inapp_purchase/issues

@@ -1,0 +1,1447 @@
+# flutter_inapp_purchase - Complete API Reference
+
+> A comprehensive Flutter plugin for implementing in-app purchases that conforms to the OpenIAP specification.
+
+- Pub.dev: https://pub.dev/packages/flutter_inapp_purchase
+- GitHub: https://github.com/hyochan/flutter_inapp_purchase
+- Documentation: https://hyochan.github.io/flutter_inapp_purchase
+- OpenIAP Specification: https://openiap.dev
+
+## Table of Contents
+
+1. [Installation & Setup](#installation--setup)
+2. [Complete API Reference](#complete-api-reference)
+3. [Type Definitions](#type-definitions)
+4. [Error Codes](#error-codes)
+5. [Platform-Specific APIs](#platform-specific-apis)
+6. [Implementation Patterns](#implementation-patterns)
+7. [Troubleshooting](#troubleshooting)
+
+---
+
+## Installation & Setup
+
+### Installation
+
+```yaml
+dependencies:
+  flutter_inapp_purchase: ^8.0.0
+```
+
+### iOS Setup
+
+1. Open your iOS project in Xcode
+2. Add "In-App Purchase" capability
+3. Configure products in App Store Connect
+4. For StoreKit 2 testing, create a StoreKit Configuration file
+
+**Minimum Requirements:**
+- iOS 15.0+ (StoreKit 2)
+- Xcode 15.0+
+
+### Android Setup
+
+1. Add billing permission to `AndroidManifest.xml`:
+
+```xml
+<uses-permission android:name="com.android.vending.BILLING"/>
+```
+
+2. Configure products in Google Play Console
+3. Use signed APK/AAB for testing (debug builds won't work with real products)
+
+**Minimum Requirements:**
+- Android API 21+
+- Google Play Billing Library 6.0+
+
+---
+
+## Complete API Reference
+
+### FlutterInappPurchase Class
+
+The main class for interacting with in-app purchases.
+
+#### Getting Instance
+
+```dart
+// Singleton instance (recommended)
+final iap = FlutterInappPurchase.instance;
+
+// Or create new instance
+final iap = FlutterInappPurchase();
+```
+
+### Connection Management
+
+#### initConnection()
+
+Initializes the connection to the platform store. Must be called before any other IAP operations.
+
+```dart
+Future<bool> initConnection({
+  AlternativeBillingModeAndroid? alternativeBillingModeAndroid,
+  BillingProgramAndroid? enableBillingProgramAndroid,
+}) async
+```
+
+**Parameters:**
+- `alternativeBillingModeAndroid` - Alternative billing mode for Android (optional)
+- `enableBillingProgramAndroid` - Billing program for Android 8.2.0+ (optional)
+
+**Returns:** `true` if initialization successful
+
+**Example:**
+
+```dart
+try {
+  await iap.initConnection();
+  debugPrint('IAP connection initialized');
+} catch (e) {
+  debugPrint('Failed to initialize IAP: $e');
+}
+
+// With alternative billing (Android)
+await iap.initConnection(
+  alternativeBillingModeAndroid: AlternativeBillingModeAndroid(
+    mode: AlternativeBillingMode.UserChoice,
+  ),
+);
+```
+
+#### endConnection()
+
+Ends the connection to the platform store. Call when IAP is no longer needed.
+
+```dart
+Future<bool> endConnection() async
+```
+
+**Returns:** `true` if connection ended successfully
+
+**Example:**
+
+```dart
+@override
+void dispose() {
+  iap.endConnection();
+  super.dispose();
+}
+```
+
+### Event Streams
+
+#### purchaseUpdatedListener
+
+Stream that emits successful purchases. Listen to this BEFORE making purchase requests.
+
+```dart
+Stream<Purchase> get purchaseUpdatedListener
+```
+
+**Example:**
+
+```dart
+StreamSubscription? _purchaseSubscription;
+
+void setupListeners() {
+  _purchaseSubscription = iap.purchaseUpdatedListener.listen((purchase) {
+    debugPrint('Purchase received: ${purchase.productId}');
+    _handlePurchase(purchase);
+  });
+}
+
+@override
+void dispose() {
+  _purchaseSubscription?.cancel();
+  super.dispose();
+}
+```
+
+#### purchaseErrorListener
+
+Stream that emits purchase errors.
+
+```dart
+Stream<PurchaseError> get purchaseErrorListener
+```
+
+**Example:**
+
+```dart
+StreamSubscription? _errorSubscription;
+
+_errorSubscription = iap.purchaseErrorListener.listen((error) {
+  debugPrint('Error: ${error.code} - ${error.message}');
+  _handleError(error);
+});
+```
+
+#### purchasePromoted
+
+Stream that emits promoted product IDs (iOS only).
+
+```dart
+Stream<String?> get purchasePromoted
+```
+
+**Example:**
+
+```dart
+iap.purchasePromoted.listen((productId) async {
+  if (productId != null) {
+    // User tapped promoted product in App Store
+    await iap.requestPurchaseWithBuilder(
+      build: (builder) {
+        builder.ios.sku = productId;
+        builder.type = ProductQueryType.InApp;
+      },
+    );
+  }
+});
+```
+
+#### userChoiceBillingAndroid
+
+Stream for Android user choice billing events.
+
+```dart
+Stream<UserChoiceBillingDetails> get userChoiceBillingAndroid
+```
+
+#### developerProvidedBillingAndroid
+
+Stream for Android developer-provided billing events (8.3.0+).
+
+```dart
+Stream<DeveloperProvidedBillingDetailsAndroid> get developerProvidedBillingAndroid
+```
+
+### Product Operations
+
+#### fetchProducts<T>()
+
+Fetches product information from the store with type safety.
+
+```dart
+Future<List<T>> fetchProducts<T extends ProductCommon>({
+  required List<String> skus,
+  ProductQueryType type = ProductQueryType.InApp,
+}) async
+```
+
+**Parameters:**
+- `skus` - List of product identifiers
+- `type` - Product type (InApp, Subs, or All)
+
+**Type Parameter:**
+- `T` - Must extend `ProductCommon`. Use:
+  - `Product` for InApp type
+  - `ProductSubscription` for Subs type
+  - `ProductCommon` for All type
+
+**Returns:** `List<T>` of products
+
+**Examples:**
+
+```dart
+// Fetch in-app products
+final products = await iap.fetchProducts<Product>(
+  skus: ['coins_100', 'coins_500'],
+  type: ProductQueryType.InApp,
+);
+
+// Fetch subscriptions
+final subscriptions = await iap.fetchProducts<ProductSubscription>(
+  skus: ['monthly_sub', 'yearly_sub'],
+  type: ProductQueryType.Subs,
+);
+
+// Fetch all product types
+final allProducts = await iap.fetchProducts<ProductCommon>(
+  skus: ['coins_100', 'monthly_sub'],
+  type: ProductQueryType.All,
+);
+
+// Access product info
+for (final product in products) {
+  debugPrint('${product.title}: ${product.displayPrice}');
+
+  if (product is ProductIOS) {
+    debugPrint('iOS: ${product.displayName}');
+  } else if (product is ProductAndroid) {
+    debugPrint('Android: ${product.name}');
+  }
+}
+```
+
+### Purchase Operations
+
+#### requestPurchase()
+
+Initiates a purchase request using props.
+
+```dart
+Future<void> requestPurchase(RequestPurchaseProps params) async
+```
+
+**Parameters:**
+- `params` - Purchase request props
+
+**Example:**
+
+```dart
+// In-app purchase
+await iap.requestPurchase(
+  RequestPurchaseProps.inApp((
+    apple: RequestPurchaseIosProps(sku: 'product_id'),
+    google: RequestPurchaseAndroidProps(skus: ['product_id']),
+    useAlternativeBilling: null,
+  )),
+);
+
+// Subscription purchase
+await iap.requestPurchase(
+  RequestPurchaseProps.subs((
+    apple: RequestSubscriptionIosProps(sku: 'sub_id'),
+    google: RequestSubscriptionAndroidProps(
+      skus: ['sub_id'],
+      subscriptionOffers: [
+        AndroidSubscriptionOfferInput(
+          offerId: 'offer_id',
+          productId: 'sub_id',
+          basePlanId: 'base_plan',
+        ),
+      ],
+    ),
+    useAlternativeBilling: null,
+  )),
+);
+```
+
+#### requestPurchaseWithBuilder()
+
+Initiates a purchase request using builder pattern (recommended).
+
+```dart
+Future<void> requestPurchaseWithBuilder({
+  required void Function(RequestPurchaseBuilder) build,
+}) async
+```
+
+**Example:**
+
+```dart
+// In-app purchase
+await iap.requestPurchaseWithBuilder(
+  build: (builder) {
+    builder
+      ..type = ProductQueryType.InApp
+      ..ios.sku = 'product_id'
+      ..ios.appAccountToken = userId
+      ..android.skus = ['product_id']
+      ..android.obfuscatedAccountIdAndroid = userId;
+  },
+);
+
+// Subscription with offers
+await iap.requestPurchaseWithBuilder(
+  build: (builder) {
+    builder
+      ..type = ProductQueryType.Subs
+      ..ios.sku = 'monthly_sub'
+      ..ios.withOffer = DiscountOfferInputIOS(
+        identifier: 'offer_id',
+        keyIdentifier: 'key_id',
+        nonce: 'nonce',
+        signature: 'signature',
+        timestamp: timestamp,
+      )
+      ..android.skus = ['monthly_sub']
+      ..android.subscriptionOffers = [
+        AndroidSubscriptionOfferInput(
+          offerId: 'offer_id',
+          productId: 'monthly_sub',
+          basePlanId: 'base_plan',
+        ),
+      ];
+  },
+);
+
+// With alternative billing (Android)
+await iap.requestPurchaseWithBuilder(
+  build: (builder) {
+    builder
+      ..type = ProductQueryType.InApp
+      ..android.skus = ['product_id']
+      ..useAlternativeBilling = true;
+  },
+);
+```
+
+#### finishTransaction()
+
+Completes a transaction after processing. Required for all purchases.
+
+```dart
+Future<void> finishTransaction({
+  required Purchase purchase,
+  bool? isConsumable,
+}) async
+```
+
+**Parameters:**
+- `purchase` - The purchase to finish
+- `isConsumable` - Whether product is consumable (default: false)
+
+**Platform Behavior:**
+- **iOS:** Calls `finishTransaction` on the transaction
+- **Android (consumable):** Calls `consumePurchase`
+- **Android (non-consumable/subscription):** Calls `acknowledgePurchase`
+
+**Example:**
+
+```dart
+// Consumable product (coins, gems, etc.)
+await iap.finishTransaction(
+  purchase: purchase,
+  isConsumable: true,
+);
+
+// Non-consumable product (premium upgrade, ad removal)
+await iap.finishTransaction(
+  purchase: purchase,
+  isConsumable: false,
+);
+```
+
+#### getAvailablePurchases()
+
+Gets non-consumed/non-acknowledged purchases.
+
+```dart
+Future<List<Purchase>> getAvailablePurchases({
+  bool? onlyIncludeActiveItemsIOS,
+  bool? alsoPublishToEventListenerIOS,
+}) async
+```
+
+**Parameters:**
+- `onlyIncludeActiveItemsIOS` - When true (default), excludes expired subscriptions (iOS only)
+- `alsoPublishToEventListenerIOS` - When true, replays purchases through listener (iOS only)
+
+**Example:**
+
+```dart
+// Get active purchases only (default)
+final purchases = await iap.getAvailablePurchases();
+
+// Include expired subscriptions (iOS)
+final allPurchases = await iap.getAvailablePurchases(
+  onlyIncludeActiveItemsIOS: false,
+  alsoPublishToEventListenerIOS: true,
+);
+
+for (final purchase in purchases) {
+  debugPrint('${purchase.productId}: ${purchase.transactionState}');
+}
+```
+
+#### restorePurchases()
+
+Restores previous purchases.
+
+```dart
+Future<void> restorePurchases() async
+```
+
+**Example:**
+
+```dart
+ElevatedButton(
+  onPressed: () async {
+    await iap.restorePurchases();
+    // Purchases will be delivered via purchaseUpdatedListener
+  },
+  child: Text('Restore Purchases'),
+)
+```
+
+### Subscription Management
+
+#### getActiveSubscriptions()
+
+Gets active subscriptions with detailed information including renewal status.
+
+```dart
+Future<List<ActiveSubscription>> getActiveSubscriptions([
+  List<String>? subscriptionIds,
+]) async
+```
+
+**Parameters:**
+- `subscriptionIds` - Optional list of subscription IDs to check
+
+**Returns:** List of `ActiveSubscription` objects
+
+**Example:**
+
+```dart
+final subscriptions = await iap.getActiveSubscriptions(['monthly_sub', 'yearly_sub']);
+
+for (final sub in subscriptions) {
+  debugPrint('Product: ${sub.productId}');
+  debugPrint('Is Active: ${sub.isActive}');
+
+  // iOS-specific renewal info
+  if (sub.renewalInfoIOS != null) {
+    debugPrint('Auto-renewing: ${sub.renewalInfoIOS!.willAutoRenew}');
+    debugPrint('Expiration date: ${sub.expirationDateIOS}');
+  }
+
+  // Android-specific info
+  if (sub.autoRenewingAndroid != null) {
+    debugPrint('Auto-renewing: ${sub.autoRenewingAndroid}');
+  }
+}
+```
+
+#### hasActiveSubscriptions()
+
+Checks if user has any active subscriptions.
+
+```dart
+Future<bool> hasActiveSubscriptions([
+  List<String>? subscriptionIds,
+]) async
+```
+
+**Example:**
+
+```dart
+final hasActive = await iap.hasActiveSubscriptions(['monthly_sub', 'yearly_sub']);
+
+if (hasActive) {
+  // Show premium content
+  showPremiumContent();
+} else {
+  // Show subscription paywall
+  showPaywall();
+}
+```
+
+### Purchase Verification
+
+#### validateReceiptIOS()
+
+Validates receipt using StoreKit 2 (iOS only). For local testing only.
+
+```dart
+Future<VerifyPurchaseResultIOS> validateReceiptIOS({
+  VerifyPurchaseAppleOptions? apple,
+  VerifyPurchaseGoogleOptions? google,
+  VerifyPurchaseHorizonOptions? horizon,
+}) async
+```
+
+**Example:**
+
+```dart
+final result = await iap.validateReceiptIOS(
+  apple: VerifyPurchaseAppleOptions(sku: 'premium_upgrade'),
+);
+
+if (result.isValid) {
+  debugPrint('Local validation passed');
+  debugPrint('JWS: ${result.jwsRepresentation}');
+
+  // Send JWS to your server for production validation
+  await verifyOnServer(result.jwsRepresentation);
+}
+```
+
+#### verifyPurchaseWithProvider()
+
+Verifies purchases using external providers like IAPKit.
+
+```dart
+Future<VerifyPurchaseWithProviderResult> verifyPurchaseWithProvider({
+  required PurchaseVerificationProvider provider,
+  RequestVerifyPurchaseWithIapkitProps? iapkit,
+}) async
+```
+
+**Example:**
+
+```dart
+final result = await iap.verifyPurchaseWithProvider(
+  provider: PurchaseVerificationProvider.Iapkit,
+  iapkit: RequestVerifyPurchaseWithIapkitProps(
+    apiKey: 'your-iapkit-api-key',
+    apple: RequestVerifyPurchaseWithIapkitAppleProps(
+      jws: purchase.purchaseToken ?? '',
+    ),
+    // Or for Android:
+    google: RequestVerifyPurchaseWithIapkitGoogleProps(
+      purchaseToken: purchase.purchaseToken ?? '',
+    ),
+  ),
+);
+
+if (result.iapkit?.isValid == true) {
+  debugPrint('Purchase valid!');
+  debugPrint('State: ${result.iapkit?.state}'); // entitled, expired, etc.
+}
+```
+
+---
+
+## Type Definitions
+
+### ProductQueryType
+
+```dart
+enum ProductQueryType {
+  InApp,  // One-time purchases
+  Subs,   // Subscriptions
+  All,    // Both types
+}
+```
+
+### Product Types
+
+#### ProductCommon (Base Class)
+
+```dart
+abstract class ProductCommon {
+  String get productId;
+  String get title;
+  String get description;
+  double get price;
+  String get displayPrice;
+  String get currency;
+}
+```
+
+#### Product (In-App Products)
+
+```dart
+abstract class Product extends ProductCommon {
+  ProductType get type; // ProductType.InApp
+}
+```
+
+#### ProductSubscription (Subscriptions)
+
+```dart
+abstract class ProductSubscription extends ProductCommon {
+  ProductType get type; // ProductType.Subs
+}
+```
+
+#### ProductIOS
+
+```dart
+class ProductIOS extends Product {
+  final String id;
+  final String displayName;
+  final String description;
+  final double price;
+  final String displayPrice;
+  final ProductTypeIOS type;
+  final SubscriptionInfoIOS? subscription;
+  final bool isFamilyShareable;
+  final String? subscriptionGroupIdIOS;
+}
+```
+
+#### ProductAndroid
+
+```dart
+class ProductAndroid extends Product {
+  final String productId;
+  final ProductType productType;
+  final String title;
+  final String name;
+  final String description;
+  final ProductAndroidOneTimePurchaseOfferDetail? oneTimePurchaseOfferDetails;
+}
+```
+
+#### ProductSubscriptionIOS
+
+```dart
+class ProductSubscriptionIOS extends ProductSubscription {
+  final String id;
+  final String displayName;
+  final String description;
+  final double price;
+  final String displayPrice;
+  final SubscriptionInfoIOS subscription;
+  final List<SubscriptionOfferIOS>? subscriptionOffers;
+  final String? subscriptionGroupIdIOS;
+}
+```
+
+#### ProductSubscriptionAndroid
+
+```dart
+class ProductSubscriptionAndroid extends ProductSubscription {
+  final String productId;
+  final String title;
+  final String name;
+  final String description;
+  final List<ProductSubscriptionAndroidOfferDetails>? subscriptionOfferDetailsAndroid;
+}
+```
+
+### Purchase Types
+
+#### Purchase (Base Class)
+
+```dart
+abstract class Purchase {
+  String get id;
+  String get productId;
+  String? get purchaseToken;
+  PurchaseState get transactionState;
+  bool get isAutoRenewing;
+  DateTime? get purchaseDate;
+}
+```
+
+#### PurchaseIOS
+
+```dart
+class PurchaseIOS extends Purchase {
+  final String id;
+  final String originalId;
+  final String productId;
+  final DateTime purchaseDate;
+  final PurchaseState transactionState;
+  final String? receiptData;
+  final int? quantity;
+  final String? originalTransactionIdentifierIOS;
+  final String? appAccountToken;
+  final DateTime? expirationDateIOS;
+  final bool isUpgradedIOS;
+  final String? webOrderLineItemIdIOS;
+  final String? subscriptionGroupIdIOS;
+}
+```
+
+#### PurchaseAndroid
+
+```dart
+class PurchaseAndroid extends Purchase {
+  final String? orderId;
+  final String productId;
+  final PurchaseState purchaseState;
+  final int purchaseTime;
+  final String purchaseToken;
+  final bool acknowledged;
+  final bool autoRenewing;
+  final int? quantity;
+  final String? obfuscatedAccountIdAndroid;
+  final String? obfuscatedProfileIdAndroid;
+}
+```
+
+### PurchaseState
+
+```dart
+enum PurchaseState {
+  Pending,    // Purchase pending
+  Purchased,  // Purchase completed
+  Unknown,    // Unknown state
+}
+```
+
+### ActiveSubscription
+
+```dart
+class ActiveSubscription {
+  final String productId;
+  final bool isActive;
+  final DateTime? expirationDateIOS;
+  final RenewalInfoIOS? renewalInfoIOS;
+  final bool? autoRenewingAndroid;
+  final Purchase? latestPurchase;
+}
+```
+
+### RenewalInfoIOS
+
+```dart
+class RenewalInfoIOS {
+  final bool willAutoRenew;
+  final String? autoRenewProductId;
+  final String? expirationReason;
+  final DateTime? gracePeriodExpirationDate;
+  final bool? isInBillingRetryPeriod;
+  final String? offerIdentifier;
+  final String? offerType;
+}
+```
+
+### PurchaseError
+
+```dart
+class PurchaseError {
+  final ErrorCode? code;
+  final String message;
+  final String? debugMessage;
+  final String? productId;
+  final IapPlatform? platform;
+}
+```
+
+### Request Types
+
+#### RequestPurchaseIosProps
+
+```dart
+class RequestPurchaseIosProps {
+  final String sku;
+  final bool? andDangerouslyFinishTransactionAutomatically;
+  final String? appAccountToken;
+  final int? quantity;
+  final DiscountOfferInputIOS? withOffer;
+  final String? advancedCommerceData;
+}
+```
+
+#### RequestPurchaseAndroidProps
+
+```dart
+class RequestPurchaseAndroidProps {
+  final List<String> skus;
+  final String? obfuscatedAccountIdAndroid;
+  final String? obfuscatedProfileIdAndroid;
+  final bool? isOfferPersonalized;
+  final DeveloperBillingOptionParamsAndroid? developerBillingOption;
+}
+```
+
+#### RequestSubscriptionAndroidProps
+
+```dart
+class RequestSubscriptionAndroidProps {
+  final List<String> skus;
+  final List<AndroidSubscriptionOfferInput>? subscriptionOffers;
+  final String? obfuscatedAccountIdAndroid;
+  final String? obfuscatedProfileIdAndroid;
+  final String? purchaseTokenAndroid;
+  final int? replacementModeAndroid;
+  final bool? isOfferPersonalized;
+  final DeveloperBillingOptionParamsAndroid? developerBillingOption;
+}
+```
+
+#### AndroidSubscriptionOfferInput
+
+```dart
+class AndroidSubscriptionOfferInput {
+  final String offerId;
+  final String productId;
+  final String basePlanId;
+  final String? offerToken;
+}
+```
+
+#### DiscountOfferInputIOS
+
+```dart
+class DiscountOfferInputIOS {
+  final String identifier;
+  final String keyIdentifier;
+  final String nonce;
+  final String signature;
+  final int timestamp;
+}
+```
+
+---
+
+## Error Codes
+
+### ErrorCode Enum
+
+```dart
+enum ErrorCode {
+  // Unknown/General
+  Unknown,
+
+  // User-Related
+  UserCancelled,    // User cancelled purchase
+  UserError,        // General user error
+  DeferredPayment,  // Payment deferred (Ask to Buy)
+
+  // Product/Item
+  ItemUnavailable,  // Product not available
+  AlreadyOwned,     // User already owns item
+  ItemNotOwned,     // User doesn't own item
+  SkuNotFound,      // Product ID not found
+  EmptySkuList,     // No product IDs provided
+  SkuOfferMismatch, // Offer doesn't match product
+
+  // Service/Network
+  ServiceError,        // Store service unavailable
+  NetworkError,        // Network connectivity issue
+  BillingUnavailable,  // Billing service not available
+  RemoteError,         // Remote server error
+  ServiceDisconnected, // Service connection lost
+
+  // Connection
+  NotPrepared,      // Connection not initialized
+  AlreadyPrepared,  // Connection already initialized
+  NotEnded,         // Connection not properly ended
+  ConnectionClosed, // Connection was closed
+  InitConnection,   // Error during initialization
+
+  // Transaction
+  PurchaseError,              // General purchase error
+  ReceiptFailed,              // Receipt validation failed
+  ReceiptFinished,            // Receipt already finished
+  ReceiptFinishedFailed,      // Failed to finish receipt
+  TransactionValidationFailed, // Transaction validation failed
+
+  // Developer
+  DeveloperError,                 // Configuration/implementation issue
+  BillingResponseJsonParseError,  // Failed to parse billing response
+  QueryProduct,                   // Error querying products
+  ActivityUnavailable,            // Android Activity unavailable
+
+  // Platform
+  FeatureNotSupported, // Feature not supported on platform
+  IapNotAvailable,     // IAP not available on device
+
+  // Purchase Verification
+  PurchaseVerificationFailed,       // Verification failed
+  PurchaseVerificationFinished,     // Verification completed
+  PurchaseVerificationFinishFailed, // Failed to finish verification
+
+  // Other
+  Pending,     // Purchase is pending
+  Interrupted, // Purchase flow interrupted
+  SyncError,   // Synchronization error
+}
+```
+
+### Error Handling Pattern
+
+```dart
+void handleError(PurchaseError error) {
+  switch (error.code) {
+    case ErrorCode.UserCancelled:
+      // Don't show error - user intentionally cancelled
+      debugPrint('User cancelled purchase');
+      break;
+
+    case ErrorCode.NetworkError:
+      showSnackBar('Network error. Please check your connection.');
+      break;
+
+    case ErrorCode.AlreadyOwned:
+      showSnackBar('You already own this item.');
+      restorePurchases();
+      break;
+
+    case ErrorCode.ItemUnavailable:
+    case ErrorCode.SkuNotFound:
+      showSnackBar('This item is currently unavailable.');
+      break;
+
+    case ErrorCode.ServiceError:
+    case ErrorCode.BillingUnavailable:
+      showSnackBar('Store unavailable. Please try again later.');
+      break;
+
+    case ErrorCode.NotPrepared:
+      // Reinitialize connection
+      await iap.initConnection();
+      break;
+
+    case ErrorCode.DeferredPayment:
+      showSnackBar('Purchase pending approval.');
+      break;
+
+    default:
+      showSnackBar('Purchase failed: ${error.message}');
+      debugPrint('Error code: ${error.code}');
+  }
+}
+
+// Get user-friendly message
+String message = getUserFriendlyErrorMessage(error);
+```
+
+---
+
+## Platform-Specific APIs
+
+### iOS-Specific Methods
+
+#### presentCodeRedemptionSheetIOS()
+
+Presents the App Store code redemption sheet.
+
+```dart
+Future<bool> presentCodeRedemptionSheetIOS() async
+```
+
+**Requirements:** iOS 14.0+
+
+#### showManageSubscriptionsIOS()
+
+Shows the subscription management interface.
+
+```dart
+Future<List<PurchaseIOS>> showManageSubscriptionsIOS() async
+```
+
+#### isEligibleForIntroOfferIOS()
+
+Checks if user is eligible for introductory offer.
+
+```dart
+Future<bool> isEligibleForIntroOfferIOS(String groupId) async
+```
+
+#### subscriptionStatusIOS()
+
+Gets detailed subscription status.
+
+```dart
+Future<List<SubscriptionStatusIOS>> subscriptionStatusIOS(String sku) async
+```
+
+#### getStorefrontIOS()
+
+Gets the current storefront country code.
+
+```dart
+Future<String> getStorefrontIOS() async
+```
+
+#### getPendingTransactionsIOS()
+
+Gets pending transactions.
+
+```dart
+Future<List<PurchaseIOS>> getPendingTransactionsIOS() async
+```
+
+#### clearTransactionIOS()
+
+Clears pending transactions.
+
+```dart
+Future<bool> clearTransactionIOS() async
+```
+
+#### syncIOS()
+
+Syncs iOS purchases.
+
+```dart
+Future<bool> syncIOS() async
+```
+
+#### getPromotedProductIOS()
+
+Gets promoted product from App Store.
+
+```dart
+Future<ProductIOS?> getPromotedProductIOS() async
+```
+
+#### getAppTransactionIOS()
+
+Gets the app transaction for verification.
+
+```dart
+Future<AppTransaction?> getAppTransactionIOS() async
+```
+
+#### presentExternalPurchaseLinkIOS()
+
+Opens external purchase link (iOS 16.0+).
+
+```dart
+Future<ExternalPurchaseLinkResultIOS> presentExternalPurchaseLinkIOS(String url) async
+```
+
+#### presentExternalPurchaseNoticeSheetIOS()
+
+Presents external purchase notice sheet (iOS 18.2+).
+
+```dart
+Future<ExternalPurchaseNoticeResultIOS> presentExternalPurchaseNoticeSheetIOS() async
+```
+
+### Android-Specific Methods
+
+#### acknowledgePurchaseAndroid()
+
+Acknowledges a purchase on Android.
+
+```dart
+Future<bool> acknowledgePurchaseAndroid(String purchaseToken) async
+```
+
+#### consumePurchaseAndroid()
+
+Consumes a purchase on Android.
+
+```dart
+Future<bool> consumePurchaseAndroid(String purchaseToken) async
+```
+
+#### deepLinkToSubscriptions()
+
+Opens Google Play subscription management.
+
+```dart
+Future<void> deepLinkToSubscriptions({
+  String? packageNameAndroid,
+  String? skuAndroid,
+}) async
+```
+
+#### checkAlternativeBillingAvailabilityAndroid()
+
+Checks if alternative billing is available.
+
+```dart
+Future<bool> checkAlternativeBillingAvailabilityAndroid() async
+```
+
+#### showAlternativeBillingDialogAndroid()
+
+Shows alternative billing information dialog.
+
+```dart
+Future<bool> showAlternativeBillingDialogAndroid() async
+```
+
+#### createAlternativeBillingTokenAndroid()
+
+Creates alternative billing reporting token.
+
+```dart
+Future<String?> createAlternativeBillingTokenAndroid() async
+```
+
+#### isBillingProgramAvailableAndroid()
+
+Checks if billing program is available (8.2.0+).
+
+```dart
+Future<BillingProgramAvailabilityResultAndroid> isBillingProgramAvailableAndroid(
+  BillingProgramAndroid program,
+) async
+```
+
+#### createBillingProgramReportingDetailsAndroid()
+
+Creates billing program reporting details (8.2.0+).
+
+```dart
+Future<BillingProgramReportingDetailsAndroid> createBillingProgramReportingDetailsAndroid(
+  BillingProgramAndroid program,
+) async
+```
+
+#### launchExternalLinkAndroid()
+
+Launches external link for billing (8.2.0+).
+
+```dart
+Future<bool> launchExternalLinkAndroid(
+  LaunchExternalLinkParamsAndroid params,
+) async
+```
+
+---
+
+## Implementation Patterns
+
+### Complete Purchase Flow
+
+```dart
+class IAPService {
+  final iap = FlutterInappPurchase.instance;
+  StreamSubscription? _purchaseSubscription;
+  StreamSubscription? _errorSubscription;
+  List<Product> products = [];
+  bool _isInitialized = false;
+
+  Future<void> initialize() async {
+    if (_isInitialized) return;
+
+    // 1. Set up listeners FIRST
+    _purchaseSubscription = iap.purchaseUpdatedListener.listen(_handlePurchase);
+    _errorSubscription = iap.purchaseErrorListener.listen(_handleError);
+
+    // 2. Initialize connection
+    try {
+      await iap.initConnection();
+      _isInitialized = true;
+
+      // 3. Check for pending purchases
+      await _checkPendingPurchases();
+    } catch (e) {
+      debugPrint('Failed to initialize IAP: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> loadProducts(List<String> productIds) async {
+    products = await iap.fetchProducts<Product>(
+      skus: productIds,
+      type: ProductQueryType.InApp,
+    );
+  }
+
+  Future<void> purchase(String productId) async {
+    await iap.requestPurchaseWithBuilder(
+      build: (builder) {
+        builder
+          ..type = ProductQueryType.InApp
+          ..ios.sku = productId
+          ..android.skus = [productId];
+      },
+    );
+  }
+
+  Future<void> _handlePurchase(Purchase purchase) async {
+    // 1. Verify purchase on your server
+    final isValid = await _verifyOnServer(purchase);
+    if (!isValid) {
+      debugPrint('Invalid purchase');
+      return;
+    }
+
+    // 2. Deliver content
+    await _deliverContent(purchase.productId);
+
+    // 3. Finish transaction
+    await iap.finishTransaction(
+      purchase: purchase,
+      isConsumable: _isConsumable(purchase.productId),
+    );
+  }
+
+  void _handleError(PurchaseError error) {
+    if (error.code == ErrorCode.UserCancelled) return;
+
+    final message = getUserFriendlyErrorMessage(error);
+    showSnackBar(message);
+  }
+
+  Future<void> _checkPendingPurchases() async {
+    final purchases = await iap.getAvailablePurchases();
+    for (final purchase in purchases) {
+      await _handlePurchase(purchase);
+    }
+  }
+
+  Future<void> restore() async {
+    await iap.restorePurchases();
+    final purchases = await iap.getAvailablePurchases();
+    for (final purchase in purchases) {
+      await _deliverContent(purchase.productId);
+    }
+  }
+
+  void dispose() {
+    _purchaseSubscription?.cancel();
+    _errorSubscription?.cancel();
+    iap.endConnection();
+  }
+}
+```
+
+### Subscription Management
+
+```dart
+class SubscriptionService {
+  final iap = FlutterInappPurchase.instance;
+
+  Future<bool> hasActiveSubscription() async {
+    return await iap.hasActiveSubscriptions(['monthly_sub', 'yearly_sub']);
+  }
+
+  Future<List<ActiveSubscription>> getSubscriptionDetails() async {
+    return await iap.getActiveSubscriptions(['monthly_sub', 'yearly_sub']);
+  }
+
+  Future<void> purchaseSubscription(String productId, {String? offerId}) async {
+    await iap.requestPurchaseWithBuilder(
+      build: (builder) {
+        builder
+          ..type = ProductQueryType.Subs
+          ..ios.sku = productId
+          ..android.skus = [productId];
+
+        if (offerId != null) {
+          builder.android.subscriptionOffers = [
+            AndroidSubscriptionOfferInput(
+              offerId: offerId,
+              productId: productId,
+              basePlanId: 'base_plan',
+            ),
+          ];
+        }
+      },
+    );
+  }
+
+  Future<void> upgradeSubscription(String newProductId, String oldPurchaseToken) async {
+    await iap.requestPurchaseWithBuilder(
+      build: (builder) {
+        builder
+          ..type = ProductQueryType.Subs
+          ..ios.sku = newProductId
+          ..android.skus = [newProductId]
+          ..android.purchaseTokenAndroid = oldPurchaseToken
+          ..android.replacementModeAndroid = 2; // CHARGE_PRORATED_PRICE
+      },
+    );
+  }
+}
+```
+
+### Alternative Billing (Android)
+
+```dart
+class AlternativeBillingService {
+  final iap = FlutterInappPurchase.instance;
+
+  Future<void> initWithAlternativeBilling() async {
+    await iap.initConnection(
+      alternativeBillingModeAndroid: AlternativeBillingModeAndroid(
+        mode: AlternativeBillingMode.UserChoice,
+      ),
+    );
+  }
+
+  Future<void> purchaseWithAlternativeBilling(String productId) async {
+    // 1. Check availability
+    final isAvailable = await iap.checkAlternativeBillingAvailabilityAndroid();
+    if (!isAvailable) {
+      throw Exception('Alternative billing not available');
+    }
+
+    // 2. Show required dialog
+    final accepted = await iap.showAlternativeBillingDialogAndroid();
+    if (!accepted) {
+      throw Exception('User declined alternative billing');
+    }
+
+    // 3. Process payment in your system
+    final paymentResult = await processPaymentInYourSystem(productId);
+    if (!paymentResult.success) {
+      throw Exception('Payment failed');
+    }
+
+    // 4. Create reporting token (must report within 24 hours)
+    final token = await iap.createAlternativeBillingTokenAndroid();
+    if (token != null) {
+      await reportToGooglePlayBackend(token, productId);
+    }
+  }
+}
+```
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+#### "Not Prepared" Error
+
+```dart
+// Solution: Initialize connection before operations
+await iap.initConnection();
+```
+
+#### Products Not Loading
+
+1. Verify product IDs match exactly
+2. Ensure products are approved in store console
+3. For Android, use signed APK (not debug)
+4. Check network connectivity
+
+#### Purchases Not Completing
+
+```dart
+// Always finish transactions
+iap.purchaseUpdatedListener.listen((purchase) async {
+  // Verify and deliver content
+  await iap.finishTransaction(
+    purchase: purchase,
+    isConsumable: false,
+  );
+});
+```
+
+#### Listener Not Receiving Events
+
+```dart
+// Set up listeners BEFORE initConnection
+_subscription = iap.purchaseUpdatedListener.listen(handler);
+await iap.initConnection();
+```
+
+### Platform-Specific Issues
+
+#### iOS
+
+- Use StoreKit Testing in Xcode for sandbox
+- Check StoreKit capability is added
+- Verify bundle ID matches App Store Connect
+
+#### Android
+
+- Use signed APK/AAB for testing
+- Verify billing permission in manifest
+- Test with account that has payment method
+- Clear Play Store cache if products don't appear
+
+### Debug Tips
+
+```dart
+// Enable verbose logging
+debugPrint('[IAP] Initializing connection...');
+
+// Check connection state
+try {
+  await iap.initConnection();
+  debugPrint('[IAP] Connection successful');
+} catch (e) {
+  debugPrint('[IAP] Connection failed: $e');
+}
+
+// Log all purchase events
+iap.purchaseUpdatedListener.listen((purchase) {
+  debugPrint('[IAP] Purchase: ${purchase.toJson()}');
+});
+
+iap.purchaseErrorListener.listen((error) {
+  debugPrint('[IAP] Error: ${error.code} - ${error.message}');
+});
+```
+
+---
+
+## Links
+
+- **Documentation:** https://hyochan.github.io/flutter_inapp_purchase
+- **GitHub:** https://github.com/hyochan/flutter_inapp_purchase
+- **Pub.dev:** https://pub.dev/packages/flutter_inapp_purchase
+- **OpenIAP Specification:** https://openiap.dev
+- **Issues:** https://github.com/hyochan/flutter_inapp_purchase/issues
+- **Discussions:** https://github.com/hyochan/openiap.dev/discussions
