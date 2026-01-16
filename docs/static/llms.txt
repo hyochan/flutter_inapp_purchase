@@ -210,6 +210,73 @@ enum ErrorCode {
 }
 ```
 
+### Standardized Offer Types (New in v8.3+)
+
+```dart
+// Cross-platform subscription offer
+class SubscriptionOffer {
+  String id;                    // Unique offer identifier
+  String displayPrice;          // Formatted price string
+  double price;                 // Numeric price value
+  String? currency;             // ISO 4217 currency code
+  DiscountOfferType type;       // Introductory, Promotional
+  PaymentMode? paymentMode;     // FreeTrial, PayAsYouGo, PayUpFront
+  SubscriptionPeriod? period;   // Billing period
+  int? periodCount;             // Number of periods
+
+  // Android-specific
+  String? basePlanIdAndroid;
+  String? offerTokenAndroid;    // Token for purchase
+  List<String>? offerTagsAndroid;
+  PricingPhasesAndroid? pricingPhasesAndroid;
+
+  // iOS-specific
+  String? keyIdentifierIOS;
+  String? nonceIOS;
+  String? signatureIOS;
+  double? timestampIOS;
+}
+
+// Cross-platform one-time product discount (Android only)
+class DiscountOffer {
+  String? id;
+  String displayPrice;
+  double price;
+  String currency;
+  DiscountOfferType type;
+
+  // Android-specific
+  String? offerTokenAndroid;
+  int? percentageDiscountAndroid;
+  String? discountAmountMicrosAndroid;
+}
+
+enum DiscountOfferType {
+  Introductory,   // New subscriber discount
+  Promotional,    // Existing subscriber discount
+  OneTime,        // One-time product discount (Android only)
+}
+
+enum PaymentMode {
+  FreeTrial,      // No charge during offer
+  PayAsYouGo,     // Reduced price per period
+  PayUpFront,     // Discounted amount upfront
+  Unknown,
+}
+
+class SubscriptionPeriod {
+  SubscriptionPeriodUnit unit;  // Day, Week, Month, Year
+  int value;                    // Number of units
+}
+
+// Accessing standardized offers
+final product = await iap.fetchProducts<ProductSubscription>(skus: [...]);
+if (product is ProductSubscriptionAndroid) {
+  final offers = product.subscriptionOffers;  // New cross-platform
+  // OR legacy: product.subscriptionOfferDetailsAndroid
+}
+```
+
 ## Common Patterns
 
 ### Complete Purchase Flow

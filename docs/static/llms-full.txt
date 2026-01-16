@@ -691,7 +691,137 @@ class ProductSubscriptionAndroid extends ProductSubscription {
   final String title;
   final String name;
   final String description;
-  final List<ProductSubscriptionAndroidOfferDetails>? subscriptionOfferDetailsAndroid;
+  final List<ProductSubscriptionAndroidOfferDetails>? subscriptionOfferDetailsAndroid; // deprecated
+  final List<SubscriptionOffer>? subscriptionOffers; // New cross-platform (v8.3+)
+  final List<DiscountOffer>? discountOffers; // New cross-platform (v8.3+)
+}
+```
+
+### Standardized Offer Types (New in v8.3+)
+
+These cross-platform types replace deprecated platform-specific offer types.
+
+#### SubscriptionOffer
+
+Cross-platform subscription offer (introductory/promotional offers).
+
+```dart
+class SubscriptionOffer {
+  final String id;                    // Unique offer identifier
+  final String displayPrice;          // Formatted price string ("$0.99/month")
+  final double price;                 // Numeric price value
+  final String? currency;             // ISO 4217 currency code
+  final DiscountOfferType type;       // Introductory, Promotional
+  final PaymentMode? paymentMode;     // FreeTrial, PayAsYouGo, PayUpFront
+  final SubscriptionPeriod? period;   // Billing period
+  final int? periodCount;             // Number of billing periods
+
+  // Android-specific
+  final String? basePlanIdAndroid;    // Android base plan ID
+  final String? offerTokenAndroid;    // Token for purchase
+  final List<String>? offerTagsAndroid;
+  final PricingPhasesAndroid? pricingPhasesAndroid;
+
+  // iOS-specific
+  final String? keyIdentifierIOS;     // Signature validation key
+  final String? nonceIOS;             // Cryptographic nonce
+  final String? signatureIOS;         // Server-generated signature
+  final double? timestampIOS;         // Signature timestamp
+  final String? localizedPriceIOS;
+  final int? numberOfPeriodsIOS;
+}
+```
+
+#### DiscountOffer
+
+Cross-platform one-time product discount (Android Google Play Billing 7.0+).
+
+```dart
+class DiscountOffer {
+  final String? id;                   // Unique offer identifier
+  final String displayPrice;          // Formatted price string
+  final double price;                 // Numeric price value
+  final String currency;              // ISO 4217 currency code
+  final DiscountOfferType type;       // Discount type
+
+  // Android-specific
+  final String? offerTokenAndroid;    // Token for purchase
+  final List<String>? offerTagsAndroid;
+  final String? fullPriceMicrosAndroid;      // Original price in micro-units
+  final int? percentageDiscountAndroid;      // Percentage discount
+  final String? discountAmountMicrosAndroid; // Fixed discount amount
+  final String? formattedDiscountAmountAndroid;
+  final ValidTimeWindowAndroid? validTimeWindowAndroid;
+  final LimitedQuantityInfoAndroid? limitedQuantityInfoAndroid;
+  final PreorderDetailsAndroid? preorderDetailsAndroid;
+  final RentalDetailsAndroid? rentalDetailsAndroid;
+}
+```
+
+#### DiscountOfferType
+
+```dart
+enum DiscountOfferType {
+  Introductory,   // New subscriber discount
+  Promotional,    // Existing subscriber discount
+  OneTime,        // One-time product discount (Android only, Play Billing 7.0+)
+}
+```
+
+#### PaymentMode
+
+```dart
+enum PaymentMode {
+  FreeTrial,      // No charge during offer period (price = 0)
+  PayAsYouGo,     // Reduced price per period (recurring)
+  PayUpFront,     // Discounted amount paid upfront (non-recurring)
+  Unknown,        // Unknown or unspecified
+}
+```
+
+#### SubscriptionPeriod
+
+```dart
+class SubscriptionPeriod {
+  final SubscriptionPeriodUnit unit;  // Day, Week, Month, Year
+  final int value;                    // Number of units (e.g., 1 for monthly)
+}
+
+enum SubscriptionPeriodUnit {
+  Day,
+  Week,
+  Month,
+  Year,
+  Unknown,
+}
+```
+
+#### Using Standardized Offers
+
+```dart
+// Fetch subscription products
+final products = await iap.fetchProducts<ProductSubscription>(
+  skus: ['monthly_sub'],
+  type: ProductQueryType.Subs,
+);
+
+// Access standardized offers (recommended)
+for (final product in products) {
+  if (product is ProductSubscriptionAndroid) {
+    final offers = product.subscriptionOffers;
+    for (final offer in offers ?? []) {
+      print('Offer: ${offer.id}');
+      print('Price: ${offer.displayPrice}');
+      print('Type: ${offer.type}'); // Introductory, Promotional
+      print('Payment Mode: ${offer.paymentMode}'); // FreeTrial, PayAsYouGo, etc.
+      print('Period: ${offer.period?.value} ${offer.period?.unit}');
+    }
+  }
+}
+
+// Legacy access (deprecated but still available)
+if (product is ProductSubscriptionAndroid) {
+  final legacyOffers = product.subscriptionOfferDetailsAndroid;
 }
 ```
 

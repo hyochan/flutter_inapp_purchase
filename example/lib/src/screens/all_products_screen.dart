@@ -491,6 +491,27 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
                                 ),
                               ),
                             ),
+                          // Show standardized offer count badge
+                          if (product.discountOffers != null &&
+                              product.discountOffers!.isNotEmpty)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                                vertical: 1,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.deepPurple.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                '${product.discountOffers!.length} Offers',
+                                style: const TextStyle(
+                                  color: Colors.deepPurple,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
                         ],
                       ],
                     ),
