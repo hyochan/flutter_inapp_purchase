@@ -633,14 +633,18 @@ List<gentype.SubscriptionOffer> _parseSubscriptionOffers(
   List<gentype.ProductSubscriptionAndroidOfferDetails> offerDetails,
 ) {
   return offerDetails.map((offer) {
-    // Determine payment mode from pricing phases
+    // Determine payment mode and price from first pricing phase
     gentype.PaymentMode? paymentMode;
+    String displayPrice = '';
+    double price = 0;
+    String? currency;
+
     if (offer.pricingPhases.pricingPhaseList.isNotEmpty) {
       final firstPhase = offer.pricingPhases.pricingPhaseList.first;
-      final priceAmount = int.tryParse(firstPhase.priceAmountMicros) ?? 0;
+      final priceAmountMicros = int.tryParse(firstPhase.priceAmountMicros) ?? 0;
       final recurrenceMode = firstPhase.recurrenceMode;
 
-      if (priceAmount == 0) {
+      if (priceAmountMicros == 0) {
         paymentMode = gentype.PaymentMode.FreeTrial;
       } else if (recurrenceMode == 3) {
         // NON_RECURRING
@@ -648,26 +652,16 @@ List<gentype.SubscriptionOffer> _parseSubscriptionOffers(
       } else {
         paymentMode = gentype.PaymentMode.PayAsYouGo;
       }
-    }
 
-    // Get price from first pricing phase
-    String displayPrice = '';
-    double price = 0;
-    String? currency;
-    if (offer.pricingPhases.pricingPhaseList.isNotEmpty) {
-      final firstPhase = offer.pricingPhases.pricingPhaseList.first;
       displayPrice = firstPhase.formattedPrice;
-      final micros = int.tryParse(firstPhase.priceAmountMicros) ?? 0;
-      price = micros / 1000000;
+      price = priceAmountMicros / 1000000;
       currency = firstPhase.priceCurrencyCode;
     }
 
     // Determine offer type
-    gentype.DiscountOfferType type;
+    final gentype.DiscountOfferType type;
     if (offer.offerId != null && offer.offerId!.isNotEmpty) {
       type = gentype.DiscountOfferType.Promotional;
-    } else if (paymentMode == gentype.PaymentMode.FreeTrial) {
-      type = gentype.DiscountOfferType.Introductory;
     } else {
       type = gentype.DiscountOfferType.Introductory;
     }
