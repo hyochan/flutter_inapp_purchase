@@ -70,7 +70,7 @@ void main() {
         pricingPhases: phases,
       );
 
-      const subscription = ProductSubscriptionAndroid(
+      final subscription = ProductSubscriptionAndroid(
         currency: 'USD',
         description: 'Android subscription',
         displayPrice: '\$4.99',
@@ -78,7 +78,19 @@ void main() {
         nameAndroid: 'Android Subscription',
         platform: IapPlatform.Android,
         price: 4.99,
-        subscriptionOfferDetailsAndroid: [offer],
+        subscriptionOfferDetailsAndroid: const [offer],
+        subscriptionOffers: [
+          SubscriptionOffer(
+            id: offer.offerId ?? offer.basePlanId,
+            displayPrice: phases.pricingPhaseList.first.formattedPrice,
+            price: 0.99,
+            type: DiscountOfferType.Introductory,
+            basePlanIdAndroid: offer.basePlanId,
+            offerTokenAndroid: offer.offerToken,
+            offerTagsAndroid: offer.offerTags,
+            pricingPhasesAndroid: phases,
+          ),
+        ],
         title: 'Android Subscription',
         type: ProductType.Subs,
       );

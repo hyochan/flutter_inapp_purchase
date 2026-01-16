@@ -1,3 +1,6 @@
+// ignore_for_file: type=lint
+// coverage:ignore-file
+
 // ============================================================================
 // AUTO-GENERATED TYPES — DO NOT EDIT DIRECTLY
 // Run `npm run generate` after updating any *.graphql schema file.
@@ -125,6 +128,40 @@ enum DeveloperBillingLaunchModeAndroid {
         return DeveloperBillingLaunchModeAndroid.CallerWillLaunchLink;
     }
     throw ArgumentError('Unknown DeveloperBillingLaunchModeAndroid value: $value');
+  }
+
+  String toJson() => value;
+}
+
+/// Discount offer type enumeration.
+/// Categorizes the type of discount or promotional offer.
+enum DiscountOfferType {
+  /// Introductory offer for new subscribers (first-time purchase discount)
+  Introductory('introductory'),
+  /// Promotional offer for existing or returning subscribers
+  Promotional('promotional'),
+  /// One-time product discount (Android only, Google Play Billing 7.0+)
+  OneTime('one-time');
+
+  const DiscountOfferType(this.value);
+  final String value;
+
+  factory DiscountOfferType.fromJson(String value) {
+    switch (value) {
+      case 'introductory':
+      case 'INTRODUCTORY':
+      case 'Introductory':
+        return DiscountOfferType.Introductory;
+      case 'promotional':
+      case 'PROMOTIONAL':
+      case 'Promotional':
+        return DiscountOfferType.Promotional;
+      case 'one-time':
+      case 'ONE_TIME':
+      case 'OneTime':
+        return DiscountOfferType.OneTime;
+    }
+    throw ArgumentError('Unknown DiscountOfferType value: $value');
   }
 
   String toJson() => value;
@@ -578,6 +615,46 @@ enum IapStore {
   String toJson() => value;
 }
 
+/// Payment mode for subscription offers.
+/// Determines how the user pays during the offer period.
+enum PaymentMode {
+  /// Free trial period - no charge during offer
+  FreeTrial('free-trial'),
+  /// Pay each period at reduced price
+  PayAsYouGo('pay-as-you-go'),
+  /// Pay full discounted amount upfront
+  PayUpFront('pay-up-front'),
+  /// Unknown or unspecified payment mode
+  Unknown('unknown');
+
+  const PaymentMode(this.value);
+  final String value;
+
+  factory PaymentMode.fromJson(String value) {
+    switch (value) {
+      case 'free-trial':
+      case 'FREE_TRIAL':
+      case 'FreeTrial':
+        return PaymentMode.FreeTrial;
+      case 'pay-as-you-go':
+      case 'PAY_AS_YOU_GO':
+      case 'PayAsYouGo':
+        return PaymentMode.PayAsYouGo;
+      case 'pay-up-front':
+      case 'PAY_UP_FRONT':
+      case 'PayUpFront':
+        return PaymentMode.PayUpFront;
+      case 'unknown':
+      case 'UNKNOWN':
+      case 'Unknown':
+        return PaymentMode.Unknown;
+    }
+    throw ArgumentError('Unknown PaymentMode value: $value');
+  }
+
+  String toJson() => value;
+}
+
 enum PaymentModeIOS {
   Empty('empty'),
   FreeTrial('free-trial'),
@@ -805,6 +882,46 @@ enum SubscriptionPeriodIOS {
         return SubscriptionPeriodIOS.Empty;
     }
     throw ArgumentError('Unknown SubscriptionPeriodIOS value: $value');
+  }
+
+  String toJson() => value;
+}
+
+/// Subscription period unit for cross-platform use.
+enum SubscriptionPeriodUnit {
+  Day('day'),
+  Week('week'),
+  Month('month'),
+  Year('year'),
+  Unknown('unknown');
+
+  const SubscriptionPeriodUnit(this.value);
+  final String value;
+
+  factory SubscriptionPeriodUnit.fromJson(String value) {
+    switch (value) {
+      case 'day':
+      case 'DAY':
+      case 'Day':
+        return SubscriptionPeriodUnit.Day;
+      case 'week':
+      case 'WEEK':
+      case 'Week':
+        return SubscriptionPeriodUnit.Week;
+      case 'month':
+      case 'MONTH':
+      case 'Month':
+        return SubscriptionPeriodUnit.Month;
+      case 'year':
+      case 'YEAR':
+      case 'Year':
+        return SubscriptionPeriodUnit.Year;
+      case 'unknown':
+      case 'UNKNOWN':
+      case 'Unknown':
+        return SubscriptionPeriodUnit.Unknown;
+    }
+    throw ArgumentError('Unknown SubscriptionPeriodUnit value: $value');
   }
 
   String toJson() => value;
@@ -1198,6 +1315,9 @@ class DiscountDisplayInfoAndroid {
   }
 }
 
+/// Discount information returned from the store.
+/// @deprecated Use the standardized SubscriptionOffer type instead for cross-platform compatibility.
+/// @see https://openiap.dev/docs/types#subscription-offer
 class DiscountIOS {
   const DiscountIOS({
     required this.identifier,
@@ -1247,6 +1367,118 @@ class DiscountIOS {
   }
 }
 
+/// Standardized one-time product discount offer.
+/// Provides a unified interface for one-time purchase discounts across platforms.
+/// 
+/// Currently supported on Android (Google Play Billing 7.0+).
+/// iOS does not support one-time purchase discounts in the same way.
+/// 
+/// @see https://openiap.dev/docs/features/discount
+class DiscountOffer {
+  const DiscountOffer({
+    required this.currency,
+    this.discountAmountMicrosAndroid,
+    required this.displayPrice,
+    this.formattedDiscountAmountAndroid,
+    this.fullPriceMicrosAndroid,
+    this.id,
+    this.limitedQuantityInfoAndroid,
+    this.offerTagsAndroid,
+    this.offerTokenAndroid,
+    this.percentageDiscountAndroid,
+    this.preorderDetailsAndroid,
+    required this.price,
+    this.rentalDetailsAndroid,
+    required this.type,
+    this.validTimeWindowAndroid,
+  });
+
+  /// Currency code (ISO 4217, e.g., "USD")
+  final String currency;
+  /// [Android] Fixed discount amount in micro-units.
+  /// Only present for fixed amount discounts.
+  final String? discountAmountMicrosAndroid;
+  /// Formatted display price string (e.g., "$4.99")
+  final String displayPrice;
+  /// [Android] Formatted discount amount string (e.g., "$5.00 OFF").
+  final String? formattedDiscountAmountAndroid;
+  /// [Android] Original full price in micro-units before discount.
+  /// Divide by 1,000,000 to get the actual price.
+  /// Use for displaying strikethrough original price.
+  final String? fullPriceMicrosAndroid;
+  /// Unique identifier for the offer.
+  /// - iOS: Not applicable (one-time discounts not supported)
+  /// - Android: offerId from ProductAndroidOneTimePurchaseOfferDetail
+  final String? id;
+  /// [Android] Limited quantity information.
+  /// Contains maximumQuantity and remainingQuantity.
+  final LimitedQuantityInfoAndroid? limitedQuantityInfoAndroid;
+  /// [Android] List of tags associated with this offer.
+  final List<String>? offerTagsAndroid;
+  /// [Android] Offer token required for purchase.
+  /// Must be passed to requestPurchase() when purchasing with this offer.
+  final String? offerTokenAndroid;
+  /// [Android] Percentage discount (e.g., 33 for 33% off).
+  /// Only present for percentage-based discounts.
+  final int? percentageDiscountAndroid;
+  /// [Android] Pre-order details if this is a pre-order offer.
+  /// Available in Google Play Billing Library 8.1.0+
+  final PreorderDetailsAndroid? preorderDetailsAndroid;
+  /// Numeric price value
+  final double price;
+  /// [Android] Rental details if this is a rental offer.
+  final RentalDetailsAndroid? rentalDetailsAndroid;
+  /// Type of discount offer
+  final DiscountOfferType type;
+  /// [Android] Valid time window for the offer.
+  /// Contains startTimeMillis and endTimeMillis.
+  final ValidTimeWindowAndroid? validTimeWindowAndroid;
+
+  factory DiscountOffer.fromJson(Map<String, dynamic> json) {
+    return DiscountOffer(
+      currency: json['currency'] as String,
+      discountAmountMicrosAndroid: json['discountAmountMicrosAndroid'] as String?,
+      displayPrice: json['displayPrice'] as String,
+      formattedDiscountAmountAndroid: json['formattedDiscountAmountAndroid'] as String?,
+      fullPriceMicrosAndroid: json['fullPriceMicrosAndroid'] as String?,
+      id: json['id'] as String?,
+      limitedQuantityInfoAndroid: json['limitedQuantityInfoAndroid'] != null ? LimitedQuantityInfoAndroid.fromJson(json['limitedQuantityInfoAndroid'] as Map<String, dynamic>) : null,
+      offerTagsAndroid: (json['offerTagsAndroid'] as List<dynamic>?) == null ? null : (json['offerTagsAndroid'] as List<dynamic>?)!.map((e) => e as String).toList(),
+      offerTokenAndroid: json['offerTokenAndroid'] as String?,
+      percentageDiscountAndroid: json['percentageDiscountAndroid'] as int?,
+      preorderDetailsAndroid: json['preorderDetailsAndroid'] != null ? PreorderDetailsAndroid.fromJson(json['preorderDetailsAndroid'] as Map<String, dynamic>) : null,
+      price: (json['price'] as num).toDouble(),
+      rentalDetailsAndroid: json['rentalDetailsAndroid'] != null ? RentalDetailsAndroid.fromJson(json['rentalDetailsAndroid'] as Map<String, dynamic>) : null,
+      type: DiscountOfferType.fromJson(json['type'] as String),
+      validTimeWindowAndroid: json['validTimeWindowAndroid'] != null ? ValidTimeWindowAndroid.fromJson(json['validTimeWindowAndroid'] as Map<String, dynamic>) : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '__typename': 'DiscountOffer',
+      'currency': currency,
+      'discountAmountMicrosAndroid': discountAmountMicrosAndroid,
+      'displayPrice': displayPrice,
+      'formattedDiscountAmountAndroid': formattedDiscountAmountAndroid,
+      'fullPriceMicrosAndroid': fullPriceMicrosAndroid,
+      'id': id,
+      'limitedQuantityInfoAndroid': limitedQuantityInfoAndroid?.toJson(),
+      'offerTagsAndroid': offerTagsAndroid == null ? null : offerTagsAndroid!.map((e) => e).toList(),
+      'offerTokenAndroid': offerTokenAndroid,
+      'percentageDiscountAndroid': percentageDiscountAndroid,
+      'preorderDetailsAndroid': preorderDetailsAndroid?.toJson(),
+      'price': price,
+      'rentalDetailsAndroid': rentalDetailsAndroid?.toJson(),
+      'type': type.toJson(),
+      'validTimeWindowAndroid': validTimeWindowAndroid?.toJson(),
+    };
+  }
+}
+
+/// iOS DiscountOffer (output type).
+/// @deprecated Use the standardized SubscriptionOffer type instead for cross-platform compatibility.
+/// @see https://openiap.dev/docs/types#subscription-offer
 class DiscountOfferIOS {
   const DiscountOfferIOS({
     required this.identifier,
@@ -1570,6 +1802,7 @@ class ProductAndroid extends Product implements ProductCommon {
     required this.currency,
     this.debugDescription,
     required this.description,
+    this.discountOffers,
     this.displayName,
     required this.displayPrice,
     required this.id,
@@ -1578,6 +1811,7 @@ class ProductAndroid extends Product implements ProductCommon {
     this.platform = IapPlatform.Android,
     this.price,
     this.subscriptionOfferDetailsAndroid,
+    this.subscriptionOffers,
     required this.title,
     this.type = ProductType.InApp,
   });
@@ -1585,16 +1819,26 @@ class ProductAndroid extends Product implements ProductCommon {
   final String currency;
   final String? debugDescription;
   final String description;
+  /// Standardized discount offers for one-time products.
+  /// Cross-platform type with Android-specific fields using suffix.
+  /// @see https://openiap.dev/docs/types#discount-offer
+  final List<DiscountOffer>? discountOffers;
   final String? displayName;
   final String displayPrice;
   final String id;
   final String nameAndroid;
   /// One-time purchase offer details including discounts (Android)
   /// Returns all eligible offers. Available in Google Play Billing Library 7.0+
+  /// @deprecated Use discountOffers instead for cross-platform compatibility.
   final List<ProductAndroidOneTimePurchaseOfferDetail>? oneTimePurchaseOfferDetailsAndroid;
   final IapPlatform platform;
   final double? price;
+  /// @deprecated Use subscriptionOffers instead for cross-platform compatibility.
   final List<ProductSubscriptionAndroidOfferDetails>? subscriptionOfferDetailsAndroid;
+  /// Standardized subscription offers.
+  /// Cross-platform type with Android-specific fields using suffix.
+  /// @see https://openiap.dev/docs/types#subscription-offer
+  final List<SubscriptionOffer>? subscriptionOffers;
   final String title;
   final ProductType type;
 
@@ -1603,6 +1847,7 @@ class ProductAndroid extends Product implements ProductCommon {
       currency: json['currency'] as String,
       debugDescription: json['debugDescription'] as String?,
       description: json['description'] as String,
+      discountOffers: (json['discountOffers'] as List<dynamic>?) == null ? null : (json['discountOffers'] as List<dynamic>?)!.map((e) => DiscountOffer.fromJson(e as Map<String, dynamic>)).toList(),
       displayName: json['displayName'] as String?,
       displayPrice: json['displayPrice'] as String,
       id: json['id'] as String,
@@ -1611,6 +1856,7 @@ class ProductAndroid extends Product implements ProductCommon {
       platform: IapPlatform.fromJson(json['platform'] as String),
       price: (json['price'] as num?)?.toDouble(),
       subscriptionOfferDetailsAndroid: (json['subscriptionOfferDetailsAndroid'] as List<dynamic>?) == null ? null : (json['subscriptionOfferDetailsAndroid'] as List<dynamic>?)!.map((e) => ProductSubscriptionAndroidOfferDetails.fromJson(e as Map<String, dynamic>)).toList(),
+      subscriptionOffers: (json['subscriptionOffers'] as List<dynamic>?) == null ? null : (json['subscriptionOffers'] as List<dynamic>?)!.map((e) => SubscriptionOffer.fromJson(e as Map<String, dynamic>)).toList(),
       title: json['title'] as String,
       type: ProductType.fromJson(json['type'] as String),
     );
@@ -1623,6 +1869,7 @@ class ProductAndroid extends Product implements ProductCommon {
       'currency': currency,
       'debugDescription': debugDescription,
       'description': description,
+      'discountOffers': discountOffers == null ? null : discountOffers!.map((e) => e.toJson()).toList(),
       'displayName': displayName,
       'displayPrice': displayPrice,
       'id': id,
@@ -1631,14 +1878,17 @@ class ProductAndroid extends Product implements ProductCommon {
       'platform': platform.toJson(),
       'price': price,
       'subscriptionOfferDetailsAndroid': subscriptionOfferDetailsAndroid == null ? null : subscriptionOfferDetailsAndroid!.map((e) => e.toJson()).toList(),
+      'subscriptionOffers': subscriptionOffers == null ? null : subscriptionOffers!.map((e) => e.toJson()).toList(),
       'title': title,
       'type': type.toJson(),
     };
   }
 }
 
-/// One-time purchase offer details (Android)
+/// One-time purchase offer details (Android).
 /// Available in Google Play Billing Library 7.0+
+/// @deprecated Use the standardized DiscountOffer type instead for cross-platform compatibility.
+/// @see https://openiap.dev/docs/types#discount-offer
 class ProductAndroidOneTimePurchaseOfferDetail {
   const ProductAndroidOneTimePurchaseOfferDetail({
     this.discountDisplayInfo,
@@ -1730,6 +1980,7 @@ class ProductIOS extends Product implements ProductCommon {
     this.platform = IapPlatform.IOS,
     this.price,
     this.subscriptionInfoIOS,
+    this.subscriptionOffers,
     required this.title,
     this.type = ProductType.InApp,
     required this.typeIOS,
@@ -1746,7 +1997,13 @@ class ProductIOS extends Product implements ProductCommon {
   final String jsonRepresentationIOS;
   final IapPlatform platform;
   final double? price;
+  /// @deprecated Use subscriptionOffers instead for cross-platform compatibility.
   final SubscriptionInfoIOS? subscriptionInfoIOS;
+  /// Standardized subscription offers.
+  /// Cross-platform type with iOS-specific fields using suffix.
+  /// Note: iOS does not support one-time product discounts.
+  /// @see https://openiap.dev/docs/types#subscription-offer
+  final List<SubscriptionOffer>? subscriptionOffers;
   final String title;
   final ProductType type;
   final ProductTypeIOS typeIOS;
@@ -1765,6 +2022,7 @@ class ProductIOS extends Product implements ProductCommon {
       platform: IapPlatform.fromJson(json['platform'] as String),
       price: (json['price'] as num?)?.toDouble(),
       subscriptionInfoIOS: json['subscriptionInfoIOS'] != null ? SubscriptionInfoIOS.fromJson(json['subscriptionInfoIOS'] as Map<String, dynamic>) : null,
+      subscriptionOffers: (json['subscriptionOffers'] as List<dynamic>?) == null ? null : (json['subscriptionOffers'] as List<dynamic>?)!.map((e) => SubscriptionOffer.fromJson(e as Map<String, dynamic>)).toList(),
       title: json['title'] as String,
       type: ProductType.fromJson(json['type'] as String),
       typeIOS: ProductTypeIOS.fromJson(json['typeIOS'] as String),
@@ -1787,6 +2045,7 @@ class ProductIOS extends Product implements ProductCommon {
       'platform': platform.toJson(),
       'price': price,
       'subscriptionInfoIOS': subscriptionInfoIOS?.toJson(),
+      'subscriptionOffers': subscriptionOffers == null ? null : subscriptionOffers!.map((e) => e.toJson()).toList(),
       'title': title,
       'type': type.toJson(),
       'typeIOS': typeIOS.toJson(),
@@ -1799,6 +2058,7 @@ class ProductSubscriptionAndroid extends ProductSubscription implements ProductC
     required this.currency,
     this.debugDescription,
     required this.description,
+    this.discountOffers,
     this.displayName,
     required this.displayPrice,
     required this.id,
@@ -1807,6 +2067,7 @@ class ProductSubscriptionAndroid extends ProductSubscription implements ProductC
     this.platform = IapPlatform.Android,
     this.price,
     required this.subscriptionOfferDetailsAndroid,
+    required this.subscriptionOffers,
     required this.title,
     this.type = ProductType.Subs,
   });
@@ -1814,16 +2075,26 @@ class ProductSubscriptionAndroid extends ProductSubscription implements ProductC
   final String currency;
   final String? debugDescription;
   final String description;
+  /// Standardized discount offers for one-time products.
+  /// Cross-platform type with Android-specific fields using suffix.
+  /// @see https://openiap.dev/docs/types#discount-offer
+  final List<DiscountOffer>? discountOffers;
   final String? displayName;
   final String displayPrice;
   final String id;
   final String nameAndroid;
   /// One-time purchase offer details including discounts (Android)
   /// Returns all eligible offers. Available in Google Play Billing Library 7.0+
+  /// @deprecated Use discountOffers instead for cross-platform compatibility.
   final List<ProductAndroidOneTimePurchaseOfferDetail>? oneTimePurchaseOfferDetailsAndroid;
   final IapPlatform platform;
   final double? price;
+  /// @deprecated Use subscriptionOffers instead for cross-platform compatibility.
   final List<ProductSubscriptionAndroidOfferDetails> subscriptionOfferDetailsAndroid;
+  /// Standardized subscription offers.
+  /// Cross-platform type with Android-specific fields using suffix.
+  /// @see https://openiap.dev/docs/types#subscription-offer
+  final List<SubscriptionOffer> subscriptionOffers;
   final String title;
   final ProductType type;
 
@@ -1832,6 +2103,7 @@ class ProductSubscriptionAndroid extends ProductSubscription implements ProductC
       currency: json['currency'] as String,
       debugDescription: json['debugDescription'] as String?,
       description: json['description'] as String,
+      discountOffers: (json['discountOffers'] as List<dynamic>?) == null ? null : (json['discountOffers'] as List<dynamic>?)!.map((e) => DiscountOffer.fromJson(e as Map<String, dynamic>)).toList(),
       displayName: json['displayName'] as String?,
       displayPrice: json['displayPrice'] as String,
       id: json['id'] as String,
@@ -1840,6 +2112,7 @@ class ProductSubscriptionAndroid extends ProductSubscription implements ProductC
       platform: IapPlatform.fromJson(json['platform'] as String),
       price: (json['price'] as num?)?.toDouble(),
       subscriptionOfferDetailsAndroid: (json['subscriptionOfferDetailsAndroid'] as List<dynamic>).map((e) => ProductSubscriptionAndroidOfferDetails.fromJson(e as Map<String, dynamic>)).toList(),
+      subscriptionOffers: (json['subscriptionOffers'] as List<dynamic>).map((e) => SubscriptionOffer.fromJson(e as Map<String, dynamic>)).toList(),
       title: json['title'] as String,
       type: ProductType.fromJson(json['type'] as String),
     );
@@ -1852,6 +2125,7 @@ class ProductSubscriptionAndroid extends ProductSubscription implements ProductC
       'currency': currency,
       'debugDescription': debugDescription,
       'description': description,
+      'discountOffers': discountOffers == null ? null : discountOffers!.map((e) => e.toJson()).toList(),
       'displayName': displayName,
       'displayPrice': displayPrice,
       'id': id,
@@ -1860,12 +2134,16 @@ class ProductSubscriptionAndroid extends ProductSubscription implements ProductC
       'platform': platform.toJson(),
       'price': price,
       'subscriptionOfferDetailsAndroid': subscriptionOfferDetailsAndroid.map((e) => e.toJson()).toList(),
+      'subscriptionOffers': subscriptionOffers.map((e) => e.toJson()).toList(),
       'title': title,
       'type': type.toJson(),
     };
   }
 }
 
+/// Subscription offer details (Android).
+/// @deprecated Use the standardized SubscriptionOffer type instead for cross-platform compatibility.
+/// @see https://openiap.dev/docs/types#subscription-offer
 class ProductSubscriptionAndroidOfferDetails {
   const ProductSubscriptionAndroidOfferDetails({
     required this.basePlanId,
@@ -1923,6 +2201,7 @@ class ProductSubscriptionIOS extends ProductSubscription implements ProductCommo
     this.platform = IapPlatform.IOS,
     this.price,
     this.subscriptionInfoIOS,
+    this.subscriptionOffers,
     this.subscriptionPeriodNumberIOS,
     this.subscriptionPeriodUnitIOS,
     required this.title,
@@ -1933,6 +2212,7 @@ class ProductSubscriptionIOS extends ProductSubscription implements ProductCommo
   final String currency;
   final String? debugDescription;
   final String description;
+  /// @deprecated Use subscriptionOffers instead for cross-platform compatibility.
   final List<DiscountIOS>? discountsIOS;
   final String? displayName;
   final String displayNameIOS;
@@ -1947,7 +2227,12 @@ class ProductSubscriptionIOS extends ProductSubscription implements ProductCommo
   final String jsonRepresentationIOS;
   final IapPlatform platform;
   final double? price;
+  /// @deprecated Use subscriptionOffers instead for cross-platform compatibility.
   final SubscriptionInfoIOS? subscriptionInfoIOS;
+  /// Standardized subscription offers.
+  /// Cross-platform type with iOS-specific fields using suffix.
+  /// @see https://openiap.dev/docs/types#subscription-offer
+  final List<SubscriptionOffer>? subscriptionOffers;
   final String? subscriptionPeriodNumberIOS;
   final SubscriptionPeriodIOS? subscriptionPeriodUnitIOS;
   final String title;
@@ -1974,6 +2259,7 @@ class ProductSubscriptionIOS extends ProductSubscription implements ProductCommo
       platform: IapPlatform.fromJson(json['platform'] as String),
       price: (json['price'] as num?)?.toDouble(),
       subscriptionInfoIOS: json['subscriptionInfoIOS'] != null ? SubscriptionInfoIOS.fromJson(json['subscriptionInfoIOS'] as Map<String, dynamic>) : null,
+      subscriptionOffers: (json['subscriptionOffers'] as List<dynamic>?) == null ? null : (json['subscriptionOffers'] as List<dynamic>?)!.map((e) => SubscriptionOffer.fromJson(e as Map<String, dynamic>)).toList(),
       subscriptionPeriodNumberIOS: json['subscriptionPeriodNumberIOS'] as String?,
       subscriptionPeriodUnitIOS: json['subscriptionPeriodUnitIOS'] != null ? SubscriptionPeriodIOS.fromJson(json['subscriptionPeriodUnitIOS'] as String) : null,
       title: json['title'] as String,
@@ -2004,6 +2290,7 @@ class ProductSubscriptionIOS extends ProductSubscription implements ProductCommo
       'platform': platform.toJson(),
       'price': price,
       'subscriptionInfoIOS': subscriptionInfoIOS?.toJson(),
+      'subscriptionOffers': subscriptionOffers == null ? null : subscriptionOffers!.map((e) => e.toJson()).toList(),
       'subscriptionPeriodNumberIOS': subscriptionPeriodNumberIOS,
       'subscriptionPeriodUnitIOS': subscriptionPeriodUnitIOS?.toJson(),
       'title': title,
@@ -2553,6 +2840,134 @@ class SubscriptionInfoIOS {
   }
 }
 
+/// Standardized subscription discount/promotional offer.
+/// Provides a unified interface for subscription offers across iOS and Android.
+/// 
+/// Both platforms support subscription offers with different implementations:
+/// - iOS: Introductory offers, promotional offers with server-side signatures
+/// - Android: Offer tokens with pricing phases
+/// 
+/// @see https://openiap.dev/docs/types/ios#discount-offer
+/// @see https://openiap.dev/docs/types/android#subscription-offer
+class SubscriptionOffer {
+  const SubscriptionOffer({
+    this.basePlanIdAndroid,
+    this.currency,
+    required this.displayPrice,
+    required this.id,
+    this.keyIdentifierIOS,
+    this.localizedPriceIOS,
+    this.nonceIOS,
+    this.numberOfPeriodsIOS,
+    this.offerTagsAndroid,
+    this.offerTokenAndroid,
+    this.paymentMode,
+    this.period,
+    this.periodCount,
+    required this.price,
+    this.pricingPhasesAndroid,
+    this.signatureIOS,
+    this.timestampIOS,
+    required this.type,
+  });
+
+  /// [Android] Base plan identifier.
+  /// Identifies which base plan this offer belongs to.
+  final String? basePlanIdAndroid;
+  /// Currency code (ISO 4217, e.g., "USD")
+  final String? currency;
+  /// Formatted display price string (e.g., "$9.99/month")
+  final String displayPrice;
+  /// Unique identifier for the offer.
+  /// - iOS: Discount identifier from App Store Connect
+  /// - Android: offerId from ProductSubscriptionAndroidOfferDetails
+  final String id;
+  /// [iOS] Key identifier for signature validation.
+  /// Used with server-side signature generation for promotional offers.
+  final String? keyIdentifierIOS;
+  /// [iOS] Localized price string.
+  final String? localizedPriceIOS;
+  /// [iOS] Cryptographic nonce (UUID) for signature validation.
+  /// Must be generated server-side for each purchase attempt.
+  final String? nonceIOS;
+  /// [iOS] Number of billing periods for this discount.
+  final int? numberOfPeriodsIOS;
+  /// [Android] List of tags associated with this offer.
+  final List<String>? offerTagsAndroid;
+  /// [Android] Offer token required for purchase.
+  /// Must be passed to requestPurchase() when purchasing with this offer.
+  final String? offerTokenAndroid;
+  /// Payment mode during the offer period
+  final PaymentMode? paymentMode;
+  /// Subscription period for this offer
+  final SubscriptionPeriod? period;
+  /// Number of periods the offer applies
+  final int? periodCount;
+  /// Numeric price value
+  final double price;
+  /// [Android] Pricing phases for this subscription offer.
+  /// Contains detailed pricing information for each phase (trial, intro, regular).
+  final PricingPhasesAndroid? pricingPhasesAndroid;
+  /// [iOS] Server-generated signature for promotional offer validation.
+  /// Required when applying promotional offers on iOS.
+  final String? signatureIOS;
+  /// [iOS] Timestamp when the signature was generated.
+  /// Used for signature validation.
+  final double? timestampIOS;
+  /// Type of subscription offer (Introductory or Promotional)
+  final DiscountOfferType type;
+
+  factory SubscriptionOffer.fromJson(Map<String, dynamic> json) {
+    return SubscriptionOffer(
+      basePlanIdAndroid: json['basePlanIdAndroid'] as String?,
+      currency: json['currency'] as String?,
+      displayPrice: json['displayPrice'] as String,
+      id: json['id'] as String,
+      keyIdentifierIOS: json['keyIdentifierIOS'] as String?,
+      localizedPriceIOS: json['localizedPriceIOS'] as String?,
+      nonceIOS: json['nonceIOS'] as String?,
+      numberOfPeriodsIOS: json['numberOfPeriodsIOS'] as int?,
+      offerTagsAndroid: (json['offerTagsAndroid'] as List<dynamic>?) == null ? null : (json['offerTagsAndroid'] as List<dynamic>?)!.map((e) => e as String).toList(),
+      offerTokenAndroid: json['offerTokenAndroid'] as String?,
+      paymentMode: json['paymentMode'] != null ? PaymentMode.fromJson(json['paymentMode'] as String) : null,
+      period: json['period'] != null ? SubscriptionPeriod.fromJson(json['period'] as Map<String, dynamic>) : null,
+      periodCount: json['periodCount'] as int?,
+      price: (json['price'] as num).toDouble(),
+      pricingPhasesAndroid: json['pricingPhasesAndroid'] != null ? PricingPhasesAndroid.fromJson(json['pricingPhasesAndroid'] as Map<String, dynamic>) : null,
+      signatureIOS: json['signatureIOS'] as String?,
+      timestampIOS: (json['timestampIOS'] as num?)?.toDouble(),
+      type: DiscountOfferType.fromJson(json['type'] as String),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '__typename': 'SubscriptionOffer',
+      'basePlanIdAndroid': basePlanIdAndroid,
+      'currency': currency,
+      'displayPrice': displayPrice,
+      'id': id,
+      'keyIdentifierIOS': keyIdentifierIOS,
+      'localizedPriceIOS': localizedPriceIOS,
+      'nonceIOS': nonceIOS,
+      'numberOfPeriodsIOS': numberOfPeriodsIOS,
+      'offerTagsAndroid': offerTagsAndroid == null ? null : offerTagsAndroid!.map((e) => e).toList(),
+      'offerTokenAndroid': offerTokenAndroid,
+      'paymentMode': paymentMode?.toJson(),
+      'period': period?.toJson(),
+      'periodCount': periodCount,
+      'price': price,
+      'pricingPhasesAndroid': pricingPhasesAndroid?.toJson(),
+      'signatureIOS': signatureIOS,
+      'timestampIOS': timestampIOS,
+      'type': type.toJson(),
+    };
+  }
+}
+
+/// iOS subscription offer details.
+/// @deprecated Use the standardized SubscriptionOffer type instead for cross-platform compatibility.
+/// @see https://openiap.dev/docs/types#subscription-offer
 class SubscriptionOfferIOS {
   const SubscriptionOfferIOS({
     required this.displayPrice,
@@ -2594,6 +3009,34 @@ class SubscriptionOfferIOS {
       'periodCount': periodCount,
       'price': price,
       'type': type.toJson(),
+    };
+  }
+}
+
+/// Subscription period value combining unit and count.
+class SubscriptionPeriod {
+  const SubscriptionPeriod({
+    required this.unit,
+    required this.value,
+  });
+
+  /// The period unit (day, week, month, year)
+  final SubscriptionPeriodUnit unit;
+  /// The number of units (e.g., 1 for monthly, 3 for quarterly)
+  final int value;
+
+  factory SubscriptionPeriod.fromJson(Map<String, dynamic> json) {
+    return SubscriptionPeriod(
+      unit: SubscriptionPeriodUnit.fromJson(json['unit'] as String),
+      value: json['value'] as int,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '__typename': 'SubscriptionPeriod',
+      'unit': unit.toJson(),
+      'value': value,
     };
   }
 }

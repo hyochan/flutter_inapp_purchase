@@ -126,7 +126,7 @@ gentype.ProductCommon parseProductFromNative(
       );
     }
 
-    final subscriptionOffers = _parseOfferDetails(
+    final subscriptionOfferDetails = _parseOfferDetails(
       json['subscriptionOfferDetailsAndroid'],
     );
 
@@ -137,7 +137,8 @@ gentype.ProductCommon parseProductFromNative(
       id: productId,
       nameAndroid: json['nameAndroid']?.toString() ?? productId,
       platform: platform,
-      subscriptionOfferDetailsAndroid: subscriptionOffers,
+      subscriptionOfferDetailsAndroid: subscriptionOfferDetails,
+      subscriptionOffers: _parseSubscriptionOffers(subscriptionOfferDetails),
       title: title,
       type: productType,
       debugDescription: json['debugDescription']?.toString(),
@@ -624,6 +625,66 @@ gentype.SubscriptionInfoIOS? _parseSubscriptionInfoIOS(dynamic value) {
     }
   }
   return null;
+}
+
+/// Parse standardized SubscriptionOffer list from subscription offer details.
+/// Converts legacy subscriptionOfferDetailsAndroid to cross-platform SubscriptionOffer.
+List<gentype.SubscriptionOffer> _parseSubscriptionOffers(
+  List<gentype.ProductSubscriptionAndroidOfferDetails> offerDetails,
+) {
+  return offerDetails.map((offer) {
+    // Determine payment mode from pricing phases
+    gentype.PaymentMode? paymentMode;
+    if (offer.pricingPhases.pricingPhaseList.isNotEmpty) {
+      final firstPhase = offer.pricingPhases.pricingPhaseList.first;
+      final priceAmount = int.tryParse(firstPhase.priceAmountMicros) ?? 0;
+      final recurrenceMode = firstPhase.recurrenceMode;
+
+      if (priceAmount == 0) {
+        paymentMode = gentype.PaymentMode.FreeTrial;
+      } else if (recurrenceMode == 3) {
+        // NON_RECURRING
+        paymentMode = gentype.PaymentMode.PayUpFront;
+      } else {
+        paymentMode = gentype.PaymentMode.PayAsYouGo;
+      }
+    }
+
+    // Get price from first pricing phase
+    String displayPrice = '';
+    double price = 0;
+    String? currency;
+    if (offer.pricingPhases.pricingPhaseList.isNotEmpty) {
+      final firstPhase = offer.pricingPhases.pricingPhaseList.first;
+      displayPrice = firstPhase.formattedPrice;
+      final micros = int.tryParse(firstPhase.priceAmountMicros) ?? 0;
+      price = micros / 1000000;
+      currency = firstPhase.priceCurrencyCode;
+    }
+
+    // Determine offer type
+    gentype.DiscountOfferType type;
+    if (offer.offerId != null && offer.offerId!.isNotEmpty) {
+      type = gentype.DiscountOfferType.Promotional;
+    } else if (paymentMode == gentype.PaymentMode.FreeTrial) {
+      type = gentype.DiscountOfferType.Introductory;
+    } else {
+      type = gentype.DiscountOfferType.Introductory;
+    }
+
+    return gentype.SubscriptionOffer(
+      id: offer.offerId ?? offer.basePlanId,
+      displayPrice: displayPrice,
+      price: price,
+      currency: currency,
+      type: type,
+      paymentMode: paymentMode,
+      basePlanIdAndroid: offer.basePlanId,
+      offerTokenAndroid: offer.offerToken,
+      offerTagsAndroid: offer.offerTags,
+      pricingPhasesAndroid: offer.pricingPhases,
+    );
+  }).toList();
 }
 
 gentype.SubscriptionPeriodIOS? _parseSubscriptionPeriod(dynamic value) {
