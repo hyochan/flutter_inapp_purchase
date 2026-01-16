@@ -23,19 +23,68 @@ final subscriptions = await iap.fetchProducts(
 
 ## Basic Subscription Purchase
 
+### Access Subscription Offers (Cross-Platform)
+
+:::tip New in v8.3+
+Use the standardized `subscriptionOffers` field for cross-platform compatibility.
+:::
+
+```dart
+// Get standardized subscription offers (recommended)
+void displaySubscriptionOffers(ProductCommon product) {
+  List<SubscriptionOffer>? offers;
+
+  if (product is ProductSubscriptionAndroid) {
+    offers = product.subscriptionOffers;
+  } else if (product is ProductSubscriptionIOS) {
+    offers = product.subscriptionOffers;
+  }
+
+  for (final offer in offers ?? []) {
+    print('Offer ID: ${offer.id}');
+    print('Price: ${offer.displayPrice}');
+    print('Type: ${offer.type}'); // Introductory, Promotional
+    print('Payment Mode: ${offer.paymentMode}'); // FreeTrial, PayAsYouGo, PayUpFront
+
+    // Period info
+    if (offer.period != null) {
+      print('Period: ${offer.period!.value} ${offer.period!.unit}');
+    }
+
+    // Android-specific: offerToken required for purchase
+    if (offer.offerTokenAndroid != null) {
+      print('Offer Token: ${offer.offerTokenAndroid}');
+    }
+  }
+}
+```
+
 ### Android with Offers
 
 ```dart
-// Get available offers for Android
+// Get available offers for Android (using standardized offers)
 List<AndroidSubscriptionOfferInput> getAndroidOffers(ProductCommon product) {
-  if (product is ProductAndroid) {
+  if (product is ProductSubscriptionAndroid) {
+    // Use new standardized subscriptionOffers (recommended)
+    final offers = product.subscriptionOffers;
+    if (offers != null && offers.isNotEmpty) {
+      return [
+        for (final offer in offers)
+          AndroidSubscriptionOfferInput(
+            offerToken: offer.offerTokenAndroid ?? '',
+            sku: product.id, // Use productId, not basePlanId
+          ),
+      ];
+    }
+
+    // Fallback to legacy field (deprecated)
     final details = product.subscriptionOfferDetailsAndroid;
     if (details != null && details.isNotEmpty) {
       return [
         for (final offer in details)
           AndroidSubscriptionOfferInput(
             offerToken: offer.offerToken,
-            sku: product.id, // Use productId, not basePlanId
+            sku: product.id,
           ),
       ];
     }

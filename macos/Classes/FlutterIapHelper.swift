@@ -172,7 +172,7 @@ enum FlutterIapHelper {
         return try decodePurchaseInput(from: payload)
     }
 
-    static func decodeReceiptValidationProps(for sku: String) throws -> ReceiptValidationProps {
-        try OpenIapSerialization.receiptValidationProps(from: ["sku": sku])
+    static func decodeVerifyPurchaseProps(for sku: String) throws -> VerifyPurchaseProps {
+        try OpenIapSerialization.verifyPurchaseProps(from: ["sku": sku])
     }
 }

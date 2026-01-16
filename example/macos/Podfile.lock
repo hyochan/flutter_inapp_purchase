@@ -1,9 +1,9 @@
 PODS:
   - flutter_inapp_purchase (0.0.1):
     - FlutterMacOS
-    - openiap (= 1.2.34)
+    - openiap (= 1.3.10)
   - FlutterMacOS (1.0.0)
-  - openiap (1.2.34)
+  - openiap (1.3.10)
 
 DEPENDENCIES:
   - flutter_inapp_purchase (from `Flutter/ephemeral/.symlinks/plugins/flutter_inapp_purchase/macos`)
@@ -20,9 +20,9 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral
 
 SPEC CHECKSUMS:
-  flutter_inapp_purchase: 273e61b8983a1856533823f89d79ef457a360950
+  flutter_inapp_purchase: dd713005a14374b387ecbf0e7d4e37b430b8532d
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
-  openiap: e2394b0751f38061181bdf8a191ea94c264f7e05
+  openiap: ab4ecc6d04e3fa65c8410bca9d3a05a37be0f108
 
 PODFILE CHECKSUM: f2a33f3e0cdc1c5472dfe6ef17e073d2d248e0b5
 

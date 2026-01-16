@@ -617,7 +617,7 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
         FlutterIapLog.debug("validateReceiptIOS called for product: \(productId)")
         Task { @MainActor in
             do {
-                let props = try FlutterIapHelper.decodeReceiptValidationProps(for: productId)
+                let props = try FlutterIapHelper.decodeVerifyPurchaseProps(for: productId)
                 let res = try await OpenIapModule.shared.validateReceiptIOS(props)
                 var payload: [String: Any?] = [
                     "isValid": res.isValid,
