@@ -943,6 +943,114 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
     return date.toLocal().toString().split('.').first;
   }
 
+  /// Build widgets showing standardized SubscriptionOffer data (cross-platform)
+  List<Widget> _buildStandardizedOffers(ProductCommon subscription) {
+    List<SubscriptionOffer>? offers;
+
+    // Get standardized offers from the product
+    if (subscription is ProductSubscriptionAndroid) {
+      offers = subscription.subscriptionOffers;
+    } else if (subscription is ProductSubscriptionIOS) {
+      offers = subscription.subscriptionOffers;
+    }
+
+    if (offers == null || offers.isEmpty) {
+      return [];
+    }
+
+    return [
+      const SizedBox(height: 8),
+      const Text(
+        'Available Offers:',
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+          color: Colors.deepPurple,
+        ),
+      ),
+      const SizedBox(height: 4),
+      ...offers.map((offer) => _buildOfferChip(offer)),
+    ];
+  }
+
+  Widget _buildOfferChip(SubscriptionOffer offer) {
+    final typeLabel = switch (offer.type) {
+      DiscountOfferType.Introductory => 'Intro',
+      DiscountOfferType.Promotional => 'Promo',
+      DiscountOfferType.OneTime => 'One-time',
+    };
+
+    final paymentModeLabel = switch (offer.paymentMode) {
+      PaymentMode.FreeTrial => 'Free Trial',
+      PaymentMode.PayAsYouGo => 'Pay As You Go',
+      PaymentMode.PayUpFront => 'Pay Up Front',
+      PaymentMode.Unknown => '',
+      null => '',
+    };
+
+    final periodLabel = offer.period != null
+        ? '${offer.period!.value} ${offer.period!.unit.toJson()}'
+        : '';
+
+    return Container(
+      margin: const EdgeInsets.only(top: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.deepPurple.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.deepPurple.shade200),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: Colors.deepPurple,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              typeLabel,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            offer.displayPrice,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          if (paymentModeLabel.isNotEmpty) ...[
+            const SizedBox(width: 8),
+            Text(
+              paymentModeLabel,
+              style: TextStyle(
+                fontSize: 10,
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ],
+          if (periodLabel.isNotEmpty) ...[
+            const SizedBox(width: 8),
+            Text(
+              periodLabel,
+              style: TextStyle(
+                fontSize: 10,
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _buildSubscriptionTier(ProductCommon subscription) {
     final isCurrentSubscription =
         _currentActiveSubscription?.productId == subscription.id;
@@ -1015,6 +1123,10 @@ Has token: ${purchase.purchaseToken != null && purchase.purchaseToken!.isNotEmpt
                 subscription.description ?? 'Subscription tier',
                 style: TextStyle(color: Colors.grey[600]),
               ),
+
+              // Show standardized subscription offers (new cross-platform API)
+              ..._buildStandardizedOffers(subscription),
+
               const SizedBox(height: 12),
 
               // Action buttons - Always show for testing

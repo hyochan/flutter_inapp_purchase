@@ -78,8 +78,10 @@ void main() {
       final props = builder.build();
 
       expect(props.developerBillingOption, isNotNull);
-      expect(props.developerBillingOption!.billingProgram,
-          BillingProgramAndroid.ExternalPayments);
+      expect(
+        props.developerBillingOption!.billingProgram,
+        BillingProgramAndroid.ExternalPayments,
+      );
     });
   });
 
@@ -113,10 +115,7 @@ void main() {
       final builder = RequestSubscriptionAndroidBuilder()
         ..skus = ['sub']
         ..subscriptionOffers = const [
-          AndroidSubscriptionOfferInput(
-            sku: 'sub',
-            offerToken: 'offer123',
-          ),
+          AndroidSubscriptionOfferInput(sku: 'sub', offerToken: 'offer123'),
         ];
 
       final props = builder.build();
@@ -178,19 +177,13 @@ void main() {
     test('type setter throws for ProductQueryType.All', () {
       final builder = RequestPurchaseBuilder();
 
-      expect(
-        () => builder.type = ProductQueryType.All,
-        throwsArgumentError,
-      );
+      expect(() => builder.type = ProductQueryType.All, throwsArgumentError);
     });
 
     test('type setter throws for unsupported types', () {
       final builder = RequestPurchaseBuilder();
 
-      expect(
-        () => builder.type = 123,
-        throwsArgumentError,
-      );
+      expect(() => builder.type = 123, throwsArgumentError);
     });
 
     test('build throws for ProductQueryType.All', () {

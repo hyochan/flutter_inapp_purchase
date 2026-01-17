@@ -329,10 +329,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
                 ? gentype.RequestPurchaseIosProps.fromJson(iosData)
                 : gentype.RequestSubscriptionIosProps.fromJson(iosData);
 
-            final payload = buildIosPurchasePayload(
-              nativeType,
-              iosProps,
-            );
+            final payload = buildIosPurchasePayload(nativeType, iosProps);
 
             if (payload == null) {
               throw PurchaseError(
@@ -482,9 +479,10 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
   /// [options] - Optional configuration for the method behavior
   /// - onlyIncludeActiveItemsIOS: Whether to only include active items (default: true)
   ///   Set to false to include expired subscriptions
-  gentype.QueryGetAvailablePurchasesHandler get getAvailablePurchases => (
-          {bool? alsoPublishToEventListenerIOS,
-          bool? onlyIncludeActiveItemsIOS}) async {
+  gentype.QueryGetAvailablePurchasesHandler get getAvailablePurchases => ({
+        bool? alsoPublishToEventListenerIOS,
+        bool? onlyIncludeActiveItemsIOS,
+      }) async {
         if (!_isInitialized) {
           throw PurchaseError(
             code: gentype.ErrorCode.NotPrepared,
@@ -523,8 +521,10 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
                 'onlyIncludeActiveItemsIOS':
                     normalizedOptions.onlyIncludeActiveItemsIOS ?? true,
               };
-              final dynamic result =
-                  await _channel.invokeMethod('getAvailableItems', args);
+              final dynamic result = await _channel.invokeMethod(
+                'getAvailableItems',
+                args,
+              );
               raw = extractPurchases(
                 result,
                 platformIsAndroid: false,
@@ -533,8 +533,9 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
                     _acknowledgedAndroidPurchaseTokens,
               );
             } else if (_platform.isAndroid) {
-              final dynamic result =
-                  await _channel.invokeMethod('getAvailableItems');
+              final dynamic result = await _channel.invokeMethod(
+                'getAvailableItems',
+              );
               raw = extractPurchases(
                 result,
                 platformIsAndroid: true,
@@ -677,10 +678,9 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           for (final entry in asList) {
             if (entry is Map) {
               final normalized = entry.map<String, dynamic>(
-                  (key, value) => MapEntry(key.toString(), value));
-              statuses.add(
-                gentype.SubscriptionStatusIOS.fromJson(normalized),
+                (key, value) => MapEntry(key.toString(), value),
               );
+              statuses.add(gentype.SubscriptionStatusIOS.fromJson(normalized));
             }
           }
           return statuses;
@@ -722,7 +722,8 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           if (result is Map) {
             return gentype.ProductIOS.fromJson(
               result.map<String, dynamic>(
-                  (key, value) => MapEntry(key.toString(), value)),
+                (key, value) => MapEntry(key.toString(), value),
+              ),
             );
           }
 
@@ -772,9 +773,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
                   .invokeMethod('requestPurchaseOnPromotedProductIOS');
               return true;
             } catch (error) {
-              debugPrint(
-                'Error requesting promoted product purchase: $error',
-              );
+              debugPrint('Error requesting promoted product purchase: $error');
               return false;
             }
           };
@@ -794,7 +793,8 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           }
 
           final map = result.map<String, dynamic>(
-              (key, value) => MapEntry(key.toString(), value));
+            (key, value) => MapEntry(key.toString(), value),
+          );
           return gentype.AppTransaction.fromJson(map);
         } catch (error) {
           debugPrint('Error getting app transaction: $error');
@@ -852,8 +852,9 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
   gentype.QueryGetPendingTransactionsIOSHandler get getPendingTransactionsIOS =>
       () async {
         if (_platform.isIOS || _platform.isMacOS) {
-          final dynamic result =
-              await _channel.invokeMethod('getPendingTransactionsIOS');
+          final dynamic result = await _channel.invokeMethod(
+            'getPendingTransactionsIOS',
+          );
           final purchases = extractPurchases(
             result,
             platformIsAndroid: _platform.isAndroid,
@@ -861,9 +862,9 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
             acknowledgedAndroidPurchaseTokens:
                 _acknowledgedAndroidPurchaseTokens,
           );
-          return purchases
-              .whereType<gentype.PurchaseIOS>()
-              .toList(growable: false);
+          return purchases.whereType<gentype.PurchaseIOS>().toList(
+                growable: false,
+              );
         }
         return const <gentype.PurchaseIOS>[];
       };
@@ -905,7 +906,8 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
 
               if (response is Map) {
                 final parsed = response.map<String, dynamic>(
-                    (key, value) => MapEntry(key.toString(), value));
+                  (key, value) => MapEntry(key.toString(), value),
+                );
                 final code = parsed['responseCode'] as int? ?? 0;
                 final success = parsed['success'] as bool? ?? false;
                 return code == 0 || success;
@@ -935,7 +937,8 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
 
           if (response is Map) {
             final map = response.map<String, dynamic>(
-                (key, value) => MapEntry(key.toString(), value));
+              (key, value) => MapEntry(key.toString(), value),
+            );
             return map['success'] as bool? ?? true;
           }
 
@@ -974,10 +977,8 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
       };
 
   /// Finish a transaction using OpenIAP generated handler signature
-  gentype.MutationFinishTransactionHandler get finishTransaction => ({
-        required gentype.Purchase purchase,
-        bool? isConsumable,
-      }) async {
+  gentype.MutationFinishTransactionHandler get finishTransaction =>
+      ({required gentype.Purchase purchase, bool? isConsumable}) async {
         final bool consumable = isConsumable ?? false;
         final transactionId = purchase.id;
 
@@ -1038,12 +1039,10 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
               ? 'acknowledgePurchase'
               : 'acknowledgePurchaseAndroid';
 
-          final result = await _channel.invokeMethod(
-            methodName,
-            <String, dynamic>{
-              'purchaseToken': purchase.purchaseToken,
-            },
-          );
+          final result =
+              await _channel.invokeMethod(methodName, <String, dynamic>{
+            'purchaseToken': purchase.purchaseToken,
+          });
           bool didAcknowledgeSucceed(dynamic response) {
             if (response == null) {
               return false;
@@ -1068,7 +1067,8 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
               }
             } else if (response is Map<dynamic, dynamic>) {
               parsed = response.map<String, dynamic>(
-                  (key, value) => MapEntry(key.toString(), value));
+                (key, value) => MapEntry(key.toString(), value),
+              );
             }
 
             if (parsed != null) {
@@ -1202,7 +1202,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           final result = await _channel.invokeMethod<Map<dynamic, dynamic>>(
             'validateReceiptIOS',
             {
-              'apple': {'sku': skuTrimmed}
+              'apple': {'sku': skuTrimmed},
             },
           );
 
@@ -1214,12 +1214,14 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           }
 
           final validationResult = result.map<String, dynamic>(
-              (key, value) => MapEntry(key.toString(), value));
+            (key, value) => MapEntry(key.toString(), value),
+          );
           final latestTransactionMap = validationResult['latestTransaction'];
           final latestTransaction = latestTransactionMap is Map
               ? gentype.Purchase.fromJson(
                   latestTransactionMap.map<String, dynamic>(
-                      (key, value) => MapEntry(key.toString(), value)),
+                    (key, value) => MapEntry(key.toString(), value),
+                  ),
                 )
               : null;
 
@@ -1303,9 +1305,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
             }
 
             try {
-              final Map<String, dynamic> args = {
-                'provider': provider.value,
-              };
+              final Map<String, dynamic> args = {'provider': provider.value};
 
               if (iapkit != null) {
                 args['iapkit'] = {
@@ -1335,7 +1335,8 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
                 resultMap = jsonDecode(result) as Map<String, dynamic>;
               } else if (result is Map) {
                 resultMap = result.map<String, dynamic>(
-                    (key, value) => MapEntry(key.toString(), value));
+                  (key, value) => MapEntry(key.toString(), value),
+                );
               } else {
                 throw PurchaseError(
                   code: gentype.ErrorCode.PurchaseVerificationFailed,
@@ -1349,14 +1350,17 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
               if (iapkitData != null) {
                 final itemMap = iapkitData is Map
                     ? iapkitData.map<String, dynamic>(
-                        (k, v) => MapEntry(k.toString(), v))
+                        (k, v) => MapEntry(k.toString(), v),
+                      )
                     : <String, dynamic>{};
                 iapkitResult = gentype.RequestVerifyPurchaseWithIapkitResult(
                   isValid: itemMap['isValid'] as bool? ?? false,
                   state: gentype.IapkitPurchaseState.fromJson(
-                      itemMap['state']?.toString() ?? 'unknown'),
+                    itemMap['state']?.toString() ?? 'unknown',
+                  ),
                   store: gentype.IapStore.fromJson(
-                      itemMap['store']?.toString() ?? 'apple'),
+                    itemMap['store']?.toString() ?? 'apple',
+                  ),
                 );
               }
 
@@ -1377,7 +1381,8 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
                 iapkit: iapkitResult,
                 errors: errors,
                 provider: gentype.PurchaseVerificationProvider.fromJson(
-                    resultMap['provider']?.toString() ?? 'iapkit'),
+                  resultMap['provider']?.toString() ?? 'iapkit',
+                ),
               );
             } on PlatformException catch (error) {
               throw PurchaseError(
@@ -1462,8 +1467,9 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           if (result is String) {
             resultMap = jsonDecode(result) as Map<String, dynamic>;
           } else if (result is Map) {
-            resultMap = result
-                .map<String, dynamic>((k, v) => MapEntry(k.toString(), v));
+            resultMap = result.map<String, dynamic>(
+              (k, v) => MapEntry(k.toString(), v),
+            );
           } else {
             throw PurchaseError(
               code: gentype.ErrorCode.PurchaseVerificationFailed,
@@ -1559,9 +1565,11 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
             '[flutter_inapp_purchase] Skipping product due to parse error: $error',
           );
           debugPrint(
-              '[flutter_inapp_purchase] Item runtimeType: ${item.runtimeType}');
+            '[flutter_inapp_purchase] Item runtimeType: ${item.runtimeType}',
+          );
           debugPrint(
-              '[flutter_inapp_purchase] Item values: ${jsonEncode(item)}');
+            '[flutter_inapp_purchase] Item values: ${jsonEncode(item)}',
+          );
         }
       }
 
@@ -1587,8 +1595,9 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
         return subscriptions;
       } else {
         // Default to in-app products
-        final inApps =
-            products.whereType<gentype.Product>().toList(growable: false);
+        final inApps = products.whereType<gentype.Product>().toList(
+              growable: false,
+            );
         debugPrint(
           '[flutter_inapp_purchase] Type InApp: returning ${inApps.length} products',
         );
@@ -1624,10 +1633,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
     required List<String> skus,
     gentype.ProductQueryType type = gentype.ProductQueryType.InApp,
   }) async {
-    final result = await _fetchProductsInternal(
-      skus: skus,
-      queryType: type,
-    );
+    final result = await _fetchProductsInternal(skus: skus, queryType: type);
     return result.cast<T>();
   }
 
@@ -1768,10 +1774,10 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           // For Android, also call native with explicit type for parity/logging
           if (_platform.isAndroid) {
             try {
-              await _channel
-                  .invokeMethod('getAvailableItems', <String, dynamic>{
-                'type': TypeInApp.subs.name,
-              });
+              await _channel.invokeMethod(
+                'getAvailableItems',
+                <String, dynamic>{'type': TypeInApp.subs.name},
+              );
             } catch (_) {
               // Ignore; this is for logging/compatibility only
             }
@@ -1794,7 +1800,8 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
             }
             try {
               final result = await _channel.invokeMethod<bool>(
-                  'checkAlternativeBillingAvailabilityAndroid');
+                'checkAlternativeBillingAvailabilityAndroid',
+              );
               return result ?? false;
             } catch (error) {
               debugPrint(
@@ -1810,8 +1817,9 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
               return false;
             }
             try {
-              final result = await _channel
-                  .invokeMethod<bool>('showAlternativeBillingDialogAndroid');
+              final result = await _channel.invokeMethod<bool>(
+                'showAlternativeBillingDialogAndroid',
+              );
               return result ?? false;
             } catch (error) {
               debugPrint('showAlternativeBillingDialogAndroid error: $error');
@@ -1826,8 +1834,9 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
               return null;
             }
             try {
-              final result = await _channel
-                  .invokeMethod<String>('createAlternativeBillingTokenAndroid');
+              final result = await _channel.invokeMethod<String>(
+                'createAlternativeBillingTokenAndroid',
+              );
               return result;
             } catch (error) {
               debugPrint('createAlternativeBillingTokenAndroid error: $error');
@@ -1840,7 +1849,8 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
   /// Check if a billing program is available on Android (8.2.0+)
   Future<gentype.BillingProgramAvailabilityResultAndroid>
       isBillingProgramAvailableAndroid(
-          gentype.BillingProgramAndroid program) async {
+    gentype.BillingProgramAndroid program,
+  ) async {
     if (!_platform.isAndroid) {
       return gentype.BillingProgramAvailabilityResultAndroid(
         billingProgram: program,
@@ -1872,7 +1882,8 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
   /// Create billing program reporting details on Android (8.2.0+)
   Future<gentype.BillingProgramReportingDetailsAndroid>
       createBillingProgramReportingDetailsAndroid(
-          gentype.BillingProgramAndroid program) async {
+    gentype.BillingProgramAndroid program,
+  ) async {
     if (!_platform.isAndroid) {
       throw PurchaseError(
         code: gentype.ErrorCode.IapNotAvailable,
@@ -1901,7 +1912,8 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
 
   /// Launch external link on Android (8.2.0+)
   Future<bool> launchExternalLinkAndroid(
-      gentype.LaunchExternalLinkParamsAndroid params) async {
+    gentype.LaunchExternalLinkParamsAndroid params,
+  ) async {
     if (!_platform.isAndroid) {
       throw PurchaseError(
         code: gentype.ErrorCode.IapNotAvailable,
@@ -1909,15 +1921,13 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
       );
     }
     try {
-      final result = await _channel.invokeMethod<bool>(
-        'launchExternalLinkAndroid',
-        {
-          'billingProgram': params.billingProgram.toJson(),
-          'launchMode': params.launchMode.toJson(),
-          'linkType': params.linkType.toJson(),
-          'linkUri': params.linkUri,
-        },
-      );
+      final result =
+          await _channel.invokeMethod<bool>('launchExternalLinkAndroid', {
+        'billingProgram': params.billingProgram.toJson(),
+        'launchMode': params.launchMode.toJson(),
+        'linkType': params.linkType.toJson(),
+        'linkUri': params.linkUri,
+      });
       return result ?? false;
     } catch (error) {
       debugPrint('launchExternalLinkAndroid error: $error');
@@ -1930,22 +1940,27 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
       get presentExternalPurchaseNoticeSheetIOS => () async {
             if (!_platform.isIOS || _platform.isMacOS) {
               return const gentype.ExternalPurchaseNoticeResultIOS(
-                  result: gentype.ExternalPurchaseNoticeAction.Dismissed);
+                result: gentype.ExternalPurchaseNoticeAction.Dismissed,
+              );
             }
             try {
               final result = await _channel.invokeMethod<Map<dynamic, dynamic>>(
-                  'presentExternalPurchaseNoticeSheetIOS');
+                'presentExternalPurchaseNoticeSheetIOS',
+              );
               if (result != null) {
                 return gentype.ExternalPurchaseNoticeResultIOS.fromJson(
-                    Map<String, dynamic>.from(result));
+                  Map<String, dynamic>.from(result),
+                );
               }
               return const gentype.ExternalPurchaseNoticeResultIOS(
-                  result: gentype.ExternalPurchaseNoticeAction.Dismissed);
+                result: gentype.ExternalPurchaseNoticeAction.Dismissed,
+              );
             } catch (error) {
               debugPrint('presentExternalPurchaseNoticeSheetIOS error: $error');
               return gentype.ExternalPurchaseNoticeResultIOS(
-                  result: gentype.ExternalPurchaseNoticeAction.Dismissed,
-                  error: error.toString());
+                result: gentype.ExternalPurchaseNoticeAction.Dismissed,
+                error: error.toString(),
+              );
             }
           };
 
@@ -1958,17 +1973,22 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
             }
             try {
               final result = await _channel.invokeMethod<Map<dynamic, dynamic>>(
-                  'presentExternalPurchaseLinkIOS', url);
+                'presentExternalPurchaseLinkIOS',
+                url,
+              );
               if (result != null) {
                 return gentype.ExternalPurchaseLinkResultIOS.fromJson(
-                    Map<String, dynamic>.from(result));
+                  Map<String, dynamic>.from(result),
+                );
               }
               return const gentype.ExternalPurchaseLinkResultIOS(
                   success: false);
             } catch (error) {
               debugPrint('presentExternalPurchaseLinkIOS error: $error');
               return gentype.ExternalPurchaseLinkResultIOS(
-                  success: false, error: error.toString());
+                success: false,
+                error: error.toString(),
+              );
             }
           };
 

@@ -26,9 +26,7 @@ void main() {
             return true;
           case 'getSubscriptionStatus':
             return <Map<String, dynamic>>[
-              <String, dynamic>{
-                'state': 'active',
-              },
+              <String, dynamic>{'state': 'active'},
             ];
           case 'presentCodeRedemptionSheetIOS':
             return null;
@@ -56,7 +54,7 @@ void main() {
                 'transactionId': 't1',
                 'platform': 'ios',
                 'store': 'apple',
-              }
+              },
             ]);
           case 'getAppTransaction':
             return <String, dynamic>{
@@ -80,7 +78,7 @@ void main() {
                 'transactionId': 't2',
                 'platform': 'ios',
                 'store': 'apple',
-              }
+              },
             ]);
         }
         return null;

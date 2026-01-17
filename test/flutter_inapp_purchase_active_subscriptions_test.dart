@@ -30,39 +30,41 @@ void main() {
   });
 
   group('getActiveSubscriptions', () {
-    test('returns active Android subscriptions only for purchased items',
-        () async {
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(channel, (MethodCall call) async {
-        switch (call.method) {
-          case 'initConnection':
-            return true;
-          case 'getActiveSubscriptions':
-            return <Map<String, dynamic>>[
-              <String, dynamic>{
-                'productId': 'sub.android',
-                'transactionId': 'txn_android',
-                'purchaseToken': 'token-123',
-                'isActive': true,
-                'autoRenewingAndroid': true,
-                'transactionDate': 1700000000000,
-              },
-            ];
-        }
-        return null;
-      });
+    test(
+      'returns active Android subscriptions only for purchased items',
+      () async {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, (MethodCall call) async {
+          switch (call.method) {
+            case 'initConnection':
+              return true;
+            case 'getActiveSubscriptions':
+              return <Map<String, dynamic>>[
+                <String, dynamic>{
+                  'productId': 'sub.android',
+                  'transactionId': 'txn_android',
+                  'purchaseToken': 'token-123',
+                  'isActive': true,
+                  'autoRenewingAndroid': true,
+                  'transactionDate': 1700000000000,
+                },
+              ];
+          }
+          return null;
+        });
 
-      final iap = FlutterInappPurchase.private(
-        FakePlatform(operatingSystem: 'android'),
-      );
+        final iap = FlutterInappPurchase.private(
+          FakePlatform(operatingSystem: 'android'),
+        );
 
-      await iap.initConnection();
-      final subs = await iap.getActiveSubscriptions();
+        await iap.initConnection();
+        final subs = await iap.getActiveSubscriptions();
 
-      expect(subs, hasLength(1));
-      expect(subs.single.productId, 'sub.android');
-      expect(subs.single.autoRenewingAndroid, isTrue);
-    });
+        expect(subs, hasLength(1));
+        expect(subs.single.productId, 'sub.android');
+        expect(subs.single.autoRenewingAndroid, isTrue);
+      },
+    );
 
     test('ignores deferred iOS purchases', () async {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
