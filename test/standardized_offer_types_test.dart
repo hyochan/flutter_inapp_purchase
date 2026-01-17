@@ -185,10 +185,7 @@ void main() {
         currency: 'GBP',
         type: DiscountOfferType.Promotional,
         paymentMode: PaymentMode.PayUpFront,
-        period: SubscriptionPeriod(
-          unit: SubscriptionPeriodUnit.Week,
-          value: 1,
-        ),
+        period: SubscriptionPeriod(unit: SubscriptionPeriodUnit.Week, value: 1),
       );
 
       final restored = SubscriptionOffer.fromJson(original.toJson());
@@ -219,10 +216,7 @@ void main() {
         DiscountOfferType.fromJson('promotional'),
         DiscountOfferType.Promotional,
       );
-      expect(
-        DiscountOfferType.fromJson('one-time'),
-        DiscountOfferType.OneTime,
-      );
+      expect(DiscountOfferType.fromJson('one-time'), DiscountOfferType.OneTime);
     });
   });
 
@@ -324,7 +318,9 @@ void main() {
 
     test('deserializes from lowercase', () {
       expect(
-          SubscriptionPeriodUnit.fromJson('day'), SubscriptionPeriodUnit.Day);
+        SubscriptionPeriodUnit.fromJson('day'),
+        SubscriptionPeriodUnit.Day,
+      );
       expect(
         SubscriptionPeriodUnit.fromJson('week'),
         SubscriptionPeriodUnit.Week,
@@ -372,10 +368,7 @@ void main() {
       expect(json['discountOffers'], isNotNull);
       expect(json['discountOffers'], isA<List<dynamic>>());
       expect((json['discountOffers'] as List<dynamic>).length, 1);
-      expect(
-        (json['discountOffers'] as List).first['type'],
-        'one-time',
-      );
+      expect((json['discountOffers'] as List).first['type'], 'one-time');
     });
 
     test('ProductSubscriptionAndroid includes subscriptionOffers', () {

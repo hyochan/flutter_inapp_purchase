@@ -102,16 +102,18 @@ gentype.ProductCommon parseProductFromNative(
         type: productType,
         typeIOS: _parseProductTypeIOS(json['typeIOS']?.toString()),
         debugDescription: json['debugDescription']?.toString(),
-        discountsIOS:
-            _parseDiscountsIOS(json['discountsIOS'] ?? json['discounts']),
+        discountsIOS: _parseDiscountsIOS(
+          json['discountsIOS'] ?? json['discounts'],
+        ),
         displayName: json['displayName']?.toString(),
         introductoryPriceAsAmountIOS:
             json['introductoryPriceAsAmountIOS']?.toString(),
         introductoryPriceIOS: json['introductoryPriceIOS']?.toString(),
         introductoryPriceNumberOfPeriodsIOS:
             json['introductoryPriceNumberOfPeriodsIOS']?.toString(),
-        introductoryPricePaymentModeIOS:
-            _parsePaymentMode(json['introductoryPricePaymentModeIOS']),
+        introductoryPricePaymentModeIOS: _parsePaymentMode(
+          json['introductoryPricePaymentModeIOS'],
+        ),
         introductoryPriceSubscriptionPeriodIOS: _parseSubscriptionPeriod(
           json['introductoryPriceSubscriptionPeriodIOS'],
         ),
@@ -121,8 +123,9 @@ gentype.ProductCommon parseProductFromNative(
         ),
         subscriptionPeriodNumberIOS:
             json['subscriptionPeriodNumberIOS']?.toString(),
-        subscriptionPeriodUnitIOS:
-            _parseSubscriptionPeriod(json['subscriptionPeriodUnitIOS']),
+        subscriptionPeriodUnitIOS: _parseSubscriptionPeriod(
+          json['subscriptionPeriodUnitIOS'],
+        ),
       );
     }
 
@@ -358,8 +361,10 @@ iap_err.PurchaseError convertToPurchaseError(
   gentype.ErrorCode code = gentype.ErrorCode.Unknown;
 
   if (result.code != null && result.code!.isNotEmpty) {
-    final detected =
-        iap_err.ErrorCodeUtils.fromPlatformCode(result.code!, platform);
+    final detected = iap_err.ErrorCodeUtils.fromPlatformCode(
+      result.code!,
+      platform,
+    );
     if (detected != gentype.ErrorCode.Unknown) {
       code = detected;
     }
@@ -501,7 +506,8 @@ List<gentype.DiscountIOS>? _parseDiscountsIOS(dynamic json) {
           e is Map<String, dynamic>
               ? e
               : (e as Map).map<String, dynamic>(
-                  (key, value) => MapEntry(key.toString(), value)),
+                  (key, value) => MapEntry(key.toString(), value),
+                ),
         ),
       )
       .toList();
@@ -541,7 +547,8 @@ List<gentype.ProductSubscriptionAndroidOfferDetails> _parseOfferDetails(
           e = item;
         } else if (item is Map) {
           e = item.map<String, dynamic>(
-              (key, value) => MapEntry(key.toString(), value));
+            (key, value) => MapEntry(key.toString(), value),
+          );
         } else {
           // Skip invalid items
           return null;
@@ -587,7 +594,8 @@ gentype.PricingPhasesAndroid _parsePricingPhases(dynamic json) {
           e = item;
         } else if (item is Map) {
           e = item.map<String, dynamic>(
-              (key, value) => MapEntry(key.toString(), value));
+            (key, value) => MapEntry(key.toString(), value),
+          );
         } else {
           // Skip invalid items
           return null;
@@ -773,26 +781,31 @@ gentype.ProductAndroidOneTimePurchaseOfferDetail?
       fullPriceMicros: value['fullPriceMicros']?.toString(),
       discountDisplayInfo: value['discountDisplayInfo'] != null
           ? gentype.DiscountDisplayInfoAndroid.fromJson(
-              value['discountDisplayInfo'] as Map<String, dynamic>)
+              value['discountDisplayInfo'] as Map<String, dynamic>,
+            )
           : null,
       limitedQuantityInfo: value['limitedQuantityInfo'] != null
           ? gentype.LimitedQuantityInfoAndroid.fromJson(
-              value['limitedQuantityInfo'] as Map<String, dynamic>)
+              value['limitedQuantityInfo'] as Map<String, dynamic>,
+            )
           : null,
       validTimeWindow: _parseValidTimeWindow(value['validTimeWindow']),
       preorderDetailsAndroid: value['preorderDetailsAndroid'] != null
           ? gentype.PreorderDetailsAndroid.fromJson(
-              value['preorderDetailsAndroid'] as Map<String, dynamic>)
+              value['preorderDetailsAndroid'] as Map<String, dynamic>,
+            )
           : null,
       rentalDetailsAndroid: value['rentalDetailsAndroid'] != null
           ? gentype.RentalDetailsAndroid.fromJson(
-              value['rentalDetailsAndroid'] as Map<String, dynamic>)
+              value['rentalDetailsAndroid'] as Map<String, dynamic>,
+            )
           : null,
     );
   }
   if (value is Map) {
-    final map =
-        value.map<String, dynamic>((key, val) => MapEntry(key.toString(), val));
+    final map = value.map<String, dynamic>(
+      (key, val) => MapEntry(key.toString(), val),
+    );
     return gentype.ProductAndroidOneTimePurchaseOfferDetail(
       formattedPrice: map['formattedPrice']?.toString() ?? '0',
       priceAmountMicros: map['priceAmountMicros']?.toString() ?? '0',
@@ -807,21 +820,31 @@ gentype.ProductAndroidOneTimePurchaseOfferDetail?
       discountDisplayInfo: map['discountDisplayInfo'] != null
           ? gentype.DiscountDisplayInfoAndroid.fromJson(
               Map<String, dynamic>.from(
-                  map['discountDisplayInfo'] as Map<dynamic, dynamic>))
+                map['discountDisplayInfo'] as Map<dynamic, dynamic>,
+              ),
+            )
           : null,
       limitedQuantityInfo: map['limitedQuantityInfo'] != null
           ? gentype.LimitedQuantityInfoAndroid.fromJson(
               Map<String, dynamic>.from(
-                  map['limitedQuantityInfo'] as Map<dynamic, dynamic>))
+                map['limitedQuantityInfo'] as Map<dynamic, dynamic>,
+              ),
+            )
           : null,
       validTimeWindow: _parseValidTimeWindow(map['validTimeWindow']),
       preorderDetailsAndroid: map['preorderDetailsAndroid'] != null
-          ? gentype.PreorderDetailsAndroid.fromJson(Map<String, dynamic>.from(
-              map['preorderDetailsAndroid'] as Map<dynamic, dynamic>))
+          ? gentype.PreorderDetailsAndroid.fromJson(
+              Map<String, dynamic>.from(
+                map['preorderDetailsAndroid'] as Map<dynamic, dynamic>,
+              ),
+            )
           : null,
       rentalDetailsAndroid: map['rentalDetailsAndroid'] != null
-          ? gentype.RentalDetailsAndroid.fromJson(Map<String, dynamic>.from(
-              map['rentalDetailsAndroid'] as Map<dynamic, dynamic>))
+          ? gentype.RentalDetailsAndroid.fromJson(
+              Map<String, dynamic>.from(
+                map['rentalDetailsAndroid'] as Map<dynamic, dynamic>,
+              ),
+            )
           : null,
     );
   }
@@ -936,7 +959,8 @@ List<PurchaseResult>? extractResult(dynamic result) {
       .map<PurchaseResult>(
         (dynamic product) => PurchaseResult.fromJSON(
           (product as Map).map<String, dynamic>(
-              (key, value) => MapEntry(key.toString(), value)),
+            (key, value) => MapEntry(key.toString(), value),
+          ),
         ),
       )
       .toList();

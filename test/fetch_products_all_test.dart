@@ -65,22 +65,24 @@ void main() {
         .setMockMethodCallHandler(channel, null);
   });
 
-  test('fetchProducts returns in-app products when querying in-app type',
-      () async {
-    final platform = FakePlatform(operatingSystem: 'ios');
-    final iap = FlutterInappPurchase.private(platform);
+  test(
+    'fetchProducts returns in-app products when querying in-app type',
+    () async {
+      final platform = FakePlatform(operatingSystem: 'ios');
+      final iap = FlutterInappPurchase.private(platform);
 
-    await iap.initConnection();
+      await iap.initConnection();
 
-    final products = (await iap.fetchProducts(
-      skus: const ['premium_monthly', 'coin_pack'],
-      type: types.ProductQueryType.InApp,
-    ))
-        .cast<types.Product>();
+      final products = (await iap.fetchProducts(
+        skus: const ['premium_monthly', 'coin_pack'],
+        type: types.ProductQueryType.InApp,
+      ))
+          .cast<types.Product>();
 
-    expect(products, hasLength(1));
-    expect(products.first.id, 'coin_pack');
-  });
+      expect(products, hasLength(1));
+      expect(products.first.id, 'coin_pack');
+    },
+  );
 
   test('fetchProducts returns subscriptions when querying subs type', () async {
     final platform = FakePlatform(operatingSystem: 'ios');

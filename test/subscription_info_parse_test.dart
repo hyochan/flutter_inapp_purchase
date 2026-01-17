@@ -20,19 +20,12 @@ void main() {
       'platform': 'ios',
       'subscriptionPeriodUnitIOS': 'month',
       'subscriptionInfoIOS': <dynamic, dynamic>{
-        'subscriptionPeriod': <dynamic, dynamic>{
-          'value': 1,
-          'unit': 'month',
-        },
+        'subscriptionPeriod': <dynamic, dynamic>{'value': 1, 'unit': 'month'},
         'subscriptionGroupId': '21686373',
       },
     };
 
-    final product = parseProductFromNative(
-      raw,
-      'subs',
-      fallbackIsIOS: true,
-    );
+    final product = parseProductFromNative(raw, 'subs', fallbackIsIOS: true);
 
     expect(product, isA<types.ProductSubscriptionIOS>());
     final subscription = product as types.ProductSubscriptionIOS;

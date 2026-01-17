@@ -71,8 +71,9 @@ Map<String, dynamic>? buildIosPurchasePayload(
 
   final dynamic offerValue = propsJson['withOffer'];
   if (offerValue is Map) {
-    payload['withOffer'] = offerValue
-        .map<String, dynamic>((key, value) => MapEntry(key.toString(), value));
+    payload['withOffer'] = offerValue.map<String, dynamic>(
+      (key, value) => MapEntry(key.toString(), value),
+    );
   }
 
   final String? advancedCommerceData =

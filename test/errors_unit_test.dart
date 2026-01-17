@@ -86,16 +86,13 @@ void main() {
 
   group('PurchaseError', () {
     test('fromPlatformError normalizes payload', () {
-      final error = errors.PurchaseError.fromPlatformError(
-        <String, dynamic>{
-          'message': 'Something went wrong',
-          'code': 'E_SERVICE_ERROR',
-          'responseCode': 3,
-          'debugMessage': 'debug',
-          'productId': 'sku',
-        },
-        types.IapPlatform.Android,
-      );
+      final error = errors.PurchaseError.fromPlatformError(<String, dynamic>{
+        'message': 'Something went wrong',
+        'code': 'E_SERVICE_ERROR',
+        'responseCode': 3,
+        'debugMessage': 'debug',
+        'productId': 'sku',
+      }, types.IapPlatform.Android);
 
       expect(error.message, 'Something went wrong');
       expect(error.code, types.ErrorCode.ServiceError);
@@ -169,35 +166,31 @@ void main() {
     });
 
     test(
-        'message-based inference removed - returns Unknown for "User cancelled the operation"',
-        () {
-      final error = errors.PurchaseError.fromPlatformError(
-        <String, dynamic>{
+      'message-based inference removed - returns Unknown for "User cancelled the operation"',
+      () {
+        final error = errors.PurchaseError.fromPlatformError(<String, dynamic>{
           'message': 'User cancelled the operation',
           'code': 'E_UNKNOWN', // Platform code is unknown
           'responseCode': 0,
-        },
-        types.IapPlatform.Android,
-      );
+        }, types.IapPlatform.Android);
 
-      expect(error.message, 'User cancelled the operation');
-      expect(error.code, types.ErrorCode.Unknown);
-    });
+        expect(error.message, 'User cancelled the operation');
+        expect(error.code, types.ErrorCode.Unknown);
+      },
+    );
 
     test(
-        'message-based inference removed - returns Unknown for "Invalid arguments provided to the API"',
-        () {
-      final error = errors.PurchaseError.fromPlatformError(
-        <String, dynamic>{
+      'message-based inference removed - returns Unknown for "Invalid arguments provided to the API"',
+      () {
+        final error = errors.PurchaseError.fromPlatformError(<String, dynamic>{
           'message': 'Invalid arguments provided to the API',
           'code': 'E_UNKNOWN', // Platform code is unknown
           'responseCode': 0,
-        },
-        types.IapPlatform.Android,
-      );
+        }, types.IapPlatform.Android);
 
-      expect(error.message, 'Invalid arguments provided to the API');
-      expect(error.code, types.ErrorCode.Unknown);
-    });
+        expect(error.message, 'Invalid arguments provided to the API');
+        expect(error.code, types.ErrorCode.Unknown);
+      },
+    );
   });
 }
