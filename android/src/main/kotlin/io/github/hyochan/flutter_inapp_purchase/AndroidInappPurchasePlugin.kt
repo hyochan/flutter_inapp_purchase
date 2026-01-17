@@ -24,6 +24,8 @@ import dev.hyo.openiap.ProductQueryType
 import dev.hyo.openiap.ProductRequest
 import dev.hyo.openiap.Purchase
 import dev.hyo.openiap.RequestPurchaseProps
+import dev.hyo.openiap.SubscriptionProductReplacementParamsAndroid
+import dev.hyo.openiap.SubscriptionReplacementModeAndroid
 import dev.hyo.openiap.listener.OpenIapDeveloperProvidedBillingListener
 import dev.hyo.openiap.listener.OpenIapPurchaseErrorListener
 import dev.hyo.openiap.listener.OpenIapPurchaseUpdateListener
@@ -135,7 +137,8 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
         subscriptionOffers: List<AndroidSubscriptionOfferInput>,
         purchaseTokenAndroid: String?,
         replacementModeAndroid: Int?,
-        developerBillingOption: DeveloperBillingOptionParamsAndroid? = null
+        developerBillingOption: DeveloperBillingOptionParamsAndroid? = null,
+        subscriptionProductReplacementParams: SubscriptionProductReplacementParamsAndroid? = null
     ): RequestPurchaseProps {
         val androidPayload = mutableMapOf<String, Any?>().apply {
             put(KEY_SKUS, skus)
@@ -153,6 +156,9 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
             ProductQueryType.Subs -> {
                 purchaseTokenAndroid?.let { androidPayload[KEY_PURCHASE_TOKEN] = it }
                 replacementModeAndroid?.let { androidPayload[KEY_REPLACEMENT_MODE] = it }
+                subscriptionProductReplacementParams?.let {
+                    androidPayload[KEY_SUBSCRIPTION_PRODUCT_REPLACEMENT_PARAMS] = it.toJson()
+                }
                 if (subscriptionOffers.isNotEmpty()) {
                     androidPayload[KEY_SUBSCRIPTION_OFFERS] = subscriptionOffers.map { it.toJson() }
                 }
@@ -459,6 +465,27 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                     }
                 }
 
+                // Parse subscriptionProductReplacementParams for item-level replacement (8.1.0+)
+                val subscriptionProductReplacementParamsMap = params[KEY_SUBSCRIPTION_PRODUCT_REPLACEMENT_PARAMS] as? Map<*, *>
+                val subscriptionProductReplacementParams = subscriptionProductReplacementParamsMap?.let { paramsMap ->
+                    try {
+                        val oldProductId = paramsMap["oldProductId"] as? String
+                        val replacementModeStr = paramsMap["replacementMode"] as? String
+                        if (!oldProductId.isNullOrBlank() && !replacementModeStr.isNullOrBlank()) {
+                            val replacementMode = SubscriptionReplacementModeAndroid.fromJson(replacementModeStr)
+                            SubscriptionProductReplacementParamsAndroid(
+                                oldProductId = oldProductId,
+                                replacementMode = replacementMode
+                            )
+                        } else {
+                            null
+                        }
+                    } catch (e: Exception) {
+                        OpenIapLog.w(TAG, "Failed to parse subscriptionProductReplacementParams: ${e.message}")
+                        null
+                    }
+                }
+
                 // Validate SKUs
                 if (skusNormalized.isEmpty()) {
                     safe.error(OpenIapError.EmptySkuList.CODE, OpenIapError.EmptySkuList.MESSAGE, "Empty SKUs provided")
@@ -515,7 +542,8 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                         subscriptionOffers = offers,
                         purchaseTokenAndroid = purchaseTokenAndroid,
                         replacementModeAndroid = replacementModeAndroid,
-                        developerBillingOption = developerBillingOption
+                        developerBillingOption = developerBillingOption,
+                        subscriptionProductReplacementParams = subscriptionProductReplacementParams
                     )
 
                     iap.requestPurchase(requestProps)
@@ -1254,5 +1282,6 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
         private const val KEY_REPLACEMENT_MODE = "replacementModeAndroid"
         private const val KEY_SUBSCRIPTION_OFFERS = "subscriptionOffers"
         private const val KEY_DEVELOPER_BILLING_OPTION = "developerBillingOption"
+        private const val KEY_SUBSCRIPTION_PRODUCT_REPLACEMENT_PARAMS = "subscriptionProductReplacementParams"
     }
 }
