@@ -1,5 +1,23 @@
 # CHANGELOG
 
+## 8.2.1
+
+### New Features
+
+- **Cross-platform Offer Types**: Added standardized `DiscountOffer` and `SubscriptionOffer` types for cross-platform compatibility
+- **Item-level Subscription Replacement (Android 8.1.0+)**: Added `subscriptionProductReplacementParams` support as alternative to deprecated `replacementModeAndroid`
+
+### Improvements
+
+- **Code Generator**: Simplified enum `fromJson` using normalized value matching, removed redundant `.map((e) => e).toList()` for scalar lists
+
+### Dependencies
+
+- Updated OpenIAP versions:
+  - `openiap-apple`: 1.3.9 -> 1.3.10
+  - `openiap-gql`: 1.3.11 -> 1.3.12
+  - `openiap-google`: 1.3.22 -> 1.3.23
+
 ## 8.2.0
 
 ### Breaking Changes
