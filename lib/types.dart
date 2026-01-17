@@ -32,15 +32,13 @@ enum AlternativeBillingModeAndroid {
   final String value;
 
   factory AlternativeBillingModeAndroid.fromJson(String value) {
-    switch (value) {
+    final normalized = value.toLowerCase().replaceAll('_', '-');
+    switch (normalized) {
       case 'none':
-      case 'NONE':
         return AlternativeBillingModeAndroid.None;
       case 'user-choice':
-      case 'USER_CHOICE':
         return AlternativeBillingModeAndroid.UserChoice;
       case 'alternative-only':
-      case 'ALTERNATIVE_ONLY':
         return AlternativeBillingModeAndroid.AlternativeOnly;
     }
     throw ArgumentError('Unknown AlternativeBillingModeAndroid value: $value');
@@ -76,21 +74,17 @@ enum BillingProgramAndroid {
   final String value;
 
   factory BillingProgramAndroid.fromJson(String value) {
-    switch (value) {
+    final normalized = value.toLowerCase().replaceAll('_', '-');
+    switch (normalized) {
       case 'unspecified':
-      case 'UNSPECIFIED':
         return BillingProgramAndroid.Unspecified;
       case 'user-choice-billing':
-      case 'USER_CHOICE_BILLING':
         return BillingProgramAndroid.UserChoiceBilling;
       case 'external-content-link':
-      case 'EXTERNAL_CONTENT_LINK':
         return BillingProgramAndroid.ExternalContentLink;
       case 'external-offer':
-      case 'EXTERNAL_OFFER':
         return BillingProgramAndroid.ExternalOffer;
       case 'external-payments':
-      case 'EXTERNAL_PAYMENTS':
         return BillingProgramAndroid.ExternalPayments;
     }
     throw ArgumentError('Unknown BillingProgramAndroid value: $value');
@@ -116,15 +110,13 @@ enum DeveloperBillingLaunchModeAndroid {
   final String value;
 
   factory DeveloperBillingLaunchModeAndroid.fromJson(String value) {
-    switch (value) {
+    final normalized = value.toLowerCase().replaceAll('_', '-');
+    switch (normalized) {
       case 'unspecified':
-      case 'UNSPECIFIED':
         return DeveloperBillingLaunchModeAndroid.Unspecified;
       case 'launch-in-external-browser-or-app':
-      case 'LAUNCH_IN_EXTERNAL_BROWSER_OR_APP':
         return DeveloperBillingLaunchModeAndroid.LaunchInExternalBrowserOrApp;
       case 'caller-will-launch-link':
-      case 'CALLER_WILL_LAUNCH_LINK':
         return DeveloperBillingLaunchModeAndroid.CallerWillLaunchLink;
     }
     throw ArgumentError('Unknown DeveloperBillingLaunchModeAndroid value: $value');
@@ -147,18 +139,13 @@ enum DiscountOfferType {
   final String value;
 
   factory DiscountOfferType.fromJson(String value) {
-    switch (value) {
+    final normalized = value.toLowerCase().replaceAll('_', '-');
+    switch (normalized) {
       case 'introductory':
-      case 'INTRODUCTORY':
-      case 'Introductory':
         return DiscountOfferType.Introductory;
       case 'promotional':
-      case 'PROMOTIONAL':
-      case 'Promotional':
         return DiscountOfferType.Promotional;
       case 'one-time':
-      case 'ONE_TIME':
-      case 'OneTime':
         return DiscountOfferType.OneTime;
     }
     throw ArgumentError('Unknown DiscountOfferType value: $value');
@@ -210,154 +197,81 @@ enum ErrorCode {
   final String value;
 
   factory ErrorCode.fromJson(String value) {
-    switch (value) {
+    final normalized = value.toLowerCase().replaceAll('_', '-');
+    switch (normalized) {
       case 'unknown':
-      case 'UNKNOWN':
-      case 'Unknown':
         return ErrorCode.Unknown;
       case 'user-cancelled':
-      case 'USER_CANCELLED':
-      case 'UserCancelled':
         return ErrorCode.UserCancelled;
       case 'user-error':
-      case 'USER_ERROR':
-      case 'UserError':
         return ErrorCode.UserError;
       case 'item-unavailable':
-      case 'ITEM_UNAVAILABLE':
-      case 'ItemUnavailable':
         return ErrorCode.ItemUnavailable;
       case 'remote-error':
-      case 'REMOTE_ERROR':
-      case 'RemoteError':
         return ErrorCode.RemoteError;
       case 'network-error':
-      case 'NETWORK_ERROR':
-      case 'NetworkError':
         return ErrorCode.NetworkError;
       case 'service-error':
-      case 'SERVICE_ERROR':
-      case 'ServiceError':
         return ErrorCode.ServiceError;
       case 'receipt-failed':
-      case 'RECEIPT_FAILED':
-      case 'ReceiptFailed':
         return ErrorCode.ReceiptFailed;
       case 'receipt-finished':
-      case 'RECEIPT_FINISHED':
-      case 'ReceiptFinished':
         return ErrorCode.ReceiptFinished;
       case 'receipt-finished-failed':
-      case 'RECEIPT_FINISHED_FAILED':
-      case 'ReceiptFinishedFailed':
         return ErrorCode.ReceiptFinishedFailed;
       case 'purchase-verification-failed':
-      case 'PURCHASE_VERIFICATION_FAILED':
-      case 'PurchaseVerificationFailed':
         return ErrorCode.PurchaseVerificationFailed;
       case 'purchase-verification-finished':
-      case 'PURCHASE_VERIFICATION_FINISHED':
-      case 'PurchaseVerificationFinished':
         return ErrorCode.PurchaseVerificationFinished;
       case 'purchase-verification-finish-failed':
-      case 'PURCHASE_VERIFICATION_FINISH_FAILED':
-      case 'PurchaseVerificationFinishFailed':
         return ErrorCode.PurchaseVerificationFinishFailed;
       case 'not-prepared':
-      case 'NOT_PREPARED':
-      case 'NotPrepared':
         return ErrorCode.NotPrepared;
       case 'not-ended':
-      case 'NOT_ENDED':
-      case 'NotEnded':
         return ErrorCode.NotEnded;
       case 'already-owned':
-      case 'ALREADY_OWNED':
-      case 'AlreadyOwned':
         return ErrorCode.AlreadyOwned;
       case 'developer-error':
-      case 'DEVELOPER_ERROR':
-      case 'DeveloperError':
         return ErrorCode.DeveloperError;
       case 'billing-response-json-parse-error':
-      case 'BILLING_RESPONSE_JSON_PARSE_ERROR':
-      case 'BillingResponseJsonParseError':
         return ErrorCode.BillingResponseJsonParseError;
       case 'deferred-payment':
-      case 'DEFERRED_PAYMENT':
-      case 'DeferredPayment':
         return ErrorCode.DeferredPayment;
       case 'interrupted':
-      case 'INTERRUPTED':
-      case 'Interrupted':
         return ErrorCode.Interrupted;
       case 'iap-not-available':
-      case 'IAP_NOT_AVAILABLE':
-      case 'IapNotAvailable':
         return ErrorCode.IapNotAvailable;
       case 'purchase-error':
-      case 'PURCHASE_ERROR':
-      case 'PurchaseError':
         return ErrorCode.PurchaseError;
       case 'sync-error':
-      case 'SYNC_ERROR':
-      case 'SyncError':
         return ErrorCode.SyncError;
       case 'transaction-validation-failed':
-      case 'TRANSACTION_VALIDATION_FAILED':
-      case 'TransactionValidationFailed':
         return ErrorCode.TransactionValidationFailed;
       case 'activity-unavailable':
-      case 'ACTIVITY_UNAVAILABLE':
-      case 'ActivityUnavailable':
         return ErrorCode.ActivityUnavailable;
       case 'already-prepared':
-      case 'ALREADY_PREPARED':
-      case 'AlreadyPrepared':
         return ErrorCode.AlreadyPrepared;
       case 'pending':
-      case 'PENDING':
-      case 'Pending':
         return ErrorCode.Pending;
       case 'connection-closed':
-      case 'CONNECTION_CLOSED':
-      case 'ConnectionClosed':
         return ErrorCode.ConnectionClosed;
       case 'init-connection':
-      case 'INIT_CONNECTION':
-      case 'InitConnection':
         return ErrorCode.InitConnection;
       case 'service-disconnected':
-      case 'SERVICE_DISCONNECTED':
-      case 'ServiceDisconnected':
         return ErrorCode.ServiceDisconnected;
       case 'query-product':
-      case 'QUERY_PRODUCT':
-      case 'QueryProduct':
         return ErrorCode.QueryProduct;
       case 'sku-not-found':
-      case 'SKU_NOT_FOUND':
-      case 'SkuNotFound':
         return ErrorCode.SkuNotFound;
       case 'sku-offer-mismatch':
-      case 'SKU_OFFER_MISMATCH':
-      case 'SkuOfferMismatch':
         return ErrorCode.SkuOfferMismatch;
       case 'item-not-owned':
-      case 'ITEM_NOT_OWNED':
-      case 'ItemNotOwned':
         return ErrorCode.ItemNotOwned;
       case 'billing-unavailable':
-      case 'BILLING_UNAVAILABLE':
-      case 'BillingUnavailable':
         return ErrorCode.BillingUnavailable;
       case 'feature-not-supported':
-      case 'FEATURE_NOT_SUPPORTED':
-      case 'FeatureNotSupported':
         return ErrorCode.FeatureNotSupported;
       case 'empty-sku-list':
-      case 'EMPTY_SKU_LIST':
-      case 'EmptySkuList':
         return ErrorCode.EmptySkuList;
     }
     throw ArgumentError('Unknown ErrorCode value: $value');
@@ -381,15 +295,13 @@ enum ExternalLinkLaunchModeAndroid {
   final String value;
 
   factory ExternalLinkLaunchModeAndroid.fromJson(String value) {
-    switch (value) {
+    final normalized = value.toLowerCase().replaceAll('_', '-');
+    switch (normalized) {
       case 'unspecified':
-      case 'UNSPECIFIED':
         return ExternalLinkLaunchModeAndroid.Unspecified;
       case 'launch-in-external-browser-or-app':
-      case 'LAUNCH_IN_EXTERNAL_BROWSER_OR_APP':
         return ExternalLinkLaunchModeAndroid.LaunchInExternalBrowserOrApp;
       case 'caller-will-launch-link':
-      case 'CALLER_WILL_LAUNCH_LINK':
         return ExternalLinkLaunchModeAndroid.CallerWillLaunchLink;
     }
     throw ArgumentError('Unknown ExternalLinkLaunchModeAndroid value: $value');
@@ -413,15 +325,13 @@ enum ExternalLinkTypeAndroid {
   final String value;
 
   factory ExternalLinkTypeAndroid.fromJson(String value) {
-    switch (value) {
+    final normalized = value.toLowerCase().replaceAll('_', '-');
+    switch (normalized) {
       case 'unspecified':
-      case 'UNSPECIFIED':
         return ExternalLinkTypeAndroid.Unspecified;
       case 'link-to-digital-content-offer':
-      case 'LINK_TO_DIGITAL_CONTENT_OFFER':
         return ExternalLinkTypeAndroid.LinkToDigitalContentOffer;
       case 'link-to-app-download':
-      case 'LINK_TO_APP_DOWNLOAD':
         return ExternalLinkTypeAndroid.LinkToAppDownload;
     }
     throw ArgumentError('Unknown ExternalLinkTypeAndroid value: $value');
@@ -441,14 +351,11 @@ enum ExternalPurchaseNoticeAction {
   final String value;
 
   factory ExternalPurchaseNoticeAction.fromJson(String value) {
-    switch (value) {
+    final normalized = value.toLowerCase().replaceAll('_', '-');
+    switch (normalized) {
       case 'continue':
-      case 'CONTINUE':
-      case 'Continue':
         return ExternalPurchaseNoticeAction.Continue;
       case 'dismissed':
-      case 'DISMISSED':
-      case 'Dismissed':
         return ExternalPurchaseNoticeAction.Dismissed;
     }
     throw ArgumentError('Unknown ExternalPurchaseNoticeAction value: $value');
@@ -470,26 +377,17 @@ enum IapEvent {
   final String value;
 
   factory IapEvent.fromJson(String value) {
-    switch (value) {
+    final normalized = value.toLowerCase().replaceAll('_', '-');
+    switch (normalized) {
       case 'purchase-updated':
-      case 'PURCHASE_UPDATED':
-      case 'PurchaseUpdated':
         return IapEvent.PurchaseUpdated;
       case 'purchase-error':
-      case 'PURCHASE_ERROR':
-      case 'PurchaseError':
         return IapEvent.PurchaseError;
       case 'promoted-product-ios':
-      case 'PROMOTED_PRODUCT_IOS':
-      case 'PromotedProductIOS':
         return IapEvent.PromotedProductIOS;
       case 'user-choice-billing-android':
-      case 'USER_CHOICE_BILLING_ANDROID':
-      case 'UserChoiceBillingAndroid':
         return IapEvent.UserChoiceBillingAndroid;
       case 'developer-provided-billing-android':
-      case 'DEVELOPER_PROVIDED_BILLING_ANDROID':
-      case 'DeveloperProvidedBillingAndroid':
         return IapEvent.DeveloperProvidedBillingAndroid;
     }
     throw ArgumentError('Unknown IapEvent value: $value');
@@ -523,33 +421,25 @@ enum IapkitPurchaseState {
   final String value;
 
   factory IapkitPurchaseState.fromJson(String value) {
-    switch (value) {
+    final normalized = value.toLowerCase().replaceAll('_', '-');
+    switch (normalized) {
       case 'entitled':
-      case 'ENTITLED':
         return IapkitPurchaseState.Entitled;
       case 'pending-acknowledgment':
-      case 'PENDING_ACKNOWLEDGMENT':
         return IapkitPurchaseState.PendingAcknowledgment;
       case 'pending':
-      case 'PENDING':
         return IapkitPurchaseState.Pending;
       case 'canceled':
-      case 'CANCELED':
         return IapkitPurchaseState.Canceled;
       case 'expired':
-      case 'EXPIRED':
         return IapkitPurchaseState.Expired;
       case 'ready-to-consume':
-      case 'READY_TO_CONSUME':
         return IapkitPurchaseState.ReadyToConsume;
       case 'consumed':
-      case 'CONSUMED':
         return IapkitPurchaseState.Consumed;
       case 'unknown':
-      case 'UNKNOWN':
         return IapkitPurchaseState.Unknown;
       case 'inauthentic':
-      case 'INAUTHENTIC':
         return IapkitPurchaseState.Inauthentic;
     }
     throw ArgumentError('Unknown IapkitPurchaseState value: $value');
@@ -566,13 +456,11 @@ enum IapPlatform {
   final String value;
 
   factory IapPlatform.fromJson(String value) {
-    switch (value) {
+    final normalized = value.toLowerCase().replaceAll('_', '-');
+    switch (normalized) {
       case 'ios':
-      case 'IOS':
         return IapPlatform.IOS;
       case 'android':
-      case 'ANDROID':
-      case 'Android':
         return IapPlatform.Android;
     }
     throw ArgumentError('Unknown IapPlatform value: $value');
@@ -591,22 +479,15 @@ enum IapStore {
   final String value;
 
   factory IapStore.fromJson(String value) {
-    switch (value) {
+    final normalized = value.toLowerCase().replaceAll('_', '-');
+    switch (normalized) {
       case 'unknown':
-      case 'UNKNOWN':
-      case 'Unknown':
         return IapStore.Unknown;
       case 'apple':
-      case 'APPLE':
-      case 'Apple':
         return IapStore.Apple;
       case 'google':
-      case 'GOOGLE':
-      case 'Google':
         return IapStore.Google;
       case 'horizon':
-      case 'HORIZON':
-      case 'Horizon':
         return IapStore.Horizon;
     }
     throw ArgumentError('Unknown IapStore value: $value');
@@ -631,22 +512,15 @@ enum PaymentMode {
   final String value;
 
   factory PaymentMode.fromJson(String value) {
-    switch (value) {
+    final normalized = value.toLowerCase().replaceAll('_', '-');
+    switch (normalized) {
       case 'free-trial':
-      case 'FREE_TRIAL':
-      case 'FreeTrial':
         return PaymentMode.FreeTrial;
       case 'pay-as-you-go':
-      case 'PAY_AS_YOU_GO':
-      case 'PayAsYouGo':
         return PaymentMode.PayAsYouGo;
       case 'pay-up-front':
-      case 'PAY_UP_FRONT':
-      case 'PayUpFront':
         return PaymentMode.PayUpFront;
       case 'unknown':
-      case 'UNKNOWN':
-      case 'Unknown':
         return PaymentMode.Unknown;
     }
     throw ArgumentError('Unknown PaymentMode value: $value');
@@ -665,22 +539,15 @@ enum PaymentModeIOS {
   final String value;
 
   factory PaymentModeIOS.fromJson(String value) {
-    switch (value) {
+    final normalized = value.toLowerCase().replaceAll('_', '-');
+    switch (normalized) {
       case 'empty':
-      case 'EMPTY':
-      case 'Empty':
         return PaymentModeIOS.Empty;
       case 'free-trial':
-      case 'FREE_TRIAL':
-      case 'FreeTrial':
         return PaymentModeIOS.FreeTrial;
       case 'pay-as-you-go':
-      case 'PAY_AS_YOU_GO':
-      case 'PayAsYouGo':
         return PaymentModeIOS.PayAsYouGo;
       case 'pay-up-front':
-      case 'PAY_UP_FRONT':
-      case 'PayUpFront':
         return PaymentModeIOS.PayUpFront;
     }
     throw ArgumentError('Unknown PaymentModeIOS value: $value');
@@ -698,18 +565,13 @@ enum ProductQueryType {
   final String value;
 
   factory ProductQueryType.fromJson(String value) {
-    switch (value) {
+    final normalized = value.toLowerCase().replaceAll('_', '-');
+    switch (normalized) {
       case 'in-app':
-      case 'IN_APP':
-      case 'InApp':
         return ProductQueryType.InApp;
       case 'subs':
-      case 'SUBS':
-      case 'Subs':
         return ProductQueryType.Subs;
       case 'all':
-      case 'ALL':
-      case 'All':
         return ProductQueryType.All;
     }
     throw ArgumentError('Unknown ProductQueryType value: $value');
@@ -726,14 +588,11 @@ enum ProductType {
   final String value;
 
   factory ProductType.fromJson(String value) {
-    switch (value) {
+    final normalized = value.toLowerCase().replaceAll('_', '-');
+    switch (normalized) {
       case 'in-app':
-      case 'IN_APP':
-      case 'InApp':
         return ProductType.InApp;
       case 'subs':
-      case 'SUBS':
-      case 'Subs':
         return ProductType.Subs;
     }
     throw ArgumentError('Unknown ProductType value: $value');
@@ -752,22 +611,15 @@ enum ProductTypeIOS {
   final String value;
 
   factory ProductTypeIOS.fromJson(String value) {
-    switch (value) {
+    final normalized = value.toLowerCase().replaceAll('_', '-');
+    switch (normalized) {
       case 'consumable':
-      case 'CONSUMABLE':
-      case 'Consumable':
         return ProductTypeIOS.Consumable;
       case 'non-consumable':
-      case 'NON_CONSUMABLE':
-      case 'NonConsumable':
         return ProductTypeIOS.NonConsumable;
       case 'auto-renewable-subscription':
-      case 'AUTO_RENEWABLE_SUBSCRIPTION':
-      case 'AutoRenewableSubscription':
         return ProductTypeIOS.AutoRenewableSubscription;
       case 'non-renewing-subscription':
-      case 'NON_RENEWING_SUBSCRIPTION':
-      case 'NonRenewingSubscription':
         return ProductTypeIOS.NonRenewingSubscription;
     }
     throw ArgumentError('Unknown ProductTypeIOS value: $value');
@@ -785,18 +637,13 @@ enum PurchaseState {
   final String value;
 
   factory PurchaseState.fromJson(String value) {
-    switch (value) {
+    final normalized = value.toLowerCase().replaceAll('_', '-');
+    switch (normalized) {
       case 'pending':
-      case 'PENDING':
-      case 'Pending':
         return PurchaseState.Pending;
       case 'purchased':
-      case 'PURCHASED':
-      case 'Purchased':
         return PurchaseState.Purchased;
       case 'unknown':
-      case 'UNKNOWN':
-      case 'Unknown':
         return PurchaseState.Unknown;
     }
     throw ArgumentError('Unknown PurchaseState value: $value');
@@ -812,10 +659,9 @@ enum PurchaseVerificationProvider {
   final String value;
 
   factory PurchaseVerificationProvider.fromJson(String value) {
-    switch (value) {
+    final normalized = value.toLowerCase().replaceAll('_', '-');
+    switch (normalized) {
       case 'iapkit':
-      case 'IAPKIT':
-      case 'Iapkit':
         return PurchaseVerificationProvider.Iapkit;
     }
     throw ArgumentError('Unknown PurchaseVerificationProvider value: $value');
@@ -832,14 +678,11 @@ enum SubscriptionOfferTypeIOS {
   final String value;
 
   factory SubscriptionOfferTypeIOS.fromJson(String value) {
-    switch (value) {
+    final normalized = value.toLowerCase().replaceAll('_', '-');
+    switch (normalized) {
       case 'introductory':
-      case 'INTRODUCTORY':
-      case 'Introductory':
         return SubscriptionOfferTypeIOS.Introductory;
       case 'promotional':
-      case 'PROMOTIONAL':
-      case 'Promotional':
         return SubscriptionOfferTypeIOS.Promotional;
     }
     throw ArgumentError('Unknown SubscriptionOfferTypeIOS value: $value');
@@ -859,26 +702,17 @@ enum SubscriptionPeriodIOS {
   final String value;
 
   factory SubscriptionPeriodIOS.fromJson(String value) {
-    switch (value) {
+    final normalized = value.toLowerCase().replaceAll('_', '-');
+    switch (normalized) {
       case 'day':
-      case 'DAY':
-      case 'Day':
         return SubscriptionPeriodIOS.Day;
       case 'week':
-      case 'WEEK':
-      case 'Week':
         return SubscriptionPeriodIOS.Week;
       case 'month':
-      case 'MONTH':
-      case 'Month':
         return SubscriptionPeriodIOS.Month;
       case 'year':
-      case 'YEAR':
-      case 'Year':
         return SubscriptionPeriodIOS.Year;
       case 'empty':
-      case 'EMPTY':
-      case 'Empty':
         return SubscriptionPeriodIOS.Empty;
     }
     throw ArgumentError('Unknown SubscriptionPeriodIOS value: $value');
@@ -899,26 +733,17 @@ enum SubscriptionPeriodUnit {
   final String value;
 
   factory SubscriptionPeriodUnit.fromJson(String value) {
-    switch (value) {
+    final normalized = value.toLowerCase().replaceAll('_', '-');
+    switch (normalized) {
       case 'day':
-      case 'DAY':
-      case 'Day':
         return SubscriptionPeriodUnit.Day;
       case 'week':
-      case 'WEEK':
-      case 'Week':
         return SubscriptionPeriodUnit.Week;
       case 'month':
-      case 'MONTH':
-      case 'Month':
         return SubscriptionPeriodUnit.Month;
       case 'year':
-      case 'YEAR':
-      case 'Year':
         return SubscriptionPeriodUnit.Year;
       case 'unknown':
-      case 'UNKNOWN':
-      case 'Unknown':
         return SubscriptionPeriodUnit.Unknown;
     }
     throw ArgumentError('Unknown SubscriptionPeriodUnit value: $value');
@@ -950,27 +775,21 @@ enum SubscriptionReplacementModeAndroid {
   final String value;
 
   factory SubscriptionReplacementModeAndroid.fromJson(String value) {
-    switch (value) {
+    final normalized = value.toLowerCase().replaceAll('_', '-');
+    switch (normalized) {
       case 'unknown-replacement-mode':
-      case 'UNKNOWN_REPLACEMENT_MODE':
         return SubscriptionReplacementModeAndroid.UnknownReplacementMode;
       case 'with-time-proration':
-      case 'WITH_TIME_PRORATION':
         return SubscriptionReplacementModeAndroid.WithTimeProration;
       case 'charge-prorated-price':
-      case 'CHARGE_PRORATED_PRICE':
         return SubscriptionReplacementModeAndroid.ChargeProratedPrice;
       case 'charge-full-price':
-      case 'CHARGE_FULL_PRICE':
         return SubscriptionReplacementModeAndroid.ChargeFullPrice;
       case 'without-proration':
-      case 'WITHOUT_PRORATION':
         return SubscriptionReplacementModeAndroid.WithoutProration;
       case 'deferred':
-      case 'DEFERRED':
         return SubscriptionReplacementModeAndroid.Deferred;
       case 'keep-existing':
-      case 'KEEP_EXISTING':
         return SubscriptionReplacementModeAndroid.KeepExisting;
     }
     throw ArgumentError('Unknown SubscriptionReplacementModeAndroid value: $value');
@@ -1464,7 +1283,7 @@ class DiscountOffer {
       'fullPriceMicrosAndroid': fullPriceMicrosAndroid,
       'id': id,
       'limitedQuantityInfoAndroid': limitedQuantityInfoAndroid?.toJson(),
-      'offerTagsAndroid': offerTagsAndroid == null ? null : offerTagsAndroid!.map((e) => e).toList(),
+      'offerTagsAndroid': offerTagsAndroid,
       'offerTokenAndroid': offerTokenAndroid,
       'percentageDiscountAndroid': percentageDiscountAndroid,
       'preorderDetailsAndroid': preorderDetailsAndroid?.toJson(),
@@ -1955,7 +1774,7 @@ class ProductAndroidOneTimePurchaseOfferDetail {
       'fullPriceMicros': fullPriceMicros,
       'limitedQuantityInfo': limitedQuantityInfo?.toJson(),
       'offerId': offerId,
-      'offerTags': offerTags.map((e) => e).toList(),
+      'offerTags': offerTags,
       'offerToken': offerToken,
       'preorderDetailsAndroid': preorderDetailsAndroid?.toJson(),
       'priceAmountMicros': priceAmountMicros,
@@ -2174,7 +1993,7 @@ class ProductSubscriptionAndroidOfferDetails {
       '__typename': 'ProductSubscriptionAndroidOfferDetails',
       'basePlanId': basePlanId,
       'offerId': offerId,
-      'offerTags': offerTags.map((e) => e).toList(),
+      'offerTags': offerTags,
       'offerToken': offerToken,
       'pricingPhases': pricingPhases.toJson(),
     };
@@ -2391,7 +2210,7 @@ class PurchaseAndroid extends Purchase implements PurchaseCommon {
       'dataAndroid': dataAndroid,
       'developerPayloadAndroid': developerPayloadAndroid,
       'id': id,
-      'ids': ids == null ? null : ids!.map((e) => e).toList(),
+      'ids': ids,
       'isAcknowledgedAndroid': isAcknowledgedAndroid,
       'isAutoRenewing': isAutoRenewing,
       'isSuspendedAndroid': isSuspendedAndroid,
@@ -2570,7 +2389,7 @@ class PurchaseIOS extends Purchase implements PurchaseCommon {
       'environmentIOS': environmentIOS,
       'expirationDateIOS': expirationDateIOS,
       'id': id,
-      'ids': ids == null ? null : ids!.map((e) => e).toList(),
+      'ids': ids,
       'isAutoRenewing': isAutoRenewing,
       'isUpgradedIOS': isUpgradedIOS,
       'offerIOS': offerIOS?.toJson(),
@@ -2951,7 +2770,7 @@ class SubscriptionOffer {
       'localizedPriceIOS': localizedPriceIOS,
       'nonceIOS': nonceIOS,
       'numberOfPeriodsIOS': numberOfPeriodsIOS,
-      'offerTagsAndroid': offerTagsAndroid == null ? null : offerTagsAndroid!.map((e) => e).toList(),
+      'offerTagsAndroid': offerTagsAndroid,
       'offerTokenAndroid': offerTokenAndroid,
       'paymentMode': paymentMode?.toJson(),
       'period': period?.toJson(),
@@ -3115,7 +2934,7 @@ class UserChoiceBillingDetails {
     return {
       '__typename': 'UserChoiceBillingDetails',
       'externalTransactionToken': externalTransactionToken,
-      'products': products.map((e) => e).toList(),
+      'products': products,
     };
   }
 }
@@ -3586,7 +3405,7 @@ class ProductRequest {
 
   Map<String, dynamic> toJson() {
     return {
-      'skus': skus.map((e) => e).toList(),
+      'skus': skus,
       'type': type?.toJson(),
     };
   }
@@ -3658,7 +3477,7 @@ class RequestPurchaseAndroidProps {
       'isOfferPersonalized': isOfferPersonalized,
       'obfuscatedAccountIdAndroid': obfuscatedAccountIdAndroid,
       'obfuscatedProfileIdAndroid': obfuscatedProfileIdAndroid,
-      'skus': skus.map((e) => e).toList(),
+      'skus': skus,
     };
   }
 }
@@ -3872,7 +3691,7 @@ class RequestSubscriptionAndroidProps {
       'obfuscatedProfileIdAndroid': obfuscatedProfileIdAndroid,
       'purchaseTokenAndroid': purchaseTokenAndroid,
       'replacementModeAndroid': replacementModeAndroid,
-      'skus': skus.map((e) => e).toList(),
+      'skus': skus,
       'subscriptionOffers': subscriptionOffers == null ? null : subscriptionOffers!.map((e) => e.toJson()).toList(),
       'subscriptionProductReplacementParams': subscriptionProductReplacementParams?.toJson(),
     };
