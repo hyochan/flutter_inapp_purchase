@@ -1,5 +1,36 @@
 # CHANGELOG
 
+## 8.2.2
+
+### New Features
+
+- **Win-Back Offers (iOS 18+)**: Re-engage churned subscribers with discounts or free trials via `WinBackOfferInputIOS`
+- **JWS Promotional Offers (iOS 15+)**: Simplified JWS format for promotional offers via `PromotionalOfferJWSInputIOS`
+- **Introductory Offer Eligibility Override (iOS 15+)**: Override system-determined eligibility with `introductoryOfferEligibility`
+- **Product Status Codes (Android 8.0+)**: `ProductStatusAndroid` enum for product fetch results (Ok, NotFound, NoOffersAvailable, Unknown)
+- **Suspended Subscriptions (Android 8.1+)**: `includeSuspendedAndroid` option and `isSuspendedAndroid` field
+- **Sub-Response Codes (Android 8.0+)**: `SubResponseCodeAndroid` for granular error information via `BillingResultAndroid`
+
+### New Types
+
+- `ProductStatusAndroid` - Product fetch status enum
+- `SubResponseCodeAndroid` - Detailed error codes enum
+- `SubscriptionOfferTypeIOS.WinBack` - Win-back offer type
+- `WinBackOfferInputIOS` - Win-back offer configuration
+- `PromotionalOfferJWSInputIOS` - JWS promotional offer input
+- `BillingResultAndroid` - Extended billing result with sub-response code
+
+### Breaking Changes
+
+- **Subscription-Only Fields Moved (iOS)**: `winBackOffer`, `promotionalOfferJWS`, `introductoryOfferEligibility` removed from `RequestPurchaseIosProps`, now only in `RequestSubscriptionIosProps`
+
+### Dependencies
+
+- Updated OpenIAP versions:
+  - `openiap-apple`: 1.3.10 -> 1.3.13
+  - `openiap-gql`: 1.3.12 -> 1.3.14
+  - `openiap-google`: 1.3.23 -> 1.3.25
+
 ## 8.2.1
 
 ### New Features
