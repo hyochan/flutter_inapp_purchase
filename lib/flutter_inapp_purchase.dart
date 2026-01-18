@@ -479,8 +479,11 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
   /// [options] - Optional configuration for the method behavior
   /// - onlyIncludeActiveItemsIOS: Whether to only include active items (default: true)
   ///   Set to false to include expired subscriptions
+  /// - includeSuspendedAndroid: Include suspended subscriptions (Android 8.1+, default: false)
+  ///   Suspended subscriptions have isSuspendedAndroid=true and should NOT be granted entitlements.
   gentype.QueryGetAvailablePurchasesHandler get getAvailablePurchases => ({
         bool? alsoPublishToEventListenerIOS,
+        bool? includeSuspendedAndroid,
         bool? onlyIncludeActiveItemsIOS,
       }) async {
         if (!_isInitialized) {
@@ -494,6 +497,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           final normalizedOptions = gentype.PurchaseOptions(
             alsoPublishToEventListenerIOS:
                 alsoPublishToEventListenerIOS ?? false,
+            includeSuspendedAndroid: includeSuspendedAndroid ?? false,
             onlyIncludeActiveItemsIOS: onlyIncludeActiveItemsIOS ?? true,
           );
 
@@ -533,8 +537,13 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
                     _acknowledgedAndroidPurchaseTokens,
               );
             } else if (_platform.isAndroid) {
+              final args = <String, dynamic>{
+                'includeSuspendedAndroid':
+                    normalizedOptions.includeSuspendedAndroid ?? false,
+              };
               final dynamic result = await _channel.invokeMethod(
                 'getAvailableItems',
+                args,
               );
               raw = extractPurchases(
                 result,

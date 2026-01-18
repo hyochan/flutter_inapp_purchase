@@ -111,6 +111,7 @@ Future<void> finishTransaction({
 Future<List<Purchase>> getAvailablePurchases({
   bool? onlyIncludeActiveItemsIOS,
   bool? alsoPublishToEventListenerIOS,
+  bool? includeSuspendedAndroid,  // Include suspended subscriptions (Android 8.1+)
 });
 
 // Restore purchases
@@ -257,6 +258,13 @@ enum DiscountOfferType {
   OneTime,        // One-time product discount (Android only)
 }
 
+// iOS Subscription Offer Types (v8.3+)
+enum SubscriptionOfferTypeIOS {
+  Introductory,   // Intro offer for new subscribers
+  Promotional,    // Promotional offer (requires server signature)
+  WinBack,        // Win-back offer (iOS 18+) for churned subscribers
+}
+
 enum PaymentMode {
   FreeTrial,      // No charge during offer
   PayAsYouGo,     // Reduced price per period
@@ -346,6 +354,60 @@ await iap.requestPurchaseWithBuilder(
       ];
   },
 );
+```
+
+### iOS Win-Back Offers (v8.3+, iOS 18+)
+
+```dart
+// Using RequestSubscriptionBuilder for subscription-specific features
+final builder = RequestSubscriptionBuilder();
+builder.ios
+  ..sku = 'monthly_sub'
+  ..winBackOffer = WinBackOfferInputIOS(offerId: 'winback_50_off');
+await iap.requestPurchase(builder.build());
+```
+
+### iOS JWS Promotional Offers (v8.3+, iOS 15+)
+
+```dart
+// New JWS format for promotional offers (WWDC 2025)
+final builder = RequestSubscriptionBuilder();
+builder.ios
+  ..sku = 'monthly_sub'
+  ..promotionalOfferJWS = PromotionalOfferJWSInputIOS(
+      jws: 'header.payload.signature',
+      offerId: 'promo_offer_id',
+    );
+await iap.requestPurchase(builder.build());
+```
+
+### Android Product Status (v8.3+, Billing 8.0+)
+
+```dart
+// Check why a product fetch failed
+final products = await iap.fetchProducts<ProductCommon>(skus: [...]);
+for (final product in products) {
+  if (product is ProductAndroid) {
+    final status = product.productStatusAndroid;
+    // ProductStatusAndroid.Ok - fetched successfully
+    // ProductStatusAndroid.NotFound - SKU doesn't exist
+    // ProductStatusAndroid.NoOffersAvailable - user not eligible
+  }
+}
+```
+
+### Android Suspended Subscriptions (v8.3+, Billing 8.1+)
+
+```dart
+// Include suspended subscriptions in restore
+final purchases = await iap.getAvailablePurchases(
+  includeSuspendedAndroid: true,
+);
+for (final purchase in purchases) {
+  if (purchase is PurchaseAndroid && purchase.isSuspendedAndroid == true) {
+    // DO NOT grant entitlements - direct user to fix payment
+  }
+}
 ```
 
 ## Error Handling

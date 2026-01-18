@@ -377,6 +377,9 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
 
             // Expo parity: getAvailableItems()
             "getAvailableItems" -> {
+                val params = call.arguments as? Map<*, *>
+                val includeSuspended = params?.get("includeSuspendedAndroid") as? Boolean ?: false
+
                 scope.launch {
                     withBillingReady(safe, autoInit = true) {
                         try {
@@ -385,7 +388,12 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                                 safe.error(OpenIapError.NotPrepared.CODE, OpenIapError.NotPrepared.MESSAGE, "IAP module not initialized.")
                                 return@withBillingReady
                             }
-                            val purchases = iap.getAvailablePurchases(null)
+                            val options = if (includeSuspended) {
+                                dev.hyo.openiap.PurchaseOptions(includeSuspendedAndroid = true)
+                            } else {
+                                null
+                            }
+                            val purchases = iap.getAvailablePurchases(options)
                             val arr = purchasesToJsonArray(purchases)
                             safe.success(arr.toString())
                         } catch (e: Exception) {
