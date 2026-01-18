@@ -33,6 +33,15 @@ class RequestSubscriptionIosBuilder {
   DiscountOfferInputIOS? withOffer;
   String? advancedCommerceData;
 
+  /// Win-back offer to apply (iOS 18+)
+  WinBackOfferInputIOS? winBackOffer;
+
+  /// JWS promotional offer (iOS 15+, WWDC 2025)
+  PromotionalOfferJWSInputIOS? promotionalOfferJWS;
+
+  /// Override introductory offer eligibility (iOS 15+)
+  bool? introductoryOfferEligibility;
+
   RequestSubscriptionIosBuilder();
 
   RequestSubscriptionIosProps build() {
@@ -44,6 +53,9 @@ class RequestSubscriptionIosBuilder {
       quantity: quantity,
       withOffer: withOffer,
       advancedCommerceData: advancedCommerceData,
+      winBackOffer: winBackOffer,
+      promotionalOfferJWS: promotionalOfferJWS,
+      introductoryOfferEligibility: introductoryOfferEligibility,
     );
   }
 }
@@ -159,6 +171,7 @@ class RequestPurchaseBuilder {
               appAccountToken: iosProps.appAccountToken,
               quantity: iosProps.quantity,
               withOffer: iosProps.withOffer,
+              advancedCommerceData: iosProps.advancedCommerceData,
             );
 
       final androidSub = androidProps == null
