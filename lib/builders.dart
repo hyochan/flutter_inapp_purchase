@@ -63,9 +63,10 @@ class RequestSubscriptionIosBuilder {
 /// Builder for Android purchase props
 class RequestPurchaseAndroidBuilder {
   List<String> skus = const [];
-  String? obfuscatedAccountIdAndroid;
-  String? obfuscatedProfileIdAndroid;
+  String? obfuscatedAccountId;
+  String? obfuscatedProfileId;
   bool? isOfferPersonalized;
+  String? offerToken;
   DeveloperBillingOptionParamsAndroid? developerBillingOption;
 
   RequestPurchaseAndroidBuilder();
@@ -73,9 +74,10 @@ class RequestPurchaseAndroidBuilder {
   RequestPurchaseAndroidProps build() {
     return RequestPurchaseAndroidProps(
       skus: skus,
-      obfuscatedAccountIdAndroid: obfuscatedAccountIdAndroid,
-      obfuscatedProfileIdAndroid: obfuscatedProfileIdAndroid,
+      obfuscatedAccountId: obfuscatedAccountId,
+      obfuscatedProfileId: obfuscatedProfileId,
       isOfferPersonalized: isOfferPersonalized,
+      offerToken: offerToken,
       developerBillingOption: developerBillingOption,
     );
   }
@@ -85,10 +87,10 @@ class RequestPurchaseAndroidBuilder {
 class RequestSubscriptionAndroidBuilder {
   List<String> skus = const [];
   List<AndroidSubscriptionOfferInput> subscriptionOffers = const [];
-  String? obfuscatedAccountIdAndroid;
-  String? obfuscatedProfileIdAndroid;
-  String? purchaseTokenAndroid;
-  int? replacementModeAndroid;
+  String? obfuscatedAccountId;
+  String? obfuscatedProfileId;
+  String? purchaseToken;
+  int? replacementMode;
   bool? isOfferPersonalized;
   DeveloperBillingOptionParamsAndroid? developerBillingOption;
 
@@ -99,10 +101,10 @@ class RequestSubscriptionAndroidBuilder {
       skus: skus,
       subscriptionOffers:
           subscriptionOffers.isEmpty ? null : subscriptionOffers,
-      obfuscatedAccountIdAndroid: obfuscatedAccountIdAndroid,
-      obfuscatedProfileIdAndroid: obfuscatedProfileIdAndroid,
-      purchaseTokenAndroid: purchaseTokenAndroid,
-      replacementModeAndroid: replacementModeAndroid,
+      obfuscatedAccountId: obfuscatedAccountId,
+      obfuscatedProfileId: obfuscatedProfileId,
+      purchaseToken: purchaseToken,
+      replacementMode: replacementMode,
       isOfferPersonalized: isOfferPersonalized,
       developerBillingOption: developerBillingOption,
     );
@@ -179,12 +181,10 @@ class RequestPurchaseBuilder {
           : RequestSubscriptionAndroidProps(
               skus: androidProps.skus,
               isOfferPersonalized: androidProps.isOfferPersonalized,
-              obfuscatedAccountIdAndroid:
-                  androidProps.obfuscatedAccountIdAndroid,
-              obfuscatedProfileIdAndroid:
-                  androidProps.obfuscatedProfileIdAndroid,
-              purchaseTokenAndroid: null,
-              replacementModeAndroid: null,
+              obfuscatedAccountId: androidProps.obfuscatedAccountId,
+              obfuscatedProfileId: androidProps.obfuscatedProfileId,
+              purchaseToken: null,
+              replacementMode: null,
               subscriptionOffers: null,
               developerBillingOption: androidProps.developerBillingOption,
             );
