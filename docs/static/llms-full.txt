@@ -1429,16 +1429,14 @@ class SubscriptionService {
   }
 
   Future<void> upgradeSubscription(String newProductId, String oldPurchaseToken) async {
-    await iap.requestPurchaseWithBuilder(
-      build: (builder) {
-        builder
-          ..type = ProductQueryType.Subs
-          ..ios.sku = newProductId
-          ..android.skus = [newProductId]
-          ..android.purchaseTokenAndroid = oldPurchaseToken
-          ..android.replacementModeAndroid = 2; // CHARGE_PRORATED_PRICE
-      },
-    );
+    final subBuilder = RequestSubscriptionBuilder()
+      ..withIOS((ios) => ios..sku = newProductId)
+      ..withAndroid((android) => android
+        ..skus = [newProductId]
+        ..purchaseToken = oldPurchaseToken
+        ..replacementMode = 2); // CHARGE_PRORATED_PRICE
+
+    await iap.requestPurchase(subBuilder.build());
   }
 }
 ```
