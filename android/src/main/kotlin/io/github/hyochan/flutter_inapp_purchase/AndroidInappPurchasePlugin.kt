@@ -936,8 +936,8 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                             obfuscatedProfileId = obfuscatedProfileId,
                             isOfferPersonalized = isOfferPersonalized,
                             subscriptionOffers = emptyList(),
-                            purchaseTokenAndroid = null,
-                            replacementModeAndroid = null
+                            purchaseToken = null,
+                            replacementMode = null
                         )
 
                         iap.requestPurchase(requestProps)
@@ -1156,6 +1156,10 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                             }
 
                             val props = dev.hyo.openiap.VerifyPurchaseWithProviderProps.fromJson(propsMap)
+                            if (props == null) {
+                                safe.error(OpenIapError.DeveloperError.CODE, "Invalid props for verifyPurchaseWithProvider", null)
+                                return@withBillingReady
+                            }
                             val result = iap.verifyPurchaseWithProvider(props)
 
                             // Convert result to JSON
