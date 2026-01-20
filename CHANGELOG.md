@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 8.2.4
+
+### Dependencies
+
+- Updated OpenIAP versions:
+  - `openiap-google`: 1.3.26 -> 1.3.27
+
 ## 8.2.3
 
 ### New Features
@@ -934,7 +941,6 @@ We understand there have been several breaking changes recently. We sincerely ap
 ### Features
 
 - **Enhanced OpenIAP Compliance**: Extended OpenIAP specification support with comprehensive field mapping
-
   - Added full iOS-specific field support: `displayName`, `displayPrice`, `isFamilyShareable`, `jsonRepresentation`, `discountsIOS`, `subscription` info, and promotional offer fields
   - Added comprehensive Android-specific field support: `originalPrice`, `originalPriceAmount`, `freeTrialPeriod`, `subscriptionOffersAndroid`, and billing cycle information
   - Enhanced Purchase object with StoreKit 2 fields: `verificationResultIOS`, `environmentIOS`, `expirationDateIOS`, `revocationDateIOS`, and transaction metadata
@@ -948,13 +954,11 @@ We understand there have been several breaking changes recently. We sincerely ap
 ### Improvements
 
 - **Type Safety**: Enhanced type casting and JSON parsing reliability
-
   - Fixed `Map<Object?, Object?>` to `Map<String, dynamic>` conversion issues
   - Improved null safety handling for platform-specific fields
   - Better error handling for malformed data
 
 - **Subscription Management**: Enhanced active subscription detection
-
   - Improved iOS subscription detection logic for better reliability
   - Added fallback logic for subscription identification across platforms
 
