@@ -626,8 +626,8 @@ void main() {
         google: types.RequestSubscriptionAndroidProps(
           skus: <String>['sub.premium'],
           isOfferPersonalized: true,
-          obfuscatedAccountIdAndroid: 'acc-id',
-          obfuscatedProfileIdAndroid: 'profile-id',
+          obfuscatedAccountId: 'acc-id',
+          obfuscatedProfileId: 'profile-id',
         ),
         useAlternativeBilling: null,
       ));
@@ -646,9 +646,7 @@ void main() {
       expect(payload['skus'], <String>['sub.premium']);
       expect(payload['isOfferPersonalized'], isTrue);
       expect(payload['obfuscatedAccountId'], 'acc-id');
-      expect(payload['obfuscatedAccountIdAndroid'], 'acc-id');
       expect(payload['obfuscatedProfileId'], 'profile-id');
-      expect(payload['obfuscatedProfileIdAndroid'], 'profile-id');
       // Note: purchaseToken, replacementMode, and subscriptionOffers
       // are not in RequestPurchaseAndroidProps
       // They only exist in RequestSubscriptionAndroidProps
@@ -954,8 +952,8 @@ void main() {
           google: types.RequestPurchaseAndroidProps(
             skus: <String>['coin.pack'],
             isOfferPersonalized: true,
-            obfuscatedAccountIdAndroid: 'account-1',
-            obfuscatedProfileIdAndroid: 'profile-1',
+            obfuscatedAccountId: 'account-1',
+            obfuscatedProfileId: 'profile-1',
           ),
           useAlternativeBilling: null,
         )),
@@ -973,9 +971,7 @@ void main() {
       expect(payload['skus'], <String>['coin.pack']);
       expect(payload['isOfferPersonalized'], isTrue);
       expect(payload['obfuscatedAccountId'], 'account-1');
-      expect(payload['obfuscatedAccountIdAndroid'], 'account-1');
       expect(payload['obfuscatedProfileId'], 'profile-1');
-      expect(payload['obfuscatedProfileIdAndroid'], 'profile-1');
       expect(payload.containsKey('purchaseToken'), isFalse);
     });
   });

@@ -179,8 +179,8 @@ class _BuilderDemoScreenState extends State<BuilderDemoScreen> {
         final subBuilder = RequestSubscriptionBuilder()
           ..withAndroid((RequestSubscriptionAndroidBuilder a) => a
             ..skus = [IapConstants.subscriptionProductIds[0]]
-            ..replacementModeAndroid = prorationMode
-            ..purchaseTokenAndroid = token);
+            ..replacementMode = prorationMode
+            ..purchaseToken = token);
 
         await _iap.requestPurchase(subBuilder.build());
         setState(() => _status = 'Subscription upgrade initiated');

@@ -135,8 +135,9 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
         obfuscatedProfileId: String?,
         isOfferPersonalized: Boolean,
         subscriptionOffers: List<AndroidSubscriptionOfferInput>,
-        purchaseTokenAndroid: String?,
-        replacementModeAndroid: Int?,
+        purchaseToken: String?,
+        replacementMode: Int?,
+        offerToken: String? = null,
         developerBillingOption: DeveloperBillingOptionParamsAndroid? = null,
         subscriptionProductReplacementParams: SubscriptionProductReplacementParamsAndroid? = null
     ): RequestPurchaseProps {
@@ -154,8 +155,8 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
 
         return when (type) {
             ProductQueryType.Subs -> {
-                purchaseTokenAndroid?.let { androidPayload[KEY_PURCHASE_TOKEN] = it }
-                replacementModeAndroid?.let { androidPayload[KEY_REPLACEMENT_MODE] = it }
+                purchaseToken?.let { androidPayload[KEY_PURCHASE_TOKEN] = it }
+                replacementMode?.let { androidPayload[KEY_REPLACEMENT_MODE] = it }
                 subscriptionProductReplacementParams?.let {
                     androidPayload[KEY_SUBSCRIPTION_PRODUCT_REPLACEMENT_PARAMS] = it.toJson()
                 }
@@ -166,6 +167,8 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                 RequestPurchaseProps.fromJson(root)
             }
             ProductQueryType.InApp -> {
+                // offerToken for one-time purchase discounts (Android 7.0+)
+                offerToken?.let { androidPayload[KEY_OFFER_TOKEN] = it }
                 root[KEY_REQUEST_PURCHASE] = mapOf(KEY_ANDROID to androidPayload)
                 RequestPurchaseProps.fromJson(root)
             }
@@ -439,12 +442,16 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                         ?: emptyList()
                 val skusNormalized = skus.filter { it.isNotBlank() }
                 val obfuscatedAccountId =
-                    (params["obfuscatedAccountIdAndroid"] ?: params["obfuscatedAccountId"]) as? String
+                    (params["obfuscatedAccountId"] ?: params["obfuscatedAccountIdAndroid"]) as? String
                 val obfuscatedProfileId =
-                    (params["obfuscatedProfileIdAndroid"] ?: params["obfuscatedProfileId"]) as? String
+                    (params["obfuscatedProfileId"] ?: params["obfuscatedProfileIdAndroid"]) as? String
                 val isOfferPersonalized = params["isOfferPersonalized"] as? Boolean ?: false
-                val purchaseTokenAndroid = params["purchaseTokenAndroid"] as? String
-                val replacementModeAndroid = (params["replacementModeAndroid"] as? Number)?.toInt()
+                val purchaseTokenAndroid =
+                    (params["purchaseToken"] ?: params["purchaseTokenAndroid"]) as? String
+                val replacementModeAndroid =
+                    ((params["replacementMode"] ?: params["replacementModeAndroid"]) as? Number)?.toInt()
+                // offerToken for one-time purchase discounts (Android 7.0+)
+                val offerToken = params["offerToken"] as? String
                 val useAlternativeBilling = params["useAlternativeBilling"] as? Boolean
 
                 // Parse developerBillingOption for External Payments (8.3.0+)
@@ -548,8 +555,9 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                         obfuscatedProfileId = obfuscatedProfileId,
                         isOfferPersonalized = isOfferPersonalized,
                         subscriptionOffers = offers,
-                        purchaseTokenAndroid = purchaseTokenAndroid,
-                        replacementModeAndroid = replacementModeAndroid,
+                        purchaseToken = purchaseTokenAndroid,
+                        replacementMode = replacementModeAndroid,
+                        offerToken = offerToken,
                         developerBillingOption = developerBillingOption,
                         subscriptionProductReplacementParams = subscriptionProductReplacementParams
                     )
@@ -928,8 +936,8 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                             obfuscatedProfileId = obfuscatedProfileId,
                             isOfferPersonalized = isOfferPersonalized,
                             subscriptionOffers = emptyList(),
-                            purchaseTokenAndroid = null,
-                            replacementModeAndroid = null
+                            purchaseToken = null,
+                            replacementMode = null
                         )
 
                         iap.requestPurchase(requestProps)
@@ -1148,6 +1156,10 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
                             }
 
                             val props = dev.hyo.openiap.VerifyPurchaseWithProviderProps.fromJson(propsMap)
+                            if (props == null) {
+                                safe.error(OpenIapError.DeveloperError.CODE, "Invalid props for verifyPurchaseWithProvider", null)
+                                return@withBillingReady
+                            }
                             val result = iap.verifyPurchaseWithProvider(props)
 
                             // Convert result to JSON
@@ -1284,10 +1296,12 @@ class AndroidInappPurchasePlugin internal constructor() : MethodCallHandler, Act
         private const val KEY_TYPE = "type"
         private const val KEY_SKUS = "skus"
         private const val KEY_IS_OFFER_PERSONALIZED = "isOfferPersonalized"
-        private const val KEY_OBFUSCATED_ACCOUNT = "obfuscatedAccountIdAndroid"
-        private const val KEY_OBFUSCATED_PROFILE = "obfuscatedProfileIdAndroid"
-        private const val KEY_PURCHASE_TOKEN = "purchaseTokenAndroid"
-        private const val KEY_REPLACEMENT_MODE = "replacementModeAndroid"
+        // Input field names use simplified naming (without Android suffix) per OpenIAP 1.3.15+
+        private const val KEY_OBFUSCATED_ACCOUNT = "obfuscatedAccountId"
+        private const val KEY_OBFUSCATED_PROFILE = "obfuscatedProfileId"
+        private const val KEY_PURCHASE_TOKEN = "purchaseToken"
+        private const val KEY_REPLACEMENT_MODE = "replacementMode"
+        private const val KEY_OFFER_TOKEN = "offerToken"
         private const val KEY_SUBSCRIPTION_OFFERS = "subscriptionOffers"
         private const val KEY_DEVELOPER_BILLING_OPTION = "developerBillingOption"
         private const val KEY_SUBSCRIPTION_PRODUCT_REPLACEMENT_PARAMS = "subscriptionProductReplacementParams"

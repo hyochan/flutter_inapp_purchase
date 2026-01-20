@@ -53,16 +53,18 @@ void main() {
     test('builds RequestPurchaseAndroidProps with all fields', () {
       final builder = RequestPurchaseAndroidBuilder()
         ..skus = ['sku1', 'sku2']
-        ..obfuscatedAccountIdAndroid = 'account123'
-        ..obfuscatedProfileIdAndroid = 'profile456'
-        ..isOfferPersonalized = true;
+        ..obfuscatedAccountId = 'account123'
+        ..obfuscatedProfileId = 'profile456'
+        ..isOfferPersonalized = true
+        ..offerToken = 'offer123';
 
       final props = builder.build();
 
       expect(props.skus, ['sku1', 'sku2']);
-      expect(props.obfuscatedAccountIdAndroid, 'account123');
-      expect(props.obfuscatedProfileIdAndroid, 'profile456');
+      expect(props.obfuscatedAccountId, 'account123');
+      expect(props.obfuscatedProfileId, 'profile456');
       expect(props.isOfferPersonalized, true);
+      expect(props.offerToken, 'offer123');
     });
 
     test('builds with developerBillingOption', () {
@@ -89,16 +91,16 @@ void main() {
     test('builds RequestSubscriptionAndroidProps with all fields', () {
       final builder = RequestSubscriptionAndroidBuilder()
         ..skus = ['sub_sku']
-        ..purchaseTokenAndroid = 'old_token'
-        ..replacementModeAndroid = 1
-        ..obfuscatedAccountIdAndroid = 'acc'
-        ..obfuscatedProfileIdAndroid = 'prof';
+        ..purchaseToken = 'old_token'
+        ..replacementMode = 1
+        ..obfuscatedAccountId = 'acc'
+        ..obfuscatedProfileId = 'prof';
 
       final props = builder.build();
 
       expect(props.skus, ['sub_sku']);
-      expect(props.purchaseTokenAndroid, 'old_token');
-      expect(props.replacementModeAndroid, 1);
+      expect(props.purchaseToken, 'old_token');
+      expect(props.replacementMode, 1);
     });
 
     test('builds with empty subscriptionOffers returns null', () {

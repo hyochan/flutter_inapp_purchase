@@ -371,6 +371,7 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
             final String? obfuscatedProfile;
             final String? purchaseToken;
             final int? replacementMode;
+            final String? offerToken;
             final List<gentype.AndroidSubscriptionOfferInput>?
                 subscriptionOffers;
             final gentype.DeveloperBillingOptionParamsAndroid?
@@ -379,20 +380,22 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
             if (androidProps is gentype.RequestPurchaseAndroidProps) {
               skus = androidProps.skus;
               isOfferPersonalized = androidProps.isOfferPersonalized;
-              obfuscatedAccount = androidProps.obfuscatedAccountIdAndroid;
-              obfuscatedProfile = androidProps.obfuscatedProfileIdAndroid;
+              obfuscatedAccount = androidProps.obfuscatedAccountId;
+              obfuscatedProfile = androidProps.obfuscatedProfileId;
               purchaseToken = null;
               replacementMode = null;
+              offerToken = androidProps.offerToken;
               subscriptionOffers = null;
               developerBillingOption = androidProps.developerBillingOption;
             } else if (androidProps
                 is gentype.RequestSubscriptionAndroidProps) {
               skus = androidProps.skus;
               isOfferPersonalized = androidProps.isOfferPersonalized;
-              obfuscatedAccount = androidProps.obfuscatedAccountIdAndroid;
-              obfuscatedProfile = androidProps.obfuscatedProfileIdAndroid;
-              purchaseToken = androidProps.purchaseTokenAndroid;
-              replacementMode = androidProps.replacementModeAndroid;
+              obfuscatedAccount = androidProps.obfuscatedAccountId;
+              obfuscatedProfile = androidProps.obfuscatedProfileId;
+              purchaseToken = androidProps.purchaseToken;
+              replacementMode = androidProps.replacementMode;
+              offerToken = null; // Subscriptions don't use offerToken
               subscriptionOffers = androidProps.subscriptionOffers;
               developerBillingOption = androidProps.developerBillingOption;
             } else {
@@ -416,22 +419,26 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
               'isOfferPersonalized': isOfferPersonalized ?? false,
             };
 
+            // Use simplified field names (without Android suffix) per OpenIAP 1.3.15+
             if (obfuscatedAccount != null) {
               payload['obfuscatedAccountId'] = obfuscatedAccount;
-              payload['obfuscatedAccountIdAndroid'] = obfuscatedAccount;
             }
 
             if (obfuscatedProfile != null) {
               payload['obfuscatedProfileId'] = obfuscatedProfile;
-              payload['obfuscatedProfileIdAndroid'] = obfuscatedProfile;
             }
 
             if (purchaseToken != null) {
-              payload['purchaseTokenAndroid'] = purchaseToken;
+              payload['purchaseToken'] = purchaseToken;
             }
 
             if (replacementMode != null) {
-              payload['replacementModeAndroid'] = replacementMode;
+              payload['replacementMode'] = replacementMode;
+            }
+
+            // offerToken for one-time purchase discounts (Android 7.0+)
+            if (offerToken != null) {
+              payload['offerToken'] = offerToken;
             }
 
             if (subscriptionOffers != null && subscriptionOffers.isNotEmpty) {
