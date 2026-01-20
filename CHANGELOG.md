@@ -1,5 +1,26 @@
 # CHANGELOG
 
+## 8.2.3
+
+### New Features
+
+- **One-Time Purchase Discounts (Android 7.0+)**: Added `offerToken` field to `RequestPurchaseAndroidProps` for applying discounts to non-subscription purchases
+
+### Breaking Changes
+
+- **Simplified Android Field Names**: Input fields in Android-specific request props now use simplified names without redundant `Android` suffix:
+  - `obfuscatedAccountIdAndroid` -> `obfuscatedAccountId`
+  - `obfuscatedProfileIdAndroid` -> `obfuscatedProfileId`
+  - `purchaseTokenAndroid` -> `purchaseToken`
+  - `replacementModeAndroid` -> `replacementMode`
+
+### Dependencies
+
+- Updated OpenIAP versions:
+  - `openiap-apple`: 1.3.12 -> 1.3.13
+  - `openiap-gql`: 1.3.14 -> 1.3.15
+  - `openiap-google`: 1.3.25 -> 1.3.26
+
 ## 8.2.2
 
 ### New Features
