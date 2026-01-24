@@ -37,7 +37,7 @@ iOS-specific purchase parameters.
 class RequestPurchaseIOS {
   final String sku;                                                   // Product SKU
   final bool? andDangerouslyFinishTransactionAutomaticallyIOS;       // Auto-finish transaction
-  final String? appAccountToken;                                      // App account token
+  final String? appAccountToken;                                      // App account token (must be UUID format)
   final int? quantity;                                               // Purchase quantity
   final PaymentDiscount? withOffer;                                  // Promotional offer
 

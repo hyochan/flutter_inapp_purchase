@@ -62,7 +62,7 @@ class RequestPurchase {
 class RequestPurchaseIOS {
   final String sku;                    // Product ID
   final int? quantity;                 // Quantity (for consumables)
-  final String? appAccountToken;       // User identifier
+  final String? appAccountToken;       // User identifier (must be UUID format)
   final Map<String, dynamic>? withOffer; // Promotional offer
   final String? advancedCommerceData; // Attribution data (iOS 15+)
 }
@@ -102,7 +102,7 @@ await FlutterInappPurchase.instance.requestPurchase(
   RequestPurchaseProps.inApp((
     apple: RequestPurchaseIosProps(
       sku: 'com.example.premium',
-      appAccountToken: userId, // Your user ID
+      appAccountToken: userId, // Must be UUID format (e.g., '550e8400-e29b-41d4-a716-446655440000')
     ),
     google: RequestPurchaseAndroidProps(
       skus: ['com.example.premium'],
@@ -180,7 +180,7 @@ class PurchaseService {
           RequestPurchaseProps.subs((
             apple: RequestPurchaseIosProps(
               sku: productId,
-              appAccountToken: userId,
+              appAccountToken: userId, // Must be UUID format
             ),
             google: RequestPurchaseAndroidProps(
               skus: [productId],
@@ -193,7 +193,7 @@ class PurchaseService {
           RequestPurchaseProps.inApp((
             apple: RequestPurchaseIosProps(
               sku: productId,
-              appAccountToken: userId,
+              appAccountToken: userId, // Must be UUID format
             ),
             google: RequestPurchaseAndroidProps(
               skus: [productId],

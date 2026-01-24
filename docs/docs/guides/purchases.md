@@ -78,13 +78,15 @@ Using the builder pattern (recommended):
 await iap.requestPurchaseWithBuilder(
   build: (builder) {
     builder.ios.sku = 'product_id';
-    builder.ios.appAccountToken = userId;
+    builder.ios.appAccountToken = userId; // Must be UUID format
     builder.android.skus = ['product_id'];
     builder.android.obfuscatedAccountIdAndroid = userId;
     builder.type = ProductQueryType.InApp;
   },
 );
 ```
+
+> **⚠️ Important:** The `appAccountToken` must be a valid UUID format (e.g., `550e8400-e29b-41d4-a716-446655440000`). If a non-UUID value is provided, Apple will silently return `null` for this field in the purchase response. See [OpenIAP Request Types](https://openiap.dev/docs/types/request) for details.
 
 Or using props directly:
 
@@ -93,7 +95,7 @@ await iap.requestPurchase(
   RequestPurchaseProps.inApp((
     apple: RequestPurchaseIosProps(
       sku: 'product_id',
-      appAccountToken: userId,
+      appAccountToken: userId, // Must be UUID format
     ),
     google: RequestPurchaseAndroidProps(
       skus: ['product_id'],
