@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## 8.2.5
+
+### New Features
+
+- **ExternalPurchaseCustomLink API (iOS 18.1+)**: Support for Apple's custom external purchase links
+  - `isEligibleForExternalPurchaseCustomLinkIOS()` - Check eligibility
+  - `getExternalPurchaseCustomLinkTokenIOS()` - Get token for reporting
+  - `showExternalPurchaseCustomLinkNoticeIOS()` - Show disclosure notice
+
+### Dependencies
+
+- Updated OpenIAP versions:
+  - `openiap-apple`: 1.3.13 -> 1.3.14
+  - `openiap-gql`: 1.3.15 -> 1.3.16
+
 ## 8.2.4
 
 ### Dependencies
