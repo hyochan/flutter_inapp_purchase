@@ -223,6 +223,47 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
                 result(FlutterError(code: code.rawValue, message: "External purchase link requires iOS 16.0+, macOS 14.0+, or tvOS 16.0+", details: nil))
             }
 
+        // MARK: - ExternalPurchaseCustomLink (iOS 18.1+)
+        case "isEligibleForExternalPurchaseCustomLinkIOS":
+            if #available(iOS 18.1, macOS 15.0, tvOS 18.1, *) {
+                isEligibleForExternalPurchaseCustomLinkIOS(result: result)
+            } else {
+                let code: ErrorCode = .featureNotSupported
+                result(FlutterError(code: code.rawValue, message: "ExternalPurchaseCustomLink requires iOS 18.1+, macOS 15.0+, or tvOS 18.1+", details: nil))
+            }
+
+        case "getExternalPurchaseCustomLinkTokenIOS":
+            if #available(iOS 18.1, macOS 15.0, tvOS 18.1, *) {
+                if let args = call.arguments as? [String: Any],
+                   let tokenType = args["tokenType"] as? String {
+                    getExternalPurchaseCustomLinkTokenIOS(tokenType: tokenType, result: result)
+                } else if let tokenType = call.arguments as? String {
+                    getExternalPurchaseCustomLinkTokenIOS(tokenType: tokenType, result: result)
+                } else {
+                    let code: ErrorCode = .developerError
+                    result(FlutterError(code: code.rawValue, message: "tokenType required ('acquisition' or 'services')", details: nil))
+                }
+            } else {
+                let code: ErrorCode = .featureNotSupported
+                result(FlutterError(code: code.rawValue, message: "ExternalPurchaseCustomLink requires iOS 18.1+, macOS 15.0+, or tvOS 18.1+", details: nil))
+            }
+
+        case "showExternalPurchaseCustomLinkNoticeIOS":
+            if #available(iOS 18.1, macOS 15.0, tvOS 18.1, *) {
+                if let args = call.arguments as? [String: Any],
+                   let noticeType = args["noticeType"] as? String {
+                    showExternalPurchaseCustomLinkNoticeIOS(noticeType: noticeType, result: result)
+                } else if let noticeType = call.arguments as? String {
+                    showExternalPurchaseCustomLinkNoticeIOS(noticeType: noticeType, result: result)
+                } else {
+                    let code: ErrorCode = .developerError
+                    result(FlutterError(code: code.rawValue, message: "noticeType required ('browser')", details: nil))
+                }
+            } else {
+                let code: ErrorCode = .featureNotSupported
+                result(FlutterError(code: code.rawValue, message: "ExternalPurchaseCustomLink requires iOS 18.1+, macOS 15.0+, or tvOS 18.1+", details: nil))
+            }
+
         case "verifyPurchaseWithProvider":
             guard let args = call.arguments as? [String: Any],
                   let providerStr = args["provider"] as? String else {
@@ -773,9 +814,72 @@ public class FlutterInappPurchasePlugin: NSObject, FlutterPlugin {
             }
         }
     }
-    
-    
-    
+
+    // MARK: - ExternalPurchaseCustomLink (iOS 18.1+)
+
+    @available(iOS 18.1, macOS 15.0, tvOS 18.1, *)
+    private func isEligibleForExternalPurchaseCustomLinkIOS(result: @escaping FlutterResult) {
+        FlutterIapLog.debug("isEligibleForExternalPurchaseCustomLinkIOS called")
+        Task { @MainActor in
+            do {
+                let isEligible = try await OpenIapModule.shared.isEligibleForExternalPurchaseCustomLinkIOS()
+                FlutterIapLog.result("isEligibleForExternalPurchaseCustomLinkIOS", value: isEligible)
+                result(isEligible)
+            } catch {
+                await MainActor.run {
+                    let code: ErrorCode = .serviceError
+                    result(FlutterError(code: code.rawValue, message: defaultMessage(for: code), details: nil))
+                }
+            }
+        }
+    }
+
+    @available(iOS 18.1, macOS 15.0, tvOS 18.1, *)
+    private func getExternalPurchaseCustomLinkTokenIOS(tokenType: String, result: @escaping FlutterResult) {
+        FlutterIapLog.payload("getExternalPurchaseCustomLinkTokenIOS", payload: ["tokenType": tokenType])
+        Task { @MainActor in
+            do {
+                guard let type = ExternalPurchaseCustomLinkTokenTypeIOS(rawValue: tokenType) else {
+                    let code: ErrorCode = .developerError
+                    result(FlutterError(code: code.rawValue, message: "Invalid token type: \(tokenType). Must be 'acquisition' or 'services'", details: nil))
+                    return
+                }
+                let res = try await OpenIapModule.shared.getExternalPurchaseCustomLinkTokenIOS(type)
+                let payload = FlutterIapHelper.sanitizeDictionary(OpenIapSerialization.encode(res))
+                FlutterIapLog.result("getExternalPurchaseCustomLinkTokenIOS", value: payload)
+                result(payload)
+            } catch {
+                await MainActor.run {
+                    let code: ErrorCode = .serviceError
+                    result(FlutterError(code: code.rawValue, message: defaultMessage(for: code), details: nil))
+                }
+            }
+        }
+    }
+
+    @available(iOS 18.1, macOS 15.0, tvOS 18.1, *)
+    private func showExternalPurchaseCustomLinkNoticeIOS(noticeType: String, result: @escaping FlutterResult) {
+        FlutterIapLog.payload("showExternalPurchaseCustomLinkNoticeIOS", payload: ["noticeType": noticeType])
+        Task { @MainActor in
+            do {
+                guard let type = ExternalPurchaseCustomLinkNoticeTypeIOS(rawValue: noticeType) else {
+                    let code: ErrorCode = .developerError
+                    result(FlutterError(code: code.rawValue, message: "Invalid notice type: \(noticeType). Must be 'browser'", details: nil))
+                    return
+                }
+                let res = try await OpenIapModule.shared.showExternalPurchaseCustomLinkNoticeIOS(type)
+                let payload = FlutterIapHelper.sanitizeDictionary(OpenIapSerialization.encode(res))
+                FlutterIapLog.result("showExternalPurchaseCustomLinkNoticeIOS", value: payload)
+                result(payload)
+            } catch {
+                await MainActor.run {
+                    let code: ErrorCode = .serviceError
+                    result(FlutterError(code: code.rawValue, message: defaultMessage(for: code), details: nil))
+                }
+            }
+        }
+    }
+
     // clearTransactionCache removed (no-op)
     
     // MARK: - Helpers

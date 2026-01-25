@@ -410,6 +410,31 @@ for (final purchase in purchases) {
 }
 ```
 
+### iOS External Purchase Custom Link (v8.2.5+, iOS 18.1+)
+
+For apps with custom external purchase links entitlement:
+
+```dart
+// Check eligibility
+final isEligible = await iap.isEligibleForExternalPurchaseCustomLinkIOS();
+
+if (isEligible) {
+  // Show disclosure notice
+  final notice = await iap.showExternalPurchaseCustomLinkNoticeIOS(
+    ExternalPurchaseCustomLinkNoticeTypeIOS.Browser,
+  );
+  if (notice.continued) {
+    // Get token for reporting to Apple
+    final result = await iap.getExternalPurchaseCustomLinkTokenIOS(
+      ExternalPurchaseCustomLinkTokenTypeIOS.Acquisition,
+    );
+    if (result.token != null) {
+      // Open external link and report to Apple's External Purchase Server API
+    }
+  }
+}
+```
+
 ## Error Handling
 
 ```dart
