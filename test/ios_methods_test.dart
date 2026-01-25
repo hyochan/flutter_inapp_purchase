@@ -475,4 +475,176 @@ void main() {
       },
     );
   });
+
+  group('ExternalPurchaseCustomLink APIs (iOS 18.1+)', () {
+    late FlutterInappPurchase iap;
+    late MethodChannel channel;
+    final calls = <MethodCall>[];
+
+    setUp(() {
+      iap = FlutterInappPurchase.private(FakePlatform(operatingSystem: 'ios'));
+      channel = iap.channel;
+
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+        calls.add(methodCall);
+        switch (methodCall.method) {
+          case 'isEligibleForExternalPurchaseCustomLinkIOS':
+            return true;
+          case 'getExternalPurchaseCustomLinkTokenIOS':
+            return <String, dynamic>{
+              'token': 'test-token-123',
+            };
+          case 'showExternalPurchaseCustomLinkNoticeIOS':
+            return <String, dynamic>{
+              'continued': true,
+            };
+          default:
+            return null;
+        }
+      });
+    });
+
+    tearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+      calls.clear();
+    });
+
+    test('isEligibleForExternalPurchaseCustomLinkIOS returns true', () async {
+      final result = await iap.isEligibleForExternalPurchaseCustomLinkIOS();
+      expect(result, isTrue);
+      expect(calls.last.method, 'isEligibleForExternalPurchaseCustomLinkIOS');
+    });
+
+    test(
+      'isEligibleForExternalPurchaseCustomLinkIOS returns false on non-iOS',
+      () async {
+        final androidIap = FlutterInappPurchase.private(
+          FakePlatform(operatingSystem: 'android'),
+        );
+        expect(
+          await androidIap.isEligibleForExternalPurchaseCustomLinkIOS(),
+          isFalse,
+        );
+      },
+    );
+
+    test(
+      'isEligibleForExternalPurchaseCustomLinkIOS throws on platform error',
+      () async {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+          if (methodCall.method ==
+              'isEligibleForExternalPurchaseCustomLinkIOS') {
+            throw PlatformException(code: '500', message: 'native error');
+          }
+          return null;
+        });
+
+        await expectLater(
+          iap.isEligibleForExternalPurchaseCustomLinkIOS(),
+          throwsA(
+            isA<PurchaseError>().having(
+              (error) => error.code,
+              'code',
+              ErrorCode.ServiceError,
+            ),
+          ),
+        );
+      },
+    );
+
+    test(
+      'getExternalPurchaseCustomLinkTokenIOS returns token',
+      () async {
+        final result = await iap.getExternalPurchaseCustomLinkTokenIOS(
+          ExternalPurchaseCustomLinkTokenTypeIOS.Acquisition,
+        );
+        expect(result.token, 'test-token-123');
+        expect(result.error, isNull);
+        expect(calls.last.method, 'getExternalPurchaseCustomLinkTokenIOS');
+        expect(calls.last.arguments['tokenType'], 'acquisition');
+      },
+    );
+
+    test(
+      'getExternalPurchaseCustomLinkTokenIOS returns error on non-iOS',
+      () async {
+        final androidIap = FlutterInappPurchase.private(
+          FakePlatform(operatingSystem: 'android'),
+        );
+        final result = await androidIap.getExternalPurchaseCustomLinkTokenIOS(
+          ExternalPurchaseCustomLinkTokenTypeIOS.Acquisition,
+        );
+        expect(result.token, isNull);
+        expect(result.error, isNotNull);
+      },
+    );
+
+    test(
+      'getExternalPurchaseCustomLinkTokenIOS returns error on platform error',
+      () async {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+          if (methodCall.method == 'getExternalPurchaseCustomLinkTokenIOS') {
+            throw PlatformException(code: '500', message: 'native error');
+          }
+          return null;
+        });
+
+        final result = await iap.getExternalPurchaseCustomLinkTokenIOS(
+          ExternalPurchaseCustomLinkTokenTypeIOS.Acquisition,
+        );
+        expect(result.token, isNull);
+        expect(result.error, contains('native error'));
+      },
+    );
+
+    test(
+      'showExternalPurchaseCustomLinkNoticeIOS returns continued true',
+      () async {
+        final result = await iap.showExternalPurchaseCustomLinkNoticeIOS(
+          ExternalPurchaseCustomLinkNoticeTypeIOS.Browser,
+        );
+        expect(result.continued, isTrue);
+        expect(result.error, isNull);
+        expect(calls.last.method, 'showExternalPurchaseCustomLinkNoticeIOS');
+        expect(calls.last.arguments['noticeType'], 'browser');
+      },
+    );
+
+    test(
+      'showExternalPurchaseCustomLinkNoticeIOS returns error on non-iOS',
+      () async {
+        final androidIap = FlutterInappPurchase.private(
+          FakePlatform(operatingSystem: 'android'),
+        );
+        final result = await androidIap.showExternalPurchaseCustomLinkNoticeIOS(
+          ExternalPurchaseCustomLinkNoticeTypeIOS.Browser,
+        );
+        expect(result.continued, isFalse);
+        expect(result.error, isNotNull);
+      },
+    );
+
+    test(
+      'showExternalPurchaseCustomLinkNoticeIOS returns error on platform error',
+      () async {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+          if (methodCall.method == 'showExternalPurchaseCustomLinkNoticeIOS') {
+            throw PlatformException(code: '500', message: 'native error');
+          }
+          return null;
+        });
+
+        final result = await iap.showExternalPurchaseCustomLinkNoticeIOS(
+          ExternalPurchaseCustomLinkNoticeTypeIOS.Browser,
+        );
+        expect(result.continued, isFalse);
+        expect(result.error, contains('native error'));
+      },
+    );
+  });
 }

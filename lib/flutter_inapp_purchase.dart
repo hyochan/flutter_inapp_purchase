@@ -2027,7 +2027,11 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
             } catch (error) {
               debugPrint(
                   'isEligibleForExternalPurchaseCustomLinkIOS error: $error');
-              return false;
+              throw PurchaseError(
+                code: gentype.ErrorCode.ServiceError,
+                message:
+                    'Failed to check eligibility for ExternalPurchaseCustomLink: $error',
+              );
             }
           };
 
