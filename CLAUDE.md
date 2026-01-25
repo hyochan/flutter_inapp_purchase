@@ -140,3 +140,41 @@ For new feature proposals:
 2. Get community feedback and consensus
 3. Ensure alignment with OpenIAP standards
 4. Implement following the agreed specification
+
+## Skills
+
+### /release
+
+Create a new release for flutter_inapp_purchase package.
+
+**Arguments**: `VERSION` - Version number (e.g., `8.2.5`)
+
+**Workflow**:
+
+1. Ensure on main branch with latest code
+   ```bash
+   git checkout main && git fetch origin && git reset --hard origin/main
+   ```
+
+2. Update CHANGELOG.md
+   - Add new version section at the top
+   - Include New Features, Breaking Changes, Dependencies as applicable
+   - Keep entries concise
+
+3. Update pubspec.yaml version field
+
+4. Commit and push
+   ```bash
+   git add CHANGELOG.md pubspec.yaml
+   git commit -m "chore: bump version to VERSION
+
+   Co-Authored-By: Claude <noreply@anthropic.com>"
+   git push
+   ```
+
+5. Create GitHub release
+   ```bash
+   gh release create VERSION --title "VERSION" --notes "RELEASE_NOTES"
+   ```
+
+**Example**: `/release 8.2.6`
