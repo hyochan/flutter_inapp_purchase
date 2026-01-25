@@ -391,7 +391,7 @@ enum ExternalPurchaseCustomLinkTokenTypeIOS {
   String toJson() => value;
 }
 
-/// User actions on external purchase notice sheet (iOS 15.4+)
+/// User actions on external purchase notice sheet (iOS 17.4+)
 enum ExternalPurchaseNoticeAction {
   /// User chose to continue to external purchase
   Continue('continue'),
@@ -1659,7 +1659,7 @@ class ExternalPurchaseLinkResultIOS {
   }
 }
 
-/// Result of presenting external purchase notice sheet (iOS 15.4+)
+/// Result of presenting external purchase notice sheet (iOS 17.4+)
 /// Returns the token when user continues to external purchase.
 class ExternalPurchaseNoticeResultIOS {
   const ExternalPurchaseNoticeResultIOS({
@@ -1670,7 +1670,7 @@ class ExternalPurchaseNoticeResultIOS {
 
   /// Optional error message if the presentation failed
   final String? error;
-  /// External purchase token returned when user continues (iOS 15.4+).
+  /// External purchase token returned when user continues (iOS 17.4+).
   /// This token should be reported to Apple's External Purchase Server API.
   /// Only present when result is Continue.
   final String? externalPurchaseToken;
@@ -4648,7 +4648,7 @@ abstract class MutationResolver {
   Future<bool> presentCodeRedemptionSheetIOS();
   /// Present external purchase custom link with StoreKit UI
   Future<ExternalPurchaseLinkResultIOS> presentExternalPurchaseLinkIOS(String url);
-  /// Present external purchase notice sheet (iOS 15.4+).
+  /// Present external purchase notice sheet (iOS 17.4+).
   /// Uses ExternalPurchase.presentNoticeSheet() which returns a token when user continues.
   /// Reference: https://developer.apple.com/documentation/storekit/externalpurchase/presentnoticesheet()
   Future<ExternalPurchaseNoticeResultIOS> presentExternalPurchaseNoticeSheetIOS();
