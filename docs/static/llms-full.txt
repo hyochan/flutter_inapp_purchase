@@ -1210,6 +1210,65 @@ Presents external purchase notice sheet (iOS 18.2+).
 Future<ExternalPurchaseNoticeResultIOS> presentExternalPurchaseNoticeSheetIOS() async
 ```
 
+#### isEligibleForExternalPurchaseCustomLinkIOS()
+
+Check if app is eligible for ExternalPurchaseCustomLink API (iOS 18.1+).
+
+```dart
+Future<bool> isEligibleForExternalPurchaseCustomLinkIOS() async
+```
+
+#### getExternalPurchaseCustomLinkTokenIOS()
+
+Get external purchase token for reporting to Apple (iOS 18.1+).
+
+```dart
+Future<ExternalPurchaseCustomLinkTokenResultIOS> getExternalPurchaseCustomLinkTokenIOS(
+  ExternalPurchaseCustomLinkTokenTypeIOS tokenType,
+) async
+```
+
+**Parameters:**
+- `tokenType` - Token type: `Acquisition` (new customers) or `Services` (existing customers)
+
+#### showExternalPurchaseCustomLinkNoticeIOS()
+
+Show ExternalPurchaseCustomLink notice sheet (iOS 18.1+).
+
+```dart
+Future<ExternalPurchaseCustomLinkNoticeResultIOS> showExternalPurchaseCustomLinkNoticeIOS(
+  ExternalPurchaseCustomLinkNoticeTypeIOS noticeType,
+) async
+```
+
+**Parameters:**
+- `noticeType` - Notice type: `Browser` (external purchases displayed in browser)
+
+**Example:**
+
+```dart
+// Check eligibility
+final isEligible = await iap.isEligibleForExternalPurchaseCustomLinkIOS();
+
+if (isEligible) {
+  // Show disclosure notice
+  final notice = await iap.showExternalPurchaseCustomLinkNoticeIOS(
+    ExternalPurchaseCustomLinkNoticeTypeIOS.Browser,
+  );
+  if (notice.continued) {
+    // Get token for reporting to Apple
+    final result = await iap.getExternalPurchaseCustomLinkTokenIOS(
+      ExternalPurchaseCustomLinkTokenTypeIOS.Acquisition,
+    );
+    if (result.token != null) {
+      // Open external link and report to Apple's External Purchase Server API
+      await launchUrl(Uri.parse('https://your-store.com/checkout'));
+      await reportExternalPurchaseToApple(result.token!);
+    }
+  }
+}
+```
+
 ### Android-Specific Methods
 
 #### acknowledgePurchaseAndroid()

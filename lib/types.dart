@@ -3,7 +3,7 @@
 
 // ============================================================================
 // AUTO-GENERATED TYPES — DO NOT EDIT DIRECTLY
-// Run `npm run generate` after updating any *.graphql schema file.
+// Run `bun run generate` after updating any *.graphql schema file.
 // ============================================================================
 
 // ignore_for_file: unused_element, unused_field
@@ -340,7 +340,58 @@ enum ExternalLinkTypeAndroid {
   String toJson() => value;
 }
 
-/// User actions on external purchase notice sheet (iOS 18.2+)
+/// Notice types for ExternalPurchaseCustomLink (iOS 18.1+).
+/// Determines the style of disclosure notice to display.
+/// Reference: https://developer.apple.com/documentation/storekit/externalpurchasecustomlink/noticetype
+enum ExternalPurchaseCustomLinkNoticeTypeIOS {
+  /// Notice type indicating external purchases will be displayed in a browser
+  /// or destination of the app's choice.
+  Browser('browser');
+
+  const ExternalPurchaseCustomLinkNoticeTypeIOS(this.value);
+  final String value;
+
+  factory ExternalPurchaseCustomLinkNoticeTypeIOS.fromJson(String value) {
+    final normalized = value.toLowerCase().replaceAll('_', '-');
+    switch (normalized) {
+      case 'browser':
+        return ExternalPurchaseCustomLinkNoticeTypeIOS.Browser;
+    }
+    throw ArgumentError('Unknown ExternalPurchaseCustomLinkNoticeTypeIOS value: $value');
+  }
+
+  String toJson() => value;
+}
+
+/// Token types for ExternalPurchaseCustomLink (iOS 18.1+).
+/// Used to request different types of external purchase tokens for reporting to Apple.
+/// Reference: https://developer.apple.com/documentation/storekit/externalpurchasecustomlink/token(for:)
+enum ExternalPurchaseCustomLinkTokenTypeIOS {
+  /// Token for customer acquisition tracking.
+  /// Use this when a new customer makes their first purchase through external link.
+  Acquisition('acquisition'),
+  /// Token for ongoing services tracking.
+  /// Use this for existing customers making additional purchases.
+  Services('services');
+
+  const ExternalPurchaseCustomLinkTokenTypeIOS(this.value);
+  final String value;
+
+  factory ExternalPurchaseCustomLinkTokenTypeIOS.fromJson(String value) {
+    final normalized = value.toLowerCase().replaceAll('_', '-');
+    switch (normalized) {
+      case 'acquisition':
+        return ExternalPurchaseCustomLinkTokenTypeIOS.Acquisition;
+      case 'services':
+        return ExternalPurchaseCustomLinkTokenTypeIOS.Services;
+    }
+    throw ArgumentError('Unknown ExternalPurchaseCustomLinkTokenTypeIOS value: $value');
+  }
+
+  String toJson() => value;
+}
+
+/// User actions on external purchase notice sheet (iOS 15.4+)
 enum ExternalPurchaseNoticeAction {
   /// User chose to continue to external purchase
   Continue('continue'),
@@ -1523,7 +1574,64 @@ class ExternalOfferReportingDetailsAndroid {
   }
 }
 
-/// Result of presenting an external purchase link (iOS 18.2+)
+/// Result of showing ExternalPurchaseCustomLink notice (iOS 18.1+).
+class ExternalPurchaseCustomLinkNoticeResultIOS {
+  const ExternalPurchaseCustomLinkNoticeResultIOS({
+    required this.continued,
+    this.error,
+  });
+
+  /// Whether the user chose to continue to external purchase
+  final bool continued;
+  /// Optional error message if the presentation failed
+  final String? error;
+
+  factory ExternalPurchaseCustomLinkNoticeResultIOS.fromJson(Map<String, dynamic> json) {
+    return ExternalPurchaseCustomLinkNoticeResultIOS(
+      continued: json['continued'] as bool,
+      error: json['error'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '__typename': 'ExternalPurchaseCustomLinkNoticeResultIOS',
+      'continued': continued,
+      'error': error,
+    };
+  }
+}
+
+/// Result of requesting an ExternalPurchaseCustomLink token (iOS 18.1+).
+class ExternalPurchaseCustomLinkTokenResultIOS {
+  const ExternalPurchaseCustomLinkTokenResultIOS({
+    this.error,
+    this.token,
+  });
+
+  /// Optional error message if token retrieval failed
+  final String? error;
+  /// The external purchase token string.
+  /// Report this token to Apple's External Purchase Server API.
+  final String? token;
+
+  factory ExternalPurchaseCustomLinkTokenResultIOS.fromJson(Map<String, dynamic> json) {
+    return ExternalPurchaseCustomLinkTokenResultIOS(
+      error: json['error'] as String?,
+      token: json['token'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '__typename': 'ExternalPurchaseCustomLinkTokenResultIOS',
+      'error': error,
+      'token': token,
+    };
+  }
+}
+
+/// Result of presenting an external purchase link
 class ExternalPurchaseLinkResultIOS {
   const ExternalPurchaseLinkResultIOS({
     this.error,
@@ -1551,21 +1659,28 @@ class ExternalPurchaseLinkResultIOS {
   }
 }
 
-/// Result of presenting external purchase notice sheet (iOS 18.2+)
+/// Result of presenting external purchase notice sheet (iOS 15.4+)
+/// Returns the token when user continues to external purchase.
 class ExternalPurchaseNoticeResultIOS {
   const ExternalPurchaseNoticeResultIOS({
     this.error,
+    this.externalPurchaseToken,
     required this.result,
   });
 
   /// Optional error message if the presentation failed
   final String? error;
+  /// External purchase token returned when user continues (iOS 15.4+).
+  /// This token should be reported to Apple's External Purchase Server API.
+  /// Only present when result is Continue.
+  final String? externalPurchaseToken;
   /// Notice result indicating user action
   final ExternalPurchaseNoticeAction result;
 
   factory ExternalPurchaseNoticeResultIOS.fromJson(Map<String, dynamic> json) {
     return ExternalPurchaseNoticeResultIOS(
       error: json['error'] as String?,
+      externalPurchaseToken: json['externalPurchaseToken'] as String?,
       result: ExternalPurchaseNoticeAction.fromJson(json['result'] as String),
     );
   }
@@ -1574,6 +1689,7 @@ class ExternalPurchaseNoticeResultIOS {
     return {
       '__typename': 'ExternalPurchaseNoticeResultIOS',
       'error': error,
+      'externalPurchaseToken': externalPurchaseToken,
       'result': result.toJson(),
     };
   }
@@ -4530,9 +4646,11 @@ abstract class MutationResolver {
   });
   /// Present the App Store code redemption sheet
   Future<bool> presentCodeRedemptionSheetIOS();
-  /// Present external purchase custom link with StoreKit UI (iOS 18.2+)
+  /// Present external purchase custom link with StoreKit UI
   Future<ExternalPurchaseLinkResultIOS> presentExternalPurchaseLinkIOS(String url);
-  /// Present external purchase notice sheet (iOS 18.2+)
+  /// Present external purchase notice sheet (iOS 15.4+).
+  /// Uses ExternalPurchase.presentNoticeSheet() which returns a token when user continues.
+  /// Reference: https://developer.apple.com/documentation/storekit/externalpurchase/presentnoticesheet()
   Future<ExternalPurchaseNoticeResultIOS> presentExternalPurchaseNoticeSheetIOS();
   /// Initiate a purchase flow; rely on events for final state
   Future<RequestPurchaseResult?> requestPurchase(RequestPurchaseProps params);
@@ -4551,6 +4669,11 @@ abstract class MutationResolver {
   /// Returns true if user accepted, false if user canceled
   /// Throws OpenIapError.NotPrepared if billing client not ready
   Future<bool> showAlternativeBillingDialogAndroid();
+  /// Show ExternalPurchaseCustomLink notice sheet (iOS 18.1+).
+  /// Displays the system disclosure notice sheet for custom external purchase links.
+  /// Call this after a deliberate customer interaction before linking out to external purchases.
+  /// Reference: https://developer.apple.com/documentation/storekit/externalpurchasecustomlink/shownotice(type:)
+  Future<ExternalPurchaseCustomLinkNoticeResultIOS> showExternalPurchaseCustomLinkNoticeIOS(ExternalPurchaseCustomLinkNoticeTypeIOS noticeType);
   /// Open subscription management UI and return changed purchases (iOS 15+)
   Future<List<PurchaseIOS>> showManageSubscriptionsIOS();
   /// Force a StoreKit sync for transactions (iOS 15+)
@@ -4576,7 +4699,8 @@ abstract class MutationResolver {
 
 /// GraphQL root query operations.
 abstract class QueryResolver {
-  /// Check if external purchase notice sheet can be presented (iOS 18.2+)
+  /// Check if external purchase notice sheet can be presented (iOS 17.4+)
+  /// Uses ExternalPurchase.canPresent
   Future<bool> canPresentExternalPurchaseNoticeIOS();
   /// Get current StoreKit 2 entitlements (iOS 15+)
   Future<PurchaseIOS?> currentEntitlementIOS(String sku);
@@ -4595,6 +4719,10 @@ abstract class QueryResolver {
     bool? includeSuspendedAndroid,
     bool? onlyIncludeActiveItemsIOS,
   });
+  /// Get external purchase token for reporting to Apple (iOS 18.1+).
+  /// Use this token with Apple's External Purchase Server API to report transactions.
+  /// Reference: https://developer.apple.com/documentation/storekit/externalpurchasecustomlink/token(for:)
+  Future<ExternalPurchaseCustomLinkTokenResultIOS> getExternalPurchaseCustomLinkTokenIOS(ExternalPurchaseCustomLinkTokenTypeIOS tokenType);
   /// Retrieve all pending transactions in the StoreKit queue
   Future<List<PurchaseIOS>> getPendingTransactionsIOS();
   /// Get the currently promoted product (iOS 11+)
@@ -4609,6 +4737,10 @@ abstract class QueryResolver {
   Future<String?> getTransactionJwsIOS(String sku);
   /// Check whether the user has active subscriptions
   Future<bool> hasActiveSubscriptions([List<String>? subscriptionIds]);
+  /// Check if app is eligible for ExternalPurchaseCustomLink API (iOS 18.1+).
+  /// Returns true if the app can use custom external purchase links.
+  /// Reference: https://developer.apple.com/documentation/storekit/externalpurchasecustomlink/iseligible
+  Future<bool> isEligibleForExternalPurchaseCustomLinkIOS();
   /// Check introductory offer eligibility for a subscription group
   Future<bool> isEligibleForIntroOfferIOS(String groupID);
   /// Verify a StoreKit 2 transaction signature
@@ -4682,6 +4814,7 @@ typedef MutationRequestPurchaseHandler = Future<RequestPurchaseResult?> Function
 typedef MutationRequestPurchaseOnPromotedProductIOSHandler = Future<bool> Function();
 typedef MutationRestorePurchasesHandler = Future<void> Function();
 typedef MutationShowAlternativeBillingDialogAndroidHandler = Future<bool> Function();
+typedef MutationShowExternalPurchaseCustomLinkNoticeIOSHandler = Future<ExternalPurchaseCustomLinkNoticeResultIOS> Function(ExternalPurchaseCustomLinkNoticeTypeIOS noticeType);
 typedef MutationShowManageSubscriptionsIOSHandler = Future<List<PurchaseIOS>> Function();
 typedef MutationSyncIOSHandler = Future<bool> Function();
 typedef MutationValidateReceiptHandler = Future<VerifyPurchaseResult> Function({
@@ -4721,6 +4854,7 @@ class MutationHandlers {
     this.requestPurchaseOnPromotedProductIOS,
     this.restorePurchases,
     this.showAlternativeBillingDialogAndroid,
+    this.showExternalPurchaseCustomLinkNoticeIOS,
     this.showManageSubscriptionsIOS,
     this.syncIOS,
     this.validateReceipt,
@@ -4748,6 +4882,7 @@ class MutationHandlers {
   final MutationRequestPurchaseOnPromotedProductIOSHandler? requestPurchaseOnPromotedProductIOS;
   final MutationRestorePurchasesHandler? restorePurchases;
   final MutationShowAlternativeBillingDialogAndroidHandler? showAlternativeBillingDialogAndroid;
+  final MutationShowExternalPurchaseCustomLinkNoticeIOSHandler? showExternalPurchaseCustomLinkNoticeIOS;
   final MutationShowManageSubscriptionsIOSHandler? showManageSubscriptionsIOS;
   final MutationSyncIOSHandler? syncIOS;
   final MutationValidateReceiptHandler? validateReceipt;
@@ -4770,6 +4905,7 @@ typedef QueryGetAvailablePurchasesHandler = Future<List<Purchase>> Function({
   bool? includeSuspendedAndroid,
   bool? onlyIncludeActiveItemsIOS,
 });
+typedef QueryGetExternalPurchaseCustomLinkTokenIOSHandler = Future<ExternalPurchaseCustomLinkTokenResultIOS> Function(ExternalPurchaseCustomLinkTokenTypeIOS tokenType);
 typedef QueryGetPendingTransactionsIOSHandler = Future<List<PurchaseIOS>> Function();
 typedef QueryGetPromotedProductIOSHandler = Future<ProductIOS?> Function();
 typedef QueryGetReceiptDataIOSHandler = Future<String?> Function();
@@ -4777,6 +4913,7 @@ typedef QueryGetStorefrontHandler = Future<String> Function();
 typedef QueryGetStorefrontIOSHandler = Future<String> Function();
 typedef QueryGetTransactionJwsIOSHandler = Future<String?> Function(String sku);
 typedef QueryHasActiveSubscriptionsHandler = Future<bool> Function([List<String>? subscriptionIds]);
+typedef QueryIsEligibleForExternalPurchaseCustomLinkIOSHandler = Future<bool> Function();
 typedef QueryIsEligibleForIntroOfferIOSHandler = Future<bool> Function(String groupID);
 typedef QueryIsTransactionVerifiedIOSHandler = Future<bool> Function(String sku);
 typedef QueryLatestTransactionIOSHandler = Future<PurchaseIOS?> Function(String sku);
@@ -4795,6 +4932,7 @@ class QueryHandlers {
     this.getActiveSubscriptions,
     this.getAppTransactionIOS,
     this.getAvailablePurchases,
+    this.getExternalPurchaseCustomLinkTokenIOS,
     this.getPendingTransactionsIOS,
     this.getPromotedProductIOS,
     this.getReceiptDataIOS,
@@ -4802,6 +4940,7 @@ class QueryHandlers {
     this.getStorefrontIOS,
     this.getTransactionJwsIOS,
     this.hasActiveSubscriptions,
+    this.isEligibleForExternalPurchaseCustomLinkIOS,
     this.isEligibleForIntroOfferIOS,
     this.isTransactionVerifiedIOS,
     this.latestTransactionIOS,
@@ -4815,6 +4954,7 @@ class QueryHandlers {
   final QueryGetActiveSubscriptionsHandler? getActiveSubscriptions;
   final QueryGetAppTransactionIOSHandler? getAppTransactionIOS;
   final QueryGetAvailablePurchasesHandler? getAvailablePurchases;
+  final QueryGetExternalPurchaseCustomLinkTokenIOSHandler? getExternalPurchaseCustomLinkTokenIOS;
   final QueryGetPendingTransactionsIOSHandler? getPendingTransactionsIOS;
   final QueryGetPromotedProductIOSHandler? getPromotedProductIOS;
   final QueryGetReceiptDataIOSHandler? getReceiptDataIOS;
@@ -4822,6 +4962,7 @@ class QueryHandlers {
   final QueryGetStorefrontIOSHandler? getStorefrontIOS;
   final QueryGetTransactionJwsIOSHandler? getTransactionJwsIOS;
   final QueryHasActiveSubscriptionsHandler? hasActiveSubscriptions;
+  final QueryIsEligibleForExternalPurchaseCustomLinkIOSHandler? isEligibleForExternalPurchaseCustomLinkIOS;
   final QueryIsEligibleForIntroOfferIOSHandler? isEligibleForIntroOfferIOS;
   final QueryIsTransactionVerifiedIOSHandler? isTransactionVerifiedIOS;
   final QueryLatestTransactionIOSHandler? latestTransactionIOS;

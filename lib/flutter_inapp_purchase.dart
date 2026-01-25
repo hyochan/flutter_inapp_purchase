@@ -2008,6 +2008,107 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
             }
           };
 
+  // MARK: - ExternalPurchaseCustomLink (iOS 18.1+)
+
+  /// Check if app is eligible for ExternalPurchaseCustomLink API (iOS 18.1+).
+  /// Returns true if the app can use custom external purchase links.
+  ///
+  /// Reference: https://developer.apple.com/documentation/storekit/externalpurchasecustomlink/iseligible
+  gentype.QueryIsEligibleForExternalPurchaseCustomLinkIOSHandler
+      get isEligibleForExternalPurchaseCustomLinkIOS => () async {
+            if (!_platform.isIOS && !_platform.isMacOS) {
+              return false;
+            }
+            try {
+              final result = await _channel.invokeMethod<bool>(
+                'isEligibleForExternalPurchaseCustomLinkIOS',
+              );
+              return result ?? false;
+            } catch (error) {
+              debugPrint(
+                  'isEligibleForExternalPurchaseCustomLinkIOS error: $error');
+              return false;
+            }
+          };
+
+  /// Get external purchase token for reporting to Apple (iOS 18.1+).
+  /// Use this token with Apple's External Purchase Server API to report transactions.
+  ///
+  /// [tokenType] - Token type: 'acquisition' (new customers) or 'services' (existing customers)
+  ///
+  /// Reference: https://developer.apple.com/documentation/storekit/externalpurchasecustomlink/token(for:)
+  gentype.QueryGetExternalPurchaseCustomLinkTokenIOSHandler
+      get getExternalPurchaseCustomLinkTokenIOS =>
+          (gentype.ExternalPurchaseCustomLinkTokenTypeIOS tokenType) async {
+            if (!_platform.isIOS && !_platform.isMacOS) {
+              return const gentype.ExternalPurchaseCustomLinkTokenResultIOS(
+                error:
+                    'ExternalPurchaseCustomLink is only available on iOS/macOS',
+              );
+            }
+            try {
+              final result = await _channel.invokeMethod<Map<dynamic, dynamic>>(
+                'getExternalPurchaseCustomLinkTokenIOS',
+                {'tokenType': tokenType.value},
+              );
+              if (result != null) {
+                return gentype.ExternalPurchaseCustomLinkTokenResultIOS
+                    .fromJson(
+                  Map<String, dynamic>.from(result),
+                );
+              }
+              return const gentype.ExternalPurchaseCustomLinkTokenResultIOS(
+                error: 'Failed to get token',
+              );
+            } catch (error) {
+              debugPrint('getExternalPurchaseCustomLinkTokenIOS error: $error');
+              return gentype.ExternalPurchaseCustomLinkTokenResultIOS(
+                error: error.toString(),
+              );
+            }
+          };
+
+  /// Show ExternalPurchaseCustomLink notice sheet (iOS 18.1+).
+  /// Displays the system disclosure notice sheet for custom external purchase links.
+  /// Call this after a deliberate customer interaction before linking out to external purchases.
+  ///
+  /// [noticeType] - Notice type: 'browser' (external purchases displayed in browser)
+  ///
+  /// Reference: https://developer.apple.com/documentation/storekit/externalpurchasecustomlink/shownotice(type:)
+  gentype.MutationShowExternalPurchaseCustomLinkNoticeIOSHandler
+      get showExternalPurchaseCustomLinkNoticeIOS =>
+          (gentype.ExternalPurchaseCustomLinkNoticeTypeIOS noticeType) async {
+            if (!_platform.isIOS && !_platform.isMacOS) {
+              return const gentype.ExternalPurchaseCustomLinkNoticeResultIOS(
+                continued: false,
+                error:
+                    'ExternalPurchaseCustomLink is only available on iOS/macOS',
+              );
+            }
+            try {
+              final result = await _channel.invokeMethod<Map<dynamic, dynamic>>(
+                'showExternalPurchaseCustomLinkNoticeIOS',
+                {'noticeType': noticeType.value},
+              );
+              if (result != null) {
+                return gentype.ExternalPurchaseCustomLinkNoticeResultIOS
+                    .fromJson(
+                  Map<String, dynamic>.from(result),
+                );
+              }
+              return const gentype.ExternalPurchaseCustomLinkNoticeResultIOS(
+                continued: false,
+              );
+            } catch (error) {
+              debugPrint(
+                  'showExternalPurchaseCustomLinkNoticeIOS error: $error');
+              return gentype.ExternalPurchaseCustomLinkNoticeResultIOS(
+                continued: false,
+                error: error.toString(),
+              );
+            }
+          };
+
   // Internal wrapper for queryHandlers compatibility
   gentype.QueryFetchProductsHandler get _fetchProductsHandler =>
       ({required List<String> skus, gentype.ProductQueryType? type}) async {
@@ -2034,11 +2135,15 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
         getActiveSubscriptions: getActiveSubscriptions,
         getAppTransactionIOS: getAppTransactionIOS,
         getAvailablePurchases: getAvailablePurchases,
+        getExternalPurchaseCustomLinkTokenIOS:
+            getExternalPurchaseCustomLinkTokenIOS,
         getPendingTransactionsIOS: getPendingTransactionsIOS,
         getPromotedProductIOS: getPromotedProductIOS,
         getStorefront: getStorefront,
         getStorefrontIOS: getStorefrontIOS,
         hasActiveSubscriptions: hasActiveSubscriptions,
+        isEligibleForExternalPurchaseCustomLinkIOS:
+            isEligibleForExternalPurchaseCustomLinkIOS,
         isEligibleForIntroOfferIOS: isEligibleForIntroOfferIOS,
         subscriptionStatusIOS: subscriptionStatusIOS,
         validateReceiptIOS: validateReceiptIOS,
@@ -2072,6 +2177,8 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
         presentExternalPurchaseNoticeSheetIOS:
             presentExternalPurchaseNoticeSheetIOS,
         presentExternalPurchaseLinkIOS: presentExternalPurchaseLinkIOS,
+        showExternalPurchaseCustomLinkNoticeIOS:
+            showExternalPurchaseCustomLinkNoticeIOS,
         verifyPurchaseWithProvider: verifyPurchaseWithProvider,
       );
 
