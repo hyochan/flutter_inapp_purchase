@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkflutter_inapp_purchase_docs=self.webpackChunkflutter_inapp_purchase_docs||[]).push([[1903],{1912:e=>{e.exports=JSON.parse('{"blogBasePath":"/flutter_inapp_purchase/blog","blogTitle":"Blog","authorsListPath":"/flutter_inapp_purchase/blog/authors"}')}}]);

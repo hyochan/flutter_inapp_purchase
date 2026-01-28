@@ -1,0 +1,483 @@
+# flutter_inapp_purchase
+
+> A comprehensive Flutter plugin for implementing in-app purchases that conforms to the OpenIAP specification.
+
+- Pub.dev: https://pub.dev/packages/flutter_inapp_purchase
+- GitHub: https://github.com/hyochan/flutter_inapp_purchase
+- Documentation: https://hyochan.github.io/flutter_inapp_purchase
+- OpenIAP Specification: https://openiap.dev
+
+## Installation
+
+```yaml
+dependencies:
+  flutter_inapp_purchase: ^8.0.0
+```
+
+## Quick Start
+
+```dart
+import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
+
+// Get instance
+final iap = FlutterInappPurchase.instance;
+
+// Initialize connection
+await iap.initConnection();
+
+// Set up listeners BEFORE making purchases
+iap.purchaseUpdatedListener.listen((purchase) {
+  // Handle successful purchase
+  await iap.finishTransaction(purchase: purchase, isConsumable: false);
+});
+
+iap.purchaseErrorListener.listen((error) {
+  // Handle purchase error
+  print('Error: ${error.code} - ${error.message}');
+});
+
+// Fetch products with explicit type parameter
+final products = await iap.fetchProducts<Product>(
+  skus: ['product_id_1', 'product_id_2'],
+  type: ProductQueryType.InApp,
+);
+
+// Request purchase using builder pattern
+await iap.requestPurchaseWithBuilder(
+  build: (builder) {
+    builder
+      ..type = ProductQueryType.InApp
+      ..ios.sku = 'product_id'
+      ..android.skus = ['product_id'];
+  },
+);
+
+// End connection when done
+await iap.endConnection();
+```
+
+## Core API Reference
+
+### Connection Management
+
+```dart
+// Initialize IAP connection
+Future<bool> initConnection({
+  AlternativeBillingModeAndroid? alternativeBillingModeAndroid,
+  BillingProgramAndroid? enableBillingProgramAndroid,
+});
+
+// End IAP connection
+Future<bool> endConnection();
+```
+
+### Product Fetching
+
+```dart
+// Fetch products with type safety
+Future<List<T>> fetchProducts<T extends ProductCommon>({
+  required List<String> skus,
+  ProductQueryType type = ProductQueryType.InApp,
+});
+
+// For in-app products
+final products = await iap.fetchProducts<Product>(skus: [...], type: ProductQueryType.InApp);
+
+// For subscriptions
+final subs = await iap.fetchProducts<ProductSubscription>(skus: [...], type: ProductQueryType.Subs);
+
+// For all products
+final all = await iap.fetchProducts<ProductCommon>(skus: [...], type: ProductQueryType.All);
+```
+
+### Purchase Operations
+
+```dart
+// Request purchase with props
+Future<void> requestPurchase(RequestPurchaseProps params);
+
+// Request purchase with builder (recommended)
+Future<void> requestPurchaseWithBuilder({
+  required void Function(RequestPurchaseBuilder) build,
+});
+
+// Finish transaction (required after purchase)
+Future<void> finishTransaction({
+  required Purchase purchase,
+  bool? isConsumable,
+});
+
+// Get available purchases
+Future<List<Purchase>> getAvailablePurchases({
+  bool? onlyIncludeActiveItemsIOS,
+  bool? alsoPublishToEventListenerIOS,
+  bool? includeSuspendedAndroid,  // Include suspended subscriptions (Android 8.1+)
+});
+
+// Restore purchases
+Future<void> restorePurchases();
+```
+
+### Subscription Management
+
+```dart
+// Get active subscriptions with detailed info
+Future<List<ActiveSubscription>> getActiveSubscriptions([List<String>? subscriptionIds]);
+
+// Check if user has active subscriptions
+Future<bool> hasActiveSubscriptions([List<String>? subscriptionIds]);
+```
+
+### Event Streams
+
+```dart
+// Purchase success stream
+Stream<Purchase> get purchaseUpdatedListener;
+
+// Purchase error stream
+Stream<PurchaseError> get purchaseErrorListener;
+
+// iOS promoted product stream
+Stream<String?> get purchasePromoted;
+
+// Android user choice billing stream
+Stream<UserChoiceBillingDetails> get userChoiceBillingAndroid;
+```
+
+## Key Types
+
+### ProductQueryType
+
+```dart
+enum ProductQueryType {
+  InApp,  // One-time purchases
+  Subs,   // Subscriptions
+  All,    // Both types
+}
+```
+
+### Product Types
+
+```dart
+// Base product types
+abstract class ProductCommon { ... }
+class Product extends ProductCommon { ... }
+class ProductSubscription extends ProductCommon { ... }
+
+// Platform-specific
+class ProductIOS extends Product { ... }
+class ProductAndroid extends Product { ... }
+class ProductSubscriptionIOS extends ProductSubscription { ... }
+class ProductSubscriptionAndroid extends ProductSubscription { ... }
+```
+
+### Purchase Types
+
+```dart
+abstract class Purchase {
+  String get id;
+  String get productId;
+  String? get purchaseToken;
+  PurchaseState get transactionState;
+}
+
+class PurchaseIOS extends Purchase { ... }
+class PurchaseAndroid extends Purchase { ... }
+```
+
+### PurchaseState
+
+```dart
+enum PurchaseState {
+  Pending,    // Purchase pending
+  Purchased,  // Purchase completed
+  Unknown,    // Unknown state
+}
+```
+
+### ErrorCode
+
+```dart
+enum ErrorCode {
+  Unknown,
+  UserCancelled,
+  ItemUnavailable,
+  NetworkError,
+  ServiceError,
+  AlreadyOwned,
+  NotPrepared,
+  DeveloperError,
+  // ... more codes
+}
+```
+
+### Standardized Offer Types (New in v8.3+)
+
+```dart
+// Cross-platform subscription offer
+class SubscriptionOffer {
+  String id;                    // Unique offer identifier
+  String displayPrice;          // Formatted price string
+  double price;                 // Numeric price value
+  String? currency;             // ISO 4217 currency code
+  DiscountOfferType type;       // Introductory, Promotional
+  PaymentMode? paymentMode;     // FreeTrial, PayAsYouGo, PayUpFront
+  SubscriptionPeriod? period;   // Billing period
+  int? periodCount;             // Number of periods
+
+  // Android-specific
+  String? basePlanIdAndroid;
+  String? offerTokenAndroid;    // Token for purchase
+  List<String>? offerTagsAndroid;
+  PricingPhasesAndroid? pricingPhasesAndroid;
+
+  // iOS-specific
+  String? keyIdentifierIOS;
+  String? nonceIOS;
+  String? signatureIOS;
+  double? timestampIOS;
+}
+
+// Cross-platform one-time product discount (Android only)
+class DiscountOffer {
+  String? id;
+  String displayPrice;
+  double price;
+  String currency;
+  DiscountOfferType type;
+
+  // Android-specific
+  String? offerTokenAndroid;
+  int? percentageDiscountAndroid;
+  String? discountAmountMicrosAndroid;
+}
+
+enum DiscountOfferType {
+  Introductory,   // New subscriber discount
+  Promotional,    // Existing subscriber discount
+  OneTime,        // One-time product discount (Android only)
+}
+
+// iOS Subscription Offer Types (v8.3+)
+enum SubscriptionOfferTypeIOS {
+  Introductory,   // Intro offer for new subscribers
+  Promotional,    // Promotional offer (requires server signature)
+  WinBack,        // Win-back offer (iOS 18+) for churned subscribers
+}
+
+enum PaymentMode {
+  FreeTrial,      // No charge during offer
+  PayAsYouGo,     // Reduced price per period
+  PayUpFront,     // Discounted amount upfront
+  Unknown,
+}
+
+class SubscriptionPeriod {
+  SubscriptionPeriodUnit unit;  // Day, Week, Month, Year
+  int value;                    // Number of units
+}
+
+// Accessing standardized offers
+final product = await iap.fetchProducts<ProductSubscription>(skus: [...]);
+if (product is ProductSubscriptionAndroid) {
+  final offers = product.subscriptionOffers;  // New cross-platform
+  // OR legacy: product.subscriptionOfferDetailsAndroid
+}
+```
+
+## Common Patterns
+
+### Complete Purchase Flow
+
+```dart
+class IAPService {
+  final iap = FlutterInappPurchase.instance;
+  StreamSubscription? _purchaseSubscription;
+  StreamSubscription? _errorSubscription;
+
+  Future<void> initialize() async {
+    // Set up listeners first
+    _purchaseSubscription = iap.purchaseUpdatedListener.listen(_handlePurchase);
+    _errorSubscription = iap.purchaseErrorListener.listen(_handleError);
+
+    // Then initialize
+    await iap.initConnection();
+  }
+
+  Future<void> _handlePurchase(Purchase purchase) async {
+    // 1. Verify on server
+    final isValid = await verifyOnServer(purchase);
+    if (!isValid) return;
+
+    // 2. Deliver content
+    await deliverContent(purchase.productId);
+
+    // 3. Finish transaction
+    await iap.finishTransaction(
+      purchase: purchase,
+      isConsumable: isConsumableProduct(purchase.productId),
+    );
+  }
+
+  void _handleError(PurchaseError error) {
+    if (error.code == ErrorCode.UserCancelled) {
+      // User cancelled, no action needed
+      return;
+    }
+    // Show error to user
+    showError(getUserFriendlyErrorMessage(error));
+  }
+
+  void dispose() {
+    _purchaseSubscription?.cancel();
+    _errorSubscription?.cancel();
+    iap.endConnection();
+  }
+}
+```
+
+### Subscription with Offers (Android)
+
+```dart
+await iap.requestPurchaseWithBuilder(
+  build: (builder) {
+    builder
+      ..type = ProductQueryType.Subs
+      ..ios.sku = 'monthly_sub'
+      ..android.skus = ['monthly_sub']
+      ..android.subscriptionOffers = [
+        AndroidSubscriptionOfferInput(
+          offerId: 'offer_id',
+          productId: 'monthly_sub',
+          basePlanId: 'base_plan',
+        ),
+      ];
+  },
+);
+```
+
+### iOS Win-Back Offers (v8.3+, iOS 18+)
+
+```dart
+// Using RequestSubscriptionBuilder for subscription-specific features
+final builder = RequestSubscriptionBuilder();
+builder.ios
+  ..sku = 'monthly_sub'
+  ..winBackOffer = WinBackOfferInputIOS(offerId: 'winback_50_off');
+await iap.requestPurchase(builder.build());
+```
+
+### iOS JWS Promotional Offers (v8.3+, iOS 15+)
+
+```dart
+// New JWS format for promotional offers (WWDC 2025)
+final builder = RequestSubscriptionBuilder();
+builder.ios
+  ..sku = 'monthly_sub'
+  ..promotionalOfferJWS = PromotionalOfferJWSInputIOS(
+      jws: 'header.payload.signature',
+      offerId: 'promo_offer_id',
+    );
+await iap.requestPurchase(builder.build());
+```
+
+### Android Product Status (v8.3+, Billing 8.0+)
+
+```dart
+// Check why a product fetch failed
+final products = await iap.fetchProducts<ProductCommon>(skus: [...]);
+for (final product in products) {
+  if (product is ProductAndroid) {
+    final status = product.productStatusAndroid;
+    // ProductStatusAndroid.Ok - fetched successfully
+    // ProductStatusAndroid.NotFound - SKU doesn't exist
+    // ProductStatusAndroid.NoOffersAvailable - user not eligible
+  }
+}
+```
+
+### Android Suspended Subscriptions (v8.3+, Billing 8.1+)
+
+```dart
+// Include suspended subscriptions in restore
+final purchases = await iap.getAvailablePurchases(
+  includeSuspendedAndroid: true,
+);
+for (final purchase in purchases) {
+  if (purchase is PurchaseAndroid && purchase.isSuspendedAndroid == true) {
+    // DO NOT grant entitlements - direct user to fix payment
+  }
+}
+```
+
+### iOS External Purchase Custom Link (v8.2.5+, iOS 18.1+)
+
+For apps with custom external purchase links entitlement:
+
+```dart
+// Check eligibility
+final isEligible = await iap.isEligibleForExternalPurchaseCustomLinkIOS();
+
+if (isEligible) {
+  // Show disclosure notice
+  final notice = await iap.showExternalPurchaseCustomLinkNoticeIOS(
+    ExternalPurchaseCustomLinkNoticeTypeIOS.Browser,
+  );
+  if (notice.continued) {
+    // Get token for reporting to Apple
+    final result = await iap.getExternalPurchaseCustomLinkTokenIOS(
+      ExternalPurchaseCustomLinkTokenTypeIOS.Acquisition,
+    );
+    if (result.token != null) {
+      // Open external link and report to Apple's External Purchase Server API
+    }
+  }
+}
+```
+
+## Error Handling
+
+```dart
+try {
+  await iap.requestPurchaseWithBuilder(build: (b) => ...);
+} on PurchaseError catch (e) {
+  switch (e.code) {
+    case ErrorCode.UserCancelled:
+      // User cancelled - no action needed
+      break;
+    case ErrorCode.NetworkError:
+      showRetryDialog();
+      break;
+    case ErrorCode.AlreadyOwned:
+      await restorePurchases();
+      break;
+    default:
+      showGenericError(e.message);
+  }
+}
+
+// Get user-friendly message
+final message = getUserFriendlyErrorMessage(error);
+```
+
+## Platform Requirements
+
+### iOS
+- iOS 15.0+ (StoreKit 2)
+- Xcode 15.0+
+- Configure In-App Purchases in App Store Connect
+- Add StoreKit capability
+
+### Android
+- Android API 21+
+- Google Play Billing Library 6.0+
+- Configure products in Google Play Console
+- Add billing permission: `<uses-permission android:name="com.android.vending.BILLING"/>`
+
+## Links
+
+- Documentation: https://hyochan.github.io/flutter_inapp_purchase
+- GitHub: https://github.com/hyochan/flutter_inapp_purchase
+- Pub.dev: https://pub.dev/packages/flutter_inapp_purchase
+- OpenIAP Spec: https://openiap.dev
+- Issues: https://github.com/hyochan/flutter_inapp_purchase/issues
