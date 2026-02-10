@@ -1362,6 +1362,7 @@ class DiscountOffer {
     this.percentageDiscountAndroid,
     this.preorderDetailsAndroid,
     required this.price,
+    this.purchaseOptionIdAndroid,
     this.rentalDetailsAndroid,
     required this.type,
     this.validTimeWindowAndroid,
@@ -1400,6 +1401,10 @@ class DiscountOffer {
   final PreorderDetailsAndroid? preorderDetailsAndroid;
   /// Numeric price value
   final double price;
+  /// [Android] Purchase option ID for this offer.
+  /// Used to identify which purchase option the user selected.
+  /// Available in Google Play Billing Library 7.0+
+  final String? purchaseOptionIdAndroid;
   /// [Android] Rental details if this is a rental offer.
   final RentalDetailsAndroid? rentalDetailsAndroid;
   /// Type of discount offer
@@ -1422,6 +1427,7 @@ class DiscountOffer {
       percentageDiscountAndroid: json['percentageDiscountAndroid'] as int?,
       preorderDetailsAndroid: json['preorderDetailsAndroid'] != null ? PreorderDetailsAndroid.fromJson(json['preorderDetailsAndroid'] as Map<String, dynamic>) : null,
       price: (json['price'] as num).toDouble(),
+      purchaseOptionIdAndroid: json['purchaseOptionIdAndroid'] as String?,
       rentalDetailsAndroid: json['rentalDetailsAndroid'] != null ? RentalDetailsAndroid.fromJson(json['rentalDetailsAndroid'] as Map<String, dynamic>) : null,
       type: DiscountOfferType.fromJson(json['type'] as String),
       validTimeWindowAndroid: json['validTimeWindowAndroid'] != null ? ValidTimeWindowAndroid.fromJson(json['validTimeWindowAndroid'] as Map<String, dynamic>) : null,
@@ -1443,6 +1449,7 @@ class DiscountOffer {
       'percentageDiscountAndroid': percentageDiscountAndroid,
       'preorderDetailsAndroid': preorderDetailsAndroid?.toJson(),
       'price': price,
+      'purchaseOptionIdAndroid': purchaseOptionIdAndroid,
       'rentalDetailsAndroid': rentalDetailsAndroid?.toJson(),
       'type': type.toJson(),
       'validTimeWindowAndroid': validTimeWindowAndroid?.toJson(),
@@ -1714,6 +1721,41 @@ class FetchProductsResultSubscriptions extends FetchProductsResult {
   final List<ProductSubscription>? value;
 }
 
+/// Installment plan details for subscription offers (Android)
+/// Contains information about the installment plan commitment.
+/// Available in Google Play Billing Library 7.0+
+class InstallmentPlanDetailsAndroid {
+  const InstallmentPlanDetailsAndroid({
+    required this.commitmentPaymentsCount,
+    required this.subsequentCommitmentPaymentsCount,
+  });
+
+  /// Committed payments count after a user signs up for this subscription plan.
+  /// For example, for a monthly subscription with commitmentPaymentsCount of 12,
+  /// users will be charged monthly for 12 months after signup.
+  final int commitmentPaymentsCount;
+  /// Subsequent committed payments count after the subscription plan renews.
+  /// For example, for a monthly subscription with subsequentCommitmentPaymentsCount of 12,
+  /// users will be committed to another 12 monthly payments when the plan renews.
+  /// Returns 0 if the installment plan has no subsequent commitment (reverts to normal plan).
+  final int subsequentCommitmentPaymentsCount;
+
+  factory InstallmentPlanDetailsAndroid.fromJson(Map<String, dynamic> json) {
+    return InstallmentPlanDetailsAndroid(
+      commitmentPaymentsCount: json['commitmentPaymentsCount'] as int,
+      subsequentCommitmentPaymentsCount: json['subsequentCommitmentPaymentsCount'] as int,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '__typename': 'InstallmentPlanDetailsAndroid',
+      'commitmentPaymentsCount': commitmentPaymentsCount,
+      'subsequentCommitmentPaymentsCount': subsequentCommitmentPaymentsCount,
+    };
+  }
+}
+
 /// Limited quantity information for one-time purchase offers (Android)
 /// Available in Google Play Billing Library 7.0+
 class LimitedQuantityInfoAndroid {
@@ -1739,6 +1781,40 @@ class LimitedQuantityInfoAndroid {
       '__typename': 'LimitedQuantityInfoAndroid',
       'maximumQuantity': maximumQuantity,
       'remainingQuantity': remainingQuantity,
+    };
+  }
+}
+
+/// Pending purchase update for subscription upgrades/downgrades (Android)
+/// When a user initiates a subscription change (upgrade/downgrade), the new purchase
+/// may be pending until the current billing period ends. This type contains the
+/// details of the pending change.
+/// Available in Google Play Billing Library 5.0+
+class PendingPurchaseUpdateAndroid {
+  const PendingPurchaseUpdateAndroid({
+    required this.products,
+    required this.purchaseToken,
+  });
+
+  /// Product IDs for the pending purchase update.
+  /// These are the new products the user is switching to.
+  final List<String> products;
+  /// Purchase token for the pending transaction.
+  /// Use this token to track or manage the pending purchase update.
+  final String purchaseToken;
+
+  factory PendingPurchaseUpdateAndroid.fromJson(Map<String, dynamic> json) {
+    return PendingPurchaseUpdateAndroid(
+      products: (json['products'] as List<dynamic>).map((e) => e as String).toList(),
+      purchaseToken: json['purchaseToken'] as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '__typename': 'PendingPurchaseUpdateAndroid',
+      'products': products,
+      'purchaseToken': purchaseToken,
     };
   }
 }
@@ -1949,6 +2025,7 @@ class ProductAndroidOneTimePurchaseOfferDetail {
     this.preorderDetailsAndroid,
     required this.priceAmountMicros,
     required this.priceCurrencyCode,
+    this.purchaseOptionId,
     this.rentalDetailsAndroid,
     this.validTimeWindow,
   });
@@ -1973,6 +2050,10 @@ class ProductAndroidOneTimePurchaseOfferDetail {
   final PreorderDetailsAndroid? preorderDetailsAndroid;
   final String priceAmountMicros;
   final String priceCurrencyCode;
+  /// Purchase option ID for this offer (Android)
+  /// Used to identify which purchase option the user selected.
+  /// Available in Google Play Billing Library 7.0+
+  final String? purchaseOptionId;
   /// Rental details for rental offers
   final RentalDetailsAndroid? rentalDetailsAndroid;
   /// Valid time window for the offer
@@ -1990,6 +2071,7 @@ class ProductAndroidOneTimePurchaseOfferDetail {
       preorderDetailsAndroid: json['preorderDetailsAndroid'] != null ? PreorderDetailsAndroid.fromJson(json['preorderDetailsAndroid'] as Map<String, dynamic>) : null,
       priceAmountMicros: json['priceAmountMicros'] as String,
       priceCurrencyCode: json['priceCurrencyCode'] as String,
+      purchaseOptionId: json['purchaseOptionId'] as String?,
       rentalDetailsAndroid: json['rentalDetailsAndroid'] != null ? RentalDetailsAndroid.fromJson(json['rentalDetailsAndroid'] as Map<String, dynamic>) : null,
       validTimeWindow: json['validTimeWindow'] != null ? ValidTimeWindowAndroid.fromJson(json['validTimeWindow'] as Map<String, dynamic>) : null,
     );
@@ -2008,6 +2090,7 @@ class ProductAndroidOneTimePurchaseOfferDetail {
       'preorderDetailsAndroid': preorderDetailsAndroid?.toJson(),
       'priceAmountMicros': priceAmountMicros,
       'priceCurrencyCode': priceCurrencyCode,
+      'purchaseOptionId': purchaseOptionId,
       'rentalDetailsAndroid': rentalDetailsAndroid?.toJson(),
       'validTimeWindow': validTimeWindow?.toJson(),
     };
@@ -2204,6 +2287,7 @@ class ProductSubscriptionAndroid extends ProductSubscription implements ProductC
 class ProductSubscriptionAndroidOfferDetails {
   const ProductSubscriptionAndroidOfferDetails({
     required this.basePlanId,
+    this.installmentPlanDetails,
     this.offerId,
     required this.offerTags,
     required this.offerToken,
@@ -2211,6 +2295,10 @@ class ProductSubscriptionAndroidOfferDetails {
   });
 
   final String basePlanId;
+  /// Installment plan details for this subscription offer.
+  /// Only set for installment subscription plans; null for non-installment plans.
+  /// Available in Google Play Billing Library 7.0+
+  final InstallmentPlanDetailsAndroid? installmentPlanDetails;
   final String? offerId;
   final List<String> offerTags;
   final String offerToken;
@@ -2219,6 +2307,7 @@ class ProductSubscriptionAndroidOfferDetails {
   factory ProductSubscriptionAndroidOfferDetails.fromJson(Map<String, dynamic> json) {
     return ProductSubscriptionAndroidOfferDetails(
       basePlanId: json['basePlanId'] as String,
+      installmentPlanDetails: json['installmentPlanDetails'] != null ? InstallmentPlanDetailsAndroid.fromJson(json['installmentPlanDetails'] as Map<String, dynamic>) : null,
       offerId: json['offerId'] as String?,
       offerTags: (json['offerTags'] as List<dynamic>).map((e) => e as String).toList(),
       offerToken: json['offerToken'] as String,
@@ -2230,6 +2319,7 @@ class ProductSubscriptionAndroidOfferDetails {
     return {
       '__typename': 'ProductSubscriptionAndroidOfferDetails',
       'basePlanId': basePlanId,
+      'installmentPlanDetails': installmentPlanDetails?.toJson(),
       'offerId': offerId,
       'offerTags': offerTags,
       'offerToken': offerToken,
@@ -2371,6 +2461,7 @@ class PurchaseAndroid extends Purchase implements PurchaseCommon {
     this.obfuscatedAccountIdAndroid,
     this.obfuscatedProfileIdAndroid,
     this.packageNameAndroid,
+    this.pendingPurchaseUpdateAndroid,
     required this.platform,
     required this.productId,
     required this.purchaseState,
@@ -2400,6 +2491,11 @@ class PurchaseAndroid extends Purchase implements PurchaseCommon {
   final String? obfuscatedAccountIdAndroid;
   final String? obfuscatedProfileIdAndroid;
   final String? packageNameAndroid;
+  /// Pending purchase update for uncommitted subscription upgrade/downgrade (Android)
+  /// Contains the new products and purchase token for the pending transaction.
+  /// Returns null if no pending update exists.
+  /// Available in Google Play Billing Library 5.0+
+  final PendingPurchaseUpdateAndroid? pendingPurchaseUpdateAndroid;
   final IapPlatform platform;
   final String productId;
   final PurchaseState purchaseState;
@@ -2426,6 +2522,7 @@ class PurchaseAndroid extends Purchase implements PurchaseCommon {
       obfuscatedAccountIdAndroid: json['obfuscatedAccountIdAndroid'] as String?,
       obfuscatedProfileIdAndroid: json['obfuscatedProfileIdAndroid'] as String?,
       packageNameAndroid: json['packageNameAndroid'] as String?,
+      pendingPurchaseUpdateAndroid: json['pendingPurchaseUpdateAndroid'] != null ? PendingPurchaseUpdateAndroid.fromJson(json['pendingPurchaseUpdateAndroid'] as Map<String, dynamic>) : null,
       platform: IapPlatform.fromJson(json['platform'] as String),
       productId: json['productId'] as String,
       purchaseState: PurchaseState.fromJson(json['purchaseState'] as String),
@@ -2455,6 +2552,7 @@ class PurchaseAndroid extends Purchase implements PurchaseCommon {
       'obfuscatedAccountIdAndroid': obfuscatedAccountIdAndroid,
       'obfuscatedProfileIdAndroid': obfuscatedProfileIdAndroid,
       'packageNameAndroid': packageNameAndroid,
+      'pendingPurchaseUpdateAndroid': pendingPurchaseUpdateAndroid?.toJson(),
       'platform': platform.toJson(),
       'productId': productId,
       'purchaseState': purchaseState.toJson(),
@@ -2912,6 +3010,7 @@ class SubscriptionOffer {
     this.currency,
     required this.displayPrice,
     required this.id,
+    this.installmentPlanDetailsAndroid,
     this.keyIdentifierIOS,
     this.localizedPriceIOS,
     this.nonceIOS,
@@ -2939,6 +3038,10 @@ class SubscriptionOffer {
   /// - iOS: Discount identifier from App Store Connect
   /// - Android: offerId from ProductSubscriptionAndroidOfferDetails
   final String id;
+  /// [Android] Installment plan details for this subscription offer.
+  /// Only set for installment subscription plans; null for non-installment plans.
+  /// Available in Google Play Billing Library 7.0+
+  final InstallmentPlanDetailsAndroid? installmentPlanDetailsAndroid;
   /// [iOS] Key identifier for signature validation.
   /// Used with server-side signature generation for promotional offers.
   final String? keyIdentifierIOS;
@@ -2980,6 +3083,7 @@ class SubscriptionOffer {
       currency: json['currency'] as String?,
       displayPrice: json['displayPrice'] as String,
       id: json['id'] as String,
+      installmentPlanDetailsAndroid: json['installmentPlanDetailsAndroid'] != null ? InstallmentPlanDetailsAndroid.fromJson(json['installmentPlanDetailsAndroid'] as Map<String, dynamic>) : null,
       keyIdentifierIOS: json['keyIdentifierIOS'] as String?,
       localizedPriceIOS: json['localizedPriceIOS'] as String?,
       nonceIOS: json['nonceIOS'] as String?,
@@ -3004,6 +3108,7 @@ class SubscriptionOffer {
       'currency': currency,
       'displayPrice': displayPrice,
       'id': id,
+      'installmentPlanDetailsAndroid': installmentPlanDetailsAndroid?.toJson(),
       'keyIdentifierIOS': keyIdentifierIOS,
       'localizedPriceIOS': localizedPriceIOS,
       'nonceIOS': nonceIOS,

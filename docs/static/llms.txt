@@ -250,6 +250,19 @@ class DiscountOffer {
   String? offerTokenAndroid;
   int? percentageDiscountAndroid;
   String? discountAmountMicrosAndroid;
+  String? purchaseOptionIdAndroid;  // v8.2.6+, Billing Library 7.0+
+}
+
+// Installment plan details (v8.2.6+, Billing Library 7.0+)
+class InstallmentPlanDetailsAndroid {
+  int commitmentPaymentsCount;       // Initial commitment (e.g., 12 months)
+  int subsequentCommitmentPaymentsCount;  // Renewal commitment
+}
+
+// Pending subscription update (v8.2.6+, Billing Library 5.0+)
+class PendingPurchaseUpdateAndroid {
+  List<String> products;   // New products being switched to
+  String purchaseToken;    // Pending transaction token
 }
 
 enum DiscountOfferType {
