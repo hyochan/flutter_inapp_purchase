@@ -143,6 +143,50 @@ For new feature proposals:
 
 ## Skills
 
+### /commit
+
+Complete workflow for committing changes: branch check, pre-commit checks, commit, push, and PR creation.
+
+**Arguments**: `[options]`
+- `--push` or `-p`: Push to remote after commit
+- `--pr`: Create PR after push
+- `--all` or `-a`: Commit all changes at once
+- `<path>`: Commit only specific path (e.g., `lib/`)
+
+**Workflow**:
+
+1. Check current branch (create feature branch if on main)
+2. Run pre-commit checks (format, analyze, test)
+3. Stage and commit changes with conventional commit message
+4. Optionally push and create PR
+
+**Examples**:
+- `/commit lib/ --pr` - Commit lib changes and create PR
+- `/commit --all --push` - Commit all and push
+- `/commit android/` - Commit only android changes
+
+See [.claude/commands/commit.md](.claude/commands/commit.md) for full documentation.
+
+### /review-pr
+
+Review and address PR review comments.
+
+**Arguments**: `PR_NUMBER` or `PR_URL` (e.g., `123` or full GitHub URL)
+
+**Workflow**:
+
+1. Fetch unresolved PR review threads
+2. For each comment:
+   - Valid issue -> Fix the code
+   - Invalid/wrong -> Reply with explanation
+3. Run pre-commit checks (format, analyze, test)
+4. If all pass -> Commit and push
+5. Resolve fixed threads with commit hash reply
+
+**Example**: `/review-pr 123`
+
+See [.claude/commands/review-pr.md](.claude/commands/review-pr.md) for full documentation.
+
 ### /release
 
 Create a new release for flutter_inapp_purchase package.

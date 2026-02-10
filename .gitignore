@@ -7,7 +7,7 @@ pubspec.lock
 
 .build/
 build/
-.claude/
+.claude/settings.local.json
 
 .idea/
 !.idea/runConfigurations/
