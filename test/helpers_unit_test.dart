@@ -44,6 +44,74 @@ void main() {
     });
 
     test(
+      'parseProductFromNative parses subscriptionOffers for iOS subscription',
+      () {
+        final product = parseProductFromNative(
+          <String, dynamic>{
+            'platform': 'ios',
+            'id': 'premium_yearly',
+            'title': 'Premium Yearly',
+            'description': 'Yearly plan',
+            'currency': 'USD',
+            'displayPrice': '\$49.99',
+            'price': 49.99,
+            'isFamilyShareableIOS': true,
+            'jsonRepresentationIOS': '{}',
+            'typeIOS': 'AUTO_RENEWABLE_SUBSCRIPTION',
+            'subscriptionOffers': <Map<String, dynamic>>[
+              <String, dynamic>{
+                'id': 'intro_offer',
+                'displayPrice': 'Free',
+                'price': 0.0,
+                'type': 'INTRODUCTORY',
+                'paymentMode': 'FREE_TRIAL',
+                'periodCount': 1,
+                'period': <String, dynamic>{
+                  'unit': 'WEEK',
+                  'value': 1,
+                },
+              },
+              <String, dynamic>{
+                'id': 'promo_offer',
+                'displayPrice': '\$29.99',
+                'price': 29.99,
+                'type': 'PROMOTIONAL',
+                'paymentMode': 'PAY_AS_YOU_GO',
+                'periodCount': 3,
+                'numberOfPeriodsIOS': 3,
+                'localizedPriceIOS': '\$29.99/month',
+              },
+            ],
+          },
+          'subs',
+          fallbackIsIOS: true,
+        );
+
+        expect(product, isA<types.ProductSubscriptionIOS>());
+        final subscription = product as types.ProductSubscriptionIOS;
+        expect(subscription.subscriptionOffers, isNotNull);
+        expect(subscription.subscriptionOffers, hasLength(2));
+
+        final introOffer = subscription.subscriptionOffers!.first;
+        expect(introOffer.id, 'intro_offer');
+        expect(introOffer.type, types.DiscountOfferType.Introductory);
+        expect(introOffer.paymentMode, types.PaymentMode.FreeTrial);
+        expect(introOffer.price, 0.0);
+        expect(introOffer.period, isNotNull);
+        expect(introOffer.period!.unit, types.SubscriptionPeriodUnit.Week);
+        expect(introOffer.period!.value, 1);
+
+        final promoOffer = subscription.subscriptionOffers![1];
+        expect(promoOffer.id, 'promo_offer');
+        expect(promoOffer.type, types.DiscountOfferType.Promotional);
+        expect(promoOffer.paymentMode, types.PaymentMode.PayAsYouGo);
+        expect(promoOffer.price, 29.99);
+        expect(promoOffer.numberOfPeriodsIOS, 3);
+        expect(promoOffer.localizedPriceIOS, '\$29.99/month');
+      },
+    );
+
+    test(
       'parseProductFromNative creates Android in-app product with string offers',
       () {
         final product = parseProductFromNative(

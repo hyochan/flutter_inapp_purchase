@@ -121,6 +121,9 @@ gentype.ProductCommon parseProductFromNative(
         subscriptionInfoIOS: _parseSubscriptionInfoIOS(
           json['subscriptionInfoIOS'] ?? json['subscription'],
         ),
+        subscriptionOffers: _parseSubscriptionOffersIOS(
+          json['subscriptionOffers'],
+        ),
         subscriptionPeriodNumberIOS:
             json['subscriptionPeriodNumberIOS']?.toString(),
         subscriptionPeriodUnitIOS: _parseSubscriptionPeriod(
@@ -463,6 +466,20 @@ List<gentype.Purchase> extractPurchases(
 
 // Private helper functions --------------------------------------------------
 
+/// Safe double parsing that handles both num and String inputs.
+double? _toDouble(dynamic value) {
+  if (value is num) return value.toDouble();
+  if (value is String) return double.tryParse(value);
+  return null;
+}
+
+/// Safe int parsing that handles both num and String inputs.
+int? _toInt(dynamic value) {
+  if (value is num) return value.toInt();
+  if (value is String) return int.tryParse(value);
+  return null;
+}
+
 gentype.ProductType _parseProductType(dynamic value) {
   if (value is gentype.ProductType) return value;
   final rawUpper = value?.toString().toUpperCase() ?? 'IN_APP';
@@ -633,6 +650,99 @@ gentype.SubscriptionInfoIOS? _parseSubscriptionInfoIOS(dynamic value) {
     }
   }
   return null;
+}
+
+/// Parse standardized SubscriptionOffer list from iOS native data.
+List<gentype.SubscriptionOffer>? _parseSubscriptionOffersIOS(dynamic json) {
+  if (json == null) return null;
+  if (json is! List) return null;
+
+  final offers = <gentype.SubscriptionOffer>[];
+  for (final item in json) {
+    final map = normalizeDynamicMap(item);
+    if (map == null) continue;
+
+    // Parse payment mode
+    gentype.PaymentMode? paymentMode;
+    final paymentModeRaw = map['paymentMode']?.toString().toUpperCase();
+    if (paymentModeRaw != null) {
+      try {
+        paymentMode = gentype.PaymentMode.fromJson(paymentModeRaw);
+      } catch (_) {
+        // Fallback for non-standard values not handled by fromJson
+        switch (paymentModeRaw) {
+          case 'FREETRIAL':
+            paymentMode = gentype.PaymentMode.FreeTrial;
+            break;
+          case 'PAYUPFRONT':
+            paymentMode = gentype.PaymentMode.PayUpFront;
+            break;
+          case 'PAYASYOUGO':
+            paymentMode = gentype.PaymentMode.PayAsYouGo;
+            break;
+        }
+      }
+    }
+
+    // Parse offer type
+    gentype.DiscountOfferType type = gentype.DiscountOfferType.Introductory;
+    final typeRaw = map['type']?.toString().toUpperCase();
+    if (typeRaw != null) {
+      try {
+        type = gentype.DiscountOfferType.fromJson(typeRaw);
+      } catch (_) {
+        // Fallback for non-standard values not handled by fromJson
+        switch (typeRaw) {
+          case 'WIN_BACK':
+          case 'WINBACK':
+          case 'CODE':
+            type = gentype.DiscountOfferType.Promotional;
+            break;
+          case 'ONETIME':
+            type = gentype.DiscountOfferType.OneTime;
+            break;
+        }
+      }
+    }
+
+    // Parse period
+    gentype.SubscriptionPeriod? period;
+    final periodMap = normalizeDynamicMap(map['period']);
+    if (periodMap != null) {
+      final unitRaw = periodMap['unit']?.toString().toUpperCase();
+      final value = _toInt(periodMap['value']) ?? 1;
+      gentype.SubscriptionPeriodUnit? unit;
+      if (unitRaw != null) {
+        try {
+          unit = gentype.SubscriptionPeriodUnit.fromJson(unitRaw);
+        } catch (_) {
+          // ignore
+        }
+      }
+      if (unit != null) {
+        period = gentype.SubscriptionPeriod(unit: unit, value: value);
+      }
+    }
+
+    offers.add(gentype.SubscriptionOffer(
+      id: map['id']?.toString() ?? '',
+      displayPrice: map['displayPrice']?.toString() ?? '',
+      price: _toDouble(map['price']) ?? 0,
+      currency: map['currency']?.toString(),
+      type: type,
+      paymentMode: paymentMode,
+      period: period,
+      periodCount: _toInt(map['periodCount']),
+      keyIdentifierIOS: map['keyIdentifierIOS']?.toString(),
+      nonceIOS: map['nonceIOS']?.toString(),
+      signatureIOS: map['signatureIOS']?.toString(),
+      timestampIOS: _toDouble(map['timestampIOS']),
+      numberOfPeriodsIOS: _toInt(map['numberOfPeriodsIOS']),
+      localizedPriceIOS: map['localizedPriceIOS']?.toString(),
+    ));
+  }
+
+  return offers.isEmpty ? null : offers;
 }
 
 /// Parse standardized SubscriptionOffer list from subscription offer details.
