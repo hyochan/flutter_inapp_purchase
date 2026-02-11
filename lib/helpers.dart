@@ -710,7 +710,7 @@ List<gentype.SubscriptionOffer>? _parseSubscriptionOffersIOS(dynamic json) {
     final periodMap = normalizeDynamicMap(map['period']);
     if (periodMap != null) {
       final unitRaw = periodMap['unit']?.toString().toUpperCase();
-      final value = (periodMap['value'] as num?)?.toInt() ?? 1;
+      final value = _toInt(periodMap['value']) ?? 1;
       gentype.SubscriptionPeriodUnit? unit;
       if (unitRaw != null) {
         try {
