@@ -466,6 +466,20 @@ List<gentype.Purchase> extractPurchases(
 
 // Private helper functions --------------------------------------------------
 
+/// Safe double parsing that handles both num and String inputs.
+double? _toDouble(dynamic value) {
+  if (value is num) return value.toDouble();
+  if (value is String) return double.tryParse(value);
+  return null;
+}
+
+/// Safe int parsing that handles both num and String inputs.
+int? _toInt(dynamic value) {
+  if (value is num) return value.toInt();
+  if (value is String) return int.tryParse(value);
+  return null;
+}
+
 gentype.ProductType _parseProductType(dynamic value) {
   if (value is gentype.ProductType) return value;
   final rawUpper = value?.toString().toUpperCase() ?? 'IN_APP';
@@ -713,17 +727,17 @@ List<gentype.SubscriptionOffer>? _parseSubscriptionOffersIOS(dynamic json) {
     offers.add(gentype.SubscriptionOffer(
       id: map['id']?.toString() ?? '',
       displayPrice: map['displayPrice']?.toString() ?? '',
-      price: (map['price'] as num?)?.toDouble() ?? 0,
+      price: _toDouble(map['price']) ?? 0,
       currency: map['currency']?.toString(),
       type: type,
       paymentMode: paymentMode,
       period: period,
-      periodCount: (map['periodCount'] as num?)?.toInt(),
+      periodCount: _toInt(map['periodCount']),
       keyIdentifierIOS: map['keyIdentifierIOS']?.toString(),
       nonceIOS: map['nonceIOS']?.toString(),
       signatureIOS: map['signatureIOS']?.toString(),
-      timestampIOS: (map['timestampIOS'] as num?)?.toDouble(),
-      numberOfPeriodsIOS: (map['numberOfPeriodsIOS'] as num?)?.toInt(),
+      timestampIOS: _toDouble(map['timestampIOS']),
+      numberOfPeriodsIOS: _toInt(map['numberOfPeriodsIOS']),
       localizedPriceIOS: map['localizedPriceIOS']?.toString(),
     ));
   }
