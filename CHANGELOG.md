@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## 8.2.6
+
+### New Features
+
+- **InstallmentPlanDetailsAndroid (Billing Library 7.0+)**: Subscription installment plan details for plans that allow users to pay in installments
+- **PendingPurchaseUpdateAndroid (Billing Library 5.0+)**: Details about pending subscription upgrades/downgrades
+- **purchaseOptionIdAndroid**: New field on `DiscountOffer` to identify which purchase option the user selected
+
+### Dependencies
+
+- Updated OpenIAP versions:
+  - `openiap-gql`: 1.3.16 -> 1.3.17
+  - `openiap-google`: 1.3.27 -> 1.3.28
+
 ## 8.2.5
 
 ### New Features
