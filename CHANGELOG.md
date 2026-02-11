@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 8.2.7
+
+### Bug Fixes
+
+- **subscriptionOffers Parsing for iOS**: Fixed `ProductSubscriptionIOS.subscriptionOffers` always being null even though the native OpenIAP layer returned the data correctly
+- **Safe Numeric Parsing**: Added `_toDouble` and `_toInt` helpers to handle both `num` and `String` inputs from platform channels, preventing runtime `TypeError`s
+
 ## 8.2.6
 
 ### New Features
