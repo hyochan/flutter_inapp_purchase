@@ -655,17 +655,14 @@ List<gentype.SubscriptionOffer>? _parseSubscriptionOffersIOS(dynamic json) {
       try {
         paymentMode = gentype.PaymentMode.fromJson(paymentModeRaw);
       } catch (_) {
-        // Fallback mapping
+        // Fallback for non-standard values not handled by fromJson
         switch (paymentModeRaw) {
-          case 'FREE_TRIAL':
           case 'FREETRIAL':
             paymentMode = gentype.PaymentMode.FreeTrial;
             break;
-          case 'PAY_UP_FRONT':
           case 'PAYUPFRONT':
             paymentMode = gentype.PaymentMode.PayUpFront;
             break;
-          case 'PAY_AS_YOU_GO':
           case 'PAYASYOUGO':
             paymentMode = gentype.PaymentMode.PayAsYouGo;
             break;
@@ -680,14 +677,13 @@ List<gentype.SubscriptionOffer>? _parseSubscriptionOffersIOS(dynamic json) {
       try {
         type = gentype.DiscountOfferType.fromJson(typeRaw);
       } catch (_) {
+        // Fallback for non-standard values not handled by fromJson
         switch (typeRaw) {
-          case 'PROMOTIONAL':
           case 'WIN_BACK':
           case 'WINBACK':
           case 'CODE':
             type = gentype.DiscountOfferType.Promotional;
             break;
-          case 'ONE_TIME':
           case 'ONETIME':
             type = gentype.DiscountOfferType.OneTime;
             break;
