@@ -245,6 +245,11 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           await _channel.invokeMethod('initConnection', config);
           _isInitialized = true;
           return true;
+        } on PlatformException catch (error) {
+          throw _purchaseErrorFromPlatformException(
+            error,
+            'initialize IAP connection',
+          );
         } catch (error) {
           throw PurchaseError(
             code: gentype.ErrorCode.NotPrepared,
@@ -265,6 +270,11 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
 
           _isInitialized = false;
           return true;
+        } on PlatformException catch (error) {
+          throw _purchaseErrorFromPlatformException(
+            error,
+            'end IAP connection',
+          );
         } catch (error) {
           throw PurchaseError(
             code: gentype.ErrorCode.ServiceError,
@@ -466,10 +476,13 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
             code: gentype.ErrorCode.IapNotAvailable,
             message: 'requestPurchase is not supported on this platform',
           );
+        } on PlatformException catch (error) {
+          throw _purchaseErrorFromPlatformException(
+            error,
+            'request purchase',
+          );
         } catch (error) {
-          if (error is PurchaseError) {
-            rethrow;
-          }
+          if (error is PurchaseError) rethrow;
           throw PurchaseError(
             code: gentype.ErrorCode.ServiceError,
             message: 'Failed to request purchase: ${error.toString()}',
@@ -568,7 +581,13 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           }
 
           return await resolvePurchases();
+        } on PlatformException catch (error) {
+          throw _purchaseErrorFromPlatformException(
+            error,
+            'get available purchases',
+          );
         } catch (error) {
+          if (error is PurchaseError) rethrow;
           throw PurchaseError(
             code: gentype.ErrorCode.ServiceError,
             message: 'Failed to get available purchases: ${error.toString()}',
@@ -587,10 +606,12 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
             'getStorefront',
           );
           return storefront ?? '';
-        } catch (error) {
-          debugPrint(
-            '[getStorefront] Failed to get storefront on ${_platform.operatingSystem}: $error',
+        } on PlatformException catch (error) {
+          throw _purchaseErrorFromPlatformException(
+            error,
+            'get storefront',
           );
+        } catch (error) {
           throw PurchaseError(
             code: gentype.ErrorCode.ServiceError,
             message: 'Failed to get storefront: ${error.toString()}',
@@ -618,10 +639,13 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
             code: gentype.ErrorCode.ServiceError,
             message: 'Failed to get storefront country code',
           );
+        } on PlatformException catch (error) {
+          throw _purchaseErrorFromPlatformException(
+            error,
+            'get storefront',
+          );
         } catch (error) {
-          if (error is PurchaseError) {
-            rethrow;
-          }
+          if (error is PurchaseError) rethrow;
           throw PurchaseError(
             code: gentype.ErrorCode.ServiceError,
             message: 'Failed to get storefront: ${error.toString()}',
@@ -832,11 +856,17 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
             try {
               await channel.invokeMethod('presentCodeRedemptionSheetIOS');
               return true;
+            } on PlatformException catch (error) {
+              throw _purchaseErrorFromPlatformException(
+                error,
+                'present code redemption sheet',
+              );
             } catch (error) {
+              if (error is PurchaseError) rethrow;
               throw PurchaseError(
                 code: gentype.ErrorCode.ServiceError,
-                message:
-                    'Failed to present code redemption sheet: ${error.toString()}',
+                message: 'Failed to present code redemption sheet: '
+                    '${error.toString()}',
               );
             }
           };
@@ -854,11 +884,17 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
             try {
               await channel.invokeMethod('showManageSubscriptionsIOS');
               return const <gentype.PurchaseIOS>[];
+            } on PlatformException catch (error) {
+              throw _purchaseErrorFromPlatformException(
+                error,
+                'show manage subscriptions',
+              );
             } catch (error) {
+              if (error is PurchaseError) rethrow;
               throw PurchaseError(
                 code: gentype.ErrorCode.ServiceError,
-                message:
-                    'Failed to show manage subscriptions: ${error.toString()}',
+                message: 'Failed to show manage subscriptions: '
+                    '${error.toString()}',
               );
             }
           };
@@ -1619,7 +1655,13 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
         );
         return inApps;
       }
+    } on PlatformException catch (error) {
+      throw _purchaseErrorFromPlatformException(
+        error,
+        'fetch products',
+      );
     } catch (error) {
+      if (error is PurchaseError) rethrow;
       throw PurchaseError(
         code: gentype.ErrorCode.ServiceError,
         message: 'Failed to fetch products: ${error.toString()}',
@@ -1675,6 +1717,24 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           );
         }
       };
+
+  /// Convert a PlatformException to a PurchaseError with proper error code
+  PurchaseError _purchaseErrorFromPlatformException(
+    PlatformException error,
+    String operation,
+  ) {
+    final errorCode = errors.ErrorCodeUtils.fromPlatformCode(
+      error.code,
+      _platform.isIOS || _platform.isMacOS
+          ? gentype.IapPlatform.IOS
+          : gentype.IapPlatform.Android,
+    );
+    return PurchaseError(
+      code: errorCode,
+      message: 'Failed to $operation [${error.code}]: '
+          '${error.message ?? error.details}',
+    );
+  }
 
   /// Recursively convert platform channel Map/List to proper Dart types
   dynamic _deepConvertMap(dynamic value) {
@@ -1768,12 +1828,17 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
 
           return _parseActiveSubscriptions(result);
         } catch (error) {
-          if (error is PurchaseError) {
-            rethrow;
+          if (error is PurchaseError) rethrow;
+          if (error is PlatformException) {
+            throw _purchaseErrorFromPlatformException(
+              error,
+              'get active subscriptions',
+            );
           }
           throw PurchaseError(
             code: gentype.ErrorCode.ServiceError,
-            message: 'Failed to get active subscriptions: ${error.toString()}',
+            message: 'Failed to get active subscriptions: '
+                '${error.toString()}',
           );
         }
       };
@@ -2024,13 +2089,17 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
                 'isEligibleForExternalPurchaseCustomLinkIOS',
               );
               return result ?? false;
+            } on PlatformException catch (error) {
+              throw _purchaseErrorFromPlatformException(
+                error,
+                'check eligibility for ExternalPurchaseCustomLink',
+              );
             } catch (error) {
-              debugPrint(
-                  'isEligibleForExternalPurchaseCustomLinkIOS error: $error');
+              if (error is PurchaseError) rethrow;
               throw PurchaseError(
                 code: gentype.ErrorCode.ServiceError,
-                message:
-                    'Failed to check eligibility for ExternalPurchaseCustomLink: $error',
+                message: 'Failed to check eligibility for '
+                    'ExternalPurchaseCustomLink: $error',
               );
             }
           };

@@ -496,7 +496,10 @@ void main() {
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .setMockMethodCallHandler(channel, (MethodCall call) async {
           if (call.method == 'initConnection') {
-            throw PlatformException(code: 'platform', message: 'boom');
+            throw PlatformException(
+              code: 'not-prepared',
+              message: 'boom',
+            );
           }
           return null;
         });
@@ -528,7 +531,7 @@ void main() {
           }
           if (call.method == 'endConnection') {
             throw PlatformException(
-              code: 'platform',
+              code: 'service-error',
               message: 'end failed',
             );
           }
@@ -1092,7 +1095,10 @@ void main() {
           return true;
         }
         if (call.method == 'getAvailableItems') {
-          throw PlatformException(code: 'platform', message: 'failure');
+          throw PlatformException(
+            code: 'E_SERVICE_ERROR',
+            message: 'failure',
+          );
         }
         return null;
       });

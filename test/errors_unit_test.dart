@@ -1,7 +1,10 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_inapp_purchase/errors.dart' as errors;
+import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 import 'package:flutter_inapp_purchase/types.dart' as types;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:platform/platform.dart';
 
 void main() {
   group('getCurrentPlatform', () {
@@ -190,6 +193,200 @@ void main() {
 
         expect(error.message, 'Invalid arguments provided to the API');
         expect(error.code, types.ErrorCode.Unknown);
+      },
+    );
+  });
+
+  group('PlatformException error code mapping', () {
+    TestWidgetsFlutterBinding.ensureInitialized();
+
+    const channel = MethodChannel('flutter_inapp');
+
+    tearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+      debugDefaultTargetPlatformOverride = null;
+    });
+
+    test(
+      'requestPurchase maps user-cancelled PlatformException to '
+      'ErrorCode.UserCancelled',
+      () async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(
+          channel,
+          (MethodCall call) async {
+            if (call.method == 'requestPurchase') {
+              throw PlatformException(
+                code: 'user-cancelled',
+                message: 'User cancelled the purchase flow',
+              );
+            }
+            return null;
+          },
+        );
+
+        final iap = FlutterInappPurchase.private(
+          FakePlatform(operatingSystem: 'ios'),
+        );
+        await iap.initConnection();
+
+        try {
+          await iap.requestPurchase(
+            const types.RequestPurchaseProps.inApp((
+              apple: types.RequestPurchaseIosProps(sku: 'test_sku'),
+              google: null,
+              useAlternativeBilling: null,
+            )),
+          );
+          fail('Expected PurchaseError');
+        } on errors.PurchaseError catch (e) {
+          expect(e.code, types.ErrorCode.UserCancelled);
+          expect(e.message, contains('user-cancelled'));
+        }
+      },
+    );
+
+    test(
+      'requestPurchase maps service-error PlatformException to '
+      'ErrorCode.ServiceError',
+      () async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(
+          channel,
+          (MethodCall call) async {
+            if (call.method == 'requestPurchase') {
+              throw PlatformException(
+                code: 'service-error',
+                message: 'Store service unavailable',
+              );
+            }
+            return null;
+          },
+        );
+
+        final iap = FlutterInappPurchase.private(
+          FakePlatform(operatingSystem: 'ios'),
+        );
+        await iap.initConnection();
+
+        try {
+          await iap.requestPurchase(
+            const types.RequestPurchaseProps.inApp((
+              apple: types.RequestPurchaseIosProps(sku: 'test_sku'),
+              google: null,
+              useAlternativeBilling: null,
+            )),
+          );
+          fail('Expected PurchaseError');
+        } on errors.PurchaseError catch (e) {
+          expect(e.code, types.ErrorCode.ServiceError);
+        }
+      },
+    );
+
+    test(
+      'initConnection maps PlatformException error code properly',
+      () async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.android;
+
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(
+          channel,
+          (MethodCall call) async {
+            if (call.method == 'initConnection') {
+              throw PlatformException(
+                code: 'E_SERVICE_ERROR',
+                message: 'Billing service unavailable',
+              );
+            }
+            return null;
+          },
+        );
+
+        final iap = FlutterInappPurchase.private(
+          FakePlatform(operatingSystem: 'android'),
+        );
+
+        try {
+          await iap.initConnection();
+          fail('Expected PurchaseError');
+        } on errors.PurchaseError catch (e) {
+          expect(e.code, types.ErrorCode.ServiceError);
+          expect(e.message, contains('E_SERVICE_ERROR'));
+        }
+      },
+    );
+
+    test(
+      'getAvailablePurchases maps PlatformException error code',
+      () async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.android;
+
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(
+          channel,
+          (MethodCall call) async {
+            if (call.method == 'getAvailableItems') {
+              throw PlatformException(
+                code: 'E_NETWORK_ERROR',
+                message: 'Network unavailable',
+              );
+            }
+            return null;
+          },
+        );
+
+        final iap = FlutterInappPurchase.private(
+          FakePlatform(operatingSystem: 'android'),
+        );
+        await iap.initConnection();
+
+        try {
+          await iap.getAvailablePurchases();
+          fail('Expected PurchaseError');
+        } on errors.PurchaseError catch (e) {
+          expect(e.code, types.ErrorCode.NetworkError);
+        }
+      },
+    );
+
+    test(
+      'fetchProducts maps PlatformException error code',
+      () async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(
+          channel,
+          (MethodCall call) async {
+            if (call.method == 'fetchProducts') {
+              throw PlatformException(
+                code: 'item-unavailable',
+                message: 'Products not found',
+              );
+            }
+            return null;
+          },
+        );
+
+        final iap = FlutterInappPurchase.private(
+          FakePlatform(operatingSystem: 'ios'),
+        );
+        await iap.initConnection();
+
+        try {
+          await iap.fetchProducts<types.Product>(
+            skus: ['test_sku'],
+          );
+          fail('Expected PurchaseError');
+        } on errors.PurchaseError catch (e) {
+          expect(e.code, types.ErrorCode.ItemUnavailable);
+        }
       },
     );
   });

@@ -537,7 +537,10 @@ void main() {
             .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
           if (methodCall.method ==
               'isEligibleForExternalPurchaseCustomLinkIOS') {
-            throw PlatformException(code: '500', message: 'native error');
+            throw PlatformException(
+              code: 'service-error',
+              message: 'native error',
+            );
           }
           return null;
         });
