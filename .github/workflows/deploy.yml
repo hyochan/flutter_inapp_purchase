@@ -71,7 +71,7 @@ jobs:
           NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
           sed -i "s/^version: .*/version: ${NEW_VERSION}/" pubspec.yaml
           echo "version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
-          echo "prev_version=$CURRENT_VERSION" >> "$GITHUB_OUTPUT"
+          echo "prev_version=$CORE_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Generate CHANGELOG entry
         id: changelog
