@@ -1,0 +1,148 @@
+name: Deploy (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Choose version bump type"
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+        default: patch
+      create_release:
+        description: "Also create a GitHub Release from the tag"
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+  id-token: write # Required for OIDC trusted publishing on pub.dev
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          flutter-version: "3.x"
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Lint
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
+      - name: Configure Git user
+        run: |
+          git config user.name "flutter-iap bot"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump version
+        id: bump
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+        run: |
+          CURRENT_VERSION=$(awk '/^version:/{print $2; exit}' pubspec.yaml)
+          CORE_VERSION="${CURRENT_VERSION%%[-+]*}"
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CORE_VERSION"
+
+          case "$INPUT_VERSION" in
+            major) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
+            minor) MINOR=$((MINOR + 1)); PATCH=0 ;;
+            patch) PATCH=$((PATCH + 1)) ;;
+          esac
+
+          NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
+          sed -i "s/^version: .*/version: ${NEW_VERSION}/" pubspec.yaml
+          echo "version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+          echo "prev_version=$CORE_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Generate CHANGELOG entry
+        id: changelog
+        env:
+          NEW_VERSION: ${{ steps.bump.outputs.version }}
+          PREV_VERSION: ${{ steps.bump.outputs.prev_version }}
+        run: |
+          DATE=$(date +%Y-%m-%d)
+
+          # Get merged PR titles since last tag
+          CHANGES=""
+          if git rev-parse "$PREV_VERSION" >/dev/null 2>&1; then
+            # Collect PR merge commits
+            PR_LINES=$(git log "${PREV_VERSION}..HEAD" --merges --pretty=format:"%s" | \
+              sed -n 's/^Merge pull request #\([0-9]*\) from .*/\1/p')
+
+            for PR_NUM in $PR_LINES; do
+              PR_TITLE=$(git log --all --grep="Merge pull request #${PR_NUM}" --pretty=format:"%s" | head -1 | sed "s|Merge pull request #${PR_NUM} from [^ ]* ||")
+              if [ -n "$PR_TITLE" ]; then
+                CHANGES="${CHANGES}- ${PR_TITLE} (#${PR_NUM})\n"
+              fi
+            done
+
+            # If no PRs found, fall back to non-merge commit subjects
+            if [ -z "$CHANGES" ]; then
+              CHANGES=$(git log "${PREV_VERSION}..HEAD" --no-merges --pretty=format:"- %s" | head -20)
+              CHANGES="${CHANGES}\n"
+            fi
+          else
+            CHANGES="- Initial release\n"
+          fi
+
+          # Build the new entry
+          ENTRY="## ${NEW_VERSION} (${DATE})\n\n${CHANGES}"
+
+          # Prepend to CHANGELOG.md (create if missing)
+          if [ -f CHANGELOG.md ]; then
+            EXISTING=$(cat CHANGELOG.md)
+            printf "%b" "# Changelog\n\n${ENTRY}\n${EXISTING#"# Changelog"*$'\n'}" > CHANGELOG.md
+          else
+            printf "%b" "# Changelog\n\n${ENTRY}" > CHANGELOG.md
+          fi
+
+          # Save entry for release notes
+          {
+            echo "notes<<__DEPLOY_CHANGELOG_DELIM__"
+            printf "%b" "${CHANGES}"
+            echo "__DEPLOY_CHANGELOG_DELIM__"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Commit version bump and changelog
+        env:
+          NEW_VERSION: ${{ steps.bump.outputs.version }}
+        run: |
+          git add pubspec.yaml CHANGELOG.md
+          git commit -m "chore(release): ${NEW_VERSION}"
+          git tag "${NEW_VERSION}"
+
+      - name: Push commit and tags
+        run: git push --follow-tags
+
+      - name: Publish to pub.dev
+        run: dart pub publish --force
+
+      - name: Create GitHub Release
+        if: ${{ github.event.inputs.create_release == 'true' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.bump.outputs.version }}
+          name: ${{ steps.bump.outputs.version }}
+          body: ${{ steps.changelog.outputs.notes }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
