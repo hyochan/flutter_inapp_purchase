@@ -99,10 +99,12 @@ This project uses Codecov with two checks: **codecov/patch** (new/modified lines
 
 1. Always write tests for new code paths - aim for full branch coverage of your changes
 2. After writing tests, run coverage locally to verify:
+
    ```bash
    flutter test --coverage
    dart run tool/filter_coverage.dart
    ```
+
 3. The project target is `auto` (must not decrease from base branch). If codecov/project fails, add more tests until overall coverage meets or exceeds the base
 4. Focus coverage on:
    - All new public methods and their error paths
