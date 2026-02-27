@@ -172,6 +172,7 @@ For new feature proposals:
 Complete workflow for committing changes: branch check, pre-commit checks, commit, push, and PR creation.
 
 **Arguments**: `[options]`
+
 - `--push` or `-p`: Push to remote after commit
 - `--pr`: Create PR after push
 - `--all` or `-a`: Commit all changes at once
@@ -185,6 +186,7 @@ Complete workflow for committing changes: branch check, pre-commit checks, commi
 4. Optionally push and create PR
 
 **Examples**:
+
 - `/commit lib/ --pr` - Commit lib changes and create PR
 - `/commit --all --push` - Commit all and push
 - `/commit android/` - Commit only android changes
@@ -213,36 +215,20 @@ See [.claude/commands/review-pr.md](.claude/commands/review-pr.md) for full docu
 
 ### /release
 
-Create a new release for flutter_inapp_purchase package.
+Deploy a new release via GitHub Actions CI.
 
-**Arguments**: `VERSION` - Version number (e.g., `8.2.5`)
+Releases are automated via the **Deploy (manual)** workflow (`.github/workflows/deploy.yml`). The workflow handles version bumping, CHANGELOG.md generation, pub.dev publishing, and GitHub Release creation.
 
-**Workflow**:
+**How to trigger**:
 
-1. Ensure on main branch with latest code
-   ```bash
-   git checkout main && git fetch origin && git reset --hard origin/main
-   ```
+1. Go to GitHub Actions > "Deploy (manual)" > "Run workflow"
+2. Select version bump type (patch/minor/major)
+3. Optionally create a GitHub Release
 
-2. Update CHANGELOG.md
-   - Add new version section at the top
-   - Include New Features, Breaking Changes, Dependencies as applicable
-   - Keep entries concise
+The workflow will:
 
-3. Update pubspec.yaml version field
-
-4. Commit and push
-   ```bash
-   git add CHANGELOG.md pubspec.yaml
-   git commit -m "chore: bump version to VERSION
-
-   Co-Authored-By: Claude <noreply@anthropic.com>"
-   git push
-   ```
-
-5. Create GitHub release
-   ```bash
-   gh release create VERSION --title "VERSION" --notes "RELEASE_NOTES"
-   ```
-
-**Example**: `/release 8.2.6`
+- Bump version in `pubspec.yaml`
+- Auto-generate `CHANGELOG.md` from merged PRs and commits
+- Commit, tag, and push
+- Publish to pub.dev via OIDC trusted publishing
+- Create a GitHub Release with release notes
