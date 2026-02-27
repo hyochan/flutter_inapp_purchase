@@ -91,6 +91,30 @@ Before committing any changes, run these commands in order and ensure ALL pass:
 
 **Manual check script**: You can also run `./scripts/pre-commit-checks.sh` to manually execute all checks.
 
+### Code Coverage (Codecov)
+
+This project uses Codecov with two checks: **codecov/patch** (new/modified lines) and **codecov/project** (overall project coverage). Both must pass for CI to succeed.
+
+**When adding or modifying code:**
+
+1. Always write tests for new code paths - aim for full branch coverage of your changes
+2. After writing tests, run coverage locally to verify:
+
+   ```bash
+   flutter test --coverage
+   dart run tool/filter_coverage.dart
+   ```
+
+3. The project target is `auto` (must not decrease from base branch). If codecov/project fails, add more tests until overall coverage meets or exceeds the base
+4. Focus coverage on:
+   - All new public methods and their error paths
+   - Both `on PlatformException catch` and generic `catch` blocks
+   - Extension methods and utility functions
+   - Edge cases (null values, empty strings, missing fields)
+5. Files with 0% coverage are easy wins - prioritize testing those first when coverage needs improvement
+
+**Configuration:** `.codecov.yml` - `lib/types.dart` is ignored (generated file).
+
 ### Commit Message Convention
 
 - Follow the Angular commit style: `<type>: <short summary>` (50 characters max).
