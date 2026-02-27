@@ -117,9 +117,9 @@ jobs:
 
           # Save entry for release notes
           {
-            echo "notes<<CHANGELOG_EOF"
+            echo "notes<<__DEPLOY_CHANGELOG_DELIM__"
             printf "%b" "${CHANGES}"
-            echo "CHANGELOG_EOF"
+            echo "__DEPLOY_CHANGELOG_DELIM__"
           } >> "$GITHUB_OUTPUT"
 
       - name: Commit version bump and changelog
