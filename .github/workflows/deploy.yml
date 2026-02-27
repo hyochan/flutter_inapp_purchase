@@ -24,6 +24,7 @@ permissions:
 
 jobs:
   deploy:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     steps:
@@ -57,8 +58,9 @@ jobs:
         env:
           INPUT_VERSION: ${{ github.event.inputs.version }}
         run: |
-          CURRENT_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //')
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+          CURRENT_VERSION=$(awk '/^version:/{print $2; exit}' pubspec.yaml)
+          CORE_VERSION="${CURRENT_VERSION%%[-+]*}"
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CORE_VERSION"
 
           case "$INPUT_VERSION" in
             major) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
@@ -108,15 +110,15 @@ jobs:
           # Prepend to CHANGELOG.md (create if missing)
           if [ -f CHANGELOG.md ]; then
             EXISTING=$(cat CHANGELOG.md)
-            printf "# Changelog\n\n${ENTRY}\n${EXISTING#"# Changelog"*$'\n'}" > CHANGELOG.md
+            printf "%b" "# Changelog\n\n${ENTRY}\n${EXISTING#"# Changelog"*$'\n'}" > CHANGELOG.md
           else
-            printf "# Changelog\n\n${ENTRY}" > CHANGELOG.md
+            printf "%b" "# Changelog\n\n${ENTRY}" > CHANGELOG.md
           fi
 
           # Save entry for release notes
           {
             echo "notes<<CHANGELOG_EOF"
-            printf "${CHANGES}"
+            printf "%b" "${CHANGES}"
             echo "CHANGELOG_EOF"
           } >> "$GITHUB_OUTPUT"
 
