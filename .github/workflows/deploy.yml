@@ -20,7 +20,6 @@ on:
 
 permissions:
   contents: write
-  id-token: write # Required for OIDC trusted publishing on pub.dev
 
 jobs:
   deploy:
@@ -132,9 +131,6 @@ jobs:
 
       - name: Push commit and tags
         run: git push --follow-tags
-
-      - name: Publish to pub.dev
-        run: dart pub publish --force
 
       - name: Create GitHub Release
         if: ${{ github.event.inputs.create_release == 'true' }}

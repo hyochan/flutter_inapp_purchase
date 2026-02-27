@@ -1,0 +1,35 @@
+name: Publish to pub.dev
+
+on:
+  push:
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+*"
+
+permissions:
+  id-token: write # Required for OIDC trusted publishing on pub.dev
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          flutter-version: "3.x"
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Lint
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
+      - name: Publish to pub.dev
+        run: dart pub publish --force
