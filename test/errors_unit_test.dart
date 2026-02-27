@@ -389,5 +389,275 @@ void main() {
         }
       },
     );
+
+    test(
+      'endConnection maps PlatformException error code',
+      () async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(
+          channel,
+          (MethodCall call) async {
+            if (call.method == 'endConnection') {
+              throw PlatformException(
+                code: 'service-error',
+                message: 'End failed',
+              );
+            }
+            return null;
+          },
+        );
+
+        final iap = FlutterInappPurchase.private(
+          FakePlatform(operatingSystem: 'ios'),
+        );
+        await iap.initConnection();
+
+        try {
+          await iap.endConnection();
+          fail('Expected PurchaseError');
+        } on errors.PurchaseError catch (e) {
+          expect(e.code, types.ErrorCode.ServiceError);
+          expect(e.message, contains('service-error'));
+        }
+      },
+    );
+
+    test(
+      'getStorefront maps PlatformException error code on Android',
+      () async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.android;
+
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(
+          channel,
+          (MethodCall call) async {
+            if (call.method == 'getStorefront') {
+              throw PlatformException(
+                code: 'E_SERVICE_ERROR',
+                message: 'Storefront unavailable',
+              );
+            }
+            return null;
+          },
+        );
+
+        final iap = FlutterInappPurchase.private(
+          FakePlatform(operatingSystem: 'android'),
+        );
+
+        try {
+          await iap.getStorefront();
+          fail('Expected PurchaseError');
+        } on errors.PurchaseError catch (e) {
+          expect(e.code, types.ErrorCode.ServiceError);
+        }
+      },
+    );
+
+    test(
+      'getStorefrontIOS maps PlatformException error code',
+      () async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(
+          channel,
+          (MethodCall call) async {
+            if (call.method == 'getStorefrontIOS') {
+              throw PlatformException(
+                code: 'network-error',
+                message: 'Network issue',
+              );
+            }
+            return null;
+          },
+        );
+
+        final iap = FlutterInappPurchase.private(
+          FakePlatform(operatingSystem: 'ios'),
+        );
+
+        try {
+          await iap.getStorefrontIOS();
+          fail('Expected PurchaseError');
+        } on errors.PurchaseError catch (e) {
+          expect(e.code, types.ErrorCode.NetworkError);
+        }
+      },
+    );
+
+    test(
+      'presentCodeRedemptionSheetIOS maps PlatformException',
+      () async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(
+          channel,
+          (MethodCall call) async {
+            if (call.method == 'presentCodeRedemptionSheetIOS') {
+              throw PlatformException(
+                code: 'service-error',
+                message: 'Sheet failed',
+              );
+            }
+            return null;
+          },
+        );
+
+        final iap = FlutterInappPurchase.private(
+          FakePlatform(operatingSystem: 'ios'),
+        );
+
+        try {
+          await iap.presentCodeRedemptionSheetIOS();
+          fail('Expected PurchaseError');
+        } on errors.PurchaseError catch (e) {
+          expect(e.code, types.ErrorCode.ServiceError);
+        }
+      },
+    );
+
+    test(
+      'showManageSubscriptionsIOS maps PlatformException',
+      () async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(
+          channel,
+          (MethodCall call) async {
+            if (call.method == 'showManageSubscriptionsIOS') {
+              throw PlatformException(
+                code: 'service-error',
+                message: 'Manage subs failed',
+              );
+            }
+            return null;
+          },
+        );
+
+        final iap = FlutterInappPurchase.private(
+          FakePlatform(operatingSystem: 'ios'),
+        );
+
+        try {
+          await iap.showManageSubscriptionsIOS();
+          fail('Expected PurchaseError');
+        } on errors.PurchaseError catch (e) {
+          expect(e.code, types.ErrorCode.ServiceError);
+        }
+      },
+    );
+
+    test(
+      'getActiveSubscriptions maps PlatformException error code',
+      () async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(
+          channel,
+          (MethodCall call) async {
+            if (call.method == 'getActiveSubscriptions') {
+              throw PlatformException(
+                code: 'network-error',
+                message: 'Network issue',
+              );
+            }
+            return null;
+          },
+        );
+
+        final iap = FlutterInappPurchase.private(
+          FakePlatform(operatingSystem: 'ios'),
+        );
+        await iap.initConnection();
+
+        try {
+          await iap.getActiveSubscriptions();
+          fail('Expected PurchaseError');
+        } on errors.PurchaseError catch (e) {
+          expect(e.code, types.ErrorCode.NetworkError);
+        }
+      },
+    );
+
+    test(
+      'isEligibleForExternalPurchaseCustomLinkIOS maps '
+      'PlatformException',
+      () async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(
+          channel,
+          (MethodCall call) async {
+            if (call.method == 'isEligibleForExternalPurchaseCustomLinkIOS') {
+              throw PlatformException(
+                code: 'service-error',
+                message: 'Eligibility check failed',
+              );
+            }
+            return null;
+          },
+        );
+
+        final iap = FlutterInappPurchase.private(
+          FakePlatform(operatingSystem: 'ios'),
+        );
+
+        try {
+          await iap.isEligibleForExternalPurchaseCustomLinkIOS();
+          fail('Expected PurchaseError');
+        } on errors.PurchaseError catch (e) {
+          expect(e.code, types.ErrorCode.ServiceError);
+        }
+      },
+    );
+
+    test(
+      'PurchaseError includes platform field from mapping',
+      () async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(
+          channel,
+          (MethodCall call) async {
+            if (call.method == 'requestPurchase') {
+              throw PlatformException(
+                code: 'user-cancelled',
+                message: 'Cancelled',
+              );
+            }
+            return null;
+          },
+        );
+
+        final iap = FlutterInappPurchase.private(
+          FakePlatform(operatingSystem: 'ios'),
+        );
+        await iap.initConnection();
+
+        try {
+          await iap.requestPurchase(
+            const types.RequestPurchaseProps.inApp((
+              apple: types.RequestPurchaseIosProps(
+                sku: 'test_sku',
+              ),
+              google: null,
+              useAlternativeBilling: null,
+            )),
+          );
+          fail('Expected PurchaseError');
+        } on errors.PurchaseError catch (e) {
+          expect(e.code, types.ErrorCode.UserCancelled);
+          expect(e.platform, types.IapPlatform.IOS);
+        }
+      },
+    );
   });
 }

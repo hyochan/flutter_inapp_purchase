@@ -1723,14 +1723,16 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
     PlatformException error,
     String operation,
   ) {
+    final platform = _platform.isIOS || _platform.isMacOS
+        ? gentype.IapPlatform.IOS
+        : gentype.IapPlatform.Android;
     final errorCode = errors.ErrorCodeUtils.fromPlatformCode(
       error.code,
-      _platform.isIOS || _platform.isMacOS
-          ? gentype.IapPlatform.IOS
-          : gentype.IapPlatform.Android,
+      platform,
     );
     return PurchaseError(
       code: errorCode,
+      platform: platform,
       message: 'Failed to $operation [${error.code}]: '
           '${error.message ?? error.details}',
     );
@@ -1827,14 +1829,13 @@ class FlutterInappPurchase with RequestPurchaseBuilderApi {
           }
 
           return _parseActiveSubscriptions(result);
+        } on PlatformException catch (error) {
+          throw _purchaseErrorFromPlatformException(
+            error,
+            'get active subscriptions',
+          );
         } catch (error) {
           if (error is PurchaseError) rethrow;
-          if (error is PlatformException) {
-            throw _purchaseErrorFromPlatformException(
-              error,
-              'get active subscriptions',
-            );
-          }
           throw PurchaseError(
             code: gentype.ErrorCode.ServiceError,
             message: 'Failed to get active subscriptions: '
