@@ -1,3 +1,11 @@
+# Changelog
+
+## 8.2.8 (2026-02-27)
+
+- ci: add automated deploy workflow for pub.dev (#622)
+- fix: map PlatformException to proper ErrorCode in all methods (#621)
+- chore: update openiap apple to 1.3.15 (#618)
+
 # CHANGELOG
 
 ## 8.2.7
