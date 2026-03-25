@@ -1,5 +1,15 @@
 # Changelog
 
+## 8.2.9 (2026-03-25)
+
+- chore(deps): bump undici from 7.18.2 to 7.24.1 in /docs (#624)
+- chore(deps): bump svgo from 3.3.2 to 3.3.3 in /docs (#623)
+- chore(deps): bump webpack from 5.100.2 to 5.105.0 in /docs (#614)
+- chore(deps): bump ajv in /docs (#620)
+- fix(errors): support macOS in getCurrentPlatform — return IapPlatform.IOS for StoreKit platforms (#626)
+- fix: publish directly from deploy workflow
+
+
 ## 8.2.8 (2026-02-27)
 
 - ci: add automated deploy workflow for pub.dev (#622)
