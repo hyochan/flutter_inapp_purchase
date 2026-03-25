@@ -6,6 +6,7 @@ on:
       - "[0-9]+.[0-9]+.[0-9]+*"
 
 permissions:
+  contents: write # Required for creating GitHub Releases
   id-token: write # Required for OIDC trusted publishing on pub.dev
 
 jobs:
@@ -33,3 +34,12 @@ jobs:
 
       - name: Publish to pub.dev
         run: dart pub publish --force
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true

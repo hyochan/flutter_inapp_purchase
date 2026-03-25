@@ -21,7 +21,6 @@ on:
 
 permissions:
   contents: write
-  id-token: write # Required for OIDC trusted publishing on pub.dev
 
 jobs:
   deploy:
@@ -159,17 +158,3 @@ jobs:
           git push origin ":refs/tags/${VERSION}" 2>/dev/null || true
           git tag -f "${VERSION}"
           git push origin "refs/tags/${VERSION}"
-
-      - name: Publish to pub.dev
-        run: dart pub publish --force
-
-      - name: Create GitHub Release
-        if: ${{ github.event.inputs.create_release == 'true' }}
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.resolve.outputs.version }}
-          name: ${{ steps.resolve.outputs.version }}
-          body: ${{ steps.changelog.outputs.notes }}
-          draft: false
-          prerelease: false
-          generate_release_notes: true
