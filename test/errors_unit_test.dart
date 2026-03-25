@@ -23,14 +23,16 @@ void main() {
       expect(errors.getCurrentPlatform(), types.IapPlatform.Android);
     });
 
+    test('returns IOS when running on macOS (StoreKit platform)', () {
+      debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+      expect(errors.getCurrentPlatform(), types.IapPlatform.IOS);
+    });
+
     test('throws UnsupportedError for unsupported platforms', () {
       debugDefaultTargetPlatformOverride = TargetPlatform.linux;
       expect(() => errors.getCurrentPlatform(), throwsUnsupportedError);
 
       debugDefaultTargetPlatformOverride = TargetPlatform.windows;
-      expect(() => errors.getCurrentPlatform(), throwsUnsupportedError);
-
-      debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
       expect(() => errors.getCurrentPlatform(), throwsUnsupportedError);
 
       debugDefaultTargetPlatformOverride = TargetPlatform.fuchsia;

@@ -11,7 +11,9 @@ typedef IapPlatform = openiap_types.IapPlatform;
 
 /// Get current platform
 IapPlatform getCurrentPlatform() {
-  if (defaultTargetPlatform == TargetPlatform.iOS) {
+  if (defaultTargetPlatform == TargetPlatform.iOS ||
+      defaultTargetPlatform == TargetPlatform.macOS) {
+    // macOS uses the same StoreKit framework as iOS
     return IapPlatform.IOS;
   } else if (defaultTargetPlatform == TargetPlatform.android) {
     return IapPlatform.Android;
