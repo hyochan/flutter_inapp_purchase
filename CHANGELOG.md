@@ -1,5 +1,10 @@
 # Changelog
 
+## 8.2.10 (2026-03-25)
+
+- Initial release
+
+
 ## 8.2.9 (2026-03-25)
 
 - chore(deps): bump undici from 7.18.2 to 7.24.1 in /docs (#624)
