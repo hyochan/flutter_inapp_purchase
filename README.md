@@ -1,3 +1,7 @@
+> **⚠️ This repository has moved to the [OpenIAP monorepo](https://github.com/hyodotdev/openiap/tree/main/libraries/flutter_inapp_purchase).**
+> This repository is deprecated and will be archived soon. All future development happens in the monorepo.
+> Please see the [announcement](https://github.com/hyochan/flutter_inapp_purchase/discussions/632) for details.
+
 # flutter_inapp_purchase
 
 <div align="center">
