@@ -124,7 +124,7 @@ When you verify a purchase with `verifyPurchaseWithProvider`, you can access the
 ```dart
 final result = await iap.verifyPurchaseWithProvider(
   purchase: purchase,
-  providerUrl: 'https://www.iapkit.com/api/v1/verify',
+  providerUrl: 'https://kit.openiap.dev/api/v1/verify',
 );
 
 // The result contains offerDetails with basePlanId

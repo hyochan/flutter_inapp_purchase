@@ -3,7 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 // Product IDs for testing in the example app
 class IapConstants {
   // IAPKit API Key for purchase verification
-  // Get your API key from https://iapkit.com
+  // Get your API key from https://kit.openiap.dev
   static String get iapkitApiKey => dotenv.env['IAPKIT_API_KEY'] ?? '';
 
   // Consumable Product IDs
