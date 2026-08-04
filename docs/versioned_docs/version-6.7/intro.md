@@ -7,6 +7,12 @@ slug: /
 
 # flutter_inapp_purchase
 
+:::warning This repository has moved
+
+**flutter_inapp_purchase** now lives in the **[OpenIAP monorepo](https://github.com/hyodotdev/openiap)** — the source is at **[libraries/flutter_inapp_purchase](https://github.com/hyodotdev/openiap/tree/main/libraries/flutter_inapp_purchase)** and the package name is unchanged. The current documentation lives at **[openiap.dev/docs/setup/flutter](https://openiap.dev/docs/setup/flutter)**. Please report issues and feature requests at [hyodotdev/openiap/issues](https://github.com/hyodotdev/openiap/issues).
+
+:::
+
 A comprehensive Flutter plugin for implementing in-app purchases that **conforms to the [Open IAP specification](https://openiap.dev)**.
 
 <div style={{textAlign: 'center', margin: '2rem 0'}}>
